@@ -483,6 +483,11 @@ typedef struct wl_imf_music_metadata {
     uint8_t first_register;
     uint8_t first_value;
     uint16_t first_delay;
+    uint8_t last_register;
+    uint8_t last_value;
+    uint16_t last_delay;
+    uint16_t max_delay;
+    size_t zero_delay_count;
     uint32_t total_delay;
     size_t trailing_bytes;
 } wl_imf_music_metadata;
