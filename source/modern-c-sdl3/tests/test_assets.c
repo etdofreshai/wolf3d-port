@@ -4711,6 +4711,19 @@ static int check_wl6(const char *dir) {
     CHECK(present_frame.palette_shift_kind == WL_PALETTE_SHIFT_NONE);
     CHECK(present_frame.texture.pixels == canvas.pixels);
     CHECK(present_frame.texture.palette == upload_palette);
+    unsigned char present_rgba[80u * 128u * 4u];
+    wl_texture_upload_descriptor present_rgba_upload;
+    CHECK(wl_expand_present_frame_to_rgba(&present_frame, present_rgba,
+                                          sizeof(present_rgba),
+                                          &present_rgba_upload) == 0);
+    CHECK(present_rgba_upload.format == WL_TEXTURE_UPLOAD_RGBA8888);
+    CHECK(present_rgba_upload.width == present_frame.viewport_width);
+    CHECK(present_rgba_upload.height == present_frame.viewport_height);
+    CHECK(present_rgba_upload.pixel_bytes == sizeof(present_rgba));
+    CHECK(present_rgba_upload.palette == NULL);
+    CHECK(wl_expand_present_frame_to_rgba(NULL, present_rgba,
+                                          sizeof(present_rgba),
+                                          &present_rgba_upload) == -1);
     memset(&present_shift, 0, sizeof(present_shift));
     present_shift.kind = WL_PALETTE_SHIFT_RED;
     present_shift.shift_index = 2;
