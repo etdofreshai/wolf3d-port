@@ -1,6 +1,7 @@
 #include "wl_assets.h"
 
 #include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -992,6 +993,91 @@ int wl_cast_fixed_cardinal_wall_ray(const uint16_t *wall_plane, size_t wall_coun
     return wl_cast_cardinal_wall_ray(wall_plane, wall_count, start_x, start_y,
                                      direction, texture_column, x, scaled_height,
                                      out);
+}
+
+int wl_cast_fixed_wall_ray(const uint16_t *wall_plane, size_t wall_count,
+                           uint32_t origin_x, uint32_t origin_y,
+                           int32_t direction_x, int32_t direction_y,
+                           uint16_t x, uint16_t scaled_height,
+                           wl_map_wall_hit *out) {
+    if (!wall_plane || !out || wall_count < WL_MAP_PLANE_WORDS || scaled_height == 0 ||
+        origin_x >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        origin_y >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        (direction_x == 0 && direction_y == 0)) {
+        return -1;
+    }
+
+    int tile_x = (int)(origin_x >> 16);
+    int tile_y = (int)(origin_y >> 16);
+    int step_x = 0;
+    int step_y = 0;
+    int64_t side_t_x = INT64_MAX;
+    int64_t side_t_y = INT64_MAX;
+    int64_t delta_t_x = INT64_MAX;
+    int64_t delta_t_y = INT64_MAX;
+
+    if (direction_x > 0) {
+        step_x = 1;
+        uint32_t next_boundary = (uint32_t)(tile_x + 1) << 16;
+        side_t_x = ((int64_t)(next_boundary - origin_x) << 16) / direction_x;
+        delta_t_x = ((int64_t)1 << 32) / direction_x;
+    } else if (direction_x < 0) {
+        step_x = -1;
+        uint32_t next_boundary = (uint32_t)tile_x << 16;
+        side_t_x = ((int64_t)(origin_x - next_boundary) << 16) / -(int64_t)direction_x;
+        delta_t_x = ((int64_t)1 << 32) / -(int64_t)direction_x;
+    }
+
+    if (direction_y > 0) {
+        step_y = 1;
+        uint32_t next_boundary = (uint32_t)(tile_y + 1) << 16;
+        side_t_y = ((int64_t)(next_boundary - origin_y) << 16) / direction_y;
+        delta_t_y = ((int64_t)1 << 32) / direction_y;
+    } else if (direction_y < 0) {
+        step_y = -1;
+        uint32_t next_boundary = (uint32_t)tile_y << 16;
+        side_t_y = ((int64_t)(origin_y - next_boundary) << 16) / -(int64_t)direction_y;
+        delta_t_y = ((int64_t)1 << 32) / -(int64_t)direction_y;
+    }
+
+    for (size_t step_count = 0; step_count < WL_MAP_SIDE * 2u; ++step_count) {
+        wl_wall_side side = WL_WALL_SIDE_HORIZONTAL;
+        int64_t hit_t = 0;
+        if (side_t_x <= side_t_y) {
+            tile_x += step_x;
+            hit_t = side_t_x;
+            side_t_x += delta_t_x;
+            side = WL_WALL_SIDE_VERTICAL;
+        } else {
+            tile_y += step_y;
+            hit_t = side_t_y;
+            side_t_y += delta_t_y;
+            side = WL_WALL_SIDE_HORIZONTAL;
+        }
+
+        if (tile_x < 0 || tile_y < 0 || tile_x >= WL_MAP_SIDE || tile_y >= WL_MAP_SIDE) {
+            return -1;
+        }
+
+        uint16_t tile = wall_plane[(size_t)tile_y * WL_MAP_SIDE + (size_t)tile_x];
+        if (tile == 0 || tile >= 64) {
+            continue;
+        }
+
+        int64_t hit_coord = 0;
+        if (side == WL_WALL_SIDE_VERTICAL) {
+            hit_coord = (int64_t)origin_y + (((int64_t)direction_y * hit_t) >> 16);
+        } else {
+            hit_coord = (int64_t)origin_x + (((int64_t)direction_x * hit_t) >> 16);
+        }
+        uint16_t texture_column = (uint16_t)((uint64_t)(hit_coord >> 10) &
+                                             (WL_MAP_SIDE - 1u));
+        return wl_build_map_wall_hit(wall_plane, wall_count, (uint16_t)tile_x,
+                                     (uint16_t)tile_y, side, texture_column, x,
+                                     scaled_height, out);
+    }
+
+    return -1;
 }
 
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,

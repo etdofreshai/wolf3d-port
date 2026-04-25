@@ -417,6 +417,7 @@ static int check_wl6(const char *dir) {
     unsigned char wall0_buf[4096];
     unsigned char wall9_buf[4096];
     unsigned char wall14_buf[4096];
+    unsigned char wall15_buf[4096];
     unsigned char wall16_buf[4096];
     unsigned char wall17_buf[4096];
     unsigned char wall63_buf[4096];
@@ -527,6 +528,9 @@ static int check_wl6(const char *dir) {
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 14, wall14_buf, sizeof(wall14_buf),
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 4096);
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 15, wall15_buf, sizeof(wall15_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 4096);
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 16, wall16_buf, sizeof(wall16_buf),
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 4096);
@@ -634,6 +638,61 @@ static int check_wl6(const char *dir) {
     CHECK(wl_cast_fixed_cardinal_wall_ray(wall_plane, WL_MAP_PLANE_WORDS,
                                           (64u << 16), player_y, WL_RAY_EAST,
                                           0, 64, &hits[0]) == -1);
+
+    wl_map_wall_hit dda_hits[5];
+    CHECK(wl_cast_fixed_wall_ray(wall_plane, WL_MAP_PLANE_WORDS,
+                                 player_x, player_y, 0x10000, 0,
+                                 5, 96, &dda_hits[0]) == 0);
+    CHECK(dda_hits[0].tile_x == 41);
+    CHECK(dda_hits[0].tile_y == 57);
+    CHECK(dda_hits[0].wall_page_index == 17);
+    CHECK(dda_hits[0].texture_offset == 0x0800);
+    CHECK(wl_cast_fixed_wall_ray(wall_plane, WL_MAP_PLANE_WORDS,
+                                 player_x, player_y, -0x10000, 0,
+                                 15, 96, &dda_hits[1]) == 0);
+    CHECK(dda_hits[1].tile_x == 27);
+    CHECK(dda_hits[1].tile_y == 57);
+    CHECK(dda_hits[1].wall_page_index == 17);
+    CHECK(dda_hits[1].texture_offset == 0x0800);
+    CHECK(wl_cast_fixed_wall_ray(wall_plane, WL_MAP_PLANE_WORDS,
+                                 player_x, player_y, 0, -0x10000,
+                                 25, 96, &dda_hits[2]) == 0);
+    CHECK(dda_hits[2].tile_x == 29);
+    CHECK(dda_hits[2].tile_y == 55);
+    CHECK(dda_hits[2].wall_page_index == 16);
+    CHECK(dda_hits[2].texture_offset == 0x0800);
+    CHECK(wl_cast_fixed_wall_ray(wall_plane, WL_MAP_PLANE_WORDS,
+                                 player_x, player_y, 0, 0x10000,
+                                 35, 96, &dda_hits[3]) == 0);
+    CHECK(dda_hits[3].tile_x == 29);
+    CHECK(dda_hits[3].tile_y == 59);
+    CHECK(dda_hits[3].wall_page_index == 16);
+    CHECK(dda_hits[3].texture_offset == 0x0800);
+    CHECK(wl_cast_fixed_wall_ray(wall_plane, WL_MAP_PLANE_WORDS,
+                                 player_x, player_y, 0x10000, -0x8000,
+                                 45, 96, &dda_hits[4]) == 0);
+    CHECK(dda_hits[4].tile_x == 32);
+    CHECK(dda_hits[4].tile_y == 56);
+    CHECK(dda_hits[4].source_tile == 8);
+    CHECK(dda_hits[4].wall_page_index == 15);
+    CHECK(dda_hits[4].texture_offset == 0x0400);
+    const unsigned char *dda_pages[] = { wall17_buf, wall17_buf, wall16_buf,
+                                         wall16_buf, wall15_buf };
+    wl_wall_strip dda_strips[5];
+    for (size_t i = 0; i < 5; ++i) {
+        CHECK(wl_wall_hit_to_strip(&dda_hits[i], dda_pages[i], 4096,
+                                   &dda_strips[i]) == 0);
+    }
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_wall_strip_viewport(dda_strips, 5, &canvas) == 0);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0xae40b70c);
+    CHECK(wl_cast_fixed_wall_ray(wall_plane, WL_MAP_PLANE_WORDS, player_x,
+                                 player_y, 0, 0, 0, 64, &dda_hits[0]) == -1);
+    CHECK(wl_cast_fixed_wall_ray(wall_plane, WL_MAP_PLANE_WORDS,
+                                 (64u << 16), player_y, 0x10000, 0,
+                                 0, 64, &dda_hits[0]) == -1);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 105, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -1007,6 +1066,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/fixed-ray tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/dda-ray tests passed for %s\n", dir);
     return 0;
 }
