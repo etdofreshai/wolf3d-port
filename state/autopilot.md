@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer with broader visible-ref/camera-angle coverage, additional maps cover officer/SS/mutant/boss/ghost runtime actor refs, and palette fade/shift generation, state, shifted upload selection, player gameplay/bonus pickup events, and runtime static pickup/removal hooks, a TransformTile-style visible pickup probe, and a small player motion/collision tick, and use-button door/elevator/pushwall dispatch metadata and deterministic door open/close progression, and pushwall start/progression metadata, a live runtime solid-plane raycast/render bridge, door-wall render descriptors, runtime door-aware ray hits, and door-aware runtime camera wall rendering, and door-aware runtime wall+sprite scene rendering, pushwall wall-page/texture descriptors, and live pushwall scene occlusion, and pushwall sub-tile distance/height, and live runtime-ref door scene coverage, and a headless live gameplay tick and live tick palette-upload selection and live tick scene rendering and live tick pushwall scene rendering and live tick static pickup scene removal and actor bite damage, actor shooting damage, projectile damage, live projectile tick damage, live actor attack tick damage, and combined live combat tick damage, live combat palette-upload selection, and actor damage/kill state, actor drop static spawning, live actor damage/drop spawning tick integration, live-spawned actor drop scene rendering, a full live combat tick combining outgoing actor damage/drop with incoming actor/projectile damage, deterministic actor death-state progression, death-state actor scene rendering, and live full-combat death-state/ref output, full-combat death-ref scene rendering, final death-frame replacement in runtime actor refs, and live actor death animation ticking/finalization are covered headlessly. Next phase should broaden map runtime-scene coverage, deepen actor AI progression, add more runtime actor state progression, or add a small SDL3 presentation boundary when SDL3 is available.
+Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer with broader visible-ref/camera-angle coverage, additional maps cover officer/SS/mutant/boss/ghost runtime actor refs, and palette fade/shift generation, state, shifted upload selection, player gameplay/bonus pickup events, and runtime static pickup/removal hooks, a TransformTile-style visible pickup probe, and a small player motion/collision tick, and use-button door/elevator/pushwall dispatch metadata and deterministic door open/close progression, and pushwall start/progression metadata, a live runtime solid-plane raycast/render bridge, door-wall render descriptors, runtime door-aware ray hits, and door-aware runtime camera wall rendering, and door-aware runtime wall+sprite scene rendering, pushwall wall-page/texture descriptors, and live pushwall scene occlusion, and pushwall sub-tile distance/height, and live runtime-ref door scene coverage, and a headless live gameplay tick and live tick palette-upload selection and live tick scene rendering and live tick pushwall scene rendering and live tick static pickup scene removal and actor bite damage, actor shooting damage, projectile damage, live projectile tick damage, live actor attack tick damage, and combined live combat tick damage, live combat palette-upload selection, and actor damage/kill state, actor drop static spawning, live actor damage/drop spawning tick integration, live-spawned actor drop scene rendering, a full live combat tick combining outgoing actor damage/drop with incoming actor/projectile damage, deterministic actor death-state progression, death-state actor scene rendering, and live full-combat death-state/ref output, full-combat death-ref scene rendering, final death-frame replacement in runtime actor refs, live actor death animation ticking/finalization, and full-combat orchestration with active death ticking are covered headlessly. Next phase should broaden map runtime-scene coverage, deepen actor AI progression, add more runtime actor state progression, or add a small SDL3 presentation boundary when SDL3 is available.
 
 ## Latest Verified Milestone
 
@@ -161,7 +161,8 @@ Use tests as the bridge from the original code to modern C:
 83. Full-combat death-ref scene rendering. **Done headlessly.**
 84. Final death-frame replacement in runtime actor refs. **Done headlessly.**
 85. Live actor death animation tick/finalization. **Done headlessly.**
-86. Broader map runtime-scene coverage, deeper collision/gameplay events, runtime actor state progression, or SDL3 presentation seam.
+86. Full-combat orchestration with active death ticking. **Done headlessly.**
+87. Broader map runtime-scene coverage, deeper collision/gameplay events, runtime actor state progression, or SDL3 presentation seam.
 
 ## Next Likely Move
 
@@ -173,7 +174,7 @@ Recommended next commit:
 - or add a small SDL3 presentation seam using `wl_texture_upload_descriptor`;
 - or connect palette-shifted upload selection to future live player damage/bonus events before presentation.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, scaled-sprite viewport hashes, world-sprite projection/sorted-render hashes, combined scene render hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA/palette-fade/shift hashes, shift-state transitions, and palette-selected upload hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, door-area connectivity descriptors, and runtime scene sprite-reference descriptors, VSWAP sprite surface-cache hashes, and broader runtime-scene, camera-scene, multi-map enemy scene-ref, boss-map scene-ref, ghost-map scene-ref, and gameplay-event, bonus-pickup, static-pickup, and visible-static-pickup, player-motion, player-use, door-progression, pushwall-progression, live-solid-ray, live-runtime-render, door-wall-render, runtime-door-ray, runtime-door-render, runtime-door-scene, runtime-pushwall-render, runtime-pushwall-scene, runtime-pushwall-offset, runtime-live-ref-scene, runtime-live-tick, runtime-live-tick-upload, runtime-live-tick-scene, runtime-live-tick-pushwall-scene, and runtime-live-tick-static-scene, and runtime-actor-bite, runtime-actor-shoot, runtime-projectile-damage, runtime-live-projectile-tick, runtime-live-actor-tick, runtime-live-combat-tick, runtime-live-combat-upload, runtime-actor-damage-state, runtime-actor-drop-static, runtime-live-actor-damage-drop, runtime-live-actor-drop-scene, runtime-live-full-combat, runtime-actor-death-state, runtime-actor-death-scene, runtime-live-full-combat-death, runtime-live-full-combat-death-scene, runtime-actor-death-final-frame, and runtime-live-actor-death-tick assertions.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, scaled-sprite viewport hashes, world-sprite projection/sorted-render hashes, combined scene render hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA/palette-fade/shift hashes, shift-state transitions, and palette-selected upload hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, door-area connectivity descriptors, and runtime scene sprite-reference descriptors, VSWAP sprite surface-cache hashes, and broader runtime-scene, camera-scene, multi-map enemy scene-ref, boss-map scene-ref, ghost-map scene-ref, and gameplay-event, bonus-pickup, static-pickup, and visible-static-pickup, player-motion, player-use, door-progression, pushwall-progression, live-solid-ray, live-runtime-render, door-wall-render, runtime-door-ray, runtime-door-render, runtime-door-scene, runtime-pushwall-render, runtime-pushwall-scene, runtime-pushwall-offset, runtime-live-ref-scene, runtime-live-tick, runtime-live-tick-upload, runtime-live-tick-scene, runtime-live-tick-pushwall-scene, and runtime-live-tick-static-scene, and runtime-actor-bite, runtime-actor-shoot, runtime-projectile-damage, runtime-live-projectile-tick, runtime-live-actor-tick, runtime-live-combat-tick, runtime-live-combat-upload, runtime-actor-damage-state, runtime-actor-drop-static, runtime-live-actor-damage-drop, runtime-live-actor-drop-scene, runtime-live-full-combat, runtime-actor-death-state, runtime-actor-death-scene, runtime-live-full-combat-death, runtime-live-full-combat-death-scene, runtime-actor-death-final-frame, runtime-live-actor-death-tick, and runtime-live-full-combat-death-tick assertions.
 
 ## Blockers
 
@@ -3343,5 +3344,43 @@ Safety/legal checks:
 Next likely move:
 
 - Broaden multi-map runtime scene coverage, connect death ticking into full-combat frame orchestration, or add broader actor AI/state progression.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 04:50 CDT
+
+Action taken:
+
+- Connected active death animation ticking into the full live combat orchestration boundary.
+- Added `wl_live_full_combat_death_tick_result` and `wl_step_live_full_combat_death_tick`, which run the full combat frame transition and optionally advance an active actor death state in the same headless frame.
+- The new seam returns both normal full-combat results and death-tick output, including renderer-facing death refs and final corpse-frame application to the runtime actor slot.
+- Headless tests verify a guard killed by full combat can have its active death state advanced/finalized through the combined wrapper, preserving the spawned drop while applying final source `95` / VSWAP chunk `201` to actor model index `9`.
+- Updated README, runtime/VSWAP/graphics research notes, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-full-combat-death-tick tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/state assertions are committed.
+
+Next likely move:
+
+- Broaden multi-map runtime scene coverage, render combined full-combat/death-tick final refs in-scene, or add broader actor AI/state progression.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

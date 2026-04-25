@@ -318,3 +318,8 @@ Runtime actor refs now have a small death-finalization seam. A finished `wl_acto
 ## Cycle update: live actor death tick
 
 Actor death animation now advances through a runtime tick seam. `wl_step_live_actor_death_tick` steps death-state tics, emits a scene ref for the current death frame, and applies the final corpse-frame override to the model actor slot when finished. The guard test proves the same actor model index progresses to source `92`, then persists as source `95` / chunk `201` through normal scene-ref collection.
+
+
+## Cycle update: full combat death tick orchestration
+
+Full live combat can now advance active actor death animation in the same frame boundary. `wl_step_live_full_combat_death_tick` returns the normal full-combat transition plus optional death-tick output, so a previously killed guard can progress to its final corpse-frame override while the mutable model still carries spawned drops and ordinary scene refs.

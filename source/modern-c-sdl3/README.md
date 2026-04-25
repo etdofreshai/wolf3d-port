@@ -186,3 +186,8 @@ Runtime actor scene refs now support a final death-frame replacement. `wl_apply_
 ## Live actor death tick
 
 Actor death animation now has a live tick seam. `wl_step_live_actor_death_tick` advances a `wl_actor_death_state`, returns a renderer-facing scene ref for the current death frame, and applies the persistent final-frame override to the actor slot when the sequence finishes. The guard test advances source `91` → `92` → final `95` / VSWAP chunk `201`.
+
+
+## Full combat plus death tick
+
+Full live combat orchestration can now also advance an active death animation in the same frame. `wl_step_live_full_combat_death_tick` wraps the existing full-combat frame transition, then optionally calls the live actor death tick to return current death refs and apply final corpse-frame overrides. The guard coverage preserves a spawned drop while finalizing model index `9` to source `95` / VSWAP chunk `201`.

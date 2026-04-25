@@ -267,3 +267,8 @@ The runtime actor-ref path can now carry final death-frame VSWAP metadata. Apply
 ## Cycle update: live actor death tick
 
 Death-frame VSWAP metadata now updates through a live tick boundary. The guard death tick emits source `92` / chunk `198` during progression and final source `95` / chunk `201` at completion, after which `wl_collect_scene_sprite_refs` carries the corpse frame from the runtime actor slot.
+
+
+## Cycle update: full combat death tick orchestration
+
+The combined full-combat/death-tick path now carries active death VSWAP metadata through the same frame result as combat state. The guard test finalizes a full-combat death to source `95` / chunk `201` on actor model index `9`, preserving metadata-only verification.

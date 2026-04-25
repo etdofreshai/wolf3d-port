@@ -279,3 +279,8 @@ Actor death progression now has a persistent renderer-facing final-frame bridge.
 ## Cycle update: live actor death tick
 
 The renderer-facing death animation path now has a live ticking contract. Each tick can return the current death-frame scene ref, and the final tick installs the corpse sprite override so ordinary scene collection keeps drawing the final frame for future SDL3 presentation.
+
+
+## Cycle update: full combat death tick orchestration
+
+Death animation ticking is now available from the full combat frame boundary that future SDL3 presentation will consume. The combined result exposes ordinary combat output plus the current death-frame ref/final-frame override, keeping presentation state deterministic and headless.

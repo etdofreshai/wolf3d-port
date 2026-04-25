@@ -772,6 +772,12 @@ static int check_gameplay_events(void) {
     wl_live_full_combat_tick_result full_combat;
     wl_game_model full_combat_model;
     memset(&full_combat_model, 0, sizeof(full_combat_model));
+    full_combat_model.actor_count = 10;
+    full_combat_model.actors[9].kind = WL_ACTOR_GUARD;
+    full_combat_model.actors[9].mode = WL_ACTOR_STAND;
+    full_combat_model.actors[9].shootable = 1;
+    full_combat_model.actors[9].tile_x = 7;
+    full_combat_model.actors[9].tile_y = 4;
     wl_actor_desc full_target_desc;
     memset(&full_target_desc, 0, sizeof(full_target_desc));
     full_target_desc.kind = WL_ACTOR_GUARD;
@@ -829,6 +835,36 @@ static int check_gameplay_events(void) {
     CHECK(state.score == 100);
     CHECK(projectile.active == 0);
     CHECK(full_target.alive == 0);
+
+    wl_actor_death_state active_full_death = full_combat.actor_death;
+    wl_live_full_combat_death_tick_result full_death_tick;
+    CHECK(wl_init_player_gameplay_state(&state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_step_live_full_combat_death_tick(&state, &full_combat_model,
+                                              live_wall, live_info,
+                                              WL_MAP_PLANE_WORDS,
+                                              &live_actor_motion, 0, 0,
+                                              0x10000, 0, WL_DIR_EAST, 0, 0,
+                                              NULL, NULL, NULL, 0,
+                                              0, 106, WL_DIFFICULTY_HARD,
+                                              0, 0, 0, 0, 0, 0,
+                                              0, 0, 0, 0, 0, 45,
+                                              9, &active_full_death,
+                                              &full_death_tick) == 0);
+    CHECK(full_death_tick.combat.actor_damaged == 0);
+    CHECK(full_death_tick.combat.drop_spawned == 0);
+    CHECK(full_death_tick.combat.drop_static_index == 1);
+    CHECK(full_death_tick.combat.live.palette.kind == WL_PALETTE_SHIFT_NONE);
+    CHECK(full_death_tick.death_stepped == 1);
+    CHECK(full_death_tick.death.step.finished == 1);
+    CHECK(full_death_tick.death.death_ref_built == 1);
+    CHECK(full_death_tick.death.death_ref.model_index == 9);
+    CHECK(full_death_tick.death.death_ref.source_index == 95);
+    CHECK(full_death_tick.death.death_ref.vswap_chunk_index == 201);
+    CHECK(full_death_tick.death.final_frame_applied == 1);
+    CHECK(full_combat_model.actors[9].mode == WL_ACTOR_INERT);
+    CHECK(full_combat_model.actors[9].shootable == 0);
+    CHECK(full_combat_model.actors[9].scene_source_override == 1);
+    CHECK(full_combat_model.actors[9].scene_source_index == 95);
 
     CHECK(wl_init_player_gameplay_state(&state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
     CHECK(wl_step_live_full_combat_tick(&state, &full_combat_model,
@@ -3963,6 +3999,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-actor-death-tick tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-full-combat-death-tick tests passed for %s\n", dir);
     return 0;
 }

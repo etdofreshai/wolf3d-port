@@ -2109,6 +2109,66 @@ int wl_step_live_full_combat_tick(wl_player_gameplay_state *state,
     return 0;
 }
 
+int wl_step_live_full_combat_death_tick(wl_player_gameplay_state *state,
+                                        wl_game_model *model,
+                                        const uint16_t *wall_plane,
+                                        const uint16_t *info_plane,
+                                        size_t word_count,
+                                        wl_player_motion_state *motion,
+                                        int32_t xmove, int32_t ymove,
+                                        int32_t forward_x, int32_t forward_y,
+                                        wl_direction facing, int use_button,
+                                        int button_held,
+                                        const wl_actor_desc *attacker,
+                                        wl_projectile_state *projectile,
+                                        wl_actor_combat_state *damage_actor,
+                                        int32_t damage_actor_points,
+                                        uint16_t damage_actor_model_index,
+                                        uint16_t vswap_sprite_start,
+                                        wl_difficulty difficulty,
+                                        int area_active, int line_of_sight,
+                                        int player_running, int actor_visible,
+                                        uint8_t actor_chance_roll,
+                                        uint8_t actor_damage_roll,
+                                        int32_t projectile_xmove,
+                                        int32_t projectile_ymove,
+                                        uint8_t projectile_damage_roll,
+                                        int god_mode, int victory_flag,
+                                        int32_t tics,
+                                        uint16_t active_death_model_index,
+                                        wl_actor_death_state *active_death,
+                                        wl_live_full_combat_death_tick_result *out) {
+    if (!out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    if (wl_step_live_full_combat_tick(state, model, wall_plane, info_plane,
+                                      word_count, motion, xmove, ymove,
+                                      forward_x, forward_y, facing, use_button,
+                                      button_held, attacker, projectile,
+                                      damage_actor, damage_actor_points,
+                                      damage_actor_model_index,
+                                      vswap_sprite_start, difficulty,
+                                      area_active, line_of_sight,
+                                      player_running, actor_visible,
+                                      actor_chance_roll, actor_damage_roll,
+                                      projectile_xmove, projectile_ymove,
+                                      projectile_damage_roll, god_mode,
+                                      victory_flag, tics, &out->combat) != 0) {
+        return -1;
+    }
+    if (active_death) {
+        if (wl_step_live_actor_death_tick(model, active_death_model_index,
+                                          active_death, tics,
+                                          vswap_sprite_start, &out->death) != 0) {
+            return -1;
+        }
+        out->death_stepped = 1;
+    }
+    return 0;
+}
+
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state) {
     if (!state) {
         return -1;
