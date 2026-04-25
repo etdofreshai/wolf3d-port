@@ -460,6 +460,22 @@ static int check_wl6(const char *dir) {
     CHECK(wl_sample_indexed_surface_column(&surface, 63, surface_column_buf,
                                            sizeof(surface_column_buf)) == 0);
     CHECK(memcmp(column_buf, surface_column_buf, sizeof(column_buf)) == 0);
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_sample_wall_page_column(chunk_buf, chunk_bytes, 0x0000, column_buf,
+                                     sizeof(column_buf)) == 0);
+    CHECK(wl_scale_wall_column_to_surface(column_buf, sizeof(column_buf), &canvas,
+                                          7, 64) == 0);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0xceb8a051);
+    CHECK(wl_sample_wall_page_column(chunk_buf, chunk_bytes, 0x0fc0, column_buf,
+                                     sizeof(column_buf)) == 0);
+    CHECK(wl_scale_wall_column_to_surface(column_buf, sizeof(column_buf), &canvas,
+                                          29, 160) == 0);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0xf25f51d9);
+    CHECK(wl_scale_wall_column_to_surface(column_buf, 63, &canvas, 7, 64) == -1);
+    CHECK(wl_scale_wall_column_to_surface(column_buf, sizeof(column_buf), &canvas,
+                                          80, 64) == -1);
     CHECK(wl_sample_wall_page_column(chunk_buf, chunk_bytes, 0x0001, column_buf,
                                      sizeof(column_buf)) == -1);
     CHECK(wl_sample_indexed_surface_column(&surface, 64, surface_column_buf,
@@ -482,6 +498,9 @@ static int check_wl6(const char *dir) {
     CHECK(wl_sample_indexed_surface_column(&surface, 32, surface_column_buf,
                                            sizeof(surface_column_buf)) == 0);
     CHECK(memcmp(column_buf, surface_column_buf, sizeof(column_buf)) == 0);
+    CHECK(wl_scale_wall_column_to_surface(column_buf, sizeof(column_buf), &canvas,
+                                          13, 96) == 0);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0xb200118);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 105, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -594,7 +613,9 @@ static int check_optional_sod(const char *dir) {
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
     unsigned char indexed_buf[65536];
+    unsigned char scaler_pixels[80 * 128];
     wl_indexed_surface surface;
+    wl_indexed_surface scaler;
     size_t graphics_bytes = 0;
     size_t compressed_bytes = 0;
     CHECK(wl_read_graphics_header(vgahead_path, &gh) == 0);
@@ -740,6 +761,12 @@ static int check_optional_sod(const char *dir) {
     CHECK(wl_sample_indexed_surface_column(&surface, 32, surface_column_buf,
                                            sizeof(surface_column_buf)) == 0);
     CHECK(memcmp(column_buf, surface_column_buf, sizeof(column_buf)) == 0);
+    memset(scaler_pixels, 0x2a, sizeof(scaler_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, scaler_pixels, sizeof(scaler_pixels),
+                                  &scaler) == 0);
+    CHECK(wl_scale_wall_column_to_surface(column_buf, sizeof(column_buf), &scaler,
+                                          7, 64) == 0);
+    CHECK(fnv1a_bytes(scaler.pixels, scaler.pixel_count) == 0x78547277);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 105, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -761,6 +788,13 @@ static int check_optional_sod(const char *dir) {
     CHECK(wl_sample_indexed_surface_column(&surface, 63, surface_column_buf,
                                            sizeof(surface_column_buf)) == 0);
     CHECK(memcmp(column_buf, surface_column_buf, sizeof(column_buf)) == 0);
+    CHECK(wl_scale_wall_column_to_surface(column_buf, sizeof(column_buf), &scaler,
+                                          29, 160) == 0);
+    CHECK(wl_sample_wall_page_column(chunk_buf, chunk_bytes, 0x0000, column_buf,
+                                     sizeof(column_buf)) == 0);
+    CHECK(wl_scale_wall_column_to_surface(column_buf, sizeof(column_buf), &scaler,
+                                          13, 96) == 0);
+    CHECK(fnv1a_bytes(scaler.pixels, scaler.pixel_count) == 0x60ddb236);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 133, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -826,6 +860,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/wall-column tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/wall-scaler tests passed for %s\n", dir);
     return 0;
 }

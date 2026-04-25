@@ -808,6 +808,43 @@ int wl_sample_indexed_surface_column(const wl_indexed_surface *surface, uint16_t
     return 0;
 }
 
+int wl_scale_wall_column_to_surface(const unsigned char *column, size_t column_size,
+                                    wl_indexed_surface *dst, uint16_t x,
+                                    uint16_t scaled_height) {
+    if (!column || !dst || !dst->pixels || dst->format != WL_SURFACE_INDEXED8 ||
+        dst->stride < dst->width || column_size < WL_MAP_SIDE || x >= dst->width ||
+        scaled_height == 0) {
+        return -1;
+    }
+
+    int top = ((int)dst->height - (int)scaled_height) / 2;
+    uint32_t step = ((uint32_t)scaled_height << 16) / WL_MAP_SIDE;
+    uint32_t fix = 0;
+    for (uint16_t src = 0; src < WL_MAP_SIDE; ++src) {
+        int start = (int)(fix >> 16);
+        fix += step;
+        int end = (int)(fix >> 16);
+        if (end <= start) {
+            continue;
+        }
+        start += top;
+        end += top;
+        if (end <= 0 || start >= dst->height) {
+            continue;
+        }
+        if (start < 0) {
+            start = 0;
+        }
+        if (end > dst->height) {
+            end = dst->height;
+        }
+        for (int y = start; y < end; ++y) {
+            dst->pixels[(size_t)y * dst->stride + x] = column[src];
+        }
+    }
+    return 0;
+}
+
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written) {
     const uint16_t near_tag = 0xa7;

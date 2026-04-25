@@ -166,6 +166,9 @@ int wl_sample_wall_page_column(const unsigned char *chunk, size_t chunk_size,
                                size_t out_size);
 int wl_sample_indexed_surface_column(const wl_indexed_surface *surface, uint16_t x,
                                      unsigned char *out, size_t out_size);
+int wl_scale_wall_column_to_surface(const unsigned char *column, size_t column_size,
+                                    wl_indexed_surface *dst, uint16_t x,
+                                    uint16_t scaled_height);
 int wl_read_graphics_header(const char *path, wl_graphics_header *out);
 int wl_read_huffman_dictionary(const char *path, wl_huffman_node nodes[WL_HUFFMAN_NODE_COUNT]);
 int wl_huff_expand(const unsigned char *src, size_t src_len,
