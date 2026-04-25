@@ -937,8 +937,10 @@ int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_spri
         refs[count].model_index = (uint16_t)i;
         refs[count].source_index = sprite;
         refs[count].vswap_chunk_index = (uint16_t)(vswap_sprite_start + sprite);
-        refs[count].world_x = ((uint32_t)model->actors[i].tile_x << 16) + 0x8000u;
-        refs[count].world_y = ((uint32_t)model->actors[i].tile_y << 16) + 0x8000u;
+        refs[count].world_x = model->actors[i].fine_x ?
+            model->actors[i].fine_x : (((uint32_t)model->actors[i].tile_x << 16) + 0x8000u);
+        refs[count].world_y = model->actors[i].fine_y ?
+            model->actors[i].fine_y : (((uint32_t)model->actors[i].tile_y << 16) + 0x8000u);
         ++count;
     }
 
@@ -1045,6 +1047,8 @@ int wl_step_patrol_actor(wl_game_model *model, uint16_t actor_index,
     actor->dir = selected;
     actor->tile_x = (uint16_t)((int)actor->tile_x + dx);
     actor->tile_y = (uint16_t)((int)actor->tile_y + dy);
+    actor->fine_x = ((uint32_t)actor->tile_x << 16) + 0x8000u;
+    actor->fine_y = ((uint32_t)actor->tile_y << 16) + 0x8000u;
     out->stepped = 1;
     out->tile_x = actor->tile_x;
     out->tile_y = actor->tile_y;
@@ -1093,6 +1097,27 @@ int wl_step_patrol_actor_tics(wl_game_model *model, uint16_t actor_index,
         move -= 0x10000u;
     }
     out->leftover_move = move;
+    actor->fine_x = ((uint32_t)actor->tile_x << 16) + 0x8000u;
+    actor->fine_y = ((uint32_t)actor->tile_y << 16) + 0x8000u;
+    if (!out->blocked && move > 0) {
+        int dx = 0;
+        int dy = 0;
+        if (path_step(actor->dir, &dx, &dy) != 0) {
+            return -1;
+        }
+        if (dx > 0) {
+            actor->fine_x += move;
+        } else if (dx < 0) {
+            actor->fine_x -= move;
+        }
+        if (dy > 0) {
+            actor->fine_y += move;
+        } else if (dy < 0) {
+            actor->fine_y -= move;
+        }
+    }
+    out->fine_x = actor->fine_x;
+    out->fine_y = actor->fine_y;
     return 0;
 }
 

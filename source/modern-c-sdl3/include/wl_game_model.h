@@ -86,6 +86,8 @@ typedef struct wl_actor_desc {
     uint16_t spawn_y;
     uint16_t tile_x;
     uint16_t tile_y;
+    uint32_t fine_x;
+    uint32_t fine_y;
     uint16_t source_tile;
     wl_actor_kind kind;
     wl_actor_mode mode;
@@ -134,6 +136,8 @@ typedef struct wl_actor_patrol_tic_result {
     uint16_t tile_y;
     uint32_t requested_move;
     uint32_t leftover_move;
+    uint32_t fine_x;
+    uint32_t fine_y;
 } wl_actor_patrol_tic_result;
 
 typedef struct wl_actor_patrols_tic_result {

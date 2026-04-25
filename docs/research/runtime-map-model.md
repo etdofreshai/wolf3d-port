@@ -378,3 +378,8 @@ Live actor AI output now reaches normal runtime scene-ref collection. The headle
 ## Cycle update: live AI patrol rendering
 
 Live actor AI patrol movement now reaches runtime rendering. A patrol guard moved by `wl_step_live_actor_ai_tick` is collected as a scene ref and rendered through the door-aware scene path with source `58` / chunk `164`, visible projection metadata, and canvas hash `0x6ee1f8bf`.
+
+
+## Cycle update: patrol fine-position refs
+
+Patrol movement now preserves fixed-point actor placement. `wl_actor_desc` carries optional `fine_x`/`fine_y`, `wl_step_patrol_actor_tics` stores partial movement from leftover tic budget, and scene-ref collection emits fine coordinates when present while preserving whole-tile fallback behavior.

@@ -246,3 +246,8 @@ The live actor AI patrol wrapper now has renderer-facing ref coverage. After `wl
 ## Live AI patrol rendering
 
 Live-AI-updated patrol refs now feed the door-aware wall+sprite scene renderer. The headless test decodes the moved guard sprite from local VSWAP data, renders it through `wl_render_runtime_door_camera_scene_view`, and asserts stable projection metadata plus canvas hash `0x6ee1f8bf`.
+
+
+## Patrol fine-position refs
+
+Patrol actors now carry optional fixed-point `fine_x`/`fine_y` coordinates. Tic-budgeted patrol movement reports and stores partial-tile positions, while scene-ref collection prefers fine coordinates when present so render-facing actor placement can advance before a whole tile is consumed.

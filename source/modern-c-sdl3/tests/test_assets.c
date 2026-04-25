@@ -1260,7 +1260,14 @@ static int check_wl6(const char *dir) {
                                     &patrol_tics) == 0);
     CHECK(patrol_tics.tiles_stepped == 0);
     CHECK(patrol_tics.leftover_move == 0x8000u);
+    CHECK(patrol_tics.fine_x == 0x60000u);
+    CHECK(patrol_tics.fine_y == 0x58000u);
     CHECK(path_model.actors[0].tile_x == 5);
+    CHECK(path_model.actors[0].fine_x == 0x60000u);
+    CHECK(wl_collect_scene_sprite_refs(&path_model, 106, patrol_refs, 1,
+                                       &patrol_ref_count) == 0);
+    CHECK(patrol_refs[0].world_x == 0x60000u);
+    CHECK(patrol_refs[0].world_y == 0x58000u);
     CHECK(wl_step_patrol_actor_tics(&path_model, 0, 0x10000u, 2,
                                     &patrol_tics) == 0);
     CHECK(patrol_tics.requested_move == 0x20000u);
@@ -1268,6 +1275,8 @@ static int check_wl6(const char *dir) {
     CHECK(patrol_tics.leftover_move == 0);
     CHECK(patrol_tics.tile_x == 7);
     CHECK(patrol_tics.tile_y == 5);
+    CHECK(patrol_tics.fine_x == 0x78000u);
+    CHECK(patrol_tics.fine_y == 0x58000u);
     CHECK(path_model.actors[0].tile_x == 7);
     path_model.tilemap[8 + 5 * WL_MAP_SIDE] = 1;
     CHECK(wl_step_patrol_actor_tics(&path_model, 0, 0x10000u, 2,
@@ -1275,6 +1284,7 @@ static int check_wl6(const char *dir) {
     CHECK(patrol_tics.tiles_stepped == 0);
     CHECK(patrol_tics.blocked == 1);
     CHECK(patrol_tics.leftover_move == 0x20000u);
+    CHECK(patrol_tics.fine_x == 0x78000u);
     CHECK(path_model.actors[0].tile_x == 7);
     CHECK(wl_step_patrol_actor_tics(&path_model, 0, 0x10000u, -1,
                                     &patrol_tics) == -1);
@@ -4449,6 +4459,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-patrol-render tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-patrol-fine-position tests passed for %s\n", dir);
     return 0;
 }

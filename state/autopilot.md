@@ -4193,3 +4193,41 @@ Next likely move:
 - Add fine-position/distance accumulation for patrol movement, deepen chase/attack progression, or broaden live AI rendering across multiple actor classes/maps.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 09:07 CDT
+
+Action taken:
+
+- Added fixed-point fine-position metadata for runtime actors.
+- Extended `wl_actor_desc` with optional `fine_x`/`fine_y`; scene-ref collection now prefers fine coordinates when present and falls back to tile centers otherwise.
+- Updated patrol tic movement so partial leftover budget advances renderer-facing fine position without consuming a tile, while whole-tile and blocked movement preserve deterministic tile/ref behavior.
+- Headless tests verify half-tile fine movement, scene-ref world coordinates, full-tile reset to center, and blocked preservation.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-patrol-fine-position tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Feed fine-position patrol refs through live AI rendering, deepen chase/attack progression, or broaden live AI rendering across multiple actor classes/maps.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

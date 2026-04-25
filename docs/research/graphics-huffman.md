@@ -319,3 +319,8 @@ Live AI patrol movement now has a deterministic presentation-input contract: sce
 ## Cycle update: live AI patrol rendering
 
 AI-updated patrol actor refs now have a deterministic headless presentation test. The door-aware scene renderer composites the moved guard sprite and verifies visible sprite metadata plus canvas hash `0x6ee1f8bf`, preserving the SDL3 upload boundary for later.
+
+
+## Cycle update: patrol fine-position refs
+
+Renderer-facing actor refs now can use fixed-point partial patrol positions. This gives the SDL3 presentation bridge smoother movement input without requiring SDL or decoded sprite assets in git.

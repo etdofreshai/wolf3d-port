@@ -302,3 +302,8 @@ The VSWAP metadata path now observes patrol movement from the live actor AI fram
 ## Cycle update: live AI patrol rendering
 
 The VSWAP sprite-cache path now consumes refs produced after live AI patrol movement. The moved guard source/chunk `58/164` is decoded locally and rendered with hash `0x6ee1f8bf`; committed assertions remain metadata/hash-only.
+
+
+## Cycle update: patrol fine-position refs
+
+Actor sprite metadata remains stable while patrol placement advances at sub-tile precision. The moved guard keeps source/chunk `58/164`; only scene-ref world coordinates change, so decoded VSWAP bytes remain local.

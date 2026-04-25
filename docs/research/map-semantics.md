@@ -123,3 +123,8 @@ Patrol path semantics now flow through live AI ticking into scene refs. The test
 ## Cycle update: live AI patrol rendering
 
 Patrol path semantics now carry through live AI movement, scene-ref collection, VSWAP sprite decoding, and headless scene rendering. This confirms movement metadata remains presentation-ready after the live frame wrapper.
+
+
+## Cycle update: patrol fine-position refs
+
+Tile-granular patrol semantics now have partial movement metadata. A half-tile patrol budget keeps the actor on its tile but advances renderer-facing world coordinates, matching the path toward original `T_Path` distance accumulation.
