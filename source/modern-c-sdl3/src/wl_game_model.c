@@ -257,6 +257,27 @@ static int add_marker(wl_marker_desc *markers, size_t max_markers, size_t *count
     return 0;
 }
 
+static int boss_tile_direction(uint16_t tile, wl_direction *dir) {
+    if (!dir) {
+        return 0;
+    }
+    switch (tile) {
+    case 160: /* SpawnFakeHitler */
+    case 197: /* SpawnGretel */
+    case 215: /* SpawnGift */
+        *dir = WL_DIR_NORTH;
+        return 1;
+    case 178: /* SpawnHitler */
+    case 179: /* SpawnFat */
+    case 196: /* SpawnSchabbs */
+    case 214: /* SpawnBoss */
+        *dir = WL_DIR_SOUTH;
+        return 1;
+    default:
+        return 0;
+    }
+}
+
 static uint16_t neighboring_area_tile(const uint16_t *wall_plane, size_t x, size_t y) {
     uint16_t tile = 0;
     if (x + 1 < WL_MAP_SIDE && wall_plane[map_index(x + 1, y)] >= WL_AREATILE) {
@@ -391,8 +412,15 @@ int wl_build_game_model(const uint16_t *wall_plane, const uint16_t *info_plane,
                 if (match == 0) {
                     continue;
                 }
-                if (match == -1 || in_range(tile, 224, 227) || tile == 160 || tile == 178 || tile == 179 ||
-                    tile == 196 || tile == 197 || tile == 214 || tile == 215) {
+                wl_direction boss_dir = WL_DIR_NONE;
+                if (boss_tile_direction(tile, &boss_dir)) {
+                    if (add_actor(out, x, y, tile, WL_ACTOR_BOSS, WL_ACTOR_BOSS_MODE,
+                                  boss_dir, 1, 1) != 0) {
+                        return -1;
+                    }
+                    continue;
+                }
+                if (match == -1 || in_range(tile, 224, 227)) {
                     ++out->unknown_info_tiles;
                 }
             }
@@ -446,6 +474,24 @@ static uint16_t actor_to_sprite_index(const wl_actor_desc *actor) {
     case WL_ACTOR_DEAD_GUARD:
         return 95; /* SPR_GRD_DEAD */
     case WL_ACTOR_BOSS:
+        switch (actor->source_tile) {
+        case 160:
+            return 321; /* SPR_FAKE_W1 */
+        case 178:
+            return 334; /* SPR_MECHA_W1 */
+        case 179:
+            return 415; /* SPR_FAT_W1 */
+        case 196:
+            return 307; /* SPR_SCHABB_W1 */
+        case 197:
+            return 404; /* SPR_GRETEL_W1 */
+        case 214:
+            return 296; /* SPR_BOSS_W1 */
+        case 215:
+            return 360; /* SPR_GIFT_W1 */
+        default:
+            return UINT16_MAX;
+        }
     case WL_ACTOR_GHOST:
         return UINT16_MAX;
     }

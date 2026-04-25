@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer with broader visible-ref/camera-angle coverage, additional maps now cover officer/SS/mutant runtime actor refs, and palette fade/shift generation, state, and shifted upload selection are covered headlessly. Next phase should connect these seams to live gameplay events, add more map/boss coverage, or add a small SDL3 presentation boundary when SDL3 is available.
+Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer with broader visible-ref/camera-angle coverage, additional maps now cover officer/SS/mutant/boss runtime actor refs, and palette fade/shift generation, state, and shifted upload selection are covered headlessly. Next phase should connect these seams to live gameplay events, add more map/boss coverage, or add a small SDL3 presentation boundary when SDL3 is available.
 
 ## Latest Verified Milestone
 
@@ -118,11 +118,12 @@ Use tests as the bridge from the original code to modern C:
 40. Broader runtime-ref scene coverage. **Done for five visible WL6 map-0 refs.**
 41. Alternate camera runtime-ref scene coverage. **Done for northeast camera vector over the five-ref set.**
 42. Officer/SS/mutant runtime actor + scene-ref coverage across additional maps. **Done for selected WL6 maps.**
-43. Live gameplay events, additional map/boss coverage, or SDL3 presentation seam.
+43. Boss-map runtime actor + scene-ref coverage. **Done for selected WL6 boss map.**
+44. Live gameplay events, additional map/ghost coverage, or SDL3 presentation seam.
 
 ## Next Likely Move
 
-Connect renderer/palette seams to future live gameplay events, add more map/boss runtime-scene coverage, or add a small SDL3 presentation seam.
+Connect renderer/palette seams to future live gameplay events, add more map/ghost runtime-scene coverage, or add a small SDL3 presentation seam.
 
 Recommended next commit:
 
@@ -130,7 +131,7 @@ Recommended next commit:
 - or add a small SDL3 presentation seam using `wl_texture_upload_descriptor`;
 - or connect palette-shifted upload selection to future live player damage/bonus events before presentation.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, scaled-sprite viewport hashes, world-sprite projection/sorted-render hashes, combined scene render hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA/palette-fade/shift hashes, shift-state transitions, and palette-selected upload hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, door-area connectivity descriptors, and runtime scene sprite-reference descriptors, VSWAP sprite surface-cache hashes, and broader runtime-scene, camera-scene, and multi-map enemy scene-ref hashes.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, scaled-sprite viewport hashes, world-sprite projection/sorted-render hashes, combined scene render hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA/palette-fade/shift hashes, shift-state transitions, and palette-selected upload hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, door-area connectivity descriptors, and runtime scene sprite-reference descriptors, VSWAP sprite surface-cache hashes, and broader runtime-scene, camera-scene, multi-map enemy scene-ref, and boss-map scene-ref hashes.
 
 ## Blockers
 
@@ -1706,5 +1707,43 @@ Safety/legal checks:
 Next likely move:
 
 - Add boss/ghost runtime coverage, connect renderer/palette seams to live gameplay events, or add a small SDL3 presentation seam once SDL3 is available.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+## Cycle 2026-04-25 00:43 CDT
+
+Action taken:
+
+- Added data-only WL6 boss tile handling to `wl_build_game_model` for the non-Spear boss spawns, preserving original starting north/south directions and kill-total/shootable behavior.
+- Extended `wl_collect_scene_sprite_refs` to map known boss source tiles to their original starting VSWAP sprite indices.
+- Added headless `Wolf2 Boss` coverage asserting model totals, two mutants plus one boss actor, zero unknown info tiles, scene-ref count `168`, and scene-ref descriptor hash `0xb2dab28b`.
+- Updated runtime/VSWAP docs, README, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/boss-map-scene tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/state/hash assertions are committed.
+
+Next likely move:
+
+- Add ghost runtime coverage, connect renderer/palette seams to live gameplay events, or add a small SDL3 presentation seam once SDL3 is available.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
