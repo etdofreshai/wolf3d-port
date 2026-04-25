@@ -5776,6 +5776,7 @@ static int check_audio_wl6(const char *dir) {
     wl_audio_chunk_metadata audio_meta;
     wl_pc_speaker_sound_metadata pc_meta;
     wl_adlib_sound_metadata adlib_meta;
+    uint8_t adlib_sample = 0;
     wl_imf_music_metadata imf_meta;
     wl_imf_music_command imf_command;
     wl_imf_playback_window imf_window;
@@ -5861,7 +5862,13 @@ static int check_audio_wl6(const char *dir) {
     CHECK(adlib_meta.first_sample == 0x04);
     CHECK(adlib_meta.last_sample == 0x2e);
     CHECK(adlib_meta.trailing_bytes == 11);
+    CHECK(wl_get_adlib_sound_sample(chunk_buf, chunk_bytes, 0, &adlib_sample) == 0);
+    CHECK(adlib_sample == 0x04);
+    CHECK(wl_get_adlib_sound_sample(chunk_buf, chunk_bytes, 7, &adlib_sample) == 0);
+    CHECK(adlib_sample == 0x2e);
+    CHECK(wl_get_adlib_sound_sample(chunk_buf, chunk_bytes, 8, &adlib_sample) == -1);
     CHECK(wl_describe_adlib_sound(chunk_buf, 22, &adlib_meta) == -1);
+    CHECK(wl_get_adlib_sound_sample(chunk_buf, 22, 0, &adlib_sample) == -1);
 
     /* Digital sound 174 (first digi = STARTDIGISOUNDS) - empty in WL6 shareware */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 174, chunk_buf, sizeof(chunk_buf),
