@@ -5776,6 +5776,7 @@ static int check_audio_wl6(const char *dir) {
     wl_audio_chunk_metadata audio_meta;
     wl_pc_speaker_sound_metadata pc_meta;
     wl_adlib_sound_metadata adlib_meta;
+    wl_sample_playback_window sample_window;
     uint8_t pc_sample = 0;
     uint8_t adlib_instrument_byte = 0;
     uint8_t adlib_sample = 0;
@@ -5836,6 +5837,22 @@ static int check_audio_wl6(const char *dir) {
     CHECK(wl_get_pc_speaker_sound_sample(chunk_buf, chunk_bytes, 7, &pc_sample) == 0);
     CHECK(pc_sample == 0x84);
     CHECK(wl_get_pc_speaker_sound_sample(chunk_buf, chunk_bytes, 8, &pc_sample) == -1);
+    CHECK(wl_describe_pc_speaker_playback_window(chunk_buf, chunk_bytes, 2, 3,
+                                                 &sample_window) == 0);
+    CHECK(sample_window.start_sample == 2);
+    CHECK(sample_window.samples_available == 6);
+    CHECK(sample_window.samples_in_window == 3);
+    CHECK(sample_window.next_sample == 5);
+    CHECK(sample_window.first_sample == 0x82);
+    CHECK(sample_window.last_sample == 0x8a);
+    CHECK(sample_window.completed == 0);
+    CHECK(wl_describe_pc_speaker_playback_window(chunk_buf, chunk_bytes, 7, 4,
+                                                 &sample_window) == 0);
+    CHECK(sample_window.samples_in_window == 1);
+    CHECK(sample_window.next_sample == 8);
+    CHECK(sample_window.completed == 1);
+    CHECK(wl_describe_pc_speaker_playback_window(chunk_buf, chunk_bytes, 9, 1,
+                                                 &sample_window) == -1);
 
     /* PC speaker sound 1 (SELECTWPNSND) */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 1, chunk_buf, sizeof(chunk_buf),
@@ -5886,6 +5903,21 @@ static int check_audio_wl6(const char *dir) {
     CHECK(wl_describe_adlib_sound(chunk_buf, 22, &adlib_meta) == -1);
     CHECK(wl_get_adlib_instrument_byte(chunk_buf, 21, 0, &adlib_instrument_byte) == -1);
     CHECK(wl_get_adlib_sound_sample(chunk_buf, 22, 0, &adlib_sample) == -1);
+    CHECK(wl_describe_adlib_playback_window(chunk_buf, chunk_bytes, 3, 4,
+                                            &sample_window) == 0);
+    CHECK(sample_window.start_sample == 3);
+    CHECK(sample_window.samples_available == 5);
+    CHECK(sample_window.samples_in_window == 4);
+    CHECK(sample_window.next_sample == 7);
+    CHECK(sample_window.first_sample == 0x35);
+    CHECK(sample_window.last_sample == 0x29);
+    CHECK(sample_window.completed == 0);
+    CHECK(wl_describe_adlib_playback_window(chunk_buf, chunk_bytes, 8, 1,
+                                            &sample_window) == 0);
+    CHECK(sample_window.samples_in_window == 0);
+    CHECK(sample_window.completed == 1);
+    CHECK(wl_describe_adlib_playback_window(chunk_buf, chunk_bytes, 9, 1,
+                                            &sample_window) == -1);
 
     /* Digital sound 174 (first digi = STARTDIGISOUNDS) - empty in WL6 shareware */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 174, chunk_buf, sizeof(chunk_buf),
