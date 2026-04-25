@@ -637,6 +637,79 @@ static int check_gameplay_events(void) {
     CHECK(live_combat.projectile_stepped == 0);
     CHECK(live_combat.live.palette.kind == WL_PALETTE_SHIFT_NONE);
 
+    wl_live_full_combat_tick_result full_combat;
+    wl_game_model full_combat_model;
+    memset(&full_combat_model, 0, sizeof(full_combat_model));
+    wl_actor_desc full_target_desc;
+    memset(&full_target_desc, 0, sizeof(full_target_desc));
+    full_target_desc.kind = WL_ACTOR_GUARD;
+    full_target_desc.shootable = 1;
+    full_target_desc.tile_x = 7;
+    full_target_desc.tile_y = 4;
+    wl_actor_combat_state full_target;
+    CHECK(wl_init_actor_combat_state(&full_target_desc, WL_DIFFICULTY_HARD,
+                                     &full_target) == 0);
+    dog.kind = WL_ACTOR_DOG;
+    dog.tile_x = 5;
+    dog.tile_y = 4;
+    projectile.x = (3u << 16) + 0x8000u;
+    projectile.y = (4u << 16) + 0x8000u;
+    projectile.tile_x = 3;
+    projectile.tile_y = 4;
+    projectile.kind = WL_PROJECTILE_NEEDLE;
+    projectile.active = 1;
+    live_actor_motion.x = (4u << 16) + 0x8000u;
+    live_actor_motion.y = (4u << 16) + 0x8000u;
+    live_actor_motion.tile_x = 4;
+    live_actor_motion.tile_y = 4;
+    CHECK(wl_init_player_gameplay_state(&state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_step_live_full_combat_tick(&state, &full_combat_model,
+                                        live_wall, live_info, WL_MAP_PLANE_WORDS,
+                                        &live_actor_motion, 0, 0,
+                                        0x10000, 0, WL_DIR_EAST, 0, 0,
+                                        &dog, &projectile, &full_target, 25,
+                                        WL_DIFFICULTY_HARD,
+                                        1, 1, 0, 1, 179, 80,
+                                        0x10000, 0, 80, 0, 0, 1,
+                                        &full_combat) == 0);
+    CHECK(full_combat.actor_damaged == 1);
+    CHECK(full_combat.actor_damage.killed == 1);
+    CHECK(full_combat.actor_damage.score_awarded == 100);
+    CHECK(full_combat.drop_spawned == 1);
+    CHECK(full_combat.drop_static_index == 0);
+    CHECK(full_combat_model.static_count == 1);
+    CHECK(full_combat_model.statics[0].type == 48);
+    CHECK(full_combat.actor_attacked == 1);
+    CHECK(full_combat.actor_attack_kind == WL_LIVE_ACTOR_ATTACK_BITE);
+    CHECK(full_combat.bite.damage.effective_points == 5);
+    CHECK(full_combat.projectile_stepped == 1);
+    CHECK(full_combat.projectile.damage.effective_points == 30);
+    CHECK(full_combat.live.palette.kind == WL_PALETTE_SHIFT_RED);
+    CHECK(full_combat.live.palette.shift_index == 3);
+    CHECK(full_combat.live.palette.damage_count == 34);
+    CHECK(state.health == 65);
+    CHECK(state.score == 100);
+    CHECK(projectile.active == 0);
+    CHECK(full_target.alive == 0);
+
+    CHECK(wl_init_player_gameplay_state(&state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_step_live_full_combat_tick(&state, &full_combat_model,
+                                        live_wall, live_info, WL_MAP_PLANE_WORDS,
+                                        &live_actor_motion, 0, 0,
+                                        0x10000, 0, WL_DIR_EAST, 0, 0,
+                                        NULL, NULL, NULL, 0,
+                                        WL_DIFFICULTY_HARD,
+                                        0, 0, 0, 0, 0, 0,
+                                        0, 0, 0, 0, 0, 1,
+                                        &full_combat) == 0);
+    CHECK(full_combat.actor_damaged == 0);
+    CHECK(full_combat.drop_spawned == 0);
+    CHECK(full_combat.actor_attacked == 0);
+    CHECK(full_combat.projectile_stepped == 0);
+    CHECK(full_combat.drop_static_index == 1);
+    CHECK(full_combat_model.static_count == 1);
+    CHECK(full_combat.live.palette.kind == WL_PALETTE_SHIFT_NONE);
+
     uint8_t picked_up = 255;
     CHECK(wl_init_player_gameplay_state(&state, 50, 2, 0, WL_EXTRA_POINTS) == 0);
     CHECK(wl_apply_player_bonus(&state, WL_BONUS_FOOD, &picked_up) == 0);
@@ -3629,6 +3702,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-actor-drop-scene tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-full-combat tests passed for %s\n", dir);
     return 0;
 }

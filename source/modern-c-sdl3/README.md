@@ -151,3 +151,8 @@ Actor damage and kill drops now have a live frame-transition seam. `wl_step_live
 ## Live actor drop scene seam
 
 Live-spawned actor drops now reach the renderer-facing path. A headless test kills a guard through `wl_step_live_actor_damage_tick`, collects the spawned clip drop through `wl_collect_scene_sprite_refs`, decodes the referenced local VSWAP sprite surface, and renders it with `wl_render_runtime_door_camera_scene_view`. The committed proof is metadata plus scene hash `0x707dbe4e`, not decoded asset bytes.
+
+
+## Full live combat tick seam
+
+`wl_step_live_full_combat_tick` combines the current headless frame seams into one broader gameplay transition: movement/use/doors/pushwalls, optional outgoing actor damage and drop spawning, optional actor bite/shoot damage, optional projectile damage, and one palette update after all frame damage. The test covers same-frame guard kill/drop, dog bite, needle projectile hit, red flash selection, score/health mutations, projectile removal, and a null-combat no-op path.

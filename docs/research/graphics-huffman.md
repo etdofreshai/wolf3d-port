@@ -244,3 +244,8 @@ Actor damage/drop state now reaches the same live tick boundary that future pres
 ## Cycle update: live actor drop scene rendering
 
 Renderer-facing upload/composition coverage now includes drops created by actor kill state during a live tick. The spawned static is collected as a scene ref, decoded through the local VSWAP sprite cache, and composited in the indexed scene renderer with stable hash `0x707dbe4e`, keeping the future SDL3 path grounded in deterministic headless metadata.
+
+
+## Cycle update: full live combat palette selection
+
+The broader live combat tick now coalesces outgoing actor damage/drop effects with incoming bite/projectile damage before palette advancement. A same-frame guard kill, dog bite, and needle projectile hit yields one deterministic red palette result, preserving the SDL-free shifted upload boundary for future presentation.

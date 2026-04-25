@@ -283,3 +283,8 @@ Actor kill drops now flow through live tick orchestration, not just isolated hel
 ## Cycle update: live actor drop scene rendering
 
 Actor drops spawned during a live damage tick now feed renderer-facing scene input. The test kills a guard with `wl_step_live_actor_damage_tick`, confirms the clip drop was appended to `wl_game_model::statics`, collects it as a static scene ref, decodes the referenced local VSWAP sprite into a temporary cache, and renders it through `wl_render_runtime_door_camera_scene_view`. The stable scene hash `0x707dbe4e` proves the tick-spawned drop reaches wall+sprite composition without storing proprietary pixel bytes.
+
+
+## Cycle update: full live combat tick
+
+The live frame seam now has a fuller combat orchestration path. `wl_step_live_full_combat_tick` mutates the runtime model once for motion/use/doors/pushwalls, then applies outgoing actor damage/drop spawning and incoming actor/projectile damage before one palette update. The headless test verifies killed-guard drop static metadata, projectile removal, actor alive clearing, cumulative player health damage, and no-op behavior when all optional combat inputs are absent.
