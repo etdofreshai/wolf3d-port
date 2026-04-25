@@ -169,3 +169,8 @@ Add a minimal SDL3 presentation seam using the upload/palette metadata, or conne
 ## Cycle update: player gameplay events
 
 Added a small `wl_gameplay` seam that connects original-style player events to the palette-shift state without depending on the DOS status bar or VGA hardware. `wl_apply_player_damage` mirrors `TakeDamage` behavior for victory no-op, baby-difficulty quarter damage, god-mode health preservation, death state, `gotgatgun` reset, and `StartDamageFlash` damage accumulation. `wl_start_player_bonus_flash` routes bonus events to the white-flash counter. `wl_award_player_points` mirrors `GivePoints` score/extra-life threshold progression using `EXTRAPOINTS=40000`, including advancing thresholds even when lives are capped at 9. Headless tests assert the resulting health, score, lives, thresholds, and palette-shift counters.
+
+
+## Cycle update: bonus pickup events
+
+Extended `wl_gameplay` to model original-style pickup events from `GetBonus`, `GiveAmmo`, `GiveWeapon`, and `GiveKey`. The seam now covers ammo restoration from knife, 99-ammo clamp, ammo-full pickup rejection, key bitmasks, machinegun/chaingun weapon promotion, chaingun face flag, treasure point awards, first-aid/food/alpo/gibs health gates, full-heal one-up/ammo/treasure behavior, Spear completion state, and bonus flash triggering only for picked-up items. Headless tests assert state transitions without depending on sound, status-bar drawing, or VGA hardware.

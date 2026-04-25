@@ -13,6 +13,13 @@ int wl_init_player_gameplay_state(wl_player_gameplay_state *state,
     state->lives = lives;
     state->score = score;
     state->next_extra = next_extra;
+    state->ammo = 0;
+    state->keys = 0;
+    state->best_weapon = WL_WEAPON_PISTOL;
+    state->weapon = WL_WEAPON_PISTOL;
+    state->chosen_weapon = WL_WEAPON_PISTOL;
+    state->attack_frame = 0;
+    state->treasure_count = 0;
     state->got_gat_gun = 0;
     state->play_state = WL_PLAYER_PLAY_RUNNING;
     return wl_reset_palette_shift_state(&state->palette_shift);
@@ -97,6 +104,184 @@ int wl_award_player_points(wl_player_gameplay_state *state, int32_t points,
     }
     if (out_thresholds_crossed) {
         *out_thresholds_crossed = thresholds;
+    }
+    return 0;
+}
+
+int wl_give_player_ammo(wl_player_gameplay_state *state, int32_t ammo) {
+    if (!state || ammo < 0) {
+        return -1;
+    }
+    if (state->ammo == 0 && state->attack_frame == 0) {
+        state->weapon = state->chosen_weapon;
+    }
+    state->ammo += ammo;
+    if (state->ammo > 99) {
+        state->ammo = 99;
+    }
+    return 0;
+}
+
+int wl_give_player_weapon(wl_player_gameplay_state *state, wl_weapon_type weapon) {
+    if (!state || weapon > WL_WEAPON_CHAINGUN) {
+        return -1;
+    }
+    if (wl_give_player_ammo(state, 6) != 0) {
+        return -1;
+    }
+    if (state->best_weapon < weapon) {
+        state->best_weapon = weapon;
+        state->weapon = weapon;
+        state->chosen_weapon = weapon;
+    }
+    return 0;
+}
+
+int wl_give_player_key(wl_player_gameplay_state *state, uint8_t key) {
+    if (!state || key >= 32) {
+        return -1;
+    }
+    state->keys |= (uint32_t)1u << key;
+    return 0;
+}
+
+int wl_apply_player_bonus(wl_player_gameplay_state *state, wl_bonus_item item,
+                          uint8_t *out_picked_up) {
+    if (!state || item > WL_BONUS_SPEAR) {
+        return -1;
+    }
+    uint8_t picked_up = 1;
+
+    switch (item) {
+    case WL_BONUS_FIRSTAID:
+        if (state->health == 100) {
+            picked_up = 0;
+            break;
+        }
+        if (wl_heal_player(state, 25) != 0) {
+            return -1;
+        }
+        break;
+    case WL_BONUS_KEY1:
+    case WL_BONUS_KEY2:
+    case WL_BONUS_KEY3:
+    case WL_BONUS_KEY4:
+        if (wl_give_player_key(state, (uint8_t)(item - WL_BONUS_KEY1)) != 0) {
+            return -1;
+        }
+        break;
+    case WL_BONUS_CROSS:
+        if (wl_award_player_points(state, 100, NULL, NULL) != 0) {
+            return -1;
+        }
+        ++state->treasure_count;
+        break;
+    case WL_BONUS_CHALICE:
+        if (wl_award_player_points(state, 500, NULL, NULL) != 0) {
+            return -1;
+        }
+        ++state->treasure_count;
+        break;
+    case WL_BONUS_BIBLE:
+        if (wl_award_player_points(state, 1000, NULL, NULL) != 0) {
+            return -1;
+        }
+        ++state->treasure_count;
+        break;
+    case WL_BONUS_CROWN:
+        if (wl_award_player_points(state, 5000, NULL, NULL) != 0) {
+            return -1;
+        }
+        ++state->treasure_count;
+        break;
+    case WL_BONUS_CLIP:
+        if (state->ammo == 99) {
+            picked_up = 0;
+            break;
+        }
+        if (wl_give_player_ammo(state, 8) != 0) {
+            return -1;
+        }
+        break;
+    case WL_BONUS_CLIP2:
+        if (state->ammo == 99) {
+            picked_up = 0;
+            break;
+        }
+        if (wl_give_player_ammo(state, 4) != 0) {
+            return -1;
+        }
+        break;
+    case WL_BONUS_25CLIP:
+        if (state->ammo == 99) {
+            picked_up = 0;
+            break;
+        }
+        if (wl_give_player_ammo(state, 25) != 0) {
+            return -1;
+        }
+        break;
+    case WL_BONUS_MACHINEGUN:
+        if (wl_give_player_weapon(state, WL_WEAPON_MACHINEGUN) != 0) {
+            return -1;
+        }
+        break;
+    case WL_BONUS_CHAINGUN:
+        if (wl_give_player_weapon(state, WL_WEAPON_CHAINGUN) != 0) {
+            return -1;
+        }
+        state->got_gat_gun = 1;
+        break;
+    case WL_BONUS_FULLHEAL:
+        if (wl_heal_player(state, 99) != 0 || wl_give_player_ammo(state, 25) != 0) {
+            return -1;
+        }
+        if (state->lives < 9) {
+            ++state->lives;
+        }
+        ++state->treasure_count;
+        break;
+    case WL_BONUS_FOOD:
+        if (state->health == 100) {
+            picked_up = 0;
+            break;
+        }
+        if (wl_heal_player(state, 10) != 0) {
+            return -1;
+        }
+        break;
+    case WL_BONUS_ALPO:
+        if (state->health == 100) {
+            picked_up = 0;
+            break;
+        }
+        if (wl_heal_player(state, 4) != 0) {
+            return -1;
+        }
+        break;
+    case WL_BONUS_GIBS:
+        if (state->health > 10) {
+            picked_up = 0;
+            break;
+        }
+        if (wl_heal_player(state, 1) != 0) {
+            return -1;
+        }
+        break;
+    case WL_BONUS_SPEAR:
+        state->play_state = WL_PLAYER_PLAY_COMPLETED;
+        break;
+    case WL_BONUS_DRESSING:
+    case WL_BONUS_BLOCK:
+        picked_up = 0;
+        break;
+    }
+
+    if (picked_up && wl_start_player_bonus_flash(state) != 0) {
+        return -1;
+    }
+    if (out_picked_up) {
+        *out_picked_up = picked_up;
     }
     return 0;
 }

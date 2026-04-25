@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/gameplay-events tests passed for game-files/base
+asset/decompression/semantics/model/vswap/bonus-events tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -118,3 +118,8 @@ Added WL6 ghost tile handling for `SpawnGhosts` (`en_blinky`, `en_clyde`, `en_pi
 ## Cycle update: player gameplay event seam
 
 Added `wl_gameplay`, a pure C state seam for future live gameplay. It currently covers player health/death, baby-difficulty damage scaling, god/victory damage handling, bonus/damage palette-flash starts, healing clamp, score awards, and extra-life threshold progression. This gives the runtime and renderer/palette seams a deterministic event source before a full actor/player loop exists.
+
+
+## Cycle update: bonus pickup event seam
+
+Expanded `wl_gameplay` from player damage/score events into bonus pickup semantics that future static-object collision can call. It now models ammo, weapons, keys, treasure pickups, health pickups, full-heal, and Spear completion while keeping renderer/status/sound effects out of the deterministic state seam.

@@ -167,6 +167,66 @@ static int check_gameplay_events(void) {
     CHECK(wl_award_player_points(&state, -1, NULL, NULL) == -1);
     CHECK(wl_apply_player_damage(&state, WL_DIFFICULTY_HARD, -1, 0, 0, &damage) == -1);
     CHECK(wl_heal_player(&state, -1) == -1);
+
+    uint8_t picked_up = 255;
+    CHECK(wl_init_player_gameplay_state(&state, 50, 2, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_apply_player_bonus(&state, WL_BONUS_FOOD, &picked_up) == 0);
+    CHECK(picked_up == 1);
+    CHECK(state.health == 60);
+    CHECK(state.palette_shift.bonus_count == WL_NUM_WHITE_SHIFTS * WL_WHITE_SHIFT_TICS);
+    CHECK(wl_apply_player_bonus(&state, WL_BONUS_FIRSTAID, &picked_up) == 0);
+    CHECK(picked_up == 1);
+    CHECK(state.health == 85);
+    CHECK(wl_apply_player_bonus(&state, WL_BONUS_GIBS, &picked_up) == 0);
+    CHECK(picked_up == 0);
+    CHECK(state.health == 85);
+    CHECK(wl_heal_player(&state, 50) == 0);
+    CHECK(state.health == 100);
+    CHECK(wl_apply_player_bonus(&state, WL_BONUS_FIRSTAID, &picked_up) == 0);
+    CHECK(picked_up == 0);
+
+    state.ammo = 0;
+    state.weapon = WL_WEAPON_KNIFE;
+    state.chosen_weapon = WL_WEAPON_PISTOL;
+    state.attack_frame = 0;
+    CHECK(wl_give_player_ammo(&state, 8) == 0);
+    CHECK(state.ammo == 8);
+    CHECK(state.weapon == WL_WEAPON_PISTOL);
+    state.ammo = 98;
+    CHECK(wl_apply_player_bonus(&state, WL_BONUS_CLIP, &picked_up) == 0);
+    CHECK(picked_up == 1);
+    CHECK(state.ammo == 99);
+    CHECK(wl_apply_player_bonus(&state, WL_BONUS_CLIP2, &picked_up) == 0);
+    CHECK(picked_up == 0);
+    CHECK(state.ammo == 99);
+
+    CHECK(wl_apply_player_bonus(&state, WL_BONUS_KEY3, &picked_up) == 0);
+    CHECK(picked_up == 1);
+    CHECK((state.keys & (1u << 2)) != 0);
+    CHECK(wl_apply_player_bonus(&state, WL_BONUS_CROWN, &picked_up) == 0);
+    CHECK(picked_up == 1);
+    CHECK(state.score == 5000);
+    CHECK(state.treasure_count == 1);
+    CHECK(wl_apply_player_bonus(&state, WL_BONUS_MACHINEGUN, &picked_up) == 0);
+    CHECK(picked_up == 1);
+    CHECK(state.best_weapon == WL_WEAPON_MACHINEGUN);
+    CHECK(state.weapon == WL_WEAPON_MACHINEGUN);
+    CHECK(state.chosen_weapon == WL_WEAPON_MACHINEGUN);
+    CHECK(wl_apply_player_bonus(&state, WL_BONUS_CHAINGUN, &picked_up) == 0);
+    CHECK(picked_up == 1);
+    CHECK(state.best_weapon == WL_WEAPON_CHAINGUN);
+    CHECK(state.got_gat_gun == 1);
+    CHECK(wl_apply_player_bonus(&state, WL_BONUS_FULLHEAL, &picked_up) == 0);
+    CHECK(picked_up == 1);
+    CHECK(state.health == 100);
+    CHECK(state.lives == 3);
+    CHECK(state.treasure_count == 2);
+    CHECK(wl_apply_player_bonus(&state, WL_BONUS_SPEAR, &picked_up) == 0);
+    CHECK(picked_up == 1);
+    CHECK(state.play_state == WL_PLAYER_PLAY_COMPLETED);
+    CHECK(wl_give_player_key(&state, 32) == -1);
+    CHECK(wl_give_player_weapon(&state, (wl_weapon_type)4) == -1);
+    CHECK(wl_apply_player_bonus(&state, (wl_bonus_item)21, &picked_up) == -1);
     return 0;
 }
 
@@ -2040,6 +2100,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/gameplay-events tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/bonus-events tests passed for %s\n", dir);
     return 0;
 }
