@@ -126,7 +126,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/door-wall-render tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-door-ray tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
@@ -182,3 +182,8 @@ The runtime solid-plane bridge now has a direct wall-view render wrapper, `wl_re
 ## Cycle update: door wall descriptors
 
 Door pages now have a deterministic headless descriptor seam. `wl_build_door_wall_hit` maps `PMSpriteStart - 8` into normal, locked, and elevator door wall pages and applies `doorposition` to the sampled texture column before the existing wall-strip renderer consumes the result. The current test reads only local VSWAP door pages, asserts page/texture metadata, and verifies a locked-door strip canvas hash rather than committing any proprietary bytes.
+
+
+## Cycle update: runtime door-aware ray hits
+
+The raycaster now has a live runtime model entry point, `wl_cast_runtime_fixed_wall_ray`, which distinguishes closed door centers from ordinary walls and emits door page/texture descriptors using the existing door-wall seam. The same helper also carries moving pushwall wall ids through the ray-hit descriptor. This closes the gap between live door/pushwall state and renderer-facing projected ray metadata while remaining display-free.

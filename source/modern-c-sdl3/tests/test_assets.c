@@ -1453,6 +1453,49 @@ static int check_wl6(const char *dir) {
     CHECK(wl_build_door_wall_hit(&model.doors[0], 7, (29u << 16) + 0x8000u,
                                  21, 128, &door_hit) == -1);
 
+    wl_game_model ray_model;
+    memset(&ray_model, 0, sizeof(ray_model));
+    ray_model.door_count = 1;
+    ray_model.doors[0].x = 4;
+    ray_model.doors[0].y = 4;
+    ray_model.doors[0].source_tile = 90;
+    ray_model.doors[0].vertical = 1;
+    ray_model.doors[0].lock = 1;
+    ray_model.doors[0].position = 0x4000u;
+    ray_model.tilemap[4 + 4 * WL_MAP_SIDE] = 0x80u;
+    ray_model.tilemap[6 + 4 * WL_MAP_SIDE] = 2;
+    CHECK(wl_cast_runtime_fixed_wall_ray(&ray_model, dirinfo.header.sprite_start,
+                                         (3u << 16) + 0x8000u,
+                                         (4u << 16) + 0x8000u,
+                                         0x10000, 0, 31, 128,
+                                         &door_hit) == 0);
+    CHECK(door_hit.tile_x == 4);
+    CHECK(door_hit.tile_y == 4);
+    CHECK(door_hit.wall_page_index == 105);
+    CHECK(door_hit.texture_offset == 0x0400);
+    CHECK(door_hit.distance == 0x8000u);
+    ray_model.tilemap[4 + 4 * WL_MAP_SIDE] = 0;
+    CHECK(wl_cast_runtime_fixed_wall_ray(&ray_model, dirinfo.header.sprite_start,
+                                         (3u << 16) + 0x8000u,
+                                         (4u << 16) + 0x8000u,
+                                         0x10000, 0, 32, 128,
+                                         &door_hit) == 0);
+    CHECK(door_hit.tile_x == 6);
+    CHECK(door_hit.source_tile == 2);
+    CHECK(door_hit.wall_page_index == 3);
+    CHECK(door_hit.texture_offset == 0x0800);
+    CHECK(door_hit.distance == 0x28000u);
+    ray_model.tilemap[5 + 4 * WL_MAP_SIDE] = (uint16_t)(37u | 0xc0u);
+    CHECK(wl_cast_runtime_fixed_wall_ray(&ray_model, dirinfo.header.sprite_start,
+                                         (4u << 16) + 0x8000u,
+                                         (4u << 16) + 0x8000u,
+                                         0x10000, 0, 33, 128,
+                                         &door_hit) == 0);
+    CHECK(door_hit.tile_x == 5);
+    CHECK(door_hit.source_tile == 37);
+    CHECK(door_hit.wall_page_index == 73);
+    CHECK(door_hit.texture_offset == 0x0800);
+
     CHECK(wl_cast_cardinal_wall_ray(wall_plane, WL_MAP_PLANE_WORDS, 29, 57,
                                     WL_RAY_EAST, 32, 5, 96, &hits[0]) == 0);
     CHECK(hits[0].tile_x == 41);
@@ -2465,6 +2508,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/door-wall-render tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-door-ray tests passed for %s\n", dir);
     return 0;
 }

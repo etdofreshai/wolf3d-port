@@ -595,6 +595,119 @@ int wl_build_door_wall_hit(const wl_door_desc *door, uint16_t vswap_sprite_start
     return 0;
 }
 
+int wl_cast_runtime_fixed_wall_ray(const wl_game_model *model,
+                                   uint16_t vswap_sprite_start,
+                                   uint32_t origin_x, uint32_t origin_y,
+                                   int32_t direction_x, int32_t direction_y,
+                                   uint16_t x, uint16_t scaled_height,
+                                   wl_map_wall_hit *out) {
+    if (!model || !out || scaled_height == 0 || vswap_sprite_start < 8u ||
+        origin_x >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        origin_y >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        (direction_x == 0 && direction_y == 0)) {
+        return -1;
+    }
+
+    int tile_x = (int)(origin_x >> 16);
+    int tile_y = (int)(origin_y >> 16);
+    int step_x = 0;
+    int step_y = 0;
+    int64_t side_t_x = INT64_MAX;
+    int64_t side_t_y = INT64_MAX;
+    int64_t delta_t_x = INT64_MAX;
+    int64_t delta_t_y = INT64_MAX;
+
+    if (direction_x > 0) {
+        step_x = 1;
+        uint32_t next_boundary = (uint32_t)(tile_x + 1) << 16;
+        side_t_x = ((int64_t)(next_boundary - origin_x) << 16) / direction_x;
+        delta_t_x = ((int64_t)1 << 32) / direction_x;
+    } else if (direction_x < 0) {
+        step_x = -1;
+        uint32_t next_boundary = (uint32_t)tile_x << 16;
+        side_t_x = ((int64_t)(origin_x - next_boundary) << 16) / -(int64_t)direction_x;
+        delta_t_x = ((int64_t)1 << 32) / -(int64_t)direction_x;
+    }
+
+    if (direction_y > 0) {
+        step_y = 1;
+        uint32_t next_boundary = (uint32_t)(tile_y + 1) << 16;
+        side_t_y = ((int64_t)(next_boundary - origin_y) << 16) / direction_y;
+        delta_t_y = ((int64_t)1 << 32) / direction_y;
+    } else if (direction_y < 0) {
+        step_y = -1;
+        uint32_t next_boundary = (uint32_t)tile_y << 16;
+        side_t_y = ((int64_t)(origin_y - next_boundary) << 16) / -(int64_t)direction_y;
+        delta_t_y = ((int64_t)1 << 32) / -(int64_t)direction_y;
+    }
+
+    for (size_t step_count = 0; step_count < WL_MAP_SIDE * 2u; ++step_count) {
+        wl_wall_side side = WL_WALL_SIDE_HORIZONTAL;
+        int64_t hit_t = 0;
+        if (side_t_x <= side_t_y) {
+            tile_x += step_x;
+            hit_t = side_t_x;
+            side_t_x += delta_t_x;
+            side = WL_WALL_SIDE_VERTICAL;
+        } else {
+            tile_y += step_y;
+            hit_t = side_t_y;
+            side_t_y += delta_t_y;
+            side = WL_WALL_SIDE_HORIZONTAL;
+        }
+
+        if (tile_x < 0 || tile_y < 0 || tile_x >= WL_MAP_SIDE || tile_y >= WL_MAP_SIDE) {
+            return -1;
+        }
+
+        uint16_t tile = model->tilemap[map_index((size_t)tile_x, (size_t)tile_y)];
+        if (tile == 0 || tile == 0x40u) {
+            continue;
+        }
+
+        int64_t hit_coord = 0;
+        if (side == WL_WALL_SIDE_VERTICAL) {
+            hit_coord = (int64_t)origin_y + (((int64_t)direction_y * hit_t) >> 16);
+        } else {
+            hit_coord = (int64_t)origin_x + (((int64_t)direction_x * hit_t) >> 16);
+        }
+
+        if ((tile & 0xc0u) == 0xc0u) {
+            tile = (uint16_t)(tile & 63u);
+        } else if (tile & 0x80u) {
+            uint16_t door_index = (uint16_t)(tile & 0x7fu);
+            if (door_index >= model->door_count ||
+                wl_build_door_wall_hit(&model->doors[door_index], vswap_sprite_start,
+                                       (uint32_t)hit_coord, x, scaled_height, out) != 0) {
+                return -1;
+            }
+            out->distance = (hit_t > UINT32_MAX) ? UINT32_MAX : (uint32_t)hit_t;
+            return 0;
+        } else if (tile >= 64u) {
+            continue;
+        }
+
+        if (tile == 0 || tile >= 64u) {
+            continue;
+        }
+        memset(out, 0, sizeof(*out));
+        out->tile_x = (uint16_t)tile_x;
+        out->tile_y = (uint16_t)tile_y;
+        out->source_tile = tile;
+        out->side = side;
+        out->wall_page_index = (uint16_t)((tile - 1u) * 2u +
+                                          (side == WL_WALL_SIDE_VERTICAL ? 1u : 0u));
+        out->texture_offset = (uint16_t)(((uint64_t)(hit_coord >> 10) &
+                                          (WL_MAP_SIDE - 1u)) * WL_MAP_SIDE);
+        out->x = x;
+        out->scaled_height = scaled_height;
+        out->distance = (hit_t > UINT32_MAX) ? UINT32_MAX : (uint32_t)hit_t;
+        return 0;
+    }
+
+    return -1;
+}
+
 int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_sprite_start,
                                  wl_scene_sprite_ref *refs, size_t max_refs,
                                  size_t *out_count) {

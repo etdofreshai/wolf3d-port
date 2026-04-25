@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/door-wall-render tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-door-ray tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -168,3 +168,8 @@ Added `wl_render_runtime_camera_wall_view`, a headless renderer-facing wrapper t
 ## Cycle update: door wall descriptors
 
 Added `wl_build_door_wall_hit`, a renderer-facing descriptor seam for original-style doors. It uses `DOORWALL = PMSpriteStart - 8`, picks normal/locked/elevator door page groups from the runtime door lock, applies the vertical-door page offset, and computes texture offsets as `((intercept - doorposition) >> 4) & 0xfc0`, matching `WL_DRAW.C::HitHorizDoor`/`HitVertDoor`. Tests assert normal and locked vertical page/texture descriptors and render a locked door strip with canvas hash `0x40d8b9a5` without storing decoded door pixels.
+
+
+## Cycle update: runtime door-aware ray hits
+
+Added `wl_cast_runtime_fixed_wall_ray`, a live-model DDA seam that reads `wl_game_model::tilemap` instead of immutable wall planes. It skips empty floor and door-side markers, preserves moving pushwall wall ids, and resolves door-center markers through the runtime `wl_door_desc` array so door hits emit the same page/texture metadata as `wl_build_door_wall_hit` with `doorposition` applied. Tests assert a locked opening door hit (`page 105`, texture `0x0400`, distance `0x8000`), the same ray after the door is cleared continuing to a later wall (`page 3`, distance `0x28000`), and a moving pushwall marker producing wall page `73`.
