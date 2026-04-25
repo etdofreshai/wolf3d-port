@@ -174,8 +174,61 @@ def merge_branch(branch: str) -> tuple[bool, str]:
     cp = run(["git", "merge", "--no-ff", branch, "-m", f"Merge {branch}"], timeout=240)
     if cp.returncode == 0:
         return True, cp.stdout
-    run(["git", "merge", "--abort"], timeout=120)
     return False, cp.stdout
+
+
+def merge_in_progress() -> bool:
+    cp = run(["git", "rev-parse", "-q", "--verify", "MERGE_HEAD"], timeout=30)
+    return cp.returncode == 0
+
+
+def resolve_merge_conflict(args: argparse.Namespace, branch: str, model: str, merge_output: str, wave_id: str) -> tuple[bool, str]:
+    if not args.resolve_merge_conflicts:
+        run(["git", "merge", "--abort"], timeout=120)
+        return False, merge_output
+    prompt = f"""
+Resolve the current git merge conflict in {REPO}.
+
+Context:
+- Parallel wave: {wave_id}
+- Branch being merged: {branch}
+- Model branch owner: {model}
+- Merge output:
+{merge_output}
+
+Instructions:
+- Inspect `git status`, conflicted files, and both sides of the conflict.
+- Resolve conservatively, preserving useful changes from both main and {branch}.
+- Do not modify source/original/.
+- Do not add proprietary game data.
+- Run the relevant verification, at minimum `cd source/modern-c-sdl3 && make test`; include `make test-sdl3` when SDL3/presentation files are touched and available.
+- Complete the merge commit if resolution succeeds.
+- If resolution is unsafe or tests fail after reasonable repair, abort the merge and report the blocker.
+
+Final output: files resolved, verification, final commit/head, or blocker.
+""".strip()
+    cmd = [
+        "openclaw", "agent", "--agent", "main",
+        "--session-id", f"wolf3d-wave-{wave_id}-merge-resolver",
+        "--message", prompt, "--thinking", args.thinking,
+        "--timeout", str(args.timeout), "--json",
+    ]
+    cp = run(cmd, timeout=args.timeout + 180)
+    log_path = LOG_DIR / f"parallel-wave-{wave_id}-{slug_model(model)}-resolver.jsonlog"
+    log_path.write_text(cp.stdout or "", encoding="utf-8")
+    if cp.returncode != 0:
+        if merge_in_progress():
+            run(["git", "merge", "--abort"], timeout=120)
+        return False, cp.stdout
+    if merge_in_progress():
+        # Resolver did not finish the merge; abort so the main checkout is clean.
+        run(["git", "merge", "--abort"], timeout=120)
+        return False, cp.stdout + "\nResolver exited but MERGE_HEAD still exists."
+    verify = run(["make", "test"], cwd=REPO / "source" / "modern-c-sdl3", timeout=300)
+    (LOG_DIR / f"parallel-wave-{wave_id}-{slug_model(model)}-resolver-verify.log").write_text(verify.stdout, encoding="utf-8")
+    if verify.returncode != 0:
+        return False, verify.stdout
+    return True, cp.stdout
 
 
 def main() -> int:
@@ -202,6 +255,7 @@ def main() -> int:
     ap.add_argument("--summary-thinking", default="low")
     ap.add_argument("--summary-channel", default="telegram")
     ap.add_argument("--summary-target", default="telegram:-5268853419")
+    ap.add_argument("--resolve-merge-conflicts", action=argparse.BooleanOptionalAction, default=True, help="ask an agent to resolve merge conflicts before failing a wave")
     ap.add_argument("--push-after-wave", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--cleanup-worktrees", action=argparse.BooleanOptionalAction, default=True)
     args = ap.parse_args()
@@ -266,8 +320,14 @@ def main() -> int:
                 merged.append(f"{model}@{git_head()}")
                 sup.record_model_commit(model, git_full_head())
             else:
-                conflicts.append(f"{model}: merge conflict/failure")
                 (LOG_DIR / f"parallel-wave-{wave_id}-{result['slug']}-merge-failure.log").write_text(output, encoding="utf-8")
+                resolved, resolver_output = resolve_merge_conflict(args, branch, model, output, wave_id)
+                if resolved:
+                    merged.append(f"{model}@{git_head()} (resolved)")
+                    sup.record_model_commit(model, git_full_head())
+                else:
+                    conflicts.append(f"{model}: merge conflict/failure")
+                    (LOG_DIR / f"parallel-wave-{wave_id}-{result['slug']}-resolver-failure.log").write_text(resolver_output, encoding="utf-8")
         verify = run(["make", "test"], cwd=REPO / "source" / "modern-c-sdl3", timeout=300)
         (LOG_DIR / f"parallel-wave-{wave_id}-verify.log").write_text(verify.stdout, encoding="utf-8")
         pushed = False

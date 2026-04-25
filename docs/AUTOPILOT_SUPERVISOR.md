@@ -93,8 +93,9 @@ Behavior:
 - runs `make test` after merge
 - pushes if verification passes
 - reports auto-incrementing wave number, per-model elapsed time, brief per-model work summary, merged commits, issues/conflicts, verification, push status, and final head to Telegram
+- when a merge conflicts, asks a resolver agent to repair the conflict and run verification before giving up
 
-If a branch conflicts or fails verification, the wave reports the issue and stops instead of blindly continuing. This is deliberately safer than letting multiple models edit the same checkout.
+If a branch conflicts and the resolver cannot safely fix it, or if verification fails, the wave reports the issue and stops instead of blindly continuing. This is deliberately safer than letting multiple models edit the same checkout.
 
 ## Cross-model review phase
 

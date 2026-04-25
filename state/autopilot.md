@@ -5850,3 +5850,33 @@ Next likely move:
 - Resume parallel waves; Telegram updates should now be numbered and more informative.
 
 Blockers: none.
+
+
+## Cycle 2026-04-25 18:51 CDT Merge Conflict Resolver
+
+Action taken:
+
+- Added an automatic merge-conflict resolver step to `scripts/wolf3d_parallel_wave.py`.
+- When a parallel worker branch conflicts during merge, the runner now leaves the merge in conflict, asks an OpenClaw resolver agent to inspect and resolve the conflict, run verification, and complete the merge commit if safe.
+- The wave only fails if the resolver exits with an error, leaves `MERGE_HEAD` active, verification fails, or the resolver reports an unsafe conflict.
+- Added `--resolve-merge-conflicts` / `--no-resolve-merge-conflicts`, defaulting to enabled.
+- Resolver outputs and verification logs are written under ignored `logs/`.
+- Updated supervisor docs with resolver behavior.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_parallel_wave.py
+scripts/wolf3d_parallel_wave.py --help
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add proprietary game data.
+
+Next likely move:
+
+- Rerun the parallel wave runner; conflicts should now get an automated repair attempt before the wave stops.
+
+Blockers: resolver may still fail or intentionally abort if a conflict is unsafe or tests fail.
