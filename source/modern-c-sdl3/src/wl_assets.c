@@ -2333,8 +2333,11 @@ int wl_describe_adlib_sound(const unsigned char *chunk, size_t chunk_size,
     out->sample_count = sample_count;
     out->priority = read_le16(chunk + sizeof(uint32_t));
     out->instrument_bytes = (uint8_t)instrument_bytes;
-    out->first_instrument_byte = chunk[common_bytes];
-    out->last_instrument_byte = chunk[data_offset - 1u];
+    if (wl_get_adlib_instrument_byte(chunk, chunk_size, 0, &out->first_instrument_byte) != 0 ||
+        wl_get_adlib_instrument_byte(chunk, chunk_size, instrument_bytes - 1u,
+                                     &out->last_instrument_byte) != 0) {
+        return -1;
+    }
     if (sample_count > 0) {
         if (wl_get_adlib_sound_sample(chunk, chunk_size, 0, &out->first_sample) != 0 ||
             wl_get_adlib_sound_sample(chunk, chunk_size, (size_t)sample_count - 1u,
@@ -2343,6 +2346,18 @@ int wl_describe_adlib_sound(const unsigned char *chunk, size_t chunk_size,
         }
     }
     out->trailing_bytes = chunk_size - data_offset - (size_t)sample_count;
+    return 0;
+}
+
+int wl_get_adlib_instrument_byte(const unsigned char *chunk, size_t chunk_size,
+                                 size_t instrument_index, uint8_t *out_byte) {
+    const size_t common_bytes = sizeof(uint32_t) + sizeof(uint16_t);
+    const size_t instrument_bytes = 16u;
+    const size_t data_offset = common_bytes + instrument_bytes;
+    if (!chunk || !out_byte || chunk_size < data_offset || instrument_index >= instrument_bytes) {
+        return -1;
+    }
+    *out_byte = chunk[common_bytes + instrument_index];
     return 0;
 }
 

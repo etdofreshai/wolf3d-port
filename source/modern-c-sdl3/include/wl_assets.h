@@ -563,6 +563,8 @@ int wl_get_pc_speaker_sound_sample(const unsigned char *chunk, size_t chunk_size
                                    size_t sample_index, uint8_t *out_sample);
 int wl_describe_adlib_sound(const unsigned char *chunk, size_t chunk_size,
                             wl_adlib_sound_metadata *out);
+int wl_get_adlib_instrument_byte(const unsigned char *chunk, size_t chunk_size,
+                                 size_t instrument_index, uint8_t *out_byte);
 int wl_get_adlib_sound_sample(const unsigned char *chunk, size_t chunk_size,
                               size_t sample_index, uint8_t *out_sample);
 int wl_describe_imf_music_chunk(const unsigned char *chunk, size_t chunk_size,
