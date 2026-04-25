@@ -1132,6 +1132,35 @@ int wl_cast_projected_wall_ray(const uint16_t *wall_plane, size_t wall_count,
     return out->scaled_height == 0 ? -1 : 0;
 }
 
+int wl_build_camera_ray_directions(int32_t forward_x, int32_t forward_y,
+                                   int32_t plane_x, int32_t plane_y,
+                                   uint16_t view_width, uint16_t first_x,
+                                   uint16_t x_step, size_t ray_count,
+                                   int32_t *out_x, int32_t *out_y) {
+    if (!out_x || !out_y || view_width == 0 || x_step == 0 || ray_count == 0 ||
+        (forward_x == 0 && forward_y == 0)) {
+        return -1;
+    }
+
+    for (size_t i = 0; i < ray_count; ++i) {
+        uint32_t x = (uint32_t)first_x + (uint32_t)i * x_step;
+        if (x >= view_width) {
+            return -1;
+        }
+        int64_t screen_numerator = ((int64_t)2 * (int64_t)x + 1 - view_width) << 16;
+        int64_t camera_x = screen_numerator / view_width;
+        int64_t ray_x = (int64_t)forward_x + (((int64_t)plane_x * camera_x) >> 16);
+        int64_t ray_y = (int64_t)forward_y + (((int64_t)plane_y * camera_x) >> 16);
+        if ((ray_x == 0 && ray_y == 0) || ray_x < INT32_MIN || ray_x > INT32_MAX ||
+            ray_y < INT32_MIN || ray_y > INT32_MAX) {
+            return -1;
+        }
+        out_x[i] = (int32_t)ray_x;
+        out_y[i] = (int32_t)ray_y;
+    }
+    return 0;
+}
+
 int wl_cast_projected_wall_ray_batch(const uint16_t *wall_plane, size_t wall_count,
                                      uint32_t origin_x, uint32_t origin_y,
                                      const int32_t *directions_x,

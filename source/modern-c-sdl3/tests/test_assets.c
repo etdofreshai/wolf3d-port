@@ -791,6 +791,58 @@ static int check_wl6(const char *dir) {
                                            batch_dirs_y, 0, 20, 1, 80, 128,
                                            batch_hits) == -1);
 
+    int32_t camera_dirs_x[5];
+    int32_t camera_dirs_y[5];
+    CHECK(wl_build_camera_ray_directions(0x10000, 0, 0, -0x8000, 5, 0, 1, 5,
+                                         camera_dirs_x, camera_dirs_y) == 0);
+    CHECK(camera_dirs_x[0] == 0x10000);
+    CHECK(camera_dirs_y[0] == 26214);
+    CHECK(camera_dirs_x[2] == 0x10000);
+    CHECK(camera_dirs_y[2] == 0);
+    CHECK(camera_dirs_x[4] == 0x10000);
+    CHECK(camera_dirs_y[4] == -26214);
+    wl_map_wall_hit camera_hits[5];
+    CHECK(wl_cast_projected_wall_ray_batch(wall_plane, WL_MAP_PLANE_WORDS,
+                                           player_x, player_y, camera_dirs_x,
+                                           camera_dirs_y, 5, 30, 1, 80, 128,
+                                           camera_hits) == 0);
+    CHECK(camera_hits[0].tile_x == 32);
+    CHECK(camera_hits[0].tile_y == 58);
+    CHECK(camera_hits[0].wall_page_index == 15);
+    CHECK(camera_hits[0].texture_offset == 0x07c0);
+    CHECK(camera_hits[0].scaled_height == 86);
+    CHECK(camera_hits[1].tile_x == 32);
+    CHECK(camera_hits[1].tile_y == 58);
+    CHECK(camera_hits[1].wall_page_index == 14);
+    CHECK(camera_hits[1].texture_offset == 0x0000);
+    CHECK(camera_hits[2].tile_x == 41);
+    CHECK(camera_hits[2].tile_y == 57);
+    CHECK(camera_hits[2].wall_page_index == 17);
+    CHECK(camera_hits[2].scaled_height == 18);
+    CHECK(camera_hits[3].tile_x == 32);
+    CHECK(camera_hits[3].tile_y == 56);
+    CHECK(camera_hits[3].wall_page_index == 14);
+    CHECK(camera_hits[4].tile_x == 32);
+    CHECK(camera_hits[4].tile_y == 56);
+    CHECK(camera_hits[4].wall_page_index == 15);
+    CHECK(camera_hits[4].texture_offset == 0x0800);
+    const unsigned char *camera_pages[] = { wall15_buf, wall14_buf, wall17_buf,
+                                            wall14_buf, wall15_buf };
+    wl_wall_strip camera_strips[5];
+    for (size_t i = 0; i < 5; ++i) {
+        CHECK(wl_wall_hit_to_strip(&camera_hits[i], camera_pages[i], 4096,
+                                   &camera_strips[i]) == 0);
+    }
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_wall_strip_viewport(camera_strips, 5, &canvas) == 0);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0x7320f695);
+    CHECK(wl_build_camera_ray_directions(0, 0, 0, -0x8000, 5, 0, 1, 5,
+                                         camera_dirs_x, camera_dirs_y) == -1);
+    CHECK(wl_build_camera_ray_directions(0x10000, 0, 0, -0x8000, 5, 4, 1, 2,
+                                         camera_dirs_x, camera_dirs_y) == -1);
+
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 105, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 4096);
@@ -1163,6 +1215,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/view-batch tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/camera-rays tests passed for %s\n", dir);
     return 0;
 }

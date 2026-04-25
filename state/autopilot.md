@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-16.16 fixed-point projected DDA ray columns can now be batched into ordered screen-column hit descriptors for the SDL-free viewport seam on headless Linux for WL6. Next phase should add a camera/FOV ray-table helper, or add palette/texture-upload metadata.
+16.16 fixed-point camera ray tables now feed batched projected DDA wall columns into the SDL-free viewport seam on headless Linux for WL6. Next phase should add a tiny view render helper, or add palette/texture-upload metadata.
 
 ## Latest Verified Milestone
 
@@ -19,7 +19,7 @@ Status: active
 - `docs/research/map-decompression.md` records the Carmack/RLEW implementation seam, hash/count assertions, and verification output.
 - `docs/research/map-semantics.md` records original source references and WL6 map 0 semantic-count assertions.
 - `docs/research/runtime-map-model.md` records the pure C runtime model seam, door-area connectivity descriptors, descriptor assertions, and verification output.
-- `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall-page metadata/surface/column-sampler/scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch assertions, sprite shape metadata assertions, sprite post-command metadata assertions, range/count assertions, and verification output.
+- `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall-page metadata/surface/column-sampler/scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray assertions, sprite shape metadata assertions, sprite post-command metadata assertions, range/count assertions, and verification output.
 - `docs/research/graphics-huffman.md` records VGAHEAD/VGADICT/VGAGRAPH parsing, pure C Huffman expansion, STRUCTPIC picture-table metadata, planar-to-indexed surface conversion, renderer-facing indexed-surface descriptors, SDL-free indexed blitting, WL6/SOD graphics chunk smoke assertions, and verification output.
 
 ## Verified Findings
@@ -99,18 +99,19 @@ Use tests as the bridge from the original code to modern C:
 23. Fixed-point DDA ray helper for arbitrary direction vectors. **Done for WL6 player-origin rays.**
 24. Distance/height projected raycast columns. **Done for representative WL6 player-origin rays.**
 25. Multi-column projected view batches. **Done for representative WL6 player-origin rays.**
-26. Camera/FOV ray-table helper or palette/texture-upload metadata seam.
+26. Camera/FOV ray-table helper. **Done for representative WL6 player-origin rays.**
+27. Tiny view render helper or palette/texture-upload metadata seam.
 
 ## Next Likely Move
 
-Add a camera/FOV ray-table helper or palette/texture-upload metadata.
+Add a tiny view render helper or palette/texture-upload metadata.
 
 Recommended next commit:
 
-- add a camera/FOV ray-table helper feeding projected view batches;
+- add a tiny view render helper that builds camera rays, casts projected batches, maps pages, and renders strips;
 - or add palette/texture-upload metadata that can later connect `wl_indexed_surface` to SDL3 textures.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch canvas hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray canvas hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
 
 ## Blockers
 
@@ -1036,5 +1037,43 @@ Safety/legal checks:
 Next likely move:
 
 - Add a small camera/FOV ray-table helper feeding projected batches, or add palette/texture-upload metadata before SDL3 presentation.
+
+Blockers: none.
+
+
+## Cycle 2026-04-24 23:41 CDT
+
+Action taken:
+
+- Added `wl_build_camera_ray_directions`, a pure C helper that generates half-pixel-centered 16.16 ray vectors from a forward vector and camera-plane vector.
+- Fed those generated rays into `wl_cast_projected_wall_ray_batch` for representative WL6 player-origin columns.
+- Added deterministic assertions for generated ray directions, wall-hit descriptors, viewport hash `0x7320f695`, and invalid camera table bounds/zero-forward validation.
+- Updated `docs/research/vswap-directory.md` and `source/modern-c-sdl3/README.md`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/camera-rays tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash assertions are committed.
+
+Next likely move:
+
+- Add a tiny view render helper that builds camera rays, casts projected batches, maps VSWAP wall pages, and renders strips, or add palette/texture-upload metadata before SDL3 presentation.
 
 Blockers: none.

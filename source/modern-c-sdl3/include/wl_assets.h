@@ -231,6 +231,11 @@ int wl_cast_projected_wall_ray(const uint16_t *wall_plane, size_t wall_count,
                                int32_t direction_x, int32_t direction_y,
                                uint16_t x, uint16_t view_width,
                                uint16_t view_height, wl_map_wall_hit *out);
+int wl_build_camera_ray_directions(int32_t forward_x, int32_t forward_y,
+                                   int32_t plane_x, int32_t plane_y,
+                                   uint16_t view_width, uint16_t first_x,
+                                   uint16_t x_step, size_t ray_count,
+                                   int32_t *out_x, int32_t *out_y);
 int wl_cast_projected_wall_ray_batch(const uint16_t *wall_plane, size_t wall_count,
                                      uint32_t origin_x, uint32_t origin_y,
                                      const int32_t *directions_x,

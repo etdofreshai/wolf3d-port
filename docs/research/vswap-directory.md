@@ -1,7 +1,7 @@
 # VSWAP Directory Notes
 
 Research/implementation cycle: 2026-04-24 22:41-23:00 CDT  
-Scope: VSWAP chunk-directory, bounded reads, wall-page metadata/surface conversion, wall texture-column sampling, fixed-height wall strip scaling, tiny wall-strip viewport composition, map-derived wall-hit descriptors, cardinal/fixed-point/DDA/projected ray stepping, multi-column view batches, and metadata-only sprite shape parsing for WL6 and optional SOD, without committing proprietary chunk bytes.
+Scope: VSWAP chunk-directory, bounded reads, wall-page metadata/surface conversion, wall texture-column sampling, fixed-height wall strip scaling, tiny wall-strip viewport composition, map-derived wall-hit descriptors, cardinal/fixed-point/DDA/projected ray stepping, multi-column view batches, camera ray tables, and metadata-only sprite shape parsing for WL6 and optional SOD, without committing proprietary chunk bytes.
 
 ## Original reference
 
@@ -49,6 +49,7 @@ The parser:
 - steps arbitrary 16.16 fixed-point ray vectors through map grid intersections with a DDA helper;
 - projects DDA hit distances into deterministic wall-column heights using the original `CalcProjection`/`CalcHeight` constants;
 - batches projected ray columns into ordered screen-column hit descriptors for future view rendering;
+- builds half-pixel-sampled camera ray directions from fixed-point forward and camera-plane vectors;
 - validates/counts sprite post-command streams without retaining pixel data;
 - does not copy or commit any proprietary chunk bytes.
 
@@ -71,7 +72,7 @@ The parser:
 - final chunk: index `662`, offset `1544192`, length `184`
 - read smoke hashes: chunk `0` `0x98d020a5`, chunk `106` `0xbf4fcd99`, chunk `542` `0xaee73350`, chunk `662` `0xfba68c74`
 - wall metadata for chunk `0`: `64x64`, `64` columns, colors `7..31`, `18` unique colors, row-major indexed hash `0x8fe4d8ff`, sampled column hashes `0xc77d483d`, `0x272b5483`, `0x2fbb79bb`, `0x19c55a4e`, scaled-strip canvas hashes `0xceb8a051`, `0xf25f51d9`
-- wall metadata for chunk `63`: colors `26..223`, `31` unique colors, row-major indexed hash `0x5b4d4c38`, sampled column hash `0x8a859220`, combined scaled-strip/viewport canvas hash `0x0b200118`; map-derived viewport hash `0x7ffb21c0`; cardinal/fixed-ray viewport hash `0xa4c9e6e1`, DDA mixed-ray viewport hash `0xae40b70c`, projected-ray viewport hash `0xd48f2f6d`, batched-view viewport hash `0x7209a9ed`
+- wall metadata for chunk `63`: colors `26..223`, `31` unique colors, row-major indexed hash `0x5b4d4c38`, sampled column hash `0x8a859220`, combined scaled-strip/viewport canvas hash `0x0b200118`; map-derived viewport hash `0x7ffb21c0`; cardinal/fixed-ray viewport hash `0xa4c9e6e1`, DDA mixed-ray viewport hash `0xae40b70c`, projected-ray viewport hash `0xd48f2f6d`, batched-view viewport hash `0x7209a9ed`, camera-ray viewport hash `0x7320f695`
 - wall metadata for chunk `105`: colors `0..31`, `11` unique colors, row-major indexed hash `0x66874cf5`
 - sprite metadata for chunk `106`: `64x64`, left/right pixels `4..58`, `55` visible columns, first/last column offsets `800/1298`
 - sprite post metadata for chunk `106`: `66` posts, `55` column terminators, `1..2` posts/column, span range `2..40`, source-offset range `108..782`, total post span `1372`
@@ -116,7 +117,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/view-batch tests passed for game-files/base
+asset/decompression/semantics/model/vswap/camera-rays tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
@@ -125,7 +126,7 @@ Added `wl_read_vswap_chunk`, a bounded read helper that validates chunk index, s
 
 Added `wl_decode_vswap_shape_metadata` for safe metadata-only interpretation of representative wall/sprite chunks. Wall chunks assert the canonical `64x64` raw page shape; sprite chunks assert `t_compshape`-style left/right bounds, packed column-offset table metadata, and post-command list counts/ranges.
 
-Added `wl_decode_wall_page_metadata`, `wl_decode_wall_page_to_indexed`, and `wl_decode_wall_page_surface` for raw VSWAP wall pages. These functions preserve the original column-major `PM_GetPage(wallpic) + texture` addressing model while providing row-major indexed surfaces for future SDL3 texture/raycaster seams. Added `wl_sample_wall_page_column` and `wl_sample_indexed_surface_column` so raycaster-oriented code can sample a canonical 64-byte texture column and verify it matches the row-major surface view. Added `wl_scale_wall_column_to_surface`, a pure C fixed-height wall strip scaler that mirrors the original `BuildCompScale` source-pixel run distribution while writing to linear indexed surfaces. Added `wl_render_wall_strip_viewport`, a tiny SDL-free composition seam that renders an ordered set of wall-strip commands into a caller-owned indexed viewport. Added `wl_build_map_wall_hit` and `wl_wall_hit_to_strip` to turn decoded map-plane wall tiles into horizontal/vertical page-index + texture-offset descriptors before viewport composition. Added `wl_cast_cardinal_wall_ray`, a first map stepping helper that walks north/east/south/west from a tile and emits the first solid-wall hit descriptor. Added `wl_cast_fixed_cardinal_wall_ray`, which accepts 16.16 world origins and derives original-style texture offsets from the perpendicular intercept coordinate. Added `wl_cast_fixed_wall_ray`, which steps arbitrary 16.16 direction vectors across vertical/horizontal map-grid crossings, derives the hit-side texture column from the fixed-point intercept coordinate, and feeds the existing wall-hit/viewport seam. Added `wl_project_wall_height` and `wl_cast_projected_wall_ray`, which carry fixed DDA hit distance into a deterministic projected wall height for SDL-free column rendering. Added `wl_cast_projected_wall_ray_batch`, which validates and emits an ordered run of screen-column wall-hit descriptors from caller-provided 16.16 ray vectors.
+Added `wl_decode_wall_page_metadata`, `wl_decode_wall_page_to_indexed`, and `wl_decode_wall_page_surface` for raw VSWAP wall pages. These functions preserve the original column-major `PM_GetPage(wallpic) + texture` addressing model while providing row-major indexed surfaces for future SDL3 texture/raycaster seams. Added `wl_sample_wall_page_column` and `wl_sample_indexed_surface_column` so raycaster-oriented code can sample a canonical 64-byte texture column and verify it matches the row-major surface view. Added `wl_scale_wall_column_to_surface`, a pure C fixed-height wall strip scaler that mirrors the original `BuildCompScale` source-pixel run distribution while writing to linear indexed surfaces. Added `wl_render_wall_strip_viewport`, a tiny SDL-free composition seam that renders an ordered set of wall-strip commands into a caller-owned indexed viewport. Added `wl_build_map_wall_hit` and `wl_wall_hit_to_strip` to turn decoded map-plane wall tiles into horizontal/vertical page-index + texture-offset descriptors before viewport composition. Added `wl_cast_cardinal_wall_ray`, a first map stepping helper that walks north/east/south/west from a tile and emits the first solid-wall hit descriptor. Added `wl_cast_fixed_cardinal_wall_ray`, which accepts 16.16 world origins and derives original-style texture offsets from the perpendicular intercept coordinate. Added `wl_cast_fixed_wall_ray`, which steps arbitrary 16.16 direction vectors across vertical/horizontal map-grid crossings, derives the hit-side texture column from the fixed-point intercept coordinate, and feeds the existing wall-hit/viewport seam. Added `wl_project_wall_height` and `wl_cast_projected_wall_ray`, which carry fixed DDA hit distance into a deterministic projected wall height for SDL-free column rendering. Added `wl_cast_projected_wall_ray_batch`, which validates and emits an ordered run of screen-column wall-hit descriptors from caller-provided 16.16 ray vectors. Added `wl_build_camera_ray_directions`, which generates half-pixel-centered fixed-point ray vectors from a forward vector and camera-plane vector before feeding projected batches.
 
 ## Cycle update: sprite post metadata
 
@@ -133,4 +134,4 @@ Extended sprite metadata decoding to walk each visible column's post-command str
 
 ## Next step
 
-Build on batched projected columns with a small camera/FOV ray-table helper, or add palette/texture-upload metadata before SDL3 presentation. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.
+Build on camera-generated projected columns with a tiny view render helper, or add palette/texture-upload metadata before SDL3 presentation. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.
