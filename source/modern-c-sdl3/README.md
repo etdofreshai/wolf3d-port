@@ -66,3 +66,8 @@ The runtime door-aware scene renderer is now covered with moving pushwall state 
 ## Pushwall sub-tile render offsets
 
 `wl_cast_runtime_fixed_wall_ray` now applies the original moving-pushwall `pwallpos` offset to hit distance before projected wall height is computed. Texture-column selection still follows `HitHorizPWall` / `HitVertPWall`, while the adjusted distance makes the live renderer observe sub-tile pushwall movement. Headless scene coverage now distinguishes the same pushwall at `pwallpos=0`, at `pwallpos=16`, and after the marker is cleared.
+
+
+## Live runtime-ref scene rendering
+
+The broader WL6 runtime-ref sprite set now also flows through `wl_render_runtime_door_camera_scene_view`, not only the immutable wall-plane scene renderer. A headless test renders five real `wl_collect_scene_sprite_refs` outputs against the mutable `wl_game_model::tilemap`, verifies the closed door at `(32,57)` emits door page `99`, then clears that door center and verifies rays continue to the later wall page. The closed/open live scene hashes are committed as metadata only.

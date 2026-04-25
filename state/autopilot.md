@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer with broader visible-ref/camera-angle coverage, additional maps cover officer/SS/mutant/boss/ghost runtime actor refs, and palette fade/shift generation, state, shifted upload selection, player gameplay/bonus pickup events, and runtime static pickup/removal hooks, a TransformTile-style visible pickup probe, and a small player motion/collision tick, and use-button door/elevator/pushwall dispatch metadata and deterministic door open/close progression, and pushwall start/progression metadata, a live runtime solid-plane raycast/render bridge, door-wall render descriptors, runtime door-aware ray hits, and door-aware runtime camera wall rendering, and door-aware runtime wall+sprite scene rendering, pushwall wall-page/texture descriptors, and live pushwall scene occlusion, and pushwall sub-tile distance/height are covered headlessly. Next phase should broaden map runtime-scene coverage, deepen live gameplay events, or add a small SDL3 presentation boundary when SDL3 is available.
+Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer with broader visible-ref/camera-angle coverage, additional maps cover officer/SS/mutant/boss/ghost runtime actor refs, and palette fade/shift generation, state, shifted upload selection, player gameplay/bonus pickup events, and runtime static pickup/removal hooks, a TransformTile-style visible pickup probe, and a small player motion/collision tick, and use-button door/elevator/pushwall dispatch metadata and deterministic door open/close progression, and pushwall start/progression metadata, a live runtime solid-plane raycast/render bridge, door-wall render descriptors, runtime door-aware ray hits, and door-aware runtime camera wall rendering, and door-aware runtime wall+sprite scene rendering, pushwall wall-page/texture descriptors, and live pushwall scene occlusion, and pushwall sub-tile distance/height, and live runtime-ref door scene coverage are covered headlessly. Next phase should broaden map runtime-scene coverage, deepen live gameplay events, or add a small SDL3 presentation boundary when SDL3 is available.
 
 ## Latest Verified Milestone
 
@@ -137,7 +137,8 @@ Use tests as the bridge from the original code to modern C:
 59. Pushwall wall page/texture descriptor seam. **Done headlessly.**
 60. Live pushwall wall+sprite scene occlusion coverage. **Done headlessly.**
 61. Pushwall sub-tile distance/height in live runtime rays/rendering. **Done headlessly.**
-62. Broader map runtime-scene coverage, deeper collision/gameplay events, or SDL3 presentation seam.
+62. Live runtime-ref scene coverage through door-aware model rendering. **Done headlessly.**
+63. Broader map runtime-scene coverage, deeper collision/gameplay events, or SDL3 presentation seam.
 
 ## Next Likely Move
 
@@ -149,7 +150,7 @@ Recommended next commit:
 - or add a small SDL3 presentation seam using `wl_texture_upload_descriptor`;
 - or connect palette-shifted upload selection to future live player damage/bonus events before presentation.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, scaled-sprite viewport hashes, world-sprite projection/sorted-render hashes, combined scene render hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA/palette-fade/shift hashes, shift-state transitions, and palette-selected upload hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, door-area connectivity descriptors, and runtime scene sprite-reference descriptors, VSWAP sprite surface-cache hashes, and broader runtime-scene, camera-scene, multi-map enemy scene-ref, boss-map scene-ref, ghost-map scene-ref, and gameplay-event, bonus-pickup, static-pickup, and visible-static-pickup, player-motion, player-use, door-progression, pushwall-progression, live-solid-ray, live-runtime-render, door-wall-render, runtime-door-ray, runtime-door-render, runtime-door-scene, runtime-pushwall-render, runtime-pushwall-scene, and runtime-pushwall-offset assertions.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, scaled-sprite viewport hashes, world-sprite projection/sorted-render hashes, combined scene render hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA/palette-fade/shift hashes, shift-state transitions, and palette-selected upload hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, door-area connectivity descriptors, and runtime scene sprite-reference descriptors, VSWAP sprite surface-cache hashes, and broader runtime-scene, camera-scene, multi-map enemy scene-ref, boss-map scene-ref, ghost-map scene-ref, and gameplay-event, bonus-pickup, static-pickup, and visible-static-pickup, player-motion, player-use, door-progression, pushwall-progression, live-solid-ray, live-runtime-render, door-wall-render, runtime-door-ray, runtime-door-render, runtime-door-scene, runtime-pushwall-render, runtime-pushwall-scene, runtime-pushwall-offset, and runtime-live-ref-scene assertions.
 
 ## Blockers
 
@@ -2327,7 +2328,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-pushwall-offset tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-live-ref-scene tests passed for game-files/base
 ```
 
 Safety/legal checks:
@@ -2365,7 +2366,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-pushwall-offset tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-live-ref-scene tests passed for game-files/base
 ```
 
 Safety/legal checks:
@@ -2403,7 +2404,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-pushwall-offset tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-live-ref-scene tests passed for game-files/base
 ```
 
 Safety/legal checks:
@@ -2414,5 +2415,43 @@ Safety/legal checks:
 Next likely move:
 
 - Broaden live scenes with real runtime refs/statics plus active doors/pushwalls, add actor/player interactions, or add an SDL3 presentation seam once SDL3 is available.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+## Cycle 2026-04-25 02:00 CDT
+
+Action taken:
+
+- Broadened live runtime-scene coverage by sending five real WL6 map-0 runtime sprite refs through `wl_render_runtime_door_camera_scene_view`.
+- The test decodes required VSWAP sprite surfaces locally, renders against the mutable `wl_game_model::tilemap`, verifies the closed door at `(32,57)` emits door page `99`, then clears that door center and verifies the ray continues to later wall page `15`.
+- Asserted live runtime-ref scene hashes: closed-door composition `0x21495346`, open-door composition `0x2e4660d2`.
+- Updated README, runtime/VSWAP research notes, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-ref-scene tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/state/hash assertions are committed.
+
+Next likely move:
+
+- Add a small headless live gameplay tick that combines movement, pickup, use, door/pushwall progression, palette shifts, and live scene rendering; or broaden multi-map runtime scenes.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

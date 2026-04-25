@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-pushwall-offset tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-live-ref-scene tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -198,3 +198,8 @@ Extended headless runtime-scene coverage so moving pushwall markers participate 
 ## Cycle update: pushwall sub-tile render offsets
 
 `wl_cast_runtime_fixed_wall_ray` now applies moving-pushwall `pwallpos` to ray distance for live pushwall hits, mirroring the original `HitHorizPWall` / `HitVertPWall` adjustment of the hit intercept before `CalcHeight()`. The texture column remains derived from the original intercept; the sub-tile offset affects distance and projected height. Tests assert a direct east pushwall ray moving from distance `0x8000` to `0x0c000` at `pwallpos=16`, plus a live scene case where the same moving marker changes from hash `0x81e9da6b` to shifted hash `0x83a0d93b` before clearing to `0xf80cfa3f`.
+
+
+## Cycle update: live runtime-ref scene rendering
+
+Broadened runtime-scene coverage by feeding five real WL6 map-0 `wl_collect_scene_sprite_refs` outputs through the mutable-model door-aware scene renderer. The test decodes the required VSWAP sprite surfaces locally, renders them with `wl_render_runtime_door_camera_scene_view`, asserts the live door center at `(32,57)` emits door page `99`, then clears that tile and confirms the same rays continue to the later wall page `15`. Scene hashes distinguish closed-door (`0x21495346`) and open-door (`0x2e4660d2`) live runtime-ref composition without committing decoded asset bytes.

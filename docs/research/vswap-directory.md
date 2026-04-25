@@ -126,7 +126,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-pushwall-offset tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-live-ref-scene tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
@@ -212,3 +212,8 @@ Added deterministic renderer coverage for moving pushwalls using real local VSWA
 ## Cycle update: pushwall sub-tile render offsets
 
 Moving pushwall render coverage now includes the `pwallpos` sub-tile offset. Runtime rays still select VSWAP wall page/texture metadata from the moving tile marker, but their emitted distance/projected height now shifts with `pwallpos`, producing a distinct deterministic scene hash for a partially moved pushwall. Assertions remain hash/metadata-only; decoded VSWAP wall bytes stay local.
+
+
+## Cycle update: live runtime-ref scene rendering
+
+The VSWAP sprite-cache path is now exercised through live door-aware model rendering with real runtime refs. Five decoded local sprite surfaces are composited behind the mutable `wl_game_model::tilemap`; a closed door uses VSWAP door page `99`, while clearing that live tile lets the scene render against the later wall. Tests commit only emitted page metadata and scene hashes (`0x21495346` closed, `0x2e4660d2` open).
