@@ -1468,6 +1468,48 @@ static int check_wl6(const char *dir) {
                                             sizeof(fade_sample_rgba),
                                             NULL) == 0);
     CHECK(fnv1a_bytes(fade_sample_rgba, sizeof(fade_sample_rgba)) == 0x93adda7f);
+
+    wl_game_model live_combat_model;
+    memset(&live_combat_model, 0, sizeof(live_combat_model));
+    wl_actor_desc live_combat_dog;
+    memset(&live_combat_dog, 0, sizeof(live_combat_dog));
+    live_combat_dog.kind = WL_ACTOR_DOG;
+    live_combat_dog.tile_x = 5;
+    live_combat_dog.tile_y = 4;
+    wl_projectile_state live_combat_projectile = {
+        (3u << 16) + 0x8000u, (4u << 16) + 0x8000u, 3, 4,
+        WL_PROJECTILE_NEEDLE, 1,
+    };
+    wl_player_motion_state live_combat_motion = {
+        (4u << 16) + 0x8000u, (4u << 16) + 0x8000u, 4, 4,
+    };
+    wl_player_gameplay_state live_combat_state;
+    wl_live_combat_tick_result live_combat;
+    CHECK(wl_init_player_gameplay_state(&live_combat_state, 100, 3, 0,
+                                        WL_EXTRA_POINTS) == 0);
+    CHECK(wl_step_live_combat_tick(&live_combat_state, &live_combat_model,
+                                   use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                   &live_combat_motion, 0, 0, 0x10000, 0,
+                                   WL_DIR_EAST, 0, 0,
+                                   &live_combat_dog, &live_combat_projectile,
+                                   WL_DIFFICULTY_HARD, 1, 1, 0, 1, 179, 80,
+                                   0x10000, 0, 80, 0, 0, 1,
+                                   &live_combat) == 0);
+    CHECK(live_combat.live.palette.kind == WL_PALETTE_SHIFT_RED);
+    CHECK(live_combat.live.palette.shift_index == 3);
+    CHECK(live_combat.live.palette.damage_count == 34);
+    CHECK(wl_describe_palette_shifted_texture_upload(
+              &fade_sample_surface, &live_combat.live.palette, upload_palette,
+              red_shift_palettes, WL_NUM_RED_SHIFTS, white_shift_palettes,
+              WL_NUM_WHITE_SHIFTS, sizeof(upload_palette), 6, &upload) == 0);
+    CHECK(upload.palette == red_shift_palettes + 3u * sizeof(upload_palette));
+    CHECK(fnv1a_bytes(upload.palette, sizeof(upload_palette)) == 0x35132dc5);
+    CHECK(wl_expand_indexed_surface_to_rgba(&fade_sample_surface, upload.palette,
+                                            sizeof(upload_palette), 6,
+                                            fade_sample_rgba,
+                                            sizeof(fade_sample_rgba),
+                                            NULL) == 0);
+    CHECK(fnv1a_bytes(fade_sample_rgba, sizeof(fade_sample_rgba)) == 0x8e2b026e);
     CHECK(wl_update_palette_shift_state(&shift_state, 1, &shift_result) == 0);
     CHECK(shift_result.kind == WL_PALETTE_SHIFT_NONE);
     CHECK(wl_start_damage_palette_shift(&shift_state, -1) == -1);
@@ -3357,6 +3399,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-combat-tick tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-combat-upload tests passed for %s\n", dir);
     return 0;
 }

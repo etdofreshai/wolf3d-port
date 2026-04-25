@@ -126,3 +126,8 @@ Actor contact/ranged damage is now connected to live tick orchestration. `wl_ste
 ## Live combat tick seam
 
 Actor and projectile damage can now share one deterministic frame update. `wl_step_live_combat_tick` runs the live motion/use/door/pushwall sequence, optionally dispatches actor bite/shoot damage and an active projectile step, then advances palette state once after cumulative frame damage so future SDL3 presentation can consume one coherent red-flash result.
+
+
+## Live combat upload seam
+
+The combined combat tick now feeds the SDL-free palette upload boundary. A headless test routes cumulative actor/projectile damage through `wl_step_live_combat_tick`, then passes the returned red palette state to `wl_describe_palette_shifted_texture_upload` and RGBA expansion so future SDL3 presentation can consume the same deterministic upload metadata.

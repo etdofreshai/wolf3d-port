@@ -219,3 +219,8 @@ Actor attack damage now reaches palette selection through live tick orchestratio
 ## Cycle update: live combat palette damage
 
 Cumulative actor/projectile frame damage now reaches palette selection through a single live combat tick. `wl_step_live_combat_tick` applies actor and projectile damage before `wl_update_palette_shift_state`, so the returned red palette-shift metadata reflects total same-frame damage for the existing shifted texture-upload boundary.
+
+
+## Cycle update: live combat upload selection
+
+Cumulative combat damage now reaches the existing shifted texture-upload metadata. `wl_step_live_combat_tick` returns a red palette result that is fed to `wl_describe_palette_shifted_texture_upload`; tests assert the selected red-shift palette pointer, palette hash, and RGBA expansion hash for the same frame.
