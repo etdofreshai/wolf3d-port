@@ -206,6 +206,65 @@ static int check_gameplay_events(void) {
     CHECK(wl_try_actor_bite_player(&state, &dog, &bite_motion, WL_DIFFICULTY_HARD,
                                    0, 80, 0, 0, &bite) == -1);
 
+    wl_actor_desc shooter;
+    memset(&shooter, 0, sizeof(shooter));
+    shooter.kind = WL_ACTOR_GUARD;
+    shooter.shootable = 1;
+    shooter.tile_x = 8;
+    shooter.tile_y = 4;
+    wl_player_motion_state shot_motion = { (4u << 16) + 0x8000u, (4u << 16) + 0x8000u, 4, 4 };
+    wl_actor_shot_damage_result shot;
+    CHECK(wl_init_player_gameplay_state(&state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_try_actor_shoot_player(&state, &shooter, &shot_motion,
+                                    WL_DIFFICULTY_HARD, 0, 1, 0, 1,
+                                    0, 240, 0, 0, &shot) == 0);
+    CHECK(shot.area_active == 0);
+    CHECK(shot.line_of_sight == 1);
+    CHECK(shot.distance_tiles == 4);
+    CHECK(shot.hit_chance == 192);
+    CHECK(shot.damaged == 0);
+    CHECK(state.health == 100);
+    CHECK(wl_try_actor_shoot_player(&state, &shooter, &shot_motion,
+                                    WL_DIFFICULTY_HARD, 1, 0, 0, 1,
+                                    0, 240, 0, 0, &shot) == 0);
+    CHECK(shot.line_of_sight == 0);
+    CHECK(shot.damaged == 0);
+    CHECK(wl_try_actor_shoot_player(&state, &shooter, &shot_motion,
+                                    WL_DIFFICULTY_HARD, 1, 1, 0, 1,
+                                    192, 240, 0, 0, &shot) == 0);
+    CHECK(shot.chance_hit == 0);
+    CHECK(state.health == 100);
+    CHECK(wl_try_actor_shoot_player(&state, &shooter, &shot_motion,
+                                    WL_DIFFICULTY_HARD, 1, 1, 0, 1,
+                                    191, 240, 0, 0, &shot) == 0);
+    CHECK(shot.chance_hit == 1);
+    CHECK(shot.damage.effective_points == 15);
+    CHECK(state.health == 85);
+    CHECK(state.palette_shift.damage_count == 15);
+    shooter.kind = WL_ACTOR_SS;
+    shooter.tile_x = 7;
+    CHECK(wl_try_actor_shoot_player(&state, &shooter, &shot_motion,
+                                    WL_DIFFICULTY_BABY, 1, 1, 1, 1,
+                                    127, 240, 0, 0, &shot) == 0);
+    CHECK(shot.distance_tiles == 2);
+    CHECK(shot.hit_chance == 128);
+    CHECK(shot.damage.requested_points == 30);
+    CHECK(shot.damage.effective_points == 7);
+    CHECK(state.health == 78);
+    shooter.kind = WL_ACTOR_GUARD;
+    shooter.tile_x = 5;
+    CHECK(wl_try_actor_shoot_player(&state, &shooter, &shot_motion,
+                                    WL_DIFFICULTY_HARD, 1, 1, 1, 1,
+                                    143, 80, 0, 0, &shot) == 0);
+    CHECK(shot.distance_tiles == 1);
+    CHECK(shot.hit_chance == 144);
+    CHECK(shot.damage.effective_points == 20);
+    CHECK(state.health == 58);
+    shooter.shootable = 0;
+    CHECK(wl_try_actor_shoot_player(&state, &shooter, &shot_motion,
+                                    WL_DIFFICULTY_HARD, 1, 1, 1, 1,
+                                    0, 80, 0, 0, &shot) == -1);
+
     uint8_t picked_up = 255;
     CHECK(wl_init_player_gameplay_state(&state, 50, 2, 0, WL_EXTRA_POINTS) == 0);
     CHECK(wl_apply_player_bonus(&state, WL_BONUS_FOOD, &picked_up) == 0);
@@ -3077,6 +3136,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-actor-bite tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-actor-shoot tests passed for %s\n", dir);
     return 0;
 }

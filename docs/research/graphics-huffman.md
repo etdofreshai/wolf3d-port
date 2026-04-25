@@ -194,3 +194,8 @@ Extended the live tick palette bridge into upload metadata. A movement tick that
 ## Cycle update: actor bite palette damage
 
 The red palette-shift path now receives actor-driven damage, not only direct player-damage calls. A deterministic dog-bite test routes `damage_roll >> 4` through `wl_apply_player_damage`, verifies baby-difficulty scaling and red shift selection, and stays SDL-free for future texture-upload integration.
+
+
+## Cycle update: actor shooting palette damage
+
+The red palette-shift path now receives deterministic actor shooting damage as well as bite damage. The headless shooting test feeds explicit hit/damage rolls through `wl_try_actor_shoot_player`, verifies difficulty scaling and damage counters through `wl_apply_player_damage`, and keeps all presentation work on the existing SDL-free palette/upload boundary.

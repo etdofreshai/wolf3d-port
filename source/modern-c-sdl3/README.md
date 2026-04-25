@@ -101,3 +101,8 @@ Static pickup/removal now reaches the live renderer path. A headless test collec
 ## Actor bite damage seam
 
 The gameplay layer now has a deterministic dog-bite/contact damage seam. `wl_try_actor_bite_player` mirrors the original `T_Bite` shape by checking player/actor proximity against the original tile-global/min-actor-distance range, applying a caller-supplied chance roll threshold, deriving bite damage from a caller-supplied damage roll, then routing the result through `wl_apply_player_damage` so difficulty scaling, death state, and red palette-shift counters stay on the same gameplay path.
+
+
+## Actor shooting damage seam
+
+The gameplay layer now has a deterministic `T_Shoot`-style actor shooting seam. `wl_try_actor_shoot_player` takes runtime actor/player descriptors plus explicit area/line-of-sight/running/visibility and random-roll inputs, computes the original distance-adjusted hit chance shape, applies SS/boss distance improvement, derives close/medium/far damage from the original roll shifts, and routes hits through `wl_apply_player_damage`.

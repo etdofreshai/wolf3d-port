@@ -86,6 +86,18 @@ typedef struct wl_actor_contact_damage_result {
     wl_player_damage_result damage;
 } wl_actor_contact_damage_result;
 
+typedef struct wl_actor_shot_damage_result {
+    uint8_t area_active;
+    uint8_t line_of_sight;
+    uint8_t chance_hit;
+    uint8_t damaged;
+    uint8_t chance_roll;
+    uint8_t damage_roll;
+    uint16_t distance_tiles;
+    int32_t hit_chance;
+    wl_player_damage_result damage;
+} wl_actor_shot_damage_result;
+
 typedef struct wl_player_motion_state {
     uint32_t x;
     uint32_t y;
@@ -171,6 +183,15 @@ int wl_try_actor_bite_player(wl_player_gameplay_state *state,
                              uint8_t chance_roll, uint8_t damage_roll,
                              int god_mode, int victory_flag,
                              wl_actor_contact_damage_result *out);
+int wl_try_actor_shoot_player(wl_player_gameplay_state *state,
+                              const wl_actor_desc *actor,
+                              const wl_player_motion_state *player,
+                              wl_difficulty difficulty,
+                              int area_active, int line_of_sight,
+                              int player_running, int actor_visible,
+                              uint8_t chance_roll, uint8_t damage_roll,
+                              int god_mode, int victory_flag,
+                              wl_actor_shot_damage_result *out);
 int wl_heal_player(wl_player_gameplay_state *state, int32_t points);
 int wl_award_player_points(wl_player_gameplay_state *state, int32_t points,
                            int32_t *out_extra_lives_awarded,

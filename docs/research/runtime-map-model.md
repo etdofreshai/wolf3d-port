@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-actor-bite tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-actor-shoot tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -233,3 +233,8 @@ Extended the live tick → scene path from doors and pushwalls to pickup statics
 ## Cycle update: actor bite damage seam
 
 Added a first actor/player interaction event seam for dog bites. `wl_try_actor_bite_player` accepts runtime actor descriptors and player motion state, checks the original `T_Bite` proximity window (`abs(delta) - TILEGLOBAL <= MINACTORDIST` on both axes), applies the original chance threshold shape (`chance_roll < 180`), derives damage from `damage_roll >> 4`, and routes successful hits through `wl_apply_player_damage`. Headless tests cover in-range damage, out-of-range no-op, chance miss, baby-difficulty damage scaling, red palette-shift output, and rejection of non-dog actors.
+
+
+## Cycle update: actor shooting damage seam
+
+Added a deterministic actor shooting event seam following the original `T_Shoot` structure. `wl_try_actor_shoot_player` validates shoot-capable runtime actors, gates on active area and line of sight, computes max tile distance from actor/player tiles, applies the original SS/boss two-thirds distance advantage, derives hit chance from player running and actor visibility, and maps hit damage to close/medium/far `damage_roll` shifts before calling `wl_apply_player_damage`. Headless tests cover inactive area, blocked line of sight, chance miss, far guard damage, SS adjusted-distance medium damage with baby scaling, close guard damage, and non-shootable rejection.

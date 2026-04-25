@@ -78,6 +78,59 @@ static uint32_t abs_delta_u32(uint32_t a, uint32_t b) {
     return a >= b ? a - b : b - a;
 }
 
+static int actor_can_shoot(const wl_actor_desc *actor) {
+    if (!actor || !actor->shootable) {
+        return 0;
+    }
+    switch (actor->kind) {
+    case WL_ACTOR_GUARD:
+    case WL_ACTOR_OFFICER:
+    case WL_ACTOR_SS:
+    case WL_ACTOR_MUTANT:
+    case WL_ACTOR_BOSS:
+        return 1;
+    default:
+        return 0;
+    }
+}
+
+static uint16_t actor_player_tile_distance(const wl_actor_desc *actor,
+                                           const wl_player_motion_state *player) {
+    uint16_t player_tile_x = (uint16_t)(player->x >> 16);
+    uint16_t player_tile_y = (uint16_t)(player->y >> 16);
+    uint16_t dx = actor->tile_x > player_tile_x ?
+                  (uint16_t)(actor->tile_x - player_tile_x) :
+                  (uint16_t)(player_tile_x - actor->tile_x);
+    uint16_t dy = actor->tile_y > player_tile_y ?
+                  (uint16_t)(actor->tile_y - player_tile_y) :
+                  (uint16_t)(player_tile_y - actor->tile_y);
+    uint16_t dist = dx > dy ? dx : dy;
+    if (actor->kind == WL_ACTOR_SS || actor->kind == WL_ACTOR_BOSS) {
+        dist = (uint16_t)((dist * 2u) / 3u);
+    }
+    return dist;
+}
+
+static int32_t actor_shot_hit_chance(uint16_t dist, int player_running,
+                                     int actor_visible) {
+    if (player_running) {
+        return actor_visible ? 160 - (int32_t)dist * 16 :
+                               160 - (int32_t)dist * 8;
+    }
+    return actor_visible ? 256 - (int32_t)dist * 16 :
+                           256 - (int32_t)dist * 8;
+}
+
+static int32_t actor_shot_damage_points(uint16_t dist, uint8_t damage_roll) {
+    if (dist < 2u) {
+        return (int32_t)(damage_roll >> 2);
+    }
+    if (dist < 4u) {
+        return (int32_t)(damage_roll >> 3);
+    }
+    return (int32_t)(damage_roll >> 4);
+}
+
 int wl_try_actor_bite_player(wl_player_gameplay_state *state,
                              const wl_actor_desc *actor,
                              const wl_player_motion_state *player,
@@ -112,6 +165,47 @@ int wl_try_actor_bite_player(wl_player_gameplay_state *state,
 
     out->chance_hit = 1;
     int32_t points = (int32_t)(damage_roll >> 4);
+    if (wl_apply_player_damage(state, difficulty, points, god_mode, victory_flag,
+                               &out->damage) != 0) {
+        return -1;
+    }
+    out->damaged = out->damage.ignored ? 0 : 1;
+    return 0;
+}
+
+int wl_try_actor_shoot_player(wl_player_gameplay_state *state,
+                              const wl_actor_desc *actor,
+                              const wl_player_motion_state *player,
+                              wl_difficulty difficulty,
+                              int area_active, int line_of_sight,
+                              int player_running, int actor_visible,
+                              uint8_t chance_roll, uint8_t damage_roll,
+                              int god_mode, int victory_flag,
+                              wl_actor_shot_damage_result *out) {
+    if (!state || !actor || !player || !out || !actor_can_shoot(actor) ||
+        actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE ||
+        player->x >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        player->y >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        difficulty > WL_DIFFICULTY_HARD) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->area_active = area_active ? 1u : 0u;
+    out->line_of_sight = line_of_sight ? 1u : 0u;
+    out->chance_roll = chance_roll;
+    out->damage_roll = damage_roll;
+    out->distance_tiles = actor_player_tile_distance(actor, player);
+    out->hit_chance = actor_shot_hit_chance(out->distance_tiles, player_running,
+                                            actor_visible);
+
+    if (!area_active || !line_of_sight || out->hit_chance <= 0 ||
+        (int32_t)chance_roll >= out->hit_chance) {
+        return 0;
+    }
+
+    out->chance_hit = 1;
+    int32_t points = actor_shot_damage_points(out->distance_tiles, damage_roll);
     if (wl_apply_player_damage(state, difficulty, points, god_mode, victory_flag,
                                &out->damage) != 0) {
         return -1;
