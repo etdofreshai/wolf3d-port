@@ -5010,3 +5010,40 @@ Next likely move:
 - Broaden chase full-combat/death-final render coverage across actor classes, or start an SDL3 presentation boundary when SDL3 dev files are available.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 10:03 CDT
+
+Action taken:
+
+- Broadened chase-started full-combat/death-final metadata beyond the guard path.
+- Added officer, SS, mutant, and boss chase cases that complete live AI chase movement, take lethal full-combat damage, advance through `wl_step_live_full_combat_death_tick`, and apply final corpse scene-source overrides.
+- Verified final corpse source/chunk metadata: officer `284/390`, SS `183/289`, mutant `233/339`, boss `303/409`.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-ai-chase-death-class-metadata tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Add rendered chase death-final scene hashes for the additional actor classes, or start an SDL3 presentation boundary when SDL3 dev files are available.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

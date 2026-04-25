@@ -429,3 +429,8 @@ Headless rendering now covers the final corpse frame after a chase-started full-
 ## Cycle update: live AI chase death-transition render
 
 Headless rendering now verifies the chase-started death animation transition by comparing initial-death/drop hash `0x4a76f09a` against final-corpse/drop hash `0x8a2741bf`.
+
+
+## Cycle update: shooter-class chase death-final metadata
+
+Renderer-facing metadata now verifies final corpse source/chunk overrides for chase-started officer, SS, mutant, and boss deaths before broadening rendered hashes.

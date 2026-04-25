@@ -4525,6 +4525,90 @@ static int check_wl6(const char *dir) {
     CHECK(chase_final_death_drop_hash != chase_initial_death_drop_hash);
     CHECK(chase_final_death_drop_hash != 0x81c10dcf);
 
+    const struct {
+        wl_actor_kind kind;
+        uint16_t final_source;
+        uint16_t final_chunk;
+    } chase_death_classes[] = {
+        { WL_ACTOR_OFFICER, 284, 390 },
+        { WL_ACTOR_SS, 183, 289 },
+        { WL_ACTOR_MUTANT, 233, 339 },
+        { WL_ACTOR_BOSS, 303, 409 },
+    };
+    for (size_t death_case = 0;
+         death_case < sizeof(chase_death_classes) / sizeof(chase_death_classes[0]);
+         ++death_case) {
+        wl_game_model chase_class_model;
+        memset(&chase_class_model, 0, sizeof(chase_class_model));
+        chase_class_model.actor_count = 1;
+        chase_class_model.actors[0].kind = chase_death_classes[death_case].kind;
+        chase_class_model.actors[0].shootable =
+            chase_death_classes[death_case].kind == WL_ACTOR_DOG ? 0u : 1u;
+        chase_class_model.actors[0].mode = WL_ACTOR_CHASE;
+        chase_class_model.actors[0].dir = WL_DIR_EAST;
+        chase_class_model.actors[0].tile_x = 5;
+        chase_class_model.actors[0].tile_y = 5;
+        CHECK(wl_step_live_actor_ai_tick(&live_ai_render_player,
+                                         &chase_class_model,
+                                         use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                         &live_ai_render_motion, 0, 0,
+                                         0x10000, 0, WL_DIR_EAST, 0, 0,
+                                         0x8000u, 1,
+                                         &live_ai_render_tick) == 0);
+        CHECK(wl_step_live_actor_ai_tick(&live_ai_render_player,
+                                         &chase_class_model,
+                                         use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                         &live_ai_render_motion, 0, 0,
+                                         0x10000, 0, WL_DIR_EAST, 0, 0,
+                                         0x8000u, 1,
+                                         &live_ai_render_tick) == 0);
+        wl_actor_combat_state chase_class_actor;
+        CHECK(wl_init_actor_combat_state(&chase_class_model.actors[0],
+                                         WL_DIFFICULTY_HARD,
+                                         &chase_class_actor) == 0);
+        CHECK(wl_init_player_gameplay_state(&chase_attack_player, 100, 3, 0,
+                                            WL_EXTRA_POINTS) == 0);
+        wl_live_full_combat_tick_result chase_class_combat;
+        CHECK(wl_step_live_full_combat_tick(&chase_attack_player,
+                                            &chase_class_model,
+                                            use_wall, use_info,
+                                            WL_MAP_PLANE_WORDS,
+                                            &live_ai_render_motion, 0, 0,
+                                            0x10000, 0, WL_DIR_EAST, 0, 0,
+                                            &chase_class_model.actors[0],
+                                            NULL, &chase_class_actor, 2000,
+                                            0, dirinfo.header.sprite_start,
+                                            WL_DIFFICULTY_HARD,
+                                            1, 1, 1, 1, 0, 80,
+                                            0, 0, 0, 0, 0, 1,
+                                            &chase_class_combat) == 0);
+        CHECK(chase_class_combat.death_started == 1);
+        wl_actor_death_state chase_class_death = chase_class_combat.actor_death;
+        wl_live_full_combat_death_tick_result chase_class_final;
+        CHECK(wl_step_live_full_combat_death_tick(&chase_attack_player,
+                                                  &chase_class_model,
+                                                  use_wall, use_info,
+                                                  WL_MAP_PLANE_WORDS,
+                                                  &live_ai_render_motion, 0, 0,
+                                                  0x10000, 0, WL_DIR_EAST, 0, 0,
+                                                  NULL, NULL, NULL, 0,
+                                                  0, dirinfo.header.sprite_start,
+                                                  WL_DIFFICULTY_HARD,
+                                                  0, 0, 0, 0, 0, 0,
+                                                  0, 0, 0, 0, 0, 80,
+                                                  0, &chase_class_death,
+                                                  &chase_class_final) == 0);
+        CHECK(chase_class_final.death.step.finished == 1);
+        CHECK(chase_class_final.death.final_frame_applied == 1);
+        CHECK(chase_class_final.death.death_ref.source_index ==
+              chase_death_classes[death_case].final_source);
+        CHECK(chase_class_final.death.death_ref.vswap_chunk_index ==
+              chase_death_classes[death_case].final_chunk);
+        CHECK(chase_class_model.actors[0].scene_source_override == 1);
+        CHECK(chase_class_model.actors[0].scene_source_index ==
+              chase_death_classes[death_case].final_source);
+    }
+
     wl_game_model live_drop_scene_model;
     memset(&live_drop_scene_model, 0, sizeof(live_drop_scene_model));
     live_drop_scene_model.tilemap[7 + 4 * WL_MAP_SIDE] = 2;
@@ -5355,6 +5439,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-chase-death-transition-render tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-chase-death-class-metadata tests passed for %s\n", dir);
     return 0;
 }

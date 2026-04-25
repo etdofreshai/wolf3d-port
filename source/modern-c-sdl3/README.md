@@ -356,3 +356,8 @@ Chase-started full combat now advances through the combined death-tick final-fra
 ## Live AI chase death-transition render
 
 The chase-started death render now explicitly verifies the rendered transition from initial death+drop hash `0x4a76f09a` to final corpse+drop hash `0x8a2741bf`, and checks it differs from the older no-drop final-corpse scene.
+
+
+## Shooter-class chase death-final metadata
+
+Chase-started full-combat/death-final coverage now extends from guards to officer, SS, mutant, and boss shooter classes. Each class completes chase movement, takes lethal damage, advances death ticking, and verifies the expected final corpse source/chunk override.

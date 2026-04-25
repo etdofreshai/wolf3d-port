@@ -233,3 +233,8 @@ Chase-started combat/death semantics now preserve moved coordinates through fina
 ## Cycle update: live AI chase death-transition render
 
 Chase-started combat now has deterministic multi-frame render semantics: initial death ref plus drop and final corpse override plus drop are both asserted as distinct scene states.
+
+
+## Cycle update: shooter-class chase death-final metadata
+
+Chase-started combat/death semantics now cover multiple shooter actor kinds, preserving moved coordinates through lethal damage and final corpse override selection.

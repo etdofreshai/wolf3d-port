@@ -488,3 +488,8 @@ The live AI chase/full-combat path now flows through `wl_step_live_full_combat_d
 ## Cycle update: live AI chase death-transition render
 
 The chase death render case now records both initial-death and final-corpse scene hashes. This pins the multi-frame runtime transition after chase full combat instead of only validating the terminal frame.
+
+
+## Cycle update: shooter-class chase death-final metadata
+
+The chase full-combat/death-final seam now covers officer, SS, mutant, and boss classes. Each case validates final corpse scene-source override after chase movement and full-combat death ticking.

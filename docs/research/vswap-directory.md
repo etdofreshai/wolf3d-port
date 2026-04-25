@@ -412,3 +412,8 @@ The final chase death render verifies VSWAP metadata only: initial death `91/197
 ## Cycle update: live AI chase death-transition render
 
 The VSWAP-backed chase death transition now asserts both sprite phases: initial death `91/197` and final corpse `95/201`, with the same drop `28/134`, using hashes only.
+
+
+## Cycle update: shooter-class chase death-final metadata
+
+Chase death-final metadata now asserts final corpse chunks for officer `284/390`, SS `183/289`, mutant `233/339`, and boss `303/409` without committing decoded VSWAP bytes.
