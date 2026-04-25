@@ -749,6 +749,48 @@ static int check_wl6(const char *dir) {
                                      player_x, player_y, 0x10000, 0,
                                      80, 80, 128, &projected_hits[0]) == -1);
 
+    const int32_t batch_dirs_x[] = { 0x10000, -0x10000, 0, 0, 0x10000 };
+    const int32_t batch_dirs_y[] = { 0, 0, -0x10000, 0x10000, -0x8000 };
+    wl_map_wall_hit batch_hits[5];
+    CHECK(wl_cast_projected_wall_ray_batch(wall_plane, WL_MAP_PLANE_WORDS,
+                                           player_x, player_y, batch_dirs_x,
+                                           batch_dirs_y, 5, 20, 1, 80, 128,
+                                           batch_hits) == 0);
+    CHECK(batch_hits[0].x == 20);
+    CHECK(batch_hits[0].tile_x == 41);
+    CHECK(batch_hits[0].scaled_height == 18);
+    CHECK(batch_hits[1].x == 21);
+    CHECK(batch_hits[1].tile_x == 27);
+    CHECK(batch_hits[1].scaled_height == 128);
+    CHECK(batch_hits[2].x == 22);
+    CHECK(batch_hits[2].tile_y == 55);
+    CHECK(batch_hits[2].scaled_height == 128);
+    CHECK(batch_hits[3].x == 23);
+    CHECK(batch_hits[3].tile_y == 59);
+    CHECK(batch_hits[3].scaled_height == 128);
+    CHECK(batch_hits[4].x == 24);
+    CHECK(batch_hits[4].tile_x == 32);
+    CHECK(batch_hits[4].tile_y == 56);
+    CHECK(batch_hits[4].scaled_height == 86);
+    wl_wall_strip batch_strips[5];
+    for (size_t i = 0; i < 5; ++i) {
+        CHECK(wl_wall_hit_to_strip(&batch_hits[i], projected_pages[i], 4096,
+                                   &batch_strips[i]) == 0);
+    }
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_wall_strip_viewport(batch_strips, 5, &canvas) == 0);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0x7209a9ed);
+    CHECK(wl_cast_projected_wall_ray_batch(wall_plane, WL_MAP_PLANE_WORDS,
+                                           player_x, player_y, batch_dirs_x,
+                                           batch_dirs_y, 5, 78, 1, 80, 128,
+                                           batch_hits) == -1);
+    CHECK(wl_cast_projected_wall_ray_batch(wall_plane, WL_MAP_PLANE_WORDS,
+                                           player_x, player_y, batch_dirs_x,
+                                           batch_dirs_y, 0, 20, 1, 80, 128,
+                                           batch_hits) == -1);
+
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 105, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 4096);
@@ -1121,6 +1163,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/projected-ray tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/view-batch tests passed for %s\n", dir);
     return 0;
 }

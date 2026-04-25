@@ -1132,6 +1132,32 @@ int wl_cast_projected_wall_ray(const uint16_t *wall_plane, size_t wall_count,
     return out->scaled_height == 0 ? -1 : 0;
 }
 
+int wl_cast_projected_wall_ray_batch(const uint16_t *wall_plane, size_t wall_count,
+                                     uint32_t origin_x, uint32_t origin_y,
+                                     const int32_t *directions_x,
+                                     const int32_t *directions_y,
+                                     size_t ray_count, uint16_t first_x,
+                                     uint16_t x_step, uint16_t view_width,
+                                     uint16_t view_height, wl_map_wall_hit *out) {
+    if (!directions_x || !directions_y || !out || ray_count == 0 || x_step == 0 ||
+        view_width == 0 || view_height == 0) {
+        return -1;
+    }
+
+    for (size_t i = 0; i < ray_count; ++i) {
+        uint32_t x = (uint32_t)first_x + (uint32_t)i * x_step;
+        if (x >= view_width) {
+            return -1;
+        }
+        if (wl_cast_projected_wall_ray(wall_plane, wall_count, origin_x, origin_y,
+                                       directions_x[i], directions_y[i], (uint16_t)x,
+                                       view_width, view_height, &out[i]) != 0) {
+            return -1;
+        }
+    }
+    return 0;
+}
+
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written) {
     const uint16_t near_tag = 0xa7;
