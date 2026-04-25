@@ -4,8 +4,8 @@
 
 It is intentionally simple:
 
-1. Check provider usage against the configured weekly budget curve.
-2. Run one OpenClaw autopilot cycle with configurable thinking/model preference.
+1. Check each configured model provider against the weekly budget curve.
+2. Select the next model whose provider is within budget, skipping over-budget providers.
 3. Let that cycle implement directly or spawn `wolf3d-*` workers.
 4. Watch OpenClaw's task ledger until project-related workers finish.
 5. Deliver a concise progress summary to the project chat when a cycle/work unit finishes.
@@ -44,24 +44,26 @@ Defaults are intentionally conservative:
 - summary thinking: `low`
 - fast mode: off
 - model preference rotation: `openai-codex/gpt-5.5,anthropic/claude-opus-4.7`
-- usage guard: on
+- usage guard: on; skip over-budget providers and pause only if all configured providers are over budget
 
 Current OpenClaw CLI builds may not expose a direct `openclaw agent --model` flag. The supervisor still rotates the model preference and injects it into the cycle prompt; if a future CLI exposes `--model`, the supervisor will pass it automatically.
 
 ## Usage budget guard
 
-The supervisor checks `openclaw status --usage --json` before each cycle. By default it watches the `openai-codex` provider's `Week` window and compares the reported `usedPercent` to a linear weekly budget curve.
+The supervisor checks `openclaw status --usage --json` before each cycle. It infers each model's provider from the prefix before `/` in `--models` (`openai-codex/gpt-5.5` → `openai-codex`, `anthropic/claude-opus-4.7` → `anthropic`) and compares that provider's `usedPercent` to a linear weekly budget curve.
 
 Default policy:
 
 - infer the budget start as `resetAt - 7 days`
 - allow usage up to `elapsed_week_percent + 5%` slack
 - allow at least `3%` early in the window
-- if usage is ahead of schedule, sleep and re-check periodically instead of starting another cycle
+- if one provider is ahead of schedule, skip that model and try the next configured provider
+- if all configured providers are ahead of schedule, sleep until the earliest provider should be back inside budget, then re-check
 
 Useful options:
 
 ```bash
+scripts/wolf3d_autopilot_supervisor.py --models 'openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-4.6'
 scripts/wolf3d_autopilot_supervisor.py --usage-provider openai-codex --usage-window Week
 scripts/wolf3d_autopilot_supervisor.py --usage-budget-start 2026-04-22T12:33:16Z
 scripts/wolf3d_autopilot_supervisor.py --usage-budget-reset 2026-04-29T12:33:16Z
@@ -70,7 +72,7 @@ scripts/wolf3d_autopilot_supervisor.py --usage-check-interval 1800
 scripts/wolf3d_autopilot_supervisor.py --no-usage-guard
 ```
 
-This is deliberately simple: near the start of the week, the autopilot spends slowly; near the end, it can use the full 100%.
+This is deliberately simple: near the start of the week, each provider spends slowly; near the end, each provider can use the full 100%. If Codex is over budget but Anthropic or Z.ai is still under budget, the supervisor should continue on the available provider instead of pausing the whole autopilot.
 
 ## Stop
 
@@ -88,7 +90,7 @@ cat state/autopilot-supervisor.pid
 
 ## Why this instead of only cron?
 
-Cron is time-based. The supervisor is completion-based: it waits for spawned workers to finish, then immediately starts the next adaptive cycle if usage budget allows. That better matches the desired “chain work all night” behavior without accidentally burning a whole weekly token budget.
+Cron is time-based. The supervisor is completion-based: it waits for spawned workers to finish, then immediately starts the next adaptive cycle if at least one configured provider's usage budget allows. That better matches the desired “chain work all night” behavior without accidentally burning a whole weekly token budget.
 
 ## Chat summaries
 

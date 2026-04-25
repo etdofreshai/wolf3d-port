@@ -134,23 +134,47 @@ def split_models(raw: str) -> list[str]:
     return [m.strip() for m in raw.split(",") if m.strip()]
 
 
-def select_model(models: list[str]) -> str:
-    if not models:
-        return "runtime default"
+def model_provider(model: str, fallback: str) -> str:
+    if model != "runtime default" and "/" in model:
+        return model.split("/", 1)[0]
+    return fallback
+
+
+def load_model_state() -> dict[str, Any]:
+    if not MODEL_STATE_FILE.exists():
+        return {"lastIndex": -1}
+    try:
+        data = json.loads(MODEL_STATE_FILE.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            return data
+    except json.JSONDecodeError:
+        pass
+    return {"lastIndex": -1}
+
+
+def store_model_state(index: int, model: str, provider: str) -> None:
     STATE_DIR.mkdir(exist_ok=True)
-    last_index = -1
-    if MODEL_STATE_FILE.exists():
-        try:
-            data = json.loads(MODEL_STATE_FILE.read_text(encoding="utf-8"))
-            last_index = int(data.get("lastIndex", -1))
-        except (ValueError, TypeError, json.JSONDecodeError):
-            last_index = -1
-    index = (last_index + 1) % len(models)
     MODEL_STATE_FILE.write_text(
-        json.dumps({"lastIndex": index, "model": models[index], "updatedAt": now()}, indent=2) + "\n",
+        json.dumps({"lastIndex": index, "model": model, "provider": provider, "updatedAt": now()}, indent=2) + "\n",
         encoding="utf-8",
     )
-    return models[index]
+
+
+def model_rotation_order(models: list[str]) -> list[tuple[int, str]]:
+    if not models:
+        return [(0, "runtime default")]
+    state = load_model_state()
+    try:
+        last_index = int(state.get("lastIndex", -1))
+    except (ValueError, TypeError):
+        last_index = -1
+    return [((last_index + step) % len(models), models[(last_index + step) % len(models)]) for step in range(1, len(models) + 1)]
+
+
+def select_model(models: list[str], fallback_provider: str) -> str:
+    index, model = model_rotation_order(models)[0]
+    store_model_state(index, model, model_provider(model, fallback_provider))
+    return model
 
 
 def build_agent_command(
@@ -203,19 +227,24 @@ def find_usage_window(status: dict[str, Any], provider: str, window_label: str) 
     return None
 
 
-def usage_wait_seconds(args: argparse.Namespace) -> int:
+def load_usage_status() -> dict[str, Any] | None:
     cp = run(["openclaw", "status", "--usage", "--json"], timeout=90)
     if cp.returncode != 0:
-        log(f"usage check failed rc={cp.returncode}; continuing conservatively: {cp.stdout[-1000:]}")
-        return 0
+        log(f"usage check failed rc={cp.returncode}; treating usage as unavailable: {cp.stdout[-1000:]}")
+        return None
     try:
-        status = json.loads(cp.stdout)
+        return dict(json.loads(cp.stdout))
     except json.JSONDecodeError:
-        log("usage check returned non-JSON; continuing")
+        log("usage check returned non-JSON; treating usage as unavailable")
+        return None
+
+
+def usage_wait_seconds_for_provider(args: argparse.Namespace, status: dict[str, Any] | None, provider: str) -> int:
+    if status is None:
         return 0
-    window = find_usage_window(status, args.usage_provider, args.usage_window)
+    window = find_usage_window(status, provider, args.usage_window)
     if not window:
-        log(f"usage window not found for provider={args.usage_provider} window={args.usage_window}; continuing")
+        log(f"usage guard: no {args.usage_window} usage window for provider={provider}; treating provider as available")
         return 0
     used_percent = float(window.get("usedPercent") or 0)
     reset_at_ms = window.get("resetAt")
@@ -224,7 +253,7 @@ def usage_wait_seconds(args: argparse.Namespace) -> int:
     elif reset_at_ms:
         reset_at = datetime.fromtimestamp(float(reset_at_ms) / 1000, tz=timezone.utc)
     else:
-        log("usage window has no resetAt; continuing")
+        log(f"usage guard: provider={provider} has no resetAt; treating provider as available")
         return 0
     start_at = parse_iso_datetime(args.usage_budget_start) if args.usage_budget_start else reset_at - timedelta(days=7)
     now_dt = datetime.now(timezone.utc)
@@ -233,7 +262,7 @@ def usage_wait_seconds(args: argparse.Namespace) -> int:
     elapsed_percent = elapsed / total * 100.0
     allowed_percent = min(100.0, max(args.usage_min_allowed_percent, elapsed_percent + args.usage_slack_percent))
     log(
-        f"usage guard: provider={args.usage_provider} window={args.usage_window} "
+        f"usage guard: provider={provider} window={args.usage_window} "
         f"used={used_percent:.1f}% allowed={allowed_percent:.1f}% reset={reset_at.isoformat()}"
     )
     if used_percent <= allowed_percent:
@@ -241,18 +270,32 @@ def usage_wait_seconds(args: argparse.Namespace) -> int:
     target_elapsed_percent = max(0.0, min(100.0, used_percent - args.usage_slack_percent))
     resume_at = start_at + timedelta(seconds=total * (target_elapsed_percent / 100.0))
     wait_seconds = max(0, int((resume_at - now_dt).total_seconds()))
-    log(f"usage guard pausing; resume target {resume_at.isoformat()} ({wait_seconds}s)")
+    log(f"usage guard: provider={provider} blocked until {resume_at.isoformat()} ({wait_seconds}s)")
     return wait_seconds
 
 
-def wait_for_usage_budget(args: argparse.Namespace, stop_ref: dict[str, bool]) -> None:
+def select_available_model(args: argparse.Namespace, models: list[str], stop_ref: dict[str, bool]) -> str | None:
     if not args.usage_guard:
-        return
+        return select_model(models, args.usage_provider)
     while not stop_ref["stop"] and not STOP_FILE.exists():
-        wait_seconds = usage_wait_seconds(args)
-        if wait_seconds <= 0:
-            return
-        time.sleep(min(wait_seconds, args.usage_check_interval))
+        status = load_usage_status()
+        blocked: list[tuple[str, str, int]] = []
+        for index, model in model_rotation_order(models):
+            provider = model_provider(model, args.usage_provider)
+            wait_seconds = usage_wait_seconds_for_provider(args, status, provider)
+            if wait_seconds <= 0:
+                store_model_state(index, model, provider)
+                if blocked:
+                    log(f"usage guard: skipped blocked providers before selecting model={model} provider={provider}")
+                return model
+            blocked.append((model, provider, wait_seconds))
+        if not blocked:
+            return select_model(models, args.usage_provider)
+        min_wait = min(wait for _, _, wait in blocked)
+        summary = ", ".join(f"{model}/{provider}:{wait}s" for model, provider, wait in blocked)
+        log(f"usage guard: all configured providers blocked ({summary}); sleeping before retry")
+        time.sleep(min(min_wait, args.usage_check_interval))
+    return None
 
 
 def send_summary(channel: str, target: str, *, thinking: str, timeout: int, help_text: str) -> None:
@@ -352,10 +395,10 @@ def main() -> int:
     ap.add_argument("--timeout", type=int, default=1800, help="OpenClaw agent turn timeout seconds")
     ap.add_argument("--thinking", default="low", help="cycle thinking level: off|minimal|low|medium|high|xhigh|adaptive|max")
     ap.add_argument("--summary-thinking", default="low", help="completion/periodic summary thinking level")
-    ap.add_argument("--models", default="openai-codex/gpt-5.5,anthropic/claude-opus-4.7", help="comma-separated preferred model rotation")
+    ap.add_argument("--models", default="openai-codex/gpt-5.5,anthropic/claude-opus-4.7", help="comma-separated preferred model rotation; provider is inferred from the prefix before '/'")
     ap.add_argument("--fast-mode", action=argparse.BooleanOptionalAction, default=False, help="request fast mode if the OpenClaw CLI supports it; default is off")
-    ap.add_argument("--usage-guard", action=argparse.BooleanOptionalAction, default=True, help="pause cycles when weekly provider usage is ahead of schedule")
-    ap.add_argument("--usage-provider", default="openai-codex", help="provider key from openclaw status --usage")
+    ap.add_argument("--usage-guard", action=argparse.BooleanOptionalAction, default=True, help="skip over-budget model providers and pause only when every configured provider is ahead of schedule")
+    ap.add_argument("--usage-provider", default="openai-codex", help="fallback provider key from openclaw status --usage for models without a provider prefix")
     ap.add_argument("--usage-window", default="Week", help="usage window label from openclaw status --usage")
     ap.add_argument("--usage-budget-start", default="", help="ISO timestamp for weekly budget start; default is reset minus 7 days")
     ap.add_argument("--usage-budget-reset", default="", help="ISO timestamp for weekly budget reset; default uses provider resetAt")
@@ -390,11 +433,10 @@ def main() -> int:
             if args.max_cycles and cycle_count >= args.max_cycles:
                 log(f"max cycles reached: {args.max_cycles}; exiting")
                 break
-            wait_for_usage_budget(args, stop_ref)
-            if stop_ref["stop"] or STOP_FILE.exists():
+            selected_model = select_available_model(args, models, stop_ref)
+            if selected_model is None or stop_ref["stop"] or STOP_FILE.exists():
                 break
             cycle_count += 1
-            selected_model = select_model(models)
             cycle_prompt = CYCLE_PROMPT_TEMPLATE.format(model_hint=selected_model)
             log(f"cycle {cycle_count}: starting OpenClaw agent turn thinking={args.thinking} model_hint={selected_model} fast_mode={args.fast_mode}")
             cp = run(

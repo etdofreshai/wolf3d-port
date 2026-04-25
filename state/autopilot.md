@@ -3532,3 +3532,32 @@ Next likely move:
 - Run the supervisor with the new low-thinking/default-budget settings, or continue the port by filling remaining unknown boss info-tile classifications.
 
 Blockers: none for headless work. Direct model switching depends on OpenClaw CLI support for `openclaw agent --model`; until then the supervisor records and injects model preference hints.
+
+
+## Cycle 2026-04-25 07:55 CDT
+
+Action taken:
+
+- Refined the usage-budget guard from a global provider gate into a provider-aware model selector.
+- The supervisor now infers each model's provider from the model prefix before `/`, checks that provider's weekly budget, skips over-budget providers, and selects the next available model in rotation.
+- If every configured provider is over budget, the supervisor pauses only until the earliest provider should be back inside the configured budget curve, then re-checks.
+- Updated supervisor docs with examples for multi-provider rotation including Codex, Anthropic, and Z.ai-style model prefixes.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_autopilot_supervisor.py
+scripts/wolf3d_autopilot_supervisor.py --help
+cd source/modern-c-sdl3 && make test
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+
+Next likely move:
+
+- Add real model IDs for any additional providers once confirmed by the OpenClaw runtime, then run the supervisor so it can skip exhausted providers automatically.
+
+Blockers: none for headless work. Direct model switching still depends on OpenClaw CLI support for `openclaw agent --model`; until then selected models remain prompt-level preferences.
