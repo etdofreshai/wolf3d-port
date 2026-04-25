@@ -488,6 +488,13 @@ typedef struct wl_pc_speaker_sound_metadata {
     size_t trailing_bytes;
 } wl_pc_speaker_sound_metadata;
 
+typedef struct wl_pc_speaker_playback_cursor {
+    size_t sample_index;
+    uint32_t samples_consumed;
+    uint8_t current_sample;
+    uint8_t completed;
+} wl_pc_speaker_playback_cursor;
+
 typedef struct wl_adlib_sound_metadata {
     uint32_t sample_count;
     uint16_t priority;
@@ -561,6 +568,9 @@ int wl_describe_pc_speaker_sound(const unsigned char *chunk, size_t chunk_size,
                                   wl_pc_speaker_sound_metadata *out);
 int wl_get_pc_speaker_sound_sample(const unsigned char *chunk, size_t chunk_size,
                                    size_t sample_index, uint8_t *out_sample);
+int wl_advance_pc_speaker_playback_cursor(const unsigned char *chunk, size_t chunk_size,
+                                          size_t start_sample, uint32_t sample_delta,
+                                          wl_pc_speaker_playback_cursor *out);
 int wl_describe_adlib_sound(const unsigned char *chunk, size_t chunk_size,
                             wl_adlib_sound_metadata *out);
 int wl_get_adlib_instrument_byte(const unsigned char *chunk, size_t chunk_size,

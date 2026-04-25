@@ -5775,6 +5775,7 @@ static int check_audio_wl6(const char *dir) {
     size_t chunk_bytes = 0;
     wl_audio_chunk_metadata audio_meta;
     wl_pc_speaker_sound_metadata pc_meta;
+    wl_pc_speaker_playback_cursor pc_cursor;
     wl_adlib_sound_metadata adlib_meta;
     uint8_t pc_sample = 0;
     uint8_t adlib_instrument_byte = 0;
@@ -5836,6 +5837,23 @@ static int check_audio_wl6(const char *dir) {
     CHECK(wl_get_pc_speaker_sound_sample(chunk_buf, chunk_bytes, 7, &pc_sample) == 0);
     CHECK(pc_sample == 0x84);
     CHECK(wl_get_pc_speaker_sound_sample(chunk_buf, chunk_bytes, 8, &pc_sample) == -1);
+    CHECK(wl_advance_pc_speaker_playback_cursor(chunk_buf, chunk_bytes, 0, 0, &pc_cursor) == 0);
+    CHECK(pc_cursor.sample_index == 0);
+    CHECK(pc_cursor.current_sample == 0x83);
+    CHECK(pc_cursor.samples_consumed == 0);
+    CHECK(pc_cursor.completed == 0);
+    CHECK(wl_advance_pc_speaker_playback_cursor(chunk_buf, chunk_bytes, 6, 1, &pc_cursor) == 0);
+    CHECK(pc_cursor.sample_index == 7);
+    CHECK(pc_cursor.current_sample == 0x84);
+    CHECK(pc_cursor.samples_consumed == 1);
+    CHECK(pc_cursor.completed == 0);
+    CHECK(wl_advance_pc_speaker_playback_cursor(chunk_buf, chunk_bytes, 6, 9, &pc_cursor) == 0);
+    CHECK(pc_cursor.sample_index == 8);
+    CHECK(pc_cursor.samples_consumed == 2);
+    CHECK(pc_cursor.completed == 1);
+    CHECK(wl_advance_pc_speaker_playback_cursor(chunk_buf, chunk_bytes, 8, 0, &pc_cursor) == 0);
+    CHECK(pc_cursor.completed == 1);
+    CHECK(wl_advance_pc_speaker_playback_cursor(chunk_buf, chunk_bytes, 8, 1, &pc_cursor) == -1);
 
     /* PC speaker sound 1 (SELECTWPNSND) */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 1, chunk_buf, sizeof(chunk_buf),
@@ -5851,6 +5869,7 @@ static int check_audio_wl6(const char *dir) {
     CHECK(pc_sample == 0x2f);
     CHECK(wl_describe_pc_speaker_sound(chunk_buf, 6, &pc_meta) != 0);
     CHECK(wl_get_pc_speaker_sound_sample(chunk_buf, 6, 0, &pc_sample) == -1);
+    CHECK(wl_advance_pc_speaker_playback_cursor(chunk_buf, 6, 0, 1, &pc_cursor) == -1);
 
     /* Adlib sound 87 (first adlib = STARTADLIBSOUNDS) */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 87, chunk_buf, sizeof(chunk_buf),
