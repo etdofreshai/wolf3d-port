@@ -341,3 +341,8 @@ Chase-combat coverage now includes officer, SS, mutant, and boss shooter classes
 ## Live AI chase full-combat bridge
 
 A chase-moved guard now feeds `wl_step_live_full_combat_tick` in one deterministic frame: the moved actor shoots the player while the same actor damage/death/drop path starts its death state and renderer-facing death ref.
+
+
+## Live AI chase full-combat render
+
+The chase full-combat seam now reaches the headless scene renderer: a chase-moved guard can shoot, die, spawn a drop, and render the death/drop refs together with stable scene hash `0x4a76f09a`.

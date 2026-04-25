@@ -218,3 +218,8 @@ Chase-updated actor tiles now drive deterministic shooting across officer, SS, m
 ## Cycle update: live AI chase full-combat bridge
 
 Chase-updated coordinates now propagate into combined combat/death semantics: the moved guard shoots from its new tile while its own damage/death transition emits the expected death ref coordinates.
+
+
+## Cycle update: live AI chase full-combat render
+
+Combined chase/combat/death semantics now preserve moved actor coordinates through death ref construction and spawned drop collection, then into deterministic scene rendering.

@@ -397,3 +397,8 @@ Shooter-class chase combat remains metadata/state-only and does not commit VSWAP
 ## Cycle update: live AI chase full-combat bridge
 
 The chase full-combat bridge verifies death sprite source/chunk `91/197` from the moved guard while continuing to avoid committing decoded VSWAP bytes.
+
+
+## Cycle update: live AI chase full-combat render
+
+The chase full-combat render path decodes only local VSWAP sprite chunks for verification and commits metadata/hash assertions: death source/chunk `91/197`, drop `28/134`, scene hash `0x4a76f09a`.

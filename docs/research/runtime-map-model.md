@@ -473,3 +473,8 @@ The live AI chase/combat bridge now covers the shooter class matrix. Officer, SS
 ## Cycle update: live AI chase full-combat bridge
 
 Live AI chase movement now feeds the full-combat seam. After accumulated chase movement completes, the moved guard participates in one frame that applies player shot damage, actor damage, drop spawning, and death-ref construction.
+
+
+## Cycle update: live AI chase full-combat render
+
+The chase full-combat result now feeds scene refs/rendering. The moved guard death ref and spawned drop ref render together, proving the runtime model carries chase-started combat output to presentation metadata.

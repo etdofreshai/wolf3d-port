@@ -414,3 +414,8 @@ Palette red-shift combat output is now exercised after live AI chase movement fo
 ## Cycle update: live AI chase full-combat bridge
 
 The future presentation path now has deterministic metadata for a chase-moved actor entering full combat: red palette output plus renderer-facing death sprite ref are produced without SDL.
+
+
+## Cycle update: live AI chase full-combat render
+
+Headless rendering now covers a chase-started full-combat frame with death and drop sprites visible together, stable hash `0x4a76f09a`, before SDL presentation.
