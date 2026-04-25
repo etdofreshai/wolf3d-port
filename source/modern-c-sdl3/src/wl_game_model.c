@@ -566,6 +566,35 @@ int wl_render_runtime_camera_wall_view(const wl_game_model *model, uint16_t door
                                       dst, directions_x, directions_y, hits, strips);
 }
 
+int wl_build_door_wall_hit(const wl_door_desc *door, uint16_t vswap_sprite_start,
+                           uint32_t intercept, uint16_t x, uint16_t scaled_height,
+                           wl_map_wall_hit *out) {
+    if (!door || !out || scaled_height == 0 || vswap_sprite_start < 8u) {
+        return -1;
+    }
+
+    uint16_t door_page = (uint16_t)(vswap_sprite_start - 8u);
+    if (door->lock >= 1u && door->lock <= 4u) {
+        door_page = (uint16_t)(door_page + 6u);
+    } else if (door->lock >= 5u) {
+        door_page = (uint16_t)(door_page + 4u);
+    }
+    if (door->vertical) {
+        door_page = (uint16_t)(door_page + 1u);
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->tile_x = door->x;
+    out->tile_y = door->y;
+    out->source_tile = door->source_tile;
+    out->side = door->vertical ? WL_WALL_SIDE_VERTICAL : WL_WALL_SIDE_HORIZONTAL;
+    out->wall_page_index = door_page;
+    out->texture_offset = (uint16_t)(((intercept - door->position) >> 4) & 0xfc0u);
+    out->x = x;
+    out->scaled_height = scaled_height;
+    return 0;
+}
+
 int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_sprite_start,
                                  wl_scene_sprite_ref *refs, size_t max_refs,
                                  size_t *out_count) {

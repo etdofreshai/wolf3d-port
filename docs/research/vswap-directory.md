@@ -126,7 +126,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/live-runtime-render tests passed for game-files/base
+asset/decompression/semantics/model/vswap/door-wall-render tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
@@ -177,3 +177,8 @@ Runtime tilemap changes from door and pushwall seams can now feed the existing r
 ## Cycle update: live runtime wall rendering
 
 The runtime solid-plane bridge now has a direct wall-view render wrapper, `wl_render_runtime_camera_wall_view`. It reuses existing decoded VSWAP wall-page buffers and asserts deterministic canvas hashes for closed-door versus open-door live tilemap state. Door centers still use a placeholder solid wall tile until textured/animated door rendering is specialized, but the renderer path now observes live runtime collision state instead of only immutable map wall planes.
+
+
+## Cycle update: door wall descriptors
+
+Door pages now have a deterministic headless descriptor seam. `wl_build_door_wall_hit` maps `PMSpriteStart - 8` into normal, locked, and elevator door wall pages and applies `doorposition` to the sampled texture column before the existing wall-strip renderer consumes the result. The current test reads only local VSWAP door pages, asserts page/texture metadata, and verifies a locked-door strip canvas hash rather than committing any proprietary bytes.

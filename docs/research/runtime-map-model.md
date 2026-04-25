@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/live-runtime-render tests passed for game-files/base
+asset/decompression/semantics/model/vswap/door-wall-render tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -163,3 +163,8 @@ Added `wl_build_runtime_solid_plane`, a renderer/raycast-facing bridge from muta
 ## Cycle update: live runtime wall rendering
 
 Added `wl_render_runtime_camera_wall_view`, a headless renderer-facing wrapper that builds the runtime solid plane from `wl_game_model::tilemap` and feeds it into the existing camera wall-view renderer. The committed test uses a tiny synthetic live model to prove render-visible state changes: a closed door center blocks three camera rays and hashes to `0x62d02b0d`; clearing the same door makes those rays continue to a later wall and hashes to `0x32a9148e`. This keeps door/pushwall animation state on the path toward SDL3 presentation without introducing SDL yet.
+
+
+## Cycle update: door wall descriptors
+
+Added `wl_build_door_wall_hit`, a renderer-facing descriptor seam for original-style doors. It uses `DOORWALL = PMSpriteStart - 8`, picks normal/locked/elevator door page groups from the runtime door lock, applies the vertical-door page offset, and computes texture offsets as `((intercept - doorposition) >> 4) & 0xfc0`, matching `WL_DRAW.C::HitHorizDoor`/`HitVertDoor`. Tests assert normal and locked vertical page/texture descriptors and render a locked door strip with canvas hash `0x40d8b9a5` without storing decoded door pixels.

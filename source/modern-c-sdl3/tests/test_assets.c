@@ -1259,6 +1259,8 @@ static int check_wl6(const char *dir) {
     unsigned char wall15_buf[4096];
     unsigned char wall16_buf[4096];
     unsigned char wall17_buf[4096];
+    unsigned char door99_buf[4096];
+    unsigned char door105_buf[4096];
     unsigned char wall63_buf[4096];
     unsigned char column_buf[64];
     unsigned char surface_column_buf[64];
@@ -1383,6 +1385,12 @@ static int check_wl6(const char *dir) {
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 17, wall17_buf, sizeof(wall17_buf),
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 4096);
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 99, door99_buf, sizeof(door99_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 4096);
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 105, door105_buf, sizeof(door105_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 4096);
     wl_map_wall_hit hits[4];
     CHECK(wl_build_map_wall_hit(wall_plane, WL_MAP_PLANE_WORDS, 0, 0,
                                 WL_WALL_SIDE_HORIZONTAL, 0, 7, 64,
@@ -1415,6 +1423,36 @@ static int check_wl6(const char *dir) {
     CHECK(wl_build_map_wall_hit(wall_plane, WL_MAP_PLANE_WORDS, 29, 57,
                                 WL_WALL_SIDE_HORIZONTAL, 0, 0, 64,
                                 &hits[0]) == -1);
+
+    wl_map_wall_hit door_hit;
+    wl_door_desc locked_vertical_door = model.doors[0];
+    locked_vertical_door.lock = 1;
+    locked_vertical_door.position = 0x4000u;
+    CHECK(wl_build_door_wall_hit(&model.doors[0], dirinfo.header.sprite_start,
+                                 (29u << 16) + 0x8000u, 21, 128,
+                                 &door_hit) == 0);
+    CHECK(door_hit.tile_x == model.doors[0].x);
+    CHECK(door_hit.tile_y == model.doors[0].y);
+    CHECK(door_hit.side == WL_WALL_SIDE_VERTICAL);
+    CHECK(door_hit.wall_page_index == 99);
+    CHECK(door_hit.texture_offset == 0x0800);
+    CHECK(wl_build_door_wall_hit(&locked_vertical_door, dirinfo.header.sprite_start,
+                                 (29u << 16) + 0x8000u, 22, 128,
+                                 &door_hit) == 0);
+    CHECK(door_hit.wall_page_index == 105);
+    CHECK(door_hit.texture_offset == 0x0400);
+    wl_wall_strip door_strip;
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_wall_hit_to_strip(&door_hit, door105_buf, sizeof(door105_buf),
+                               &door_strip) == 0);
+    CHECK(wl_render_wall_strip_viewport(&door_strip, 1, &canvas) == 0);
+    uint32_t locked_door_hash = fnv1a_bytes(canvas.pixels, canvas.pixel_count);
+    CHECK(locked_door_hash == 0x40d8b9a5);
+    CHECK(wl_build_door_wall_hit(&model.doors[0], 7, (29u << 16) + 0x8000u,
+                                 21, 128, &door_hit) == -1);
+
     CHECK(wl_cast_cardinal_wall_ray(wall_plane, WL_MAP_PLANE_WORDS, 29, 57,
                                     WL_RAY_EAST, 32, 5, 96, &hits[0]) == 0);
     CHECK(hits[0].tile_x == 41);
@@ -2427,6 +2465,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/live-runtime-render tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/door-wall-render tests passed for %s\n", dir);
     return 0;
 }
