@@ -333,6 +333,11 @@ int wl_start_actor_death_state(const wl_actor_combat_state *actor,
                                wl_actor_death_state *out);
 int wl_step_actor_death_state(wl_actor_death_state *state, int32_t tics,
                               wl_actor_death_step_result *out);
+int wl_build_actor_death_scene_ref(const wl_actor_combat_state *actor,
+                                   const wl_actor_death_state *death,
+                                   uint16_t vswap_sprite_start,
+                                   uint16_t model_index,
+                                   wl_scene_sprite_ref *out);
 int wl_step_projectile(wl_player_gameplay_state *state,
                        const wl_game_model *model,
                        const wl_player_motion_state *player,

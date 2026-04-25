@@ -242,3 +242,8 @@ The VSWAP sprite-cache path now receives statics spawned by live actor kill/drop
 ## Cycle update: actor death-state sprite metadata
 
 Death animation progression now emits VSWAP sprite source indices for killed actors. The new seam maps representative original `WL_ACT2.C` death chains to source-index/tic metadata for guards, dogs, SS, mutants, officers, and bosses, preparing actor death frames for future sprite-cache decoding and scene rendering without committing decoded sprite bytes.
+
+
+## Cycle update: actor death-state scene rendering
+
+Death-state sprite source indices now drive VSWAP sprite-cache decoding. A killed guard death frame maps to source sprite `91` / VSWAP chunk `197`, decodes locally into a temporary indexed surface, and renders through the live scene path with committed scene hash `0x2e8b4819`.

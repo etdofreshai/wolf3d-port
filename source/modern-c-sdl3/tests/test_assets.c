@@ -322,6 +322,15 @@ static int check_gameplay_events(void) {
     CHECK(wl_step_actor_death_state(&death_state, 20, &death_step) == 0);
     CHECK(death_step.finished == 1);
     CHECK(death_step.sprite_source_index == 95);
+    wl_scene_sprite_ref death_ref;
+    CHECK(wl_build_actor_death_scene_ref(&actor_state, &death_state, 106, 7,
+                                         &death_ref) == 0);
+    CHECK(death_ref.kind == WL_SCENE_SPRITE_ACTOR);
+    CHECK(death_ref.model_index == 7);
+    CHECK(death_ref.source_index == 95);
+    CHECK(death_ref.vswap_chunk_index == 201);
+    CHECK(death_ref.world_x == ((uint32_t)actor_state.tile_x << 16) + 0x8000u);
+    CHECK(death_ref.world_y == ((uint32_t)actor_state.tile_y << 16) + 0x8000u);
     wl_game_model drop_model;
     memset(&drop_model, 0, sizeof(drop_model));
     size_t drop_static_index = 999;
@@ -3187,6 +3196,54 @@ static int check_wl6(const char *dir) {
     CHECK(live_drop_scene_hash == 0x707dbe4e);
     CHECK(live_drop_scene_hash != picked_static_scene_hash);
 
+    wl_actor_death_state live_death_state;
+    CHECK(wl_start_actor_death_state(&live_drop_actor_state,
+                                     &live_drop_tick.actor_damage,
+                                     &live_death_state) == 0);
+    CHECK(live_death_state.sprite_source_index == 91);
+    wl_scene_sprite_ref live_death_ref;
+    CHECK(wl_build_actor_death_scene_ref(&live_drop_actor_state,
+                                         &live_death_state,
+                                         dirinfo.header.sprite_start, 3,
+                                         &live_death_ref) == 0);
+    CHECK(live_death_ref.kind == WL_SCENE_SPRITE_ACTOR);
+    CHECK(live_death_ref.source_index == 91);
+    CHECK(live_death_ref.vswap_chunk_index == 197);
+    const uint16_t live_death_chunks[] = { live_death_ref.vswap_chunk_index };
+    unsigned char live_death_pixels[WL_MAP_PLANE_WORDS];
+    wl_indexed_surface live_death_surface;
+    CHECK(wl_decode_vswap_sprite_surface_cache(vswap_path, &sprite_dirinfo,
+                                               live_death_chunks, 1, 0,
+                                               live_death_pixels,
+                                               sizeof(live_death_pixels),
+                                               &live_death_surface) == 0);
+    const wl_indexed_surface *live_death_surfaces[] = { &live_death_surface };
+    const uint32_t live_death_scene_x[] = { live_death_ref.world_x };
+    const uint32_t live_death_scene_y[] = { live_death_ref.world_y };
+    const uint16_t live_death_scene_ids[] = { live_death_ref.source_index };
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_runtime_door_camera_scene_view(&live_drop_scene_model,
+                                                   dirinfo.header.sprite_start,
+                                                   (3u << 16) + 0x8000u,
+                                                   (4u << 16) + 0x8000u,
+                                                   0x10000, 0, 0, -0x8000, 39, 1, 3,
+                                                   runtime_door_pages,
+                                                   runtime_door_page_sizes, 106,
+                                                   live_death_surfaces,
+                                                   live_death_scene_x,
+                                                   live_death_scene_y,
+                                                   live_death_scene_ids,
+                                                   1, 0,
+                                                   &canvas, runtime_dirs_x,
+                                                   runtime_dirs_y, runtime_view_hits,
+                                                   runtime_view_strips, sprites,
+                                                   wall_heights) == 0);
+    uint32_t live_death_scene_hash = fnv1a_bytes(canvas.pixels, canvas.pixel_count);
+    CHECK(live_death_scene_hash == 0x2e8b4819);
+    CHECK(live_death_scene_hash != live_drop_scene_hash);
+
     const wl_indexed_surface *bad_scene_sprites[] = { NULL };
     CHECK(wl_render_camera_scene_view(wall_plane, WL_MAP_PLANE_WORDS, player_x,
                                       player_y, 0x10000, 0, 0, -0x8000, 30, 1, 5,
@@ -3744,6 +3801,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-actor-death-state tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-actor-death-scene tests passed for %s\n", dir);
     return 0;
 }

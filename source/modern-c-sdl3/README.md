@@ -161,3 +161,8 @@ Live-spawned actor drops now reach the renderer-facing path. A headless test kil
 ## Actor death-state seam
 
 Actor kill effects now have deterministic death animation metadata. `wl_start_actor_death_state` and `wl_step_actor_death_state` model the original death `statetype` chains for guards, dogs, SS, mutants, officers, and the representative WL6 boss path: initial death-scream flag, sprite source indices, per-stage tic durations, and final dead-frame behavior. This keeps death visuals testable before wiring them into live scene refs or SDL3 presentation.
+
+
+## Actor death scene seam
+
+Death-state actor sprites now reach the renderer-facing scene path. `wl_build_actor_death_scene_ref` converts killed-actor death-state metadata into a scene ref, and the headless test decodes the referenced local VSWAP sprite surface before rendering it with `wl_render_runtime_door_camera_scene_view`. The committed evidence is metadata plus scene hash `0x2e8b4819`, keeping proprietary sprite bytes local.

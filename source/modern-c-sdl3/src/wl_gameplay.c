@@ -572,6 +572,26 @@ int wl_step_actor_death_state(wl_actor_death_state *state, int32_t tics,
     return 0;
 }
 
+int wl_build_actor_death_scene_ref(const wl_actor_combat_state *actor,
+                                   const wl_actor_death_state *death,
+                                   uint16_t vswap_sprite_start,
+                                   uint16_t model_index,
+                                   wl_scene_sprite_ref *out) {
+    if (!actor || !death || !out || actor->alive || actor->shootable ||
+        actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE ||
+        death->stage >= death->stage_count) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->kind = WL_SCENE_SPRITE_ACTOR;
+    out->model_index = model_index;
+    out->source_index = death->sprite_source_index;
+    out->vswap_chunk_index = (uint16_t)(vswap_sprite_start + death->sprite_source_index);
+    out->world_x = ((uint32_t)actor->tile_x << 16) + 0x8000u;
+    out->world_y = ((uint32_t)actor->tile_y << 16) + 0x8000u;
+    return 0;
+}
+
 int wl_try_actor_shoot_player(wl_player_gameplay_state *state,
                               const wl_actor_desc *actor,
                               const wl_player_motion_state *player,

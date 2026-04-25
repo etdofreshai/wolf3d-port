@@ -293,3 +293,8 @@ The live frame seam now has a fuller combat orchestration path. `wl_step_live_fu
 ## Cycle update: actor death-state progression
 
 Actor kill state now has deterministic death animation metadata that can later feed scene refs. `wl_start_actor_death_state` consumes a killed `wl_actor_combat_state` plus `wl_actor_damage_result`, then `wl_step_actor_death_state` advances through original-style death sprite/tic stages. Tests cover guard, dog, and boss sequences, final dead frames, and the one-shot death-scream marker without coupling to audio or SDL.
+
+
+## Cycle update: actor death-state scene rendering
+
+Actor death animation metadata now feeds renderer-facing scene input. `wl_build_actor_death_scene_ref` turns a killed actor plus `wl_actor_death_state` into a `wl_scene_sprite_ref` with source sprite, VSWAP chunk, and world-position metadata. The test renders a guard death frame through the live door-aware wall+sprite scene path and asserts scene hash `0x2e8b4819` without storing decoded sprite bytes.

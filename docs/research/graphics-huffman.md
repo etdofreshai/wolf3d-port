@@ -254,3 +254,8 @@ The broader live combat tick now coalesces outgoing actor damage/drop effects wi
 ## Cycle update: actor death-state presentation metadata
 
 The gameplay layer now emits deterministic death-frame source indices and tic progression for killed actors, including a one-shot death-scream marker and final dead-frame behavior. This gives future SDL3/render upload code a display-free contract for death visuals before decoded VSWAP frames are attached to live scene refs.
+
+
+## Cycle update: actor death-state scene rendering
+
+Death-frame presentation is now covered before SDL3. The current death-state sprite source index becomes a scene ref, is decoded from local VSWAP data, and is composited by the indexed renderer with stable hash `0x2e8b4819`, keeping the future SDL upload path deterministic and headless.
