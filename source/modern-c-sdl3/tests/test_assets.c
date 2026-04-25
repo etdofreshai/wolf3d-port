@@ -1167,6 +1167,58 @@ static int check_wl6(const char *dir) {
                                       scene_sprite_ids, 1, 0, &canvas,
                                       camera_dirs_x, camera_dirs_y, view_hits,
                                       view_strips, sprites, wall_heights) == -1);
+    const uint16_t visible_ref_chunks[] = {
+        scene_refs[113].vswap_chunk_index,
+        scene_refs[114].vswap_chunk_index,
+    };
+    unsigned char visible_ref_pixels[2 * WL_MAP_PLANE_WORDS];
+    wl_indexed_surface visible_ref_surfaces[2];
+    CHECK(wl_decode_vswap_sprite_surface_cache(vswap_path, &sprite_dirinfo,
+                                               visible_ref_chunks, 2, 0,
+                                               visible_ref_pixels,
+                                               sizeof(visible_ref_pixels),
+                                               visible_ref_surfaces) == 0);
+    CHECK(fnv1a_bytes(visible_ref_pixels, sizeof(visible_ref_pixels)) == 0xd53b06f5);
+    CHECK(fnv1a_bytes(visible_ref_surfaces[0].pixels,
+                      visible_ref_surfaces[0].pixel_count) == 0x442facd4);
+    CHECK(fnv1a_bytes(visible_ref_surfaces[1].pixels,
+                      visible_ref_surfaces[1].pixel_count) == 0xd363bf0c);
+    const wl_indexed_surface *visible_scene_sprites[] = {
+        &visible_ref_surfaces[0],
+        &visible_ref_surfaces[1],
+    };
+    const uint32_t visible_scene_x[] = {
+        scene_refs[113].world_x,
+        scene_refs[114].world_x,
+    };
+    const uint32_t visible_scene_y[] = {
+        scene_refs[113].world_y,
+        scene_refs[114].world_y,
+    };
+    const uint16_t visible_scene_ids[] = {
+        scene_refs[113].source_index,
+        scene_refs[114].source_index,
+    };
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_camera_scene_view(wall_plane, WL_MAP_PLANE_WORDS, player_x,
+                                      player_y, 0x10000, 0, 0, -0x8000, 30, 1, 5,
+                                      view_pages, view_page_sizes, 18,
+                                      visible_scene_sprites, visible_scene_x,
+                                      visible_scene_y, visible_scene_ids, 2, 0,
+                                      &canvas, camera_dirs_x, camera_dirs_y,
+                                      view_hits, view_strips, sprites,
+                                      wall_heights) == 0);
+    CHECK(sprites[0].source_index == scene_refs[114].source_index);
+    CHECK(sprites[0].surface_index == 1);
+    CHECK(sprites[0].view_x == 39);
+    CHECK(sprites[0].scaled_height == 26);
+    CHECK(sprites[1].source_index == scene_refs[113].source_index);
+    CHECK(sprites[1].surface_index == 0);
+    CHECK(sprites[1].view_x == 39);
+    CHECK(sprites[1].scaled_height == 42);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0x61f7f78b);
     CHECK(wl_project_world_sprite(106, player_x, player_y, player_x, player_y,
                                   0, 0, 80, 128, &sprites[0]) == -1);
     CHECK(wl_sort_projected_sprites_far_to_near(NULL, 0) == 0);
@@ -1510,6 +1562,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/sprite-cache tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/ref-scene tests passed for %s\n", dir);
     return 0;
 }

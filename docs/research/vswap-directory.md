@@ -59,7 +59,7 @@ The parser:
 - decodes caller-provided VSWAP sprite chunk-index lists into contiguous caller-owned indexed-surface caches;
 - scales transparent indexed sprites into caller-owned viewports with source-run distribution, clipping, and optional wall-height occlusion;
 - projects world-space sprite centers into screen-x/height descriptors and sorts projected sprites far-to-near before composition;
-- combines camera wall rendering and projected sprite rendering into a single deterministic indexed scene seam;
+- combines camera wall rendering and projected sprite rendering into a single deterministic indexed scene seam, now exercised with cached surfaces selected from runtime scene refs;
 - does not copy or commit any proprietary chunk bytes.
 
 ## WL6 committed assertions
@@ -126,7 +126,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/sprite-cache tests passed for game-files/base
+asset/decompression/semantics/model/vswap/ref-scene tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
@@ -141,6 +141,10 @@ Added `wl_decode_wall_page_metadata`, `wl_decode_wall_page_to_indexed`, and `wl_
 
 Extended sprite metadata decoding to walk each visible column's post-command stream, validate start/end pixel*2 ranges and zero terminators, and record aggregate post counts, post-span ranges, source-offset ranges, and posts-per-column bounds. Added `wl_decode_sprite_shape_to_indexed` and `wl_decode_sprite_shape_surface`, which decode the same post streams into caller-owned transparent `64x64` indexed surfaces, including wrapped corrected-top offsets seen in some original shapes. Added `wl_render_scaled_sprite`, a pure C viewport compositor that scales those transparent surfaces, clips to the destination, and honors optional wall-height occlusion like the original sprite scaler. Added `wl_project_world_sprite` and `wl_sort_projected_sprites_far_to_near`, which carry world-space sprite centers into original-style screen-x/height descriptors and deterministic far-to-near draw order. Added `wl_decode_vswap_sprite_surface_cache`, which decodes a caller-provided list of sprite chunk indices into contiguous caller-owned indexed surfaces for render use. Added `wl_render_camera_scene_view`, which renders camera wall columns, records a wall-height occlusion buffer, projects/sorts sprites, and composites transparent sprite surfaces into the same indexed viewport. This gives the renderer path deterministic sprite layout/composition/projection/scene oracles without storing or committing proprietary pixel bytes.
 
+## Cycle update: runtime-ref cached scene rendering
+
+The headless scene test now selects visible WL6 map-0 runtime sprite refs `113` and `114`, decodes their VSWAP chunks through `wl_decode_vswap_sprite_surface_cache`, and passes the resulting caller-owned surfaces plus ref world coordinates/source ids directly into `wl_render_camera_scene_view`. Assertions cover per-surface hashes `0x442facd4` and `0xd363bf0c`, combined cache hash `0xd53b06f5`, sorted/projected draw order (`source_index` `26` then `16`), screen-x/height descriptors, and final indexed scene hash `0x61f7f78b`. This keeps the renderer bridge deterministic and asset-byte-free while proving the runtime-ref -> cache -> combined-scene path.
+
 ## Next step
 
-Build on runtime sprite references plus surface-cache decoding by feeding refs directly into combined scene rendering, adding palette/texture upload, or adding a small SDL3 presentation boundary. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.
+Expand runtime-ref scene coverage, add palette/fade-effect metadata, or add a small SDL3 presentation boundary. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.
