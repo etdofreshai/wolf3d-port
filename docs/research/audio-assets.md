@@ -8,6 +8,7 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 - `wl_read_audio_chunk()` copies bounded raw chunk bytes from `AUDIOT.*` using adjacent offsets.
 - `wl_describe_audio_chunk()` classifies the original WL6 chunk ranges and exposes raw size, declared length, sound priority where present, and payload bounds.
 - `wl_describe_pc_speaker_sound()` validates the PC speaker declared sample count and exposes first/last sample bytes, the terminating sentinel, and any trailing bytes.
+- `wl_describe_adlib_sound()` validates AdLib sound chunks by the original common header plus 16-byte instrument block and exposes first/last instrument and sample bytes for future OPL playback seams.
 - `wl_describe_imf_music_chunk()` validates IMF music chunks by their declared byte count and summarizes command count, first/last commands, maximum and zero-delay counts, total delay ticks, and trailing AUDIOT bytes.
 - `wl_get_imf_music_command()` decodes a bounded IMF command `(register, value, delay)` by index for future AdLib playback scheduling without exposing callers to raw byte offsets.
 - `wl_describe_imf_playback_window()` summarizes deterministic IMF command emission from a start index within a tick budget for future SDL3 audio scheduling.
@@ -20,7 +21,7 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 - Representative chunks:
   - chunk 0: 15 bytes, FNV-1a `0x5971ec53`; PC speaker sample count 8, first/last samples `0x83`/`0x84`, terminator `0x00`, trailing bytes 0.
   - chunk 1: 13 bytes, FNV-1a `0x21985d89`; PC speaker sample count 6, first/last samples `0x2f`/`0x2f`, terminator `0x00`.
-  - chunk 87: 41 bytes, FNV-1a `0x799f60b1`.
+  - chunk 87: 41 bytes, FNV-1a `0x799f60b1`; AdLib sample count 8, priority 1, instrument first/last bytes `0x70`/`0x03`, sample first/last bytes `0x04`/`0x2e`, trailing bytes 11.
   - chunk 174: 0 bytes.
   - chunk 261: 7,546 bytes, FNV-1a `0xea0d69d8`; IMF declared bytes 7,456, command count 1,864, command accessor first `(reg=0, value=0, delay=189)`, accessor last `(reg=0, value=0, delay=1)`, playback windows emit 1 command for 189 ticks and 3 commands for 20,485 ticks, max delay 64,098, zero-delay commands 0, total delay 25,697,407, trailing bytes 86.
   - chunk 287: 20,926 bytes, FNV-1a `0x65998666`; IMF declared bytes 20,836, command count 5,209, first delay 189, last command `(reg=0, value=0, delay=1)`, max delay 65,429, zero-delay commands 0, total delay 71,494,600, trailing bytes 86.
