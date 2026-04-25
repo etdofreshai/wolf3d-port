@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Renderer-facing indexed-surface descriptors are implemented and passing on headless Linux for WL6 and optional SOD. Next phase should decode wall-page metadata or add an SDL-free blit/composite smoke test.
+SDL-free indexed-surface blitting is implemented and passing on headless Linux for WL6. Next phase should decode wall-page metadata or add palette/texture-upload metadata.
 
 ## Latest Verified Milestone
 
@@ -20,7 +20,7 @@ Renderer-facing indexed-surface descriptors are implemented and passing on headl
 - `docs/research/map-semantics.md` records original source references and WL6 map 0 semantic-count assertions.
 - `docs/research/runtime-map-model.md` records the pure C runtime model seam, door-area connectivity descriptors, descriptor assertions, and verification output.
 - `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall/sprite shape metadata assertions, sprite post-command metadata assertions, range/count assertions, and verification output.
-- `docs/research/graphics-huffman.md` records VGAHEAD/VGADICT/VGAGRAPH parsing, pure C Huffman expansion, STRUCTPIC picture-table metadata, planar-to-indexed surface conversion, renderer-facing indexed-surface descriptors, WL6/SOD graphics chunk smoke assertions, and verification output.
+- `docs/research/graphics-huffman.md` records VGAHEAD/VGADICT/VGAGRAPH parsing, pure C Huffman expansion, STRUCTPIC picture-table metadata, planar-to-indexed surface conversion, renderer-facing indexed-surface descriptors, SDL-free indexed blitting, WL6/SOD graphics chunk smoke assertions, and verification output.
 
 ## Verified Findings
 
@@ -88,18 +88,19 @@ Use tests as the bridge from the original code to modern C:
 12. `STRUCTPIC` picture metadata interpretation. **Done for WL6/SOD.**
 13. Renderer-facing indexed-surface seam. **Initial planar-to-indexed conversion done for WL6/SOD.**
 14. Surface metadata/type layer. **Done for WL6/SOD indexed picture surfaces.**
-15. Wall-page metadata decoding or SDL-free blit/composite smoke test.
+15. SDL-free blit/composite smoke test. **Done for representative WL6 surfaces.**
+16. Wall-page metadata decoding or palette/texture-upload metadata seam.
 
 ## Next Likely Move
 
-Decode wall-page metadata or add an SDL-free blit/composite smoke test.
+Decode wall-page metadata or add palette/texture-upload metadata.
 
 Recommended next commit:
 
 - decode wall-page column/pixel metadata from raw VSWAP wall chunks for the raycaster path;
-- or add a small SDL-free blit/composite smoke test that consumes `wl_indexed_surface`.
+- or add palette/texture-upload metadata that can later connect `wl_indexed_surface` to SDL3 textures.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
 
 ## Blockers
 
@@ -609,5 +610,42 @@ Safety/legal checks:
 Next likely move:
 
 - Decode VSWAP wall-page metadata, or add an SDL-free blit/composite smoke test consuming `wl_indexed_surface`.
+
+Blockers: none.
+
+
+## Cycle 2026-04-24 23:07 CDT
+
+Action taken:
+
+- Added `wl_blit_indexed_surface`, an SDL-free clipped blitter for `wl_indexed_surface`.
+- Added WL6 canvas hash assertions after compositing representative decoded picture surfaces.
+- Updated `docs/research/graphics-huffman.md` and `source/modern-c-sdl3/README.md`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/vga-blit tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only decoded metadata/hash/count/dimension assertions are committed.
+
+Next likely move:
+
+- Decode VSWAP wall-page metadata, or add palette/texture-upload metadata for future SDL3 texture integration.
 
 Blockers: none.

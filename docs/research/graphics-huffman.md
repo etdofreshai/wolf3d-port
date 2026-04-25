@@ -49,6 +49,7 @@ Added graphics APIs/types to `wl_assets`:
 - `wl_wrap_indexed_surface(...)`
 - `wl_decode_planar_picture_to_indexed(...)`
 - `wl_decode_planar_picture_surface(...)`
+- `wl_blit_indexed_surface(...)`
 
 The implementation:
 
@@ -59,6 +60,7 @@ The implementation:
 - decodes `STRUCTPIC` as width/height metadata for picture chunks;
 - wraps decoded indexed pixels in a renderer-facing `wl_indexed_surface` descriptor with format, width, height, stride, pixel count, and pixel pointer;
 - converts decoded planar picture chunks into linear 8-bit indexed surfaces suitable for a future SDL3 texture/upload boundary;
+- provides an SDL-free clipped blit helper for indexed surfaces;
 - records only sizes/counts/hashes/dimensions in tests and docs, not graphics bytes.
 
 ## WL6 committed assertions
@@ -107,7 +109,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/vga-surface-layer tests passed for game-files/base
+asset/decompression/semantics/model/vswap/vga-blit tests passed for game-files/base
 ```
 
 ## Cycle update: STRUCTPIC metadata
@@ -122,6 +124,10 @@ Added `wl_decode_planar_picture_to_indexed`, a pure C conversion from the origin
 
 Added `wl_indexed_surface` and `wl_decode_planar_picture_surface`, wrapping decoded indexed pixels with the metadata a future SDL3 upload path will need: indexed-8 format, width, height, stride, pixel count, and pixel pointer. Tests assert representative WL6/SOD surface descriptors plus stable surface hashes.
 
+## Cycle update: indexed blit smoke test
+
+Added `wl_blit_indexed_surface`, a clipped SDL-free blitter for `wl_indexed_surface`. Tests composite representative decoded WL6 picture surfaces into a synthetic indexed canvas and assert stable canvas hashes. This exercises the renderer-facing surface layer without opening a window or committing pixels.
+
 ## Next step
 
-Decode raw VSWAP wall page metadata for the raycaster path, or add a tiny SDL-free blit/composite smoke test that consumes `wl_indexed_surface`. Keep headless tests comparing metadata/hashes before adding SDL3 presentation.
+Decode raw VSWAP wall page metadata for the raycaster path, or add a tiny palette/texture-upload metadata seam before SDL3 presentation. Keep headless tests comparing metadata/hashes before adding SDL3 presentation.

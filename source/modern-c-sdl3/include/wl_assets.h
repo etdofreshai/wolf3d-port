@@ -165,6 +165,8 @@ int wl_decode_planar_picture_surface(const unsigned char *planar, size_t planar_
                                      uint16_t width, uint16_t height,
                                      unsigned char *pixels, size_t pixel_size,
                                      wl_indexed_surface *out);
+int wl_blit_indexed_surface(const wl_indexed_surface *src, wl_indexed_surface *dst,
+                            int dst_x, int dst_y);
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written);
 int wl_rlew_expand(const uint16_t *src, size_t src_words, uint16_t rlew_tag,

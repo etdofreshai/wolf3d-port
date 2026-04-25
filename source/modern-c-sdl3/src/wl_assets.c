@@ -379,6 +379,44 @@ int wl_decode_planar_picture_surface(const unsigned char *planar, size_t planar_
     return wl_wrap_indexed_surface(width, height, pixels, pixel_size, out);
 }
 
+int wl_blit_indexed_surface(const wl_indexed_surface *src, wl_indexed_surface *dst,
+                            int dst_x, int dst_y) {
+    if (!src || !dst || !src->pixels || !dst->pixels ||
+        src->format != WL_SURFACE_INDEXED8 || dst->format != WL_SURFACE_INDEXED8) {
+        return -1;
+    }
+
+    int src_x0 = 0;
+    int src_y0 = 0;
+    int src_x1 = src->width;
+    int src_y1 = src->height;
+    if (dst_x < 0) {
+        src_x0 = -dst_x;
+        dst_x = 0;
+    }
+    if (dst_y < 0) {
+        src_y0 = -dst_y;
+        dst_y = 0;
+    }
+    if (dst_x + (src_x1 - src_x0) > dst->width) {
+        src_x1 = src_x0 + (dst->width - dst_x);
+    }
+    if (dst_y + (src_y1 - src_y0) > dst->height) {
+        src_y1 = src_y0 + (dst->height - dst_y);
+    }
+    if (src_x0 >= src_x1 || src_y0 >= src_y1) {
+        return 0;
+    }
+
+    size_t copy_width = (size_t)(src_x1 - src_x0);
+    for (int y = src_y0; y < src_y1; ++y) {
+        const unsigned char *src_row = src->pixels + (size_t)y * src->stride + (size_t)src_x0;
+        unsigned char *dst_row = dst->pixels + (size_t)(dst_y + y - src_y0) * dst->stride + (size_t)dst_x;
+        memcpy(dst_row, src_row, copy_width);
+    }
+    return 0;
+}
+
 int wl_read_vswap_header(const char *path, wl_vswap_header *out) {
     if (!path || !out) {
         return -1;

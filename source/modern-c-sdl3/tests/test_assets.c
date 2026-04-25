@@ -274,7 +274,9 @@ static int check_wl6(const char *dir) {
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
     unsigned char indexed_buf[65536];
+    unsigned char canvas_pixels[160 * 120];
     wl_indexed_surface surface;
+    wl_indexed_surface canvas;
     size_t graphics_bytes = 0;
     size_t compressed_bytes = 0;
     CHECK(wl_read_graphics_header(vgahead_path, &gh) == 0);
@@ -335,6 +337,11 @@ static int check_wl6(const char *dir) {
     CHECK(surface.pixel_count == graphics_bytes);
     CHECK(surface.pixels == indexed_buf);
     CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0xa9c1ea92);
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(160, 120, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_blit_indexed_surface(&surface, &canvas, 13, 17) == 0);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0xf7c5e35c);
     CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 87, graphics_buf,
                                  sizeof(graphics_buf), &graphics_bytes,
                                  &compressed_bytes) == 0);
@@ -366,6 +373,8 @@ static int check_wl6(const char *dir) {
     CHECK(surface.height == 48);
     CHECK(surface.pixel_count == graphics_bytes);
     CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0x46e4bd08);
+    CHECK(wl_blit_indexed_surface(&surface, &canvas, -12, 70) == 0);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0x338ae9cd);
 
     wl_vswap_header vs;
     CHECK(wl_read_vswap_header(vswap_path, &vs) == 0);
@@ -697,6 +706,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/vga-surface-layer tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/vga-blit tests passed for %s\n", dir);
     return 0;
 }
