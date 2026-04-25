@@ -367,6 +367,11 @@ static int check_wl6(const char *dir) {
     unsigned char indexed_buf[65536];
     unsigned char rgba_buf[65536 * 4];
     unsigned char upload_palette[256 * 3];
+    unsigned char fade_target_palette[256 * 3];
+    unsigned char fade_palette[256 * 3];
+    unsigned char fade_sample_pixels[16];
+    wl_indexed_surface fade_sample_surface;
+    unsigned char fade_sample_rgba[16 * 4];
     unsigned char canvas_pixels[160 * 120];
     wl_indexed_surface surface;
     wl_indexed_surface canvas;
@@ -378,7 +383,58 @@ static int check_wl6(const char *dir) {
         upload_palette[i * 3 + 0] = (unsigned char)(i & 63u);
         upload_palette[i * 3 + 1] = (unsigned char)((i * 2u) & 63u);
         upload_palette[i * 3 + 2] = (unsigned char)((63u - i) & 63u);
+        fade_target_palette[i * 3 + 0] = 0;
+        fade_target_palette[i * 3 + 1] = 17;
+        fade_target_palette[i * 3 + 2] = 17;
     }
+    for (size_t i = 0; i < sizeof(fade_sample_pixels); ++i) {
+        fade_sample_pixels[i] = (unsigned char)(i * 17u);
+    }
+    CHECK(wl_interpolate_palette_range(upload_palette, fade_target_palette,
+                                       sizeof(upload_palette), 6, 0, 255, 5,
+                                       10, fade_palette,
+                                       sizeof(fade_palette)) == 0);
+    CHECK(fnv1a_bytes(fade_palette, sizeof(fade_palette)) == 0xa93a5ba5);
+    CHECK(fade_palette[0] == 0);
+    CHECK(fade_palette[1] == 8);
+    CHECK(fade_palette[2] == 40);
+    CHECK(fade_palette[255u * 3u + 0u] == 32);
+    CHECK(fade_palette[255u * 3u + 1u] == 40);
+    CHECK(fade_palette[255u * 3u + 2u] == 8);
+    CHECK(wl_wrap_indexed_surface(4, 4, fade_sample_pixels,
+                                  sizeof(fade_sample_pixels),
+                                  &fade_sample_surface) == 0);
+    CHECK(wl_expand_indexed_surface_to_rgba(&fade_sample_surface, fade_palette,
+                                            sizeof(fade_palette), 6,
+                                            fade_sample_rgba,
+                                            sizeof(fade_sample_rgba),
+                                            NULL) == 0);
+    CHECK(fnv1a_bytes(fade_sample_rgba, sizeof(fade_sample_rgba)) == 0x50918d48);
+    CHECK(wl_interpolate_palette_range(upload_palette, fade_target_palette,
+                                       sizeof(upload_palette), 6, 32, 63, 10,
+                                       10, fade_palette,
+                                       sizeof(fade_palette)) == 0);
+    CHECK(fnv1a_bytes(fade_palette, sizeof(fade_palette)) == 0x91f102c5);
+    CHECK(fade_palette[31u * 3u + 0u] == 31);
+    CHECK(fade_palette[32u * 3u + 0u] == 0);
+    CHECK(fade_palette[32u * 3u + 1u] == 17);
+    CHECK(fade_palette[32u * 3u + 2u] == 17);
+    CHECK(fade_palette[63u * 3u + 0u] == 0);
+    CHECK(fade_palette[63u * 3u + 1u] == 17);
+    CHECK(fade_palette[63u * 3u + 2u] == 17);
+    CHECK(fade_palette[64u * 3u + 2u] == 63);
+    CHECK(wl_interpolate_palette_range(upload_palette, fade_target_palette,
+                                       sizeof(upload_palette), 6, 64, 32, 0,
+                                       10, fade_palette,
+                                       sizeof(fade_palette)) == -1);
+    CHECK(wl_interpolate_palette_range(upload_palette, fade_target_palette,
+                                       sizeof(upload_palette), 5, 0, 255, 0,
+                                       10, fade_palette,
+                                       sizeof(fade_palette)) == -1);
+    CHECK(wl_interpolate_palette_range(upload_palette, fade_target_palette,
+                                       sizeof(upload_palette), 6, 0, 255, 11,
+                                       10, fade_palette,
+                                       sizeof(fade_palette)) == -1);
     CHECK(wl_read_graphics_header(vgahead_path, &gh) == 0);
     CHECK(gh.chunk_count == 149);
     CHECK(gh.file_size == 450);
@@ -1562,6 +1618,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/ref-scene tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/palette-fade tests passed for %s\n", dir);
     return 0;
 }

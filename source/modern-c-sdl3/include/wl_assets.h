@@ -119,6 +119,16 @@ typedef struct wl_texture_upload_descriptor {
     uint8_t palette_component_bits;
 } wl_texture_upload_descriptor;
 
+int wl_interpolate_palette_range(const unsigned char *from_palette,
+                                 const unsigned char *to_palette,
+                                 size_t palette_size,
+                                 uint8_t palette_component_bits,
+                                 uint16_t start_index,
+                                 uint16_t end_index,
+                                 uint16_t step, uint16_t steps,
+                                 unsigned char *out_palette,
+                                 size_t out_palette_size);
+
 typedef struct wl_wall_page_metadata {
     uint16_t width;
     uint16_t height;

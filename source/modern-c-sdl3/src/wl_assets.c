@@ -349,6 +349,37 @@ static unsigned char expand_palette_component(unsigned char value, uint8_t bits)
     return value;
 }
 
+int wl_interpolate_palette_range(const unsigned char *from_palette,
+                                 const unsigned char *to_palette,
+                                 size_t palette_size,
+                                 uint8_t palette_component_bits,
+                                 uint16_t start_index,
+                                 uint16_t end_index,
+                                 uint16_t step, uint16_t steps,
+                                 unsigned char *out_palette,
+                                 size_t out_palette_size) {
+    if (!from_palette || !to_palette || !out_palette ||
+        (palette_component_bits != 6 && palette_component_bits != 8) ||
+        palette_size < 256u * 3u || out_palette_size < 256u * 3u ||
+        start_index > end_index || end_index >= 256 || steps == 0 ||
+        step > steps) {
+        return -1;
+    }
+
+    memcpy(out_palette, from_palette, 256u * 3u);
+    for (uint16_t index = start_index; index <= end_index; ++index) {
+        size_t base = (size_t)index * 3u;
+        for (size_t channel = 0; channel < 3u; ++channel) {
+            int from = from_palette[base + channel];
+            int to = to_palette[base + channel];
+            int delta = to - from;
+            out_palette[base + channel] =
+                (unsigned char)(from + (delta * (int)step) / (int)steps);
+        }
+    }
+    return 0;
+}
+
 int wl_describe_indexed_texture_upload(const wl_indexed_surface *surface,
                                        const unsigned char *palette,
                                        size_t palette_size,
