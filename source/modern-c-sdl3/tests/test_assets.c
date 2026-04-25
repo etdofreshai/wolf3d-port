@@ -1,5 +1,6 @@
 #include "wl_assets.h"
 #include "wl_game_model.h"
+#include "wl_gameplay.h"
 #include "wl_map_semantics.h"
 
 #include <stdio.h>
@@ -98,6 +99,75 @@ static size_t count_nonzero(const uint16_t *words, size_t count) {
         }
     }
     return hits;
+}
+
+static int check_gameplay_events(void) {
+    wl_player_gameplay_state state;
+    wl_player_damage_result damage;
+    wl_palette_shift_result shift;
+    int32_t extra_lives = -1;
+    int32_t thresholds = -1;
+
+    CHECK(wl_init_player_gameplay_state(&state, 100, 3, 39000, WL_EXTRA_POINTS) == 0);
+    CHECK(state.health == 100);
+    CHECK(state.lives == 3);
+    CHECK(state.score == 39000);
+    CHECK(state.next_extra == 40000);
+    CHECK(state.play_state == WL_PLAYER_PLAY_RUNNING);
+
+    CHECK(wl_apply_player_damage(&state, WL_DIFFICULTY_BABY, 20, 0, 0, &damage) == 0);
+    CHECK(damage.requested_points == 20);
+    CHECK(damage.effective_points == 5);
+    CHECK(damage.health == 95);
+    CHECK(damage.damage_count == 5);
+    CHECK(damage.died == 0);
+    CHECK(state.health == 95);
+    CHECK(state.palette_shift.damage_count == 5);
+    CHECK(wl_update_palette_shift_state(&state.palette_shift, 1, &shift) == 0);
+    CHECK(shift.kind == WL_PALETTE_SHIFT_RED);
+    CHECK(shift.shift_index == 0);
+    CHECK(shift.damage_count == 4);
+
+    CHECK(wl_start_player_bonus_flash(&state) == 0);
+    CHECK(state.palette_shift.bonus_count == WL_NUM_WHITE_SHIFTS * WL_WHITE_SHIFT_TICS);
+    CHECK(wl_update_palette_shift_state(&state.palette_shift, 0, &shift) == 0);
+    CHECK(shift.kind == WL_PALETTE_SHIFT_RED);
+    CHECK(shift.damage_count == 4);
+    CHECK(shift.bonus_count == 18);
+
+    CHECK(wl_apply_player_damage(&state, WL_DIFFICULTY_HARD, 200, 1, 0, &damage) == 0);
+    CHECK(damage.effective_points == 200);
+    CHECK(damage.health == 95);
+    CHECK(damage.died == 0);
+    CHECK(state.health == 95);
+    CHECK(state.palette_shift.damage_count == 204);
+    CHECK(wl_apply_player_damage(&state, WL_DIFFICULTY_HARD, 200, 0, 1, &damage) == 0);
+    CHECK(damage.ignored == 1);
+    CHECK(damage.effective_points == 0);
+    CHECK(state.health == 95);
+    CHECK(state.palette_shift.damage_count == 204);
+
+    CHECK(wl_apply_player_damage(&state, WL_DIFFICULTY_HARD, 120, 0, 0, &damage) == 0);
+    CHECK(damage.health == 0);
+    CHECK(damage.died == 1);
+    CHECK(state.play_state == WL_PLAYER_PLAY_DIED);
+
+    CHECK(wl_heal_player(&state, 150) == 0);
+    CHECK(state.health == 100);
+    CHECK(state.got_gat_gun == 0);
+
+    CHECK(wl_init_player_gameplay_state(&state, 100, 8, 39000, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_award_player_points(&state, 101000, &extra_lives, &thresholds) == 0);
+    CHECK(state.score == 140000);
+    CHECK(state.next_extra == 160000);
+    CHECK(state.lives == 9);
+    CHECK(extra_lives == 1);
+    CHECK(thresholds == 3);
+    CHECK(wl_award_player_points(&state, 0, NULL, NULL) == 0);
+    CHECK(wl_award_player_points(&state, -1, NULL, NULL) == -1);
+    CHECK(wl_apply_player_damage(&state, WL_DIFFICULTY_HARD, -1, 0, 0, &damage) == -1);
+    CHECK(wl_heal_player(&state, -1) == -1);
+    return 0;
 }
 
 static int check_decode_helpers(void) {
@@ -1966,9 +2036,10 @@ static int check_optional_sod(const char *dir) {
 
 int main(void) {
     const char *dir = wl_default_data_dir();
+    CHECK(check_gameplay_events() == 0);
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/ghost-map-scene tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/gameplay-events tests passed for %s\n", dir);
     return 0;
 }

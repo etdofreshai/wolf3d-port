@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/ghost-map-scene tests passed for game-files/base
+asset/decompression/semantics/model/vswap/gameplay-events tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -113,3 +113,8 @@ Added WL6 boss tile handling for the non-Spear boss spawns (`SpawnBoss`, `SpawnS
 ## Cycle update: ghost-map runtime coverage
 
 Added WL6 ghost tile handling for `SpawnGhosts` (`en_blinky`, `en_clyde`, `en_pinky`, and `en_inky`) as data-only runtime actors. The model preserves the original east starting direction, non-shootable flag, ambush-style mode, and kill-total increment. Scene sprite refs now map ghost source tiles `224..227` to their starting `SPR_*_W1` sprite indices. Headless coverage includes `Wolf3 Secret`, asserting four ghosts, model totals, zero unknown info tiles, scene-ref count `134`, and descriptor hash `0xe03fdb45`.
+
+
+## Cycle update: player gameplay event seam
+
+Added `wl_gameplay`, a pure C state seam for future live gameplay. It currently covers player health/death, baby-difficulty damage scaling, god/victory damage handling, bonus/damage palette-flash starts, healing clamp, score awards, and extra-life threshold progression. This gives the runtime and renderer/palette seams a deterministic event source before a full actor/player loop exists.

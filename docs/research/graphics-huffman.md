@@ -77,7 +77,7 @@ The implementation:
 - interpolates palette ranges with the original integer fade math so fade-in/fade-out and palette-flash effects can be tested before SDL presentation;
 - builds original-style full-palette red/white shift tables for damage and bonus flashes without touching VGA hardware;
 - advances damage/bonus palette-shift counters with the original red-over-white priority and base-palette reset selection;
-- selects the effective base/red/white palette from palette-shift state and describes the shifted indexed texture upload without opening a display;
+- selects the effective base/red/white palette from palette-shift state, describes the shifted indexed texture upload without opening a display, and now receives palette-triggering player damage/bonus gameplay events;
 - records only sizes/counts/hashes/dimensions in tests and docs, not graphics bytes.
 
 ## WL6 committed assertions
@@ -164,3 +164,8 @@ Added `wl_select_palette_for_shift` and `wl_describe_palette_shifted_texture_upl
 ## Next step
 
 Add a minimal SDL3 presentation seam using the upload/palette metadata, or connect this palette-shifted upload path to future live gameplay/player damage and bonus events. Keep headless tests comparing metadata/hashes before requiring a display.
+
+
+## Cycle update: player gameplay events
+
+Added a small `wl_gameplay` seam that connects original-style player events to the palette-shift state without depending on the DOS status bar or VGA hardware. `wl_apply_player_damage` mirrors `TakeDamage` behavior for victory no-op, baby-difficulty quarter damage, god-mode health preservation, death state, `gotgatgun` reset, and `StartDamageFlash` damage accumulation. `wl_start_player_bonus_flash` routes bonus events to the white-flash counter. `wl_award_player_points` mirrors `GivePoints` score/extra-life threshold progression using `EXTRAPOINTS=40000`, including advancing thresholds even when lives are capped at 9. Headless tests assert the resulting health, score, lives, thresholds, and palette-shift counters.

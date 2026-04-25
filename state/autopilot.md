@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer with broader visible-ref/camera-angle coverage, additional maps now cover officer/SS/mutant/boss/ghost runtime actor refs, and palette fade/shift generation, state, and shifted upload selection are covered headlessly. Next phase should connect these seams to live gameplay events, add more map/boss coverage, or add a small SDL3 presentation boundary when SDL3 is available.
+Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer with broader visible-ref/camera-angle coverage, additional maps cover officer/SS/mutant/boss/ghost runtime actor refs, and palette fade/shift generation, state, shifted upload selection, and player gameplay event hooks are covered headlessly. Next phase should broaden map runtime-scene coverage, deepen live gameplay events, or add a small SDL3 presentation boundary when SDL3 is available.
 
 ## Latest Verified Milestone
 
@@ -120,11 +120,12 @@ Use tests as the bridge from the original code to modern C:
 42. Officer/SS/mutant runtime actor + scene-ref coverage across additional maps. **Done for selected WL6 maps.**
 43. Boss-map runtime actor + scene-ref coverage. **Done for selected WL6 boss map.**
 44. Ghost-map runtime actor + scene-ref coverage. **Done for selected WL6 secret map.**
-45. Live gameplay events, additional map coverage, or SDL3 presentation seam.
+45. Player gameplay event seam for damage/bonus/score/extra-life events. **Done headlessly.**
+46. Broader map runtime-scene coverage, deeper gameplay events, or SDL3 presentation seam.
 
 ## Next Likely Move
 
-Connect renderer/palette seams to future live gameplay events, add more map runtime-scene coverage, or add a small SDL3 presentation seam.
+Broaden map runtime-scene coverage, deepen live gameplay events, or add a small SDL3 presentation seam.
 
 Recommended next commit:
 
@@ -132,7 +133,7 @@ Recommended next commit:
 - or add a small SDL3 presentation seam using `wl_texture_upload_descriptor`;
 - or connect palette-shifted upload selection to future live player damage/bonus events before presentation.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, scaled-sprite viewport hashes, world-sprite projection/sorted-render hashes, combined scene render hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA/palette-fade/shift hashes, shift-state transitions, and palette-selected upload hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, door-area connectivity descriptors, and runtime scene sprite-reference descriptors, VSWAP sprite surface-cache hashes, and broader runtime-scene, camera-scene, multi-map enemy scene-ref, boss-map scene-ref, and ghost-map scene-ref hashes.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, scaled-sprite viewport hashes, world-sprite projection/sorted-render hashes, combined scene render hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA/palette-fade/shift hashes, shift-state transitions, and palette-selected upload hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, door-area connectivity descriptors, and runtime scene sprite-reference descriptors, VSWAP sprite surface-cache hashes, and broader runtime-scene, camera-scene, multi-map enemy scene-ref, boss-map scene-ref, ghost-map scene-ref, and gameplay-event assertions.
 
 ## Blockers
 
@@ -1785,5 +1786,43 @@ Safety/legal checks:
 Next likely move:
 
 - Connect renderer/palette seams to live gameplay events, add broader map runtime-scene coverage, or add a small SDL3 presentation seam once SDL3 is available.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+## Cycle 2026-04-25 00:54 CDT
+
+Action taken:
+
+- Added `wl_gameplay`, a pure C player event seam for original-style damage, healing, bonus flash, scoring, and extra-life thresholds.
+- Connected damage/bonus events to the existing palette-shift state so future live gameplay can drive red/white flash upload selection.
+- Mirrored key original behaviors: victory damage no-op, baby-difficulty quarter damage, god-mode health preservation with flash, death state, `gotgatgun` reset, 100-health healing clamp, `EXTRAPOINTS=40000`, and lives capped at 9 while thresholds keep advancing.
+- Updated build wiring, tests, README, graphics/runtime docs, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/gameplay-events tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/state/hash assertions are committed.
+
+Next likely move:
+
+- Broaden map runtime-scene coverage, add more gameplay event semantics, or add a small SDL3 presentation seam once SDL3 is available.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
