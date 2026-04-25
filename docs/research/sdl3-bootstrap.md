@@ -33,3 +33,9 @@ If SDL3 is unavailable, `make test-sdl3` prints a skip message and exits success
 On this Debian 12 container, SDL3 could be built without system SDL development packages by using repo-local CMake/Ninja tools and configuring SDL with desktop/audio backends disabled plus `SDL_UNIX_CONSOLE_BUILD=ON`. The resulting enabled presentation backends include `dummy` and `offscreen`, which are enough for the first headless smoke tests.
 
 Because this repo path contains spaces, the Makefile prefers relative `.deps/SDL3` include/lib paths when the repo-local `sdl3.pc` exists. That avoids unquoted absolute paths emitted by `pkg-config` from being split by the shell.
+
+## SDL3 present smoke seam
+
+`tests/test_sdl3_present.c` adds the first SDL-backed presentation check above the basic initialization smoke test. It builds a deterministic 4x4 indexed frame, expands the palette entries to RGBA with the same 6-bit-to-8-bit shape used by the headless upload tests, verifies the source RGBA hash, creates a hidden SDL3 window with the dummy video driver, blits the RGBA surface to the window surface, and updates the window.
+
+This is intentionally tiny: it proves the repo-local SDL3 install can accept renderer-facing RGBA pixels in a headless presentation path before larger Wolfenstein scene screenshots are introduced.

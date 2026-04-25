@@ -5380,3 +5380,42 @@ Next likely move:
 - Add the first SDL3 presentation smoke boundary that displays or screenshots an existing headless indexed frame through SDL surfaces/textures.
 
 Blockers: none for the repo-local headless SDL3 path.
+
+
+## Cycle 2026-04-25 10:35 CDT SDL3 Present Smoke
+
+Action taken:
+
+- Added `source/modern-c-sdl3/tests/test_sdl3_present.c`, the first SDL3 presentation smoke test above raw SDL initialization.
+- The test builds a deterministic 4x4 indexed frame, expands palette entries to RGBA, verifies the RGBA hash, blits to a hidden SDL3 window surface, and updates the surface under `SDL_VIDEODRIVER=dummy`.
+- Extended `make test-sdl3` to run both `test_sdl3_smoke` and `test_sdl3_present` when SDL3 is available.
+- Added `make test-sdl3-present` for focused presentation-boundary checks.
+- Documented the present smoke seam in the SDL3 bootstrap research note and README.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test-sdl3
+make test
+```
+
+Result:
+
+```text
+SDL3 smoke test passed
+SDL3 present smoke test passed
+asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Third-party SDL/tools builds remain under ignored `.deps/`.
+
+Next likely move:
+
+- Feed an actual Wolfenstein headless scene/palette upload descriptor into the SDL3 present seam and optionally write a screenshot artifact for inspection.
+
+Blockers: none for repo-local headless SDL3 presentation smoke work.

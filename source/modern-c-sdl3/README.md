@@ -408,3 +408,8 @@ make test-sdl3
 ## Chase attack scene present descriptor
 
 A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with the actual red palette shift emitted by actor shooting. The descriptor pins viewport `80x128`, scene pixel hash `0x4a4c3e4f`, red shift metadata, and selected upload palette pointer/hash.
+
+`make test-sdl3` currently runs two optional SDL3 checks when SDL3 is available:
+
+- `test_sdl3_smoke` initializes SDL video and updates a hidden dummy-driver window.
+- `test_sdl3_present` expands a deterministic indexed frame to RGBA, blits it to a hidden SDL3 window surface, and updates it.

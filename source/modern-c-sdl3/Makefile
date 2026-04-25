@@ -4,6 +4,7 @@ CPPFLAGS ?= -Iinclude
 BUILD_DIR := build
 TEST_ASSETS := $(BUILD_DIR)/test_assets
 TEST_SDL3 := $(BUILD_DIR)/test_sdl3_smoke
+TEST_SDL3_PRESENT := $(BUILD_DIR)/test_sdl3_present
 SDL3_PKG_CONFIG ?= pkg-config
 SDL3_PREFIX ?= ../../.deps/SDL3
 LOCAL_SDL3_PC := $(SDL3_PREFIX)/lib/pkgconfig/sdl3.pc
@@ -20,7 +21,7 @@ SDL3_LIBS := $(shell PKG_CONFIG_PATH="$(SDL3_PKG_CONFIG_PATH)" $(SDL3_PKG_CONFIG
 SDL3_RUN_ENV :=
 endif
 
-.PHONY: all test test-sdl3 sdl3-info clean
+.PHONY: all test test-sdl3 test-sdl3-present sdl3-info clean
 
 all: $(TEST_ASSETS)
 
@@ -37,10 +38,17 @@ ifeq ($(HAVE_SDL3),yes)
 $(TEST_SDL3): tests/test_sdl3_smoke.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(SDL3_CFLAGS) tests/test_sdl3_smoke.c $(SDL3_LIBS) -o $@
 
-test-sdl3: $(TEST_SDL3)
+$(TEST_SDL3_PRESENT): tests/test_sdl3_present.c | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(SDL3_CFLAGS) tests/test_sdl3_present.c $(SDL3_LIBS) -o $@
+
+test-sdl3: $(TEST_SDL3) $(TEST_SDL3_PRESENT)
 	$(SDL3_RUN_ENV) SDL_VIDEODRIVER=dummy ./$(TEST_SDL3)
+	$(SDL3_RUN_ENV) SDL_VIDEODRIVER=dummy ./$(TEST_SDL3_PRESENT)
+
+test-sdl3-present: $(TEST_SDL3_PRESENT)
+	$(SDL3_RUN_ENV) SDL_VIDEODRIVER=dummy ./$(TEST_SDL3_PRESENT)
 else
-test-sdl3:
+test-sdl3 test-sdl3-present:
 	@echo "SDL3 not available; skipping SDL3 smoke test."
 	@echo "Run ../../scripts/bootstrap_sdl3.sh or set PKG_CONFIG_PATH to a directory containing sdl3.pc."
 endif
