@@ -296,3 +296,8 @@ Live AI fine-position rendering now covers a boss patrol-style actor. Boss refs 
 ## Chase direction selection seam
 
 A deterministic `SelectChaseDir`-style helper now chooses direct, non-turnaround chase directions toward the player, falls back through old/random-search directions, and reports blocked results without touching SDL or original source.
+
+
+## Chase actor step seam
+
+Chase direction selection now mutates a runtime actor through `wl_step_chase_actor`, updates tile and fine coordinates, rejects non-chase actors, and feeds renderer-facing scene refs with chase walk sprite metadata.

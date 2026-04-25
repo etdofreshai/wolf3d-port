@@ -369,3 +369,8 @@ Headless presentation coverage now includes a fine-position boss actor. The scen
 ## Cycle update: chase direction selection seam
 
 Before adding more SDL presentation, actor AI advanced with a headless chase-direction boundary. Future renderer refs can consume chase movement after this direction choice is tied into tile/fine actor stepping.
+
+
+## Cycle update: chase actor step seam
+
+Renderer-facing refs now see a chase-stepped guard with walk sprite metadata and updated fine coordinates, preparing chase motion for the existing headless render/VSWAP cache path.

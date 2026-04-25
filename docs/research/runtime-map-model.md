@@ -428,3 +428,8 @@ Live AI fine-position refs now cover a boss actor alongside normal patrol classe
 ## Cycle update: chase direction selection seam
 
 Runtime actor AI now has a headless `SelectChaseDir`-style direction seam. `wl_select_chase_direction` prefers the player-facing axis, avoids immediate turnaround, falls back through current/search/turnaround directions, and reports the next tile or blocked state.
+
+
+## Cycle update: chase actor step seam
+
+`wl_step_chase_actor` connects `wl_select_chase_direction` to actor runtime state. Chase actors now update direction, tile position, fine coordinates, blocked state, and scene refs deterministically.

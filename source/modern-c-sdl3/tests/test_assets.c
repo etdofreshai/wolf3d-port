@@ -1228,6 +1228,40 @@ static int check_wl6(const char *dir) {
     CHECK(chase_dir.dir == WL_DIR_NONE);
     CHECK(wl_select_chase_direction(&path_model, WL_MAP_SIDE, 5, 8, 5,
                                     WL_DIR_NORTH, 1, &chase_dir) == -1);
+    wl_scene_sprite_ref patrol_refs[1];
+    size_t patrol_ref_count = 0;
+    memset(&path_model, 0, sizeof(path_model));
+    path_model.actor_count = 1;
+    path_model.actors[0].kind = WL_ACTOR_GUARD;
+    path_model.actors[0].mode = WL_ACTOR_CHASE;
+    path_model.actors[0].dir = WL_DIR_WEST;
+    path_model.actors[0].tile_x = 5;
+    path_model.actors[0].tile_y = 5;
+    wl_actor_chase_step_result chase_step;
+    CHECK(wl_step_chase_actor(&path_model, 0, 8, 4, 1, &chase_step) == 0);
+    CHECK(chase_step.stepped == 1);
+    CHECK(chase_step.blocked == 0);
+    CHECK(chase_step.dir == WL_DIR_NORTH);
+    CHECK(chase_step.tile_x == 5);
+    CHECK(chase_step.tile_y == 4);
+    CHECK(path_model.actors[0].dir == WL_DIR_NORTH);
+    CHECK(path_model.actors[0].fine_x == 0x58000u);
+    CHECK(path_model.actors[0].fine_y == 0x48000u);
+    CHECK(wl_collect_scene_sprite_refs(&path_model, 106, patrol_refs, 1,
+                                       &patrol_ref_count) == 0);
+    CHECK(patrol_ref_count == 1);
+    CHECK(patrol_refs[0].source_index == 58);
+    CHECK(patrol_refs[0].world_x == 0x58000u);
+    CHECK(patrol_refs[0].world_y == 0x48000u);
+    path_model.tilemap[5 + 3 * WL_MAP_SIDE] = 1;
+    path_model.tilemap[6 + 4 * WL_MAP_SIDE] = 1;
+    path_model.tilemap[5 + 5 * WL_MAP_SIDE] = 1;
+    path_model.tilemap[4 + 4 * WL_MAP_SIDE] = 1;
+    CHECK(wl_step_chase_actor(&path_model, 0, 8, 4, 1, &chase_step) == 0);
+    CHECK(chase_step.stepped == 0);
+    CHECK(chase_step.blocked == 1);
+    path_model.actors[0].mode = WL_ACTOR_PATROL;
+    CHECK(wl_step_chase_actor(&path_model, 0, 8, 4, 1, &chase_step) == -1);
     memset(&path_model, 0, sizeof(path_model));
     path_model.path_marker_count = 1;
     path_model.path_markers[0].x = 5;
@@ -1250,8 +1284,7 @@ static int check_wl6(const char *dir) {
     CHECK(path_model.actors[0].dir == WL_DIR_WEST);
     CHECK(path_model.actors[0].tile_x == 4);
     CHECK(path_model.actors[0].tile_y == 5);
-    wl_scene_sprite_ref patrol_refs[1];
-    size_t patrol_ref_count = 0;
+    patrol_ref_count = 0;
     CHECK(wl_collect_scene_sprite_refs(&path_model, 106, patrol_refs, 1,
                                        &patrol_ref_count) == 0);
     CHECK(patrol_ref_count == 1);
@@ -4849,6 +4882,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-chase-direction tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-chase-step tests passed for %s\n", dir);
     return 0;
 }

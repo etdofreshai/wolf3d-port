@@ -4564,3 +4564,41 @@ Next likely move:
 - Connect chase direction selection to actor tile/fine movement and then feed chase refs through live AI rendering.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 09:31 CDT
+
+Action taken:
+
+- Connected chase direction selection to runtime actor state with `wl_step_chase_actor`.
+- Added `WL_ACTOR_CHASE` mode and `wl_actor_chase_step_result`; chase stepping updates direction, tile position, fine coordinates, blocked state, and scene refs.
+- Updated actor sprite selection so chase actors use walk sprite metadata, matching patrol-style renderer-facing movement frames.
+- Added headless tests for successful chase step, scene-ref coordinates/source metadata, blocked preservation, and non-chase rejection.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-chase-step tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Add tic-budget/fine-position chase movement or feed chase-stepped refs through live AI rendering.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

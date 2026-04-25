@@ -173,3 +173,8 @@ Live AI path/tic semantics now feed renderer-facing boss refs at sub-tile precis
 ## Cycle update: chase direction selection seam
 
 Map blocking now participates in chase direction selection. The deterministic seam models the original preference ordering without random global state by taking an explicit search-order flag.
+
+
+## Cycle update: chase actor step seam
+
+Chase movement now consumes map blocking decisions and applies them to actor state. Tests cover selected movement, fully blocked preservation, invalid mode rejection, and renderer-facing coordinates.

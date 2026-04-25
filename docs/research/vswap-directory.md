@@ -352,3 +352,8 @@ The live AI fine-position VSWAP path now validates boss sprite metadata. Hans so
 ## Cycle update: chase direction selection seam
 
 VSWAP sprite metadata remains unchanged while live actor AI gains a deterministic chase-direction decision seam. This prepares chase movement to feed existing sprite-ref/render paths without committing decoded assets.
+
+
+## Cycle update: chase actor step seam
+
+Chase-stepped actor refs continue to select existing VSWAP walk sprite metadata (`58/164` for the guard test) while placement changes through runtime state rather than committed asset bytes.

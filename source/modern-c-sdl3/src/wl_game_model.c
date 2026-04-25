@@ -477,15 +477,15 @@ static uint16_t actor_to_sprite_index(const wl_actor_desc *actor) {
     }
     switch (actor->kind) {
     case WL_ACTOR_GUARD:
-        return actor->mode == WL_ACTOR_PATROL ? 58 : 50; /* SPR_GRD_W1_1 / SPR_GRD_S_1 */
+        return (actor->mode == WL_ACTOR_PATROL || actor->mode == WL_ACTOR_CHASE) ? 58 : 50; /* SPR_GRD_W1_1 / SPR_GRD_S_1 */
     case WL_ACTOR_OFFICER:
-        return actor->mode == WL_ACTOR_PATROL ? 246 : 238; /* SPR_OFC_W1_1 / SPR_OFC_S_1 */
+        return (actor->mode == WL_ACTOR_PATROL || actor->mode == WL_ACTOR_CHASE) ? 246 : 238; /* SPR_OFC_W1_1 / SPR_OFC_S_1 */
     case WL_ACTOR_SS:
-        return actor->mode == WL_ACTOR_PATROL ? 146 : 138; /* SPR_SS_W1_1 / SPR_SS_S_1 */
+        return (actor->mode == WL_ACTOR_PATROL || actor->mode == WL_ACTOR_CHASE) ? 146 : 138; /* SPR_SS_W1_1 / SPR_SS_S_1 */
     case WL_ACTOR_DOG:
         return 99; /* SPR_DOG_W1_1 */
     case WL_ACTOR_MUTANT:
-        return actor->mode == WL_ACTOR_PATROL ? 195 : 187; /* SPR_MUT_W1_1 / SPR_MUT_S_1 */
+        return (actor->mode == WL_ACTOR_PATROL || actor->mode == WL_ACTOR_CHASE) ? 195 : 187; /* SPR_MUT_W1_1 / SPR_MUT_S_1 */
     case WL_ACTOR_DEAD_GUARD:
         return 95; /* SPR_GRD_DEAD */
     case WL_ACTOR_BOSS:
@@ -1119,6 +1119,44 @@ int wl_select_chase_direction(const wl_game_model *model, uint16_t actor_x,
         return 0;
     }
     out->blocked = 1;
+    return 0;
+}
+
+int wl_step_chase_actor(wl_game_model *model, uint16_t actor_index,
+                        uint16_t player_x, uint16_t player_y,
+                        int search_forward,
+                        wl_actor_chase_step_result *out) {
+    if (!model || !out || actor_index >= model->actor_count) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    wl_actor_desc *actor = &model->actors[actor_index];
+    out->dir = actor->dir;
+    out->tile_x = actor->tile_x;
+    out->tile_y = actor->tile_y;
+    if (actor->mode != WL_ACTOR_CHASE || actor->tile_x >= WL_MAP_SIDE ||
+        actor->tile_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+    wl_actor_chase_dir_result selected;
+    if (wl_select_chase_direction(model, actor->tile_x, actor->tile_y,
+                                  player_x, player_y, actor->dir,
+                                  search_forward, &selected) != 0) {
+        return -1;
+    }
+    out->dir = selected.dir;
+    if (!selected.selected) {
+        out->blocked = 1;
+        return 0;
+    }
+    actor->dir = selected.dir;
+    actor->tile_x = selected.next_x;
+    actor->tile_y = selected.next_y;
+    actor->fine_x = ((uint32_t)actor->tile_x << 16) + 0x8000u;
+    actor->fine_y = ((uint32_t)actor->tile_y << 16) + 0x8000u;
+    out->stepped = 1;
+    out->tile_x = actor->tile_x;
+    out->tile_y = actor->tile_y;
     return 0;
 }
 

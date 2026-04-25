@@ -38,6 +38,7 @@ typedef enum wl_actor_kind {
 typedef enum wl_actor_mode {
     WL_ACTOR_STAND,
     WL_ACTOR_PATROL,
+    WL_ACTOR_CHASE,
     WL_ACTOR_INERT,
     WL_ACTOR_BOSS_MODE,
     WL_ACTOR_GHOST_MODE,
@@ -155,6 +156,14 @@ typedef struct wl_actor_chase_dir_result {
     uint16_t next_x;
     uint16_t next_y;
 } wl_actor_chase_dir_result;
+
+typedef struct wl_actor_chase_step_result {
+    uint8_t stepped;
+    uint8_t blocked;
+    wl_direction dir;
+    uint16_t tile_x;
+    uint16_t tile_y;
+} wl_actor_chase_step_result;
 
 typedef struct wl_pushwall_motion {
     uint8_t active;
@@ -287,6 +296,10 @@ int wl_select_chase_direction(const wl_game_model *model, uint16_t actor_x,
                               uint16_t player_y, wl_direction current_dir,
                               int search_forward,
                               wl_actor_chase_dir_result *out);
+int wl_step_chase_actor(wl_game_model *model, uint16_t actor_index,
+                        uint16_t player_x, uint16_t player_y,
+                        int search_forward,
+                        wl_actor_chase_step_result *out);
 
 #ifdef __cplusplus
 }
