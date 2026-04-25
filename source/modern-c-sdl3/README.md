@@ -141,3 +141,8 @@ Actor hitpoints and kill effects now have a deterministic pure-C state seam. `wl
 ## Actor drop static seam
 
 Actor kill drops now enter the mutable runtime model as pickup statics. `wl_spawn_actor_drop_static` converts `wl_apply_actor_damage` drop metadata into active nonblocking bonus statics at the actor tile, so killed guards/SS/bosses can produce the same pickup path later consumed by movement, scene refs, and SDL-free render/upload tests.
+
+
+## Live actor damage/drop tick seam
+
+Actor damage and kill drops now have a live frame-transition seam. `wl_step_live_actor_damage_tick` runs the same headless movement/use/door/pushwall sequence as the other live tick helpers, applies `wl_apply_actor_damage`, converts killed-actor drop metadata into runtime statics with `wl_spawn_actor_drop_static`, and advances palette state once. This keeps score awards, actor alive/shootable clearing, drop spawning, and future renderer input connected before SDL3 presentation.

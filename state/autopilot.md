@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer with broader visible-ref/camera-angle coverage, additional maps cover officer/SS/mutant/boss/ghost runtime actor refs, and palette fade/shift generation, state, shifted upload selection, player gameplay/bonus pickup events, and runtime static pickup/removal hooks, a TransformTile-style visible pickup probe, and a small player motion/collision tick, and use-button door/elevator/pushwall dispatch metadata and deterministic door open/close progression, and pushwall start/progression metadata, a live runtime solid-plane raycast/render bridge, door-wall render descriptors, runtime door-aware ray hits, and door-aware runtime camera wall rendering, and door-aware runtime wall+sprite scene rendering, pushwall wall-page/texture descriptors, and live pushwall scene occlusion, and pushwall sub-tile distance/height, and live runtime-ref door scene coverage, and a headless live gameplay tick and live tick palette-upload selection and live tick scene rendering and live tick pushwall scene rendering and live tick static pickup scene removal and actor bite damage, actor shooting damage, projectile damage, live projectile tick damage, live actor attack tick damage, and combined live combat tick damage, live combat palette-upload selection, and actor damage/kill state and actor drop static spawning are covered headlessly. Next phase should broaden map runtime-scene coverage, deepen live gameplay events, or add a small SDL3 presentation boundary when SDL3 is available.
+Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer with broader visible-ref/camera-angle coverage, additional maps cover officer/SS/mutant/boss/ghost runtime actor refs, and palette fade/shift generation, state, shifted upload selection, player gameplay/bonus pickup events, and runtime static pickup/removal hooks, a TransformTile-style visible pickup probe, and a small player motion/collision tick, and use-button door/elevator/pushwall dispatch metadata and deterministic door open/close progression, and pushwall start/progression metadata, a live runtime solid-plane raycast/render bridge, door-wall render descriptors, runtime door-aware ray hits, and door-aware runtime camera wall rendering, and door-aware runtime wall+sprite scene rendering, pushwall wall-page/texture descriptors, and live pushwall scene occlusion, and pushwall sub-tile distance/height, and live runtime-ref door scene coverage, and a headless live gameplay tick and live tick palette-upload selection and live tick scene rendering and live tick pushwall scene rendering and live tick static pickup scene removal and actor bite damage, actor shooting damage, projectile damage, live projectile tick damage, live actor attack tick damage, and combined live combat tick damage, live combat palette-upload selection, and actor damage/kill state, actor drop static spawning, and live actor damage/drop spawning tick integration are covered headlessly. Next phase should render spawned drops through scene refs, broaden map runtime-scene coverage, deepen actor state progression, or add a small SDL3 presentation boundary when SDL3 is available.
 
 ## Latest Verified Milestone
 
@@ -2999,5 +2999,42 @@ Safety/legal checks:
 Next likely move:
 
 - Connect actor kill/drop static spawning into live combat tick results, render spawned drops through scene refs, or start deterministic actor state progression.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 03:20 CDT
+
+Action taken:
+
+- Connected actor damage/kill/drop state into a live tick orchestration path.
+- Added `wl_live_actor_damage_tick_result` and `wl_step_live_actor_damage_tick`, which run live motion/use/door/pushwall progression, apply deterministic actor damage, spawn actor drops into runtime statics when killed, then advance palette state.
+- Headless tests verify a live guard kill awards score, clears actor alive state, spawns a clip drop static at the actor tile, reports the spawned static index, and preserves the null-actor no-op path.
+- Updated README, runtime/gameplay research notes, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-actor-damage-drop tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/state assertions are committed.
+
+Next likely move:
+
+- Render live-spawned actor drops through scene refs, fold actor damage into broader live combat orchestration, or start deterministic actor state progression.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

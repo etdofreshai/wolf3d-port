@@ -1708,6 +1708,70 @@ int wl_step_live_combat_tick(wl_player_gameplay_state *state,
     return 0;
 }
 
+int wl_step_live_actor_damage_tick(wl_player_gameplay_state *state,
+                                   wl_game_model *model,
+                                   const uint16_t *wall_plane,
+                                   const uint16_t *info_plane,
+                                   size_t word_count,
+                                   wl_player_motion_state *motion,
+                                   int32_t xmove, int32_t ymove,
+                                   int32_t forward_x, int32_t forward_y,
+                                   wl_direction facing, int use_button,
+                                   int button_held,
+                                   wl_actor_combat_state *actor,
+                                   int32_t damage_points,
+                                   int32_t tics,
+                                   wl_live_actor_damage_tick_result *out) {
+    if (!state || !model || !wall_plane || !info_plane || !motion || !out ||
+        tics < 0 || damage_points < 0) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->drop_static_index = model->static_count;
+    out->live.use.door_index = model->door_count;
+    out->live.use.pushwall_index = model->pushwall_count;
+
+    if (wl_step_player_motion(state, model, motion, xmove, ymove,
+                              forward_x, forward_y, &out->live.motion) != 0) {
+        return -1;
+    }
+
+    if (use_button) {
+        if (wl_use_player_facing(state, model, wall_plane, info_plane, word_count,
+                                 motion, facing, button_held,
+                                 &out->live.use) != 0) {
+            return -1;
+        }
+        out->live.used = 1;
+    }
+
+    if (wl_step_doors(model, motion, tics, &out->live.doors) != 0) {
+        return -1;
+    }
+    if (wl_step_pushwall(model, tics, &out->live.pushwall) != 0) {
+        return -1;
+    }
+    if (actor) {
+        if (wl_apply_actor_damage(state, actor, damage_points,
+                                  &out->actor_damage) != 0) {
+            return -1;
+        }
+        out->actor_damaged = 1;
+        size_t before_drop_count = model->static_count;
+        if (wl_spawn_actor_drop_static(model, actor, &out->actor_damage,
+                                       &out->drop_static_index) != 0) {
+            return -1;
+        }
+        out->drop_spawned = model->static_count > before_drop_count ? 1u : 0u;
+    }
+    if (wl_update_palette_shift_state(&state->palette_shift, tics,
+                                      &out->live.palette) != 0) {
+        return -1;
+    }
+    return 0;
+}
+
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state) {
     if (!state) {
         return -1;

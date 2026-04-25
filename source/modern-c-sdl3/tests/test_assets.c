@@ -351,6 +351,58 @@ static int check_gameplay_events(void) {
                                      &drop_static_index) == 0);
     CHECK(drop_model.static_count == 1);
 
+    uint16_t live_empty_wall[WL_MAP_PLANE_WORDS];
+    uint16_t live_empty_info[WL_MAP_PLANE_WORDS];
+    memset(live_empty_wall, 0, sizeof(live_empty_wall));
+    memset(live_empty_info, 0, sizeof(live_empty_info));
+    wl_game_model live_damage_model;
+    memset(&live_damage_model, 0, sizeof(live_damage_model));
+    wl_player_motion_state live_damage_motion = {
+        (4u << 16) + 0x8000u,
+        (4u << 16) + 0x8000u,
+        4,
+        4,
+    };
+    wl_live_actor_damage_tick_result live_damage;
+    shooter.kind = WL_ACTOR_GUARD;
+    shooter.shootable = 1;
+    shooter.tile_x = 7;
+    shooter.tile_y = 4;
+    CHECK(wl_init_player_gameplay_state(&state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_init_actor_combat_state(&shooter, WL_DIFFICULTY_HARD,
+                                     &actor_state) == 0);
+    CHECK(wl_step_live_actor_damage_tick(&state, &live_damage_model,
+                                         live_empty_wall, live_empty_info,
+                                         WL_MAP_PLANE_WORDS, &live_damage_motion,
+                                         0, 0, 0x10000, 0, WL_DIR_EAST,
+                                         0, 0, &actor_state, 25, 1,
+                                         &live_damage) == 0);
+    CHECK(live_damage.actor_damaged == 1);
+    CHECK(live_damage.actor_damage.killed == 1);
+    CHECK(live_damage.actor_damage.score_awarded == 100);
+    CHECK(live_damage.actor_damage.dropped_item == 1);
+    CHECK(live_damage.drop_spawned == 1);
+    CHECK(live_damage.drop_static_index == 0);
+    CHECK(live_damage_model.static_count == 1);
+    CHECK(live_damage_model.bonus_static_count == 1);
+    CHECK(live_damage_model.statics[0].x == 7);
+    CHECK(live_damage_model.statics[0].y == 4);
+    CHECK(live_damage_model.statics[0].type == 48);
+    CHECK(live_damage_model.statics[0].active == 1);
+    CHECK(state.score == 100);
+    CHECK(actor_state.alive == 0);
+    CHECK(live_damage.live.palette.kind == WL_PALETTE_SHIFT_NONE);
+    CHECK(wl_step_live_actor_damage_tick(&state, &live_damage_model,
+                                         live_empty_wall, live_empty_info,
+                                         WL_MAP_PLANE_WORDS, &live_damage_motion,
+                                         0, 0, 0x10000, 0, WL_DIR_EAST,
+                                         0, 0, NULL, 0, 1,
+                                         &live_damage) == 0);
+    CHECK(live_damage.actor_damaged == 0);
+    CHECK(live_damage.drop_spawned == 0);
+    CHECK(live_damage.drop_static_index == 1);
+    CHECK(live_damage_model.static_count == 1);
+
     shooter.kind = WL_ACTOR_BOSS;
     shooter.shootable = 1;
     CHECK(wl_init_actor_combat_state(&shooter, WL_DIFFICULTY_HARD,
@@ -3498,6 +3550,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-actor-drop-static tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-actor-damage-drop tests passed for %s\n", dir);
     return 0;
 }

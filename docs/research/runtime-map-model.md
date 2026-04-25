@@ -273,3 +273,8 @@ Added a deterministic actor damage/kill state seam outside the original source. 
 ## Cycle update: actor drop static seam
 
 Actor kill drops now have a runtime model bridge. `wl_spawn_actor_drop_static` consumes `wl_actor_damage_result` drop metadata and appends an active bonus `wl_static_desc` at the actor tile, using the same static type/source metadata that `wl_try_pickup_static_bonus` understands. Tests verify guard clip drops can be picked up for ammo, SS machinegun drops spawn with machinegun static metadata, and no-drop dog kills leave the static list unchanged.
+
+
+## Cycle update: live actor damage/drop tick
+
+Actor kill drops now flow through live tick orchestration, not just isolated helper calls. `wl_step_live_actor_damage_tick` runs player motion/use, door progression, and pushwall progression, then applies deterministic actor damage and spawns any killed-actor drop into the mutable `wl_game_model::statics` list before palette advancement. The headless test verifies guard kill score, actor alive clearing, spawned static count/index/type/tile metadata, and a null-actor no-op path without touching SDL or proprietary bytes.

@@ -234,3 +234,8 @@ Actor kill state now feeds player score/extra-life progression before presentati
 ## Cycle update: actor drop pickup bridge
 
 Actor kill drops now bridge into the runtime static/pickup path before presentation. Spawned drop statics carry source/type metadata compatible with existing pickup and future scene-ref rendering, keeping kill rewards deterministic and SDL-free.
+
+
+## Cycle update: live actor damage/drop tick
+
+Actor damage/drop state now reaches the same live tick boundary that future presentation will consume. The new live actor damage tick applies kill state, spawns a renderer-compatible runtime static drop, and advances palette state after the frame's gameplay mutations, keeping actor kill rewards ready for scene-ref rendering and shifted upload selection without an SDL dependency.
