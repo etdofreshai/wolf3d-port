@@ -307,10 +307,31 @@ static int check_wl6(const char *dir) {
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 4096);
     CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x98d020a5);
+    wl_vswap_shape_metadata shape;
+    CHECK(wl_decode_vswap_shape_metadata(chunk_buf, chunk_bytes, dirinfo.chunks[0].kind,
+                                         &shape) == 0);
+    CHECK(shape.kind == WL_VSWAP_CHUNK_WALL);
+    CHECK(shape.width == 64);
+    CHECK(shape.height == 64);
+    CHECK(shape.visible_columns == 64);
+
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 106, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 1306);
     CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xbf4fcd99);
+    CHECK(wl_decode_vswap_shape_metadata(chunk_buf, chunk_bytes, dirinfo.chunks[106].kind,
+                                         &shape) == 0);
+    CHECK(shape.kind == WL_VSWAP_CHUNK_SPRITE);
+    CHECK(shape.width == 64);
+    CHECK(shape.height == 64);
+    CHECK(shape.leftpix == 4);
+    CHECK(shape.rightpix == 58);
+    CHECK(shape.visible_columns == 55);
+    CHECK(shape.first_column_offset == 800);
+    CHECK(shape.last_column_offset == 1298);
+    CHECK(shape.min_column_offset == 800);
+    CHECK(shape.max_column_offset == 1298);
+
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 542, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 4096);
@@ -384,10 +405,27 @@ static int check_optional_sod(const char *dir) {
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 4096);
     CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x98d020a5);
+    wl_vswap_shape_metadata shape;
+    CHECK(wl_decode_vswap_shape_metadata(chunk_buf, chunk_bytes, dirinfo.chunks[0].kind,
+                                         &shape) == 0);
+    CHECK(shape.kind == WL_VSWAP_CHUNK_WALL);
+    CHECK(shape.width == 64);
+    CHECK(shape.height == 64);
+    CHECK(shape.visible_columns == 64);
+
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 134, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 1306);
     CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xbf4fcd99);
+    CHECK(wl_decode_vswap_shape_metadata(chunk_buf, chunk_bytes, dirinfo.chunks[134].kind,
+                                         &shape) == 0);
+    CHECK(shape.kind == WL_VSWAP_CHUNK_SPRITE);
+    CHECK(shape.leftpix == 4);
+    CHECK(shape.rightpix == 58);
+    CHECK(shape.visible_columns == 55);
+    CHECK(shape.first_column_offset == 800);
+    CHECK(shape.last_column_offset == 1298);
+
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 555, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 4096);
@@ -404,6 +442,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap-read tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap-shape tests passed for %s\n", dir);
     return 0;
 }

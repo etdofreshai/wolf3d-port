@@ -266,6 +266,80 @@ int wl_read_vswap_chunk(const char *path, const wl_vswap_directory *directory,
     return 0;
 }
 
+
+int wl_decode_vswap_shape_metadata(const unsigned char *chunk, size_t chunk_size,
+                                   wl_vswap_chunk_kind kind,
+                                   wl_vswap_shape_metadata *out) {
+    if (!chunk || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->kind = kind;
+
+    if (kind == WL_VSWAP_CHUNK_WALL) {
+        if (chunk_size != WL_MAP_PLANE_WORDS) {
+            return -1;
+        }
+        out->width = WL_MAP_SIDE;
+        out->height = WL_MAP_SIDE;
+        out->leftpix = 0;
+        out->rightpix = WL_MAP_SIDE - 1;
+        out->visible_columns = WL_MAP_SIDE;
+        return 0;
+    }
+
+    if (kind != WL_VSWAP_CHUNK_SPRITE || chunk_size < 6) {
+        return -1;
+    }
+
+    uint16_t left = read_le16(chunk);
+    uint16_t right = read_le16(chunk + 2);
+    if (left > right || right >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    uint16_t columns = (uint16_t)(right - left + 1);
+    size_t table_bytes = 4 + (size_t)columns * sizeof(uint16_t);
+    if (table_bytes > chunk_size) {
+        return -1;
+    }
+
+    uint16_t first_offset = read_le16(chunk + 4);
+    uint16_t previous = 0;
+    uint16_t min_offset = UINT16_MAX;
+    uint16_t max_offset = 0;
+    uint16_t last_offset = first_offset;
+    for (uint16_t i = 0; i < columns; ++i) {
+        uint16_t offset = read_le16(chunk + 4 + (size_t)i * sizeof(uint16_t));
+        if (offset < table_bytes || offset >= chunk_size || (offset % 2) != 0) {
+            return -1;
+        }
+        if (i > 0 && offset < previous) {
+            return -1;
+        }
+        if (offset < min_offset) {
+            min_offset = offset;
+        }
+        if (offset > max_offset) {
+            max_offset = offset;
+        }
+        previous = offset;
+        last_offset = offset;
+    }
+
+    out->width = WL_MAP_SIDE;
+    out->height = WL_MAP_SIDE;
+    out->leftpix = left;
+    out->rightpix = right;
+    out->visible_columns = columns;
+    out->first_column_offset = first_offset;
+    out->last_column_offset = last_offset;
+    out->min_column_offset = min_offset;
+    out->max_column_offset = max_offset;
+    return 0;
+}
+
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written) {
     const uint16_t near_tag = 0xa7;

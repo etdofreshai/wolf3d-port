@@ -61,6 +61,19 @@ typedef struct wl_vswap_directory {
     size_t sparse_count;
 } wl_vswap_directory;
 
+typedef struct wl_vswap_shape_metadata {
+    wl_vswap_chunk_kind kind;
+    uint16_t width;
+    uint16_t height;
+    uint16_t leftpix;
+    uint16_t rightpix;
+    uint16_t visible_columns;
+    uint16_t first_column_offset;
+    uint16_t last_column_offset;
+    uint16_t min_column_offset;
+    uint16_t max_column_offset;
+} wl_vswap_shape_metadata;
+
 typedef struct wl_required_file {
     const char *name;
     size_t expected_size;
@@ -76,6 +89,9 @@ int wl_read_vswap_directory(const char *path, wl_vswap_directory *out);
 int wl_read_vswap_chunk(const char *path, const wl_vswap_directory *directory,
                         size_t chunk_index, unsigned char *out, size_t out_size,
                         size_t *bytes_read);
+int wl_decode_vswap_shape_metadata(const unsigned char *chunk, size_t chunk_size,
+                                   wl_vswap_chunk_kind kind,
+                                   wl_vswap_shape_metadata *out);
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written);
 int wl_rlew_expand(const uint16_t *src, size_t src_words, uint16_t rlew_tag,

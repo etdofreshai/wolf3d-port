@@ -33,6 +33,7 @@ The parser:
 - validates range ordering, table/data bounds, and max chunk end;
 - records aggregate wall/sprite/sound/sparse counts;
 - provides a bounded chunk read helper for tests and later decoders;
+- decodes safe wall/sprite shape metadata without retaining proprietary pixels/posts;
 - does not copy or commit any proprietary chunk bytes.
 
 ## WL6 committed assertions
@@ -53,6 +54,8 @@ The parser:
 - first sound chunk: index `542`, offset `1140224`, length `4096`
 - final chunk: index `662`, offset `1544192`, length `184`
 - read smoke hashes: chunk `0` `0x98d020a5`, chunk `106` `0xbf4fcd99`, chunk `542` `0xaee73350`, chunk `662` `0xfba68c74`
+- wall metadata for chunk `0`: `64x64`, `64` columns
+- sprite metadata for chunk `106`: `64x64`, left/right pixels `4..58`, `55` visible columns, first/last column offsets `800/1298`
 
 ## Optional SOD committed assertions
 
@@ -70,6 +73,8 @@ When `game-files/base/m1/VSWAP.SOD` is present:
 - first sound chunk: index `555`, offset `1233408`, length `4096`
 - final chunk: index `665`, offset `1616384`, length `160`
 - read smoke hashes: chunk `0` `0x98d020a5`, chunk `134` `0xbf4fcd99`, chunk `555` `0xaee73350`, chunk `665` `0xbb53ed59`
+- wall metadata for chunk `0`: `64x64`, `64` columns
+- sprite metadata for chunk `134`: `64x64`, left/right pixels `4..58`, `55` visible columns, first/last column offsets `800/1298`
 
 ## Verification evidence
 
@@ -87,13 +92,15 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap-read tests passed for game-files/base
+asset/decompression/semantics/model/vswap-shape tests passed for game-files/base
 ```
 
-## Cycle update: chunk reads
+## Cycle update: chunk reads and shape metadata
 
 Added `wl_read_vswap_chunk`, a bounded read helper that validates chunk index, sparse entries, output buffer size, and directory/file bounds before reading chunk bytes into caller-provided memory. Tests assert lengths and stable FNV-1a hashes for representative wall, sprite, sound, and final chunks without committing bytes.
 
+Added `wl_decode_vswap_shape_metadata` for safe metadata-only interpretation of representative wall/sprite chunks. Wall chunks currently assert the canonical `64x64` raw page shape; sprite chunks assert `t_compshape`-style left/right bounds and packed column-offset table metadata.
+
 ## Next step
 
-Begin wall/sprite shape metadata decoding from VSWAP chunks. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.
+Parse sprite post-command metadata more deeply (counts/ranges per visible column) or move to VGAHEAD/VGAGRAPH/VGADICT Huffman smoke tests. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.
