@@ -5450,6 +5450,50 @@ static int check_optional_sod(const char *dir) {
     CHECK(map0.width == 64);
     CHECK(map0.height == 64);
 
+    uint16_t sod_wall_plane[WL_MAP_PLANE_WORDS];
+    uint16_t sod_info_plane[WL_MAP_PLANE_WORDS];
+    wl_game_model sod_model;
+    const struct {
+        size_t map_index;
+        const char *name;
+        uint16_t player_x;
+        uint16_t player_y;
+        size_t door_count;
+        size_t static_count;
+        size_t actor_count;
+        size_t kill_total;
+        size_t treasure_total;
+        size_t secret_total;
+        size_t unknown_info_tiles;
+    } sod_model_gaps[] = {
+        { 0, "Tunnels 1", 32, 59, 17, 147, 8, 8, 45, 5, 2 },
+        { 4, "Tunnel Boss", 50, 31, 18, 174, 12, 12, 42, 12, 16 },
+        { 17, "Death Knight", 30, 41, 9, 91, 10, 10, 2, 1, 40 },
+        { 20, "Angel of Death", 31, 22, 1, 180, 0, 0, 14, 5, 121 },
+    };
+    for (size_t i = 0; i < sizeof(sod_model_gaps) / sizeof(sod_model_gaps[0]); ++i) {
+        wl_map_header sod_map;
+        CHECK(wl_read_map_header(gamemaps_path, mh.offsets[sod_model_gaps[i].map_index],
+                                 &sod_map) == 0);
+        CHECK(strcmp(sod_map.name, sod_model_gaps[i].name) == 0);
+        CHECK(wl_read_map_plane(gamemaps_path, &sod_map, 0, mh.rlew_tag,
+                                sod_wall_plane, WL_MAP_PLANE_WORDS) == 0);
+        CHECK(wl_read_map_plane(gamemaps_path, &sod_map, 1, mh.rlew_tag,
+                                sod_info_plane, WL_MAP_PLANE_WORDS) == 0);
+        CHECK(wl_build_game_model(sod_wall_plane, sod_info_plane, WL_MAP_PLANE_WORDS,
+                                  WL_DIFFICULTY_EASY, &sod_model) == 0);
+        CHECK(sod_model.player.present == 1);
+        CHECK(sod_model.player.x == sod_model_gaps[i].player_x);
+        CHECK(sod_model.player.y == sod_model_gaps[i].player_y);
+        CHECK(sod_model.door_count == sod_model_gaps[i].door_count);
+        CHECK(sod_model.static_count == sod_model_gaps[i].static_count);
+        CHECK(sod_model.actor_count == sod_model_gaps[i].actor_count);
+        CHECK(sod_model.kill_total == sod_model_gaps[i].kill_total);
+        CHECK(sod_model.treasure_total == sod_model_gaps[i].treasure_total);
+        CHECK(sod_model.secret_total == sod_model_gaps[i].secret_total);
+        CHECK(sod_model.unknown_info_tiles == sod_model_gaps[i].unknown_info_tiles);
+    }
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
