@@ -5774,6 +5774,7 @@ static int check_audio_wl6(const char *dir) {
     unsigned char chunk_buf[65536];
     size_t chunk_bytes = 0;
     wl_audio_chunk_metadata audio_meta;
+    wl_pc_speaker_sound_metadata pc_meta;
     wl_imf_music_metadata imf_meta;
     wl_imf_music_command imf_command;
 
@@ -5817,12 +5818,24 @@ static int check_audio_wl6(const char *dir) {
     CHECK(audio_meta.priority == 1);
     CHECK(audio_meta.payload_offset == 6);
     CHECK(audio_meta.payload_size == 9);
+    CHECK(wl_describe_pc_speaker_sound(chunk_buf, chunk_bytes, &pc_meta) == 0);
+    CHECK(pc_meta.sample_count == 8);
+    CHECK(pc_meta.first_sample == 0x83);
+    CHECK(pc_meta.last_sample == 0x84);
+    CHECK(pc_meta.terminator == 0);
+    CHECK(pc_meta.trailing_bytes == 0);
 
     /* PC speaker sound 1 (SELECTWPNSND) */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 1, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 13);
     CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x21985d89);
+    CHECK(wl_describe_pc_speaker_sound(chunk_buf, chunk_bytes, &pc_meta) == 0);
+    CHECK(pc_meta.sample_count == 6);
+    CHECK(pc_meta.first_sample == 0x2f);
+    CHECK(pc_meta.last_sample == 0x2f);
+    CHECK(pc_meta.terminator == 0);
+    CHECK(wl_describe_pc_speaker_sound(chunk_buf, 6, &pc_meta) != 0);
 
     /* Adlib sound 87 (first adlib = STARTADLIBSOUNDS) */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 87, chunk_buf, sizeof(chunk_buf),

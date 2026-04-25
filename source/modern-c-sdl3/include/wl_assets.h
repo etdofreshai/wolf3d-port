@@ -480,6 +480,14 @@ typedef struct wl_audio_chunk_metadata {
     size_t payload_size;
 } wl_audio_chunk_metadata;
 
+typedef struct wl_pc_speaker_sound_metadata {
+    uint32_t sample_count;
+    uint8_t first_sample;
+    uint8_t last_sample;
+    uint8_t terminator;
+    size_t trailing_bytes;
+} wl_pc_speaker_sound_metadata;
+
 typedef struct wl_imf_music_command {
     uint8_t reg;
     uint8_t value;
@@ -510,6 +518,8 @@ int wl_read_audio_chunk(const char *audiot_path,
 int wl_describe_audio_chunk(size_t chunk_index,
                             const unsigned char *chunk, size_t chunk_size,
                             wl_audio_chunk_metadata *out);
+int wl_describe_pc_speaker_sound(const unsigned char *chunk, size_t chunk_size,
+                                  wl_pc_speaker_sound_metadata *out);
 int wl_describe_imf_music_chunk(const unsigned char *chunk, size_t chunk_size,
                                 wl_imf_music_metadata *out);
 int wl_get_imf_music_command(const unsigned char *chunk, size_t chunk_size,
