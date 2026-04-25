@@ -309,3 +309,8 @@ The patrol actor movement/ref seam now reaches indexed scene composition before 
 ## Cycle update: live actor AI patrol tick
 
 The actor AI movement seam now returns from a presentation-facing live frame result. Patrol movement can be advanced alongside palette/environment tick output before later scene-ref collection and SDL3 upload.
+
+
+## Cycle update: live AI patrol scene refs
+
+Live AI patrol movement now has a deterministic presentation-input contract: scene refs expose stable sprite source/chunk metadata and moved world coordinates for later sprite-cache rendering and SDL3 upload.

@@ -113,3 +113,8 @@ Patrol actor metadata now feeds a batch runtime AI tick. Headless tests verify o
 ## Cycle update: live actor AI patrol tick
 
 Runtime patrol metadata now participates in a live frame boundary, not only isolated helpers. The headless test verifies a patrol actor moves after the live tick, standing actors are skipped, blocked patrols report aggregate blocked state, and negative tics are rejected.
+
+
+## Cycle update: live AI patrol scene refs
+
+Patrol path semantics now flow through live AI ticking into scene refs. The test confirms the moved patrol actor updates world-center coordinates and blocked movement preserves the last renderer-facing location.

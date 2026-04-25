@@ -4119,3 +4119,40 @@ Next likely move:
 - Connect live AI patrol output to scene-ref/render coverage, add fine-position/distance accumulation, or deepen chase/attack progression.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 09:01 CDT
+
+Action taken:
+
+- Connected the live actor AI patrol tick output to renderer-facing scene refs.
+- Extended the headless live AI test so `wl_step_live_actor_ai_tick` mutates a patrol guard, then `wl_collect_scene_sprite_refs` verifies source/chunk `58/164` and updated world-center coordinates.
+- Verified a blocked later live-AI patrol step preserves the last renderer-facing world position and metadata.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-ai-patrol-refs tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/state assertions are committed.
+
+Next likely move:
+
+- Render live-AI-updated patrol refs through the door-aware scene renderer, add fine-position/distance accumulation, or deepen chase/attack progression.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

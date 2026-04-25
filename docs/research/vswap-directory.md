@@ -292,3 +292,8 @@ Patrol stepping now verifies renderer-facing VSWAP metadata remains stable while
 ## Cycle update: patrol actor scene render
 
 Patrol actor source/chunk metadata (`58/164`) now feeds the scene render path, not just ref collection. The renderer test consumes local sprite/cache metadata and asserts projection behavior without committing proprietary sprite bytes.
+
+
+## Cycle update: live AI patrol scene refs
+
+The VSWAP metadata path now observes patrol movement from the live actor AI frame wrapper. A moved patrol guard remains source/chunk `58/164` after live AI ticking, proving the future sprite-cache/upload path can consume AI-updated actor refs without decoded asset bytes in git.

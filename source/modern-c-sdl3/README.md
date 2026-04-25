@@ -236,3 +236,8 @@ Patrol actor scene-ref metadata now reaches the headless wall+sprite scene rende
 ## Live actor AI patrol tick
 
 `wl_step_live_actor_ai_tick` now folds patrol actor ticking into the same headless live-frame boundary used for player motion/use/doors/pushwalls/palette. It returns normal live tick output plus aggregate patrol AI movement metadata, giving future SDL3 presentation one frame result for environmental and patrol actor updates.
+
+
+## Live AI patrol scene refs
+
+The live actor AI patrol wrapper now has renderer-facing ref coverage. After `wl_step_live_actor_ai_tick` mutates patrol actor tiles, `wl_collect_scene_sprite_refs` emits stable guard source/VSWAP metadata and updated world coordinates, including blocked-step preservation.

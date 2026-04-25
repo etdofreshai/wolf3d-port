@@ -1343,6 +1343,21 @@ static int check_wl6(const char *dir) {
     CHECK(live_ai.patrols.tiles_stepped == 1);
     CHECK(live_ai_model.actors[0].tile_x == 6);
     CHECK(live_ai_model.actors[1].tile_x == 8);
+    wl_scene_sprite_ref live_ai_refs[WL_MAX_ACTORS];
+    size_t live_ai_ref_count = 0;
+    CHECK(wl_collect_scene_sprite_refs(&live_ai_model, 106, live_ai_refs,
+                                       sizeof(live_ai_refs) / sizeof(live_ai_refs[0]),
+                                       &live_ai_ref_count) == 0);
+    CHECK(live_ai_ref_count == 2);
+    CHECK(live_ai_refs[0].kind == WL_SCENE_SPRITE_ACTOR);
+    CHECK(live_ai_refs[0].model_index == 0);
+    CHECK(live_ai_refs[0].source_index == 58);
+    CHECK(live_ai_refs[0].vswap_chunk_index == 164);
+    CHECK(live_ai_refs[0].world_x == 0x68000u);
+    CHECK(live_ai_refs[0].world_y == 0x58000u);
+    CHECK(live_ai_refs[1].source_index == 50);
+    CHECK(live_ai_refs[1].world_x == 0x88000u);
+    CHECK(live_ai_refs[1].world_y == 0x88000u);
     live_ai_model.tilemap[7 + 5 * WL_MAP_SIDE] = 1;
     CHECK(wl_step_live_actor_ai_tick(&live_ai_player, &live_ai_model,
                                      empty_plane, empty_plane,
@@ -1352,6 +1367,13 @@ static int check_wl6(const char *dir) {
     CHECK(live_ai.patrols_stepped == 0);
     CHECK(live_ai.patrols.actors_blocked == 1);
     CHECK(live_ai_model.actors[0].tile_x == 6);
+    CHECK(wl_collect_scene_sprite_refs(&live_ai_model, 106, live_ai_refs,
+                                       sizeof(live_ai_refs) / sizeof(live_ai_refs[0]),
+                                       &live_ai_ref_count) == 0);
+    CHECK(live_ai_ref_count == 2);
+    CHECK(live_ai_refs[0].source_index == 58);
+    CHECK(live_ai_refs[0].world_x == 0x68000u);
+    CHECK(live_ai_refs[0].world_y == 0x58000u);
     CHECK(wl_step_live_actor_ai_tick(&live_ai_player, &live_ai_model,
                                      empty_plane, empty_plane,
                                      WL_MAP_PLANE_WORDS, &live_ai_motion,
@@ -4354,6 +4376,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-actor-ai-patrol tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-patrol-refs tests passed for %s\n", dir);
     return 0;
 }
