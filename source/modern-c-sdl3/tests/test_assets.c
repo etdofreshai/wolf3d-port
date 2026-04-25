@@ -5775,6 +5775,7 @@ static int check_audio_wl6(const char *dir) {
     size_t chunk_bytes = 0;
     wl_audio_chunk_metadata audio_meta;
     wl_imf_music_metadata imf_meta;
+    wl_imf_music_command imf_command;
 
     CHECK(wl_join_path(audiohed_path, sizeof(audiohed_path), dir, "AUDIOHED.WL6") == 0);
     CHECK(wl_join_path(audiot_path, sizeof(audiot_path), dir, "AUDIOT.WL6") == 0);
@@ -5870,6 +5871,15 @@ static int check_audio_wl6(const char *dir) {
     CHECK(imf_meta.zero_delay_count == 0);
     CHECK(imf_meta.total_delay == 25697407);
     CHECK(imf_meta.trailing_bytes == 86);
+    CHECK(wl_get_imf_music_command(chunk_buf, chunk_bytes, 0, &imf_command) == 0);
+    CHECK(imf_command.reg == 0);
+    CHECK(imf_command.value == 0);
+    CHECK(imf_command.delay == 189);
+    CHECK(wl_get_imf_music_command(chunk_buf, chunk_bytes, 1863, &imf_command) == 0);
+    CHECK(imf_command.reg == 0);
+    CHECK(imf_command.value == 0);
+    CHECK(imf_command.delay == 1);
+    CHECK(wl_get_imf_music_command(chunk_buf, chunk_bytes, 1864, &imf_command) == -1);
 
     /* Boundary: last chunk */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 287, chunk_buf, sizeof(chunk_buf),
