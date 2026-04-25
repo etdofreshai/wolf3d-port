@@ -1197,6 +1197,35 @@ static int check_wl6(const char *dir) {
     CHECK(selected_path_dir == WL_DIR_WEST);
     CHECK(wl_select_path_direction(&path_model, WL_MAP_SIDE, 5, WL_DIR_WEST,
                                    &selected_path_dir) == -1);
+    wl_actor_patrol_step_result patrol_step;
+    path_model.actor_count = 1;
+    path_model.actors[0].kind = WL_ACTOR_GUARD;
+    path_model.actors[0].mode = WL_ACTOR_PATROL;
+    path_model.actors[0].dir = WL_DIR_EAST;
+    path_model.actors[0].tile_x = 5;
+    path_model.actors[0].tile_y = 5;
+    CHECK(wl_step_patrol_actor(&path_model, 0, &patrol_step) == 0);
+    CHECK(patrol_step.stepped == 1);
+    CHECK(patrol_step.blocked == 0);
+    CHECK(patrol_step.dir == WL_DIR_WEST);
+    CHECK(patrol_step.tile_x == 4);
+    CHECK(patrol_step.tile_y == 5);
+    CHECK(path_model.actors[0].dir == WL_DIR_WEST);
+    CHECK(path_model.actors[0].tile_x == 4);
+    CHECK(path_model.actors[0].tile_y == 5);
+    CHECK(wl_step_patrol_actor(&path_model, 0, &patrol_step) == 0);
+    CHECK(patrol_step.stepped == 1);
+    CHECK(patrol_step.dir == WL_DIR_WEST);
+    CHECK(patrol_step.tile_x == 3);
+    path_model.tilemap[2 + 5 * WL_MAP_SIDE] = 1;
+    CHECK(wl_step_patrol_actor(&path_model, 0, &patrol_step) == 0);
+    CHECK(patrol_step.stepped == 0);
+    CHECK(patrol_step.blocked == 1);
+    CHECK(patrol_step.dir == WL_DIR_NONE);
+    CHECK(path_model.actors[0].tile_x == 3);
+    path_model.actors[0].mode = WL_ACTOR_STAND;
+    CHECK(wl_step_patrol_actor(&path_model, 0, &patrol_step) == -1);
+    CHECK(wl_step_patrol_actor(&path_model, 1, &patrol_step) == -1);
     CHECK(model.pushwall_count == 5);
     CHECK(model.secret_total == 5);
     CHECK(model.pushwalls[0].x == 10);
@@ -4159,6 +4188,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-patrol-path-selection tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-patrol-actor-step tests passed for %s\n", dir);
     return 0;
 }

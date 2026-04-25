@@ -93,3 +93,8 @@ Use these semantic counts as the oracle for a minimal `SetupGameLevel`-style run
 ## Cycle update: patrol path direction seam
 
 Path marker metadata now feeds a small runtime decision seam. Cardinal `ICONARROWS` markers can select an actor patrol direction, while existing non-cardinal markers are preserved for later diagonal/path fidelity instead of being forced into an invalid cardinal move.
+
+
+## Cycle update: patrol actor step seam
+
+Path marker semantics now feed a small actor movement mutation. Headless tests cover marker-directed one-tile patrol stepping, continuation after leaving a marker, blocked next-tile handling, and non-patrol rejection without modifying original source.

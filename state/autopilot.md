@@ -3897,3 +3897,40 @@ Next likely move:
 - Extend the patrol seam into a small `T_Path`-style movement tick, broaden multi-map runtime scene coverage, or add SDL3 presentation once SDL3 development files are available.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 08:44 CDT
+
+Action taken:
+
+- Extended the patrol path-direction seam into a small runtime actor step mutation.
+- Added `wl_actor_patrol_step_result` and `wl_step_patrol_actor`, which applies marker/current direction selection to a `WL_ACTOR_PATROL` slot, moves one tile when clear, preserves position when blocked/out-of-bounds, and rejects non-patrol or invalid actor slots.
+- Headless tests cover marker-directed stepping, continuation after leaving a marker, blocked next-tile handling, and invalid/non-patrol rejection.
+- Updated README, map/runtime research notes, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-patrol-actor-step tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/state assertions are committed.
+
+Next likely move:
+
+- Connect patrol stepping to renderer-facing actor refs/scenes, add tic-distance style patrol movement, or broaden actor AI chase/attack progression.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

@@ -1010,3 +1010,43 @@ int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
     *out_dir = selected;
     return 0;
 }
+
+int wl_step_patrol_actor(wl_game_model *model, uint16_t actor_index,
+                         wl_actor_patrol_step_result *out) {
+    if (!model || !out || actor_index >= model->actor_count) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    wl_actor_desc *actor = &model->actors[actor_index];
+    out->dir = actor->dir;
+    out->tile_x = actor->tile_x;
+    out->tile_y = actor->tile_y;
+    if (actor->mode != WL_ACTOR_PATROL || actor->tile_x >= WL_MAP_SIDE ||
+        actor->tile_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    wl_direction selected = WL_DIR_NONE;
+    if (wl_select_path_direction(model, actor->tile_x, actor->tile_y,
+                                 actor->dir, &selected) != 0) {
+        return -1;
+    }
+    out->dir = selected;
+    if (selected == WL_DIR_NONE) {
+        out->blocked = 1;
+        return 0;
+    }
+
+    int dx = 0;
+    int dy = 0;
+    if (path_step(selected, &dx, &dy) != 0) {
+        return -1;
+    }
+    actor->dir = selected;
+    actor->tile_x = (uint16_t)((int)actor->tile_x + dx);
+    actor->tile_y = (uint16_t)((int)actor->tile_y + dy);
+    out->stepped = 1;
+    out->tile_x = actor->tile_x;
+    out->tile_y = actor->tile_y;
+    return 0;
+}

@@ -206,3 +206,8 @@ Final corpse-frame actor refs now have coverage beyond the guard path. Headless 
 ## Patrol path direction seam
 
 `wl_select_path_direction` now models the first `SelectPathDir` decision boundary for patrol actors in a headless-friendly way: path markers at the actor tile can replace the current direction, the next tile is checked against the mutable runtime tilemap, blocked/out-of-bounds moves return `WL_DIR_NONE`, and unsupported diagonal marker arrows are preserved in metadata but do not yet produce movement.
+
+
+## Patrol actor step seam
+
+`wl_step_patrol_actor` now applies the path-direction selection seam to a runtime actor slot: patrol actors update direction and move one tile when the selected path is clear, report blocked state without mutation when the next tile is solid/out of bounds, and reject non-patrol or invalid actor slots. This remains a discrete headless bridge before full original `T_Path` tic-distance movement.

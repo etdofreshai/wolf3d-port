@@ -338,3 +338,8 @@ Final-frame actor ref replacement now covers representative non-guard enemy clas
 ## Cycle update: patrol path direction seam
 
 Added the first deterministic patrol-path selection helper. `wl_select_path_direction` consumes runtime path markers plus the mutable tilemap to mirror the `SelectPathDir` shape before full `T_Path`: markers can redirect patrol actors, blocked next tiles yield `WL_DIR_NONE`, and diagonal arrow markers remain metadata-only until diagonal movement is modeled.
+
+
+## Cycle update: patrol actor step seam
+
+The patrol path-direction seam now mutates runtime actor descriptors through `wl_step_patrol_actor`. A patrol actor consumes marker-selected/current direction, advances one tile on clear paths, preserves position on blocked paths, and reports deterministic step/block metadata for future `T_Path` tic-distance integration.
