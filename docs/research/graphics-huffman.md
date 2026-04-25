@@ -449,3 +449,8 @@ Headless rendering now pins dog chase final corpse output: source/chunk `134/240
 ## Cycle update: headless presentation frame descriptor
 
 Presentation metadata now wraps the indexed scene surface with palette-selected upload data and hashes. The dog chase final corpse frame exports pixel hash `0x92ff40dd` without requiring SDL.
+
+
+## Cycle update: palette-shifted present frame descriptor
+
+Presentation metadata now verifies red-shifted palette selection: the dog chase death frame keeps pixel hash `0x92ff40dd` and selects red palette hash `0x90a6cdc5`.

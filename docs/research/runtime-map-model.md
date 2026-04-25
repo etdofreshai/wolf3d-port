@@ -508,3 +508,8 @@ The chase full-combat/death-final render seam now covers dog actors separately f
 ## Cycle update: headless presentation frame descriptor
 
 A rendered live-AI dog chase death frame now feeds `wl_describe_present_frame`, producing deterministic upload/viewport/hash metadata for a future SDL3 presentation layer.
+
+
+## Cycle update: palette-shifted present frame descriptor
+
+The present-frame seam now carries palette-shift metadata for a rendered live-AI frame, proving future SDL3 upload code can distinguish base and damage-flash palettes without changing indexed pixels.

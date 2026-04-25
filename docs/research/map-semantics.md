@@ -253,3 +253,8 @@ Chase-started dog death semantics now preserve moved coordinates through final d
 ## Cycle update: headless presentation frame descriptor
 
 Runtime scene semantics now reach an SDL-free presentation boundary: the dog chase death render becomes a presentable frame descriptor with viewport and palette state.
+
+
+## Cycle update: palette-shifted present frame descriptor
+
+Runtime scene state now reaches a present-frame descriptor with red palette-shift metadata, linking gameplay damage flashes to future presentation upload state.

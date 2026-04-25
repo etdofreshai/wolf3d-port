@@ -376,3 +376,8 @@ Chase-started death-final rendering now covers dogs as a no-drop contact enemy. 
 ## Headless presentation frame descriptor
 
 Added an SDL-free presentation descriptor that wraps a rendered indexed frame with upload metadata, viewport size, pixel hash, palette hash, and palette-shift metadata. This gives a small deterministic boundary for a future SDL3 texture upload without requiring SDL3 dev files.
+
+
+## Palette-shifted present frame descriptor
+
+The presentation descriptor now verifies palette-shifted output as well as base palettes. A red-shifted dog chase death frame preserves pixel hash `0x92ff40dd` while selecting red palette hash `0x90a6cdc5` and recording shift kind/index.

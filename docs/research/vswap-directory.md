@@ -432,3 +432,8 @@ The dog chase final render verifies VSWAP metadata/hash only: final corpse sourc
 ## Cycle update: headless presentation frame descriptor
 
 VSWAP-backed render output now crosses a presentation descriptor seam: decoded local verification data remains hash-only while future SDL3 can consume texture upload metadata.
+
+
+## Cycle update: palette-shifted present frame descriptor
+
+The VSWAP-backed frame descriptor now separates indexed sprite pixels from palette upload state, preserving metadata/hash-only checks for future SDL3 texture uploads.

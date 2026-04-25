@@ -4669,6 +4669,21 @@ static int check_wl6(const char *dir) {
     CHECK(present_frame.palette_shift_kind == WL_PALETTE_SHIFT_NONE);
     CHECK(present_frame.texture.pixels == canvas.pixels);
     CHECK(present_frame.texture.palette == upload_palette);
+    memset(&present_shift, 0, sizeof(present_shift));
+    present_shift.kind = WL_PALETTE_SHIFT_RED;
+    present_shift.shift_index = 2;
+    CHECK(wl_describe_present_frame(&canvas, &present_shift,
+                                    upload_palette,
+                                    red_shift_palettes, WL_NUM_RED_SHIFTS,
+                                    white_shift_palettes, WL_NUM_WHITE_SHIFTS,
+                                    sizeof(upload_palette), 6,
+                                    &present_frame) == 0);
+    CHECK(present_frame.pixel_hash == 0x92ff40dd);
+    CHECK(present_frame.palette_hash == 0x90a6cdc5);
+    CHECK(present_frame.palette_shift_kind == WL_PALETTE_SHIFT_RED);
+    CHECK(present_frame.palette_shift_index == 2);
+    CHECK(present_frame.texture.palette ==
+          red_shift_palettes + 2u * sizeof(upload_palette));
     CHECK(wl_describe_present_frame(NULL, &present_shift,
                                     upload_palette,
                                     red_shift_palettes, WL_NUM_RED_SHIFTS,
@@ -5644,6 +5659,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-present-frame-descriptor tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-present-palette-shift-frame tests passed for %s\n", dir);
     return 0;
 }
