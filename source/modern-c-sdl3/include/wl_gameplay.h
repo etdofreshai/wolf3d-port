@@ -98,6 +98,36 @@ typedef struct wl_actor_shot_damage_result {
     wl_player_damage_result damage;
 } wl_actor_shot_damage_result;
 
+typedef enum wl_projectile_kind {
+    WL_PROJECTILE_NEEDLE = 0,
+    WL_PROJECTILE_ROCKET = 1,
+    WL_PROJECTILE_HROCKET = 2,
+    WL_PROJECTILE_SPARK = 3,
+    WL_PROJECTILE_FIRE = 4,
+} wl_projectile_kind;
+
+typedef struct wl_projectile_state {
+    uint32_t x;
+    uint32_t y;
+    uint16_t tile_x;
+    uint16_t tile_y;
+    wl_projectile_kind kind;
+    uint8_t active;
+} wl_projectile_state;
+
+typedef struct wl_projectile_step_result {
+    uint8_t moved;
+    uint8_t hit_wall;
+    uint8_t hit_player;
+    uint8_t removed;
+    uint8_t damage_roll;
+    uint32_t x;
+    uint32_t y;
+    uint16_t tile_x;
+    uint16_t tile_y;
+    wl_player_damage_result damage;
+} wl_projectile_step_result;
+
 typedef struct wl_player_motion_state {
     uint32_t x;
     uint32_t y;
@@ -192,6 +222,15 @@ int wl_try_actor_shoot_player(wl_player_gameplay_state *state,
                               uint8_t chance_roll, uint8_t damage_roll,
                               int god_mode, int victory_flag,
                               wl_actor_shot_damage_result *out);
+int wl_step_projectile(wl_player_gameplay_state *state,
+                       const wl_game_model *model,
+                       const wl_player_motion_state *player,
+                       wl_projectile_state *projectile,
+                       wl_difficulty difficulty,
+                       int32_t xmove, int32_t ymove,
+                       uint8_t damage_roll,
+                       int god_mode, int victory_flag,
+                       wl_projectile_step_result *out);
 int wl_heal_player(wl_player_gameplay_state *state, int32_t points);
 int wl_award_player_points(wl_player_gameplay_state *state, int32_t points,
                            int32_t *out_extra_lives_awarded,

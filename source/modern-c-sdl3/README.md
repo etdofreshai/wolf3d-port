@@ -106,3 +106,8 @@ The gameplay layer now has a deterministic dog-bite/contact damage seam. `wl_try
 ## Actor shooting damage seam
 
 The gameplay layer now has a deterministic `T_Shoot`-style actor shooting seam. `wl_try_actor_shoot_player` takes runtime actor/player descriptors plus explicit area/line-of-sight/running/visibility and random-roll inputs, computes the original distance-adjusted hit chance shape, applies SS/boss distance improvement, derives close/medium/far damage from the original roll shifts, and routes hits through `wl_apply_player_damage`.
+
+
+## Projectile damage seam
+
+The gameplay layer now has a deterministic projectile step seam. `wl_step_projectile` moves a projectile by caller-supplied fixed deltas with the original one-tile positive clamp shape, checks `PROJSIZE` wall collision against the live runtime tilemap, checks `PROJECTILESIZE` player impact range, maps needle/rocket/hrocket/spark/fire damage from the original random-roll formulas, and routes hits through `wl_apply_player_damage`.

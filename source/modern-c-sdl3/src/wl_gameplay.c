@@ -173,6 +173,49 @@ int wl_try_actor_bite_player(wl_player_gameplay_state *state,
     return 0;
 }
 
+static int projectile_kind_valid(wl_projectile_kind kind) {
+    return kind >= WL_PROJECTILE_NEEDLE && kind <= WL_PROJECTILE_FIRE;
+}
+
+static int projectile_position_is_clear(const wl_game_model *model, uint32_t x,
+                                        uint32_t y) {
+    const uint32_t projectile_size = 0x2000u;
+    if (!model || x < projectile_size || y < projectile_size ||
+        x + projectile_size >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        y + projectile_size >= ((uint32_t)WL_MAP_SIDE << 16)) {
+        return 0;
+    }
+
+    uint16_t xl = (uint16_t)((x - projectile_size) >> 16);
+    uint16_t yl = (uint16_t)((y - projectile_size) >> 16);
+    uint16_t xh = (uint16_t)((x + projectile_size) >> 16);
+    uint16_t yh = (uint16_t)((y + projectile_size) >> 16);
+    for (uint16_t ty = yl; ty <= yh; ++ty) {
+        for (uint16_t tx = xl; tx <= xh; ++tx) {
+            uint16_t tile = model->tilemap[(size_t)ty * WL_MAP_SIDE + tx];
+            if (tile != 0 && tile != 0x40u) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+static int32_t projectile_damage_points(wl_projectile_kind kind,
+                                        uint8_t damage_roll) {
+    switch (kind) {
+    case WL_PROJECTILE_NEEDLE:
+        return (int32_t)(damage_roll >> 3) + 20;
+    case WL_PROJECTILE_ROCKET:
+    case WL_PROJECTILE_HROCKET:
+    case WL_PROJECTILE_SPARK:
+        return (int32_t)(damage_roll >> 3) + 30;
+    case WL_PROJECTILE_FIRE:
+        return (int32_t)(damage_roll >> 3);
+    }
+    return -1;
+}
+
 int wl_try_actor_shoot_player(wl_player_gameplay_state *state,
                               const wl_actor_desc *actor,
                               const wl_player_motion_state *player,
@@ -211,6 +254,91 @@ int wl_try_actor_shoot_player(wl_player_gameplay_state *state,
         return -1;
     }
     out->damaged = out->damage.ignored ? 0 : 1;
+    return 0;
+}
+
+int wl_step_projectile(wl_player_gameplay_state *state,
+                       const wl_game_model *model,
+                       const wl_player_motion_state *player,
+                       wl_projectile_state *projectile,
+                       wl_difficulty difficulty,
+                       int32_t xmove, int32_t ymove,
+                       uint8_t damage_roll,
+                       int god_mode, int victory_flag,
+                       wl_projectile_step_result *out) {
+    if (!state || !model || !player || !projectile || !out ||
+        !projectile->active || !projectile_kind_valid(projectile->kind) ||
+        projectile->x >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        projectile->y >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        player->x >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        player->y >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        difficulty > WL_DIFFICULTY_HARD) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->damage_roll = damage_roll;
+
+    if (xmove > 0x10000) {
+        xmove = 0x10000;
+    }
+    if (ymove > 0x10000) {
+        ymove = 0x10000;
+    }
+
+    uint32_t old_x = projectile->x;
+    uint32_t old_y = projectile->y;
+    int64_t moved_x = (int64_t)projectile->x + xmove;
+    int64_t moved_y = (int64_t)projectile->y + ymove;
+    if (moved_x < 0 || moved_y < 0 ||
+        moved_x >= ((int64_t)WL_MAP_SIDE << 16) ||
+        moved_y >= ((int64_t)WL_MAP_SIDE << 16)) {
+        return -1;
+    }
+    projectile->x = (uint32_t)moved_x;
+    projectile->y = (uint32_t)moved_y;
+    out->moved = projectile->x != old_x || projectile->y != old_y;
+
+    if (!projectile_position_is_clear(model, projectile->x, projectile->y)) {
+        projectile->active = 0;
+        out->hit_wall = 1;
+        out->removed = 1;
+        out->x = projectile->x;
+        out->y = projectile->y;
+        out->tile_x = (uint16_t)(projectile->x >> 16);
+        out->tile_y = (uint16_t)(projectile->y >> 16);
+        projectile->tile_x = out->tile_x;
+        projectile->tile_y = out->tile_y;
+        return 0;
+    }
+
+    const uint32_t projectile_hit_range = 0xc000u;
+    if (abs_delta_u32(projectile->x, player->x) < projectile_hit_range &&
+        abs_delta_u32(projectile->y, player->y) < projectile_hit_range) {
+        int32_t points = projectile_damage_points(projectile->kind, damage_roll);
+        if (points < 0 ||
+            wl_apply_player_damage(state, difficulty, points, god_mode,
+                                   victory_flag, &out->damage) != 0) {
+            return -1;
+        }
+        projectile->active = 0;
+        out->hit_player = 1;
+        out->removed = 1;
+        out->x = projectile->x;
+        out->y = projectile->y;
+        out->tile_x = (uint16_t)(projectile->x >> 16);
+        out->tile_y = (uint16_t)(projectile->y >> 16);
+        projectile->tile_x = out->tile_x;
+        projectile->tile_y = out->tile_y;
+        return 0;
+    }
+
+    projectile->tile_x = (uint16_t)(projectile->x >> 16);
+    projectile->tile_y = (uint16_t)(projectile->y >> 16);
+    out->x = projectile->x;
+    out->y = projectile->y;
+    out->tile_x = projectile->tile_x;
+    out->tile_y = projectile->tile_y;
     return 0;
 }
 

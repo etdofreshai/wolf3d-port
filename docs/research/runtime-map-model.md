@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-actor-shoot tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-projectile-damage tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -238,3 +238,8 @@ Added a first actor/player interaction event seam for dog bites. `wl_try_actor_b
 ## Cycle update: actor shooting damage seam
 
 Added a deterministic actor shooting event seam following the original `T_Shoot` structure. `wl_try_actor_shoot_player` validates shoot-capable runtime actors, gates on active area and line of sight, computes max tile distance from actor/player tiles, applies the original SS/boss two-thirds distance advantage, derives hit chance from player running and actor visibility, and maps hit damage to close/medium/far `damage_roll` shifts before calling `wl_apply_player_damage`. Headless tests cover inactive area, blocked line of sight, chance miss, far guard damage, SS adjusted-distance medium damage with baby scaling, close guard damage, and non-shootable rejection.
+
+
+## Cycle update: projectile damage seam
+
+Added a deterministic projectile movement/collision/damage seam based on original `ProjectileTryMove` / `T_Projectile`. `wl_step_projectile` advances a projectile in 16.16 world space, applies the original positive one-tile movement clamp shape, checks `PROJSIZE` collision against the mutable runtime tilemap, detects player impacts with `PROJECTILESIZE`, maps needle/rocket/hrocket/spark/fire damage from the original `damage_roll >> 3` formulas, and routes hits through `wl_apply_player_damage`. Headless tests cover wall impact/removal, needle damage, rocket baby-difficulty scaling, fire projectile travel before impact, tile updates, and inactive-projectile rejection.

@@ -199,3 +199,8 @@ The red palette-shift path now receives actor-driven damage, not only direct pla
 ## Cycle update: actor shooting palette damage
 
 The red palette-shift path now receives deterministic actor shooting damage as well as bite damage. The headless shooting test feeds explicit hit/damage rolls through `wl_try_actor_shoot_player`, verifies difficulty scaling and damage counters through `wl_apply_player_damage`, and keeps all presentation work on the existing SDL-free palette/upload boundary.
+
+
+## Cycle update: projectile palette damage
+
+Projectile impacts now feed the same red palette-shift path as direct, bite, and shooting damage. The headless projectile test routes needle/rocket/fire impact damage through `wl_apply_player_damage`, verifies difficulty scaling and damage counters, and keeps the future presentation boundary on existing SDL-free palette/upload metadata.

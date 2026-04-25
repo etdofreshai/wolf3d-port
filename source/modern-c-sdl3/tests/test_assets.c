@@ -265,6 +265,84 @@ static int check_gameplay_events(void) {
                                     WL_DIFFICULTY_HARD, 1, 1, 1, 1,
                                     0, 80, 0, 0, &shot) == -1);
 
+    wl_game_model projectile_model;
+    memset(&projectile_model, 0, sizeof(projectile_model));
+    projectile_model.tilemap[5 + 4 * WL_MAP_SIDE] = 1;
+    wl_projectile_state projectile = {
+        (4u << 16) + 0xf000u, (4u << 16) + 0x8000u, 4, 4,
+        WL_PROJECTILE_ROCKET, 1,
+    };
+    wl_projectile_step_result projectile_step;
+    CHECK(wl_init_player_gameplay_state(&state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_step_projectile(&state, &projectile_model, &shot_motion,
+                             &projectile, WL_DIFFICULTY_HARD,
+                             0x1000, 0, 80, 0, 0,
+                             &projectile_step) == 0);
+    CHECK(projectile_step.moved == 1);
+    CHECK(projectile_step.hit_wall == 1);
+    CHECK(projectile_step.removed == 1);
+    CHECK(projectile.active == 0);
+    CHECK(state.health == 100);
+    memset(&projectile_model, 0, sizeof(projectile_model));
+    projectile.x = (3u << 16) + 0x8000u;
+    projectile.y = (4u << 16) + 0x8000u;
+    projectile.tile_x = 3;
+    projectile.tile_y = 4;
+    projectile.kind = WL_PROJECTILE_NEEDLE;
+    projectile.active = 1;
+    CHECK(wl_step_projectile(&state, &projectile_model, &shot_motion,
+                             &projectile, WL_DIFFICULTY_HARD,
+                             0x10000, 0, 80, 0, 0,
+                             &projectile_step) == 0);
+    CHECK(projectile_step.hit_player == 1);
+    CHECK(projectile_step.damage.requested_points == 30);
+    CHECK(projectile_step.damage.effective_points == 30);
+    CHECK(projectile_step.tile_x == 4);
+    CHECK(projectile.active == 0);
+    CHECK(state.health == 70);
+    CHECK(state.palette_shift.damage_count == 30);
+    CHECK(wl_init_player_gameplay_state(&state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    projectile.x = (4u << 16) + 0x8000u;
+    projectile.y = (5u << 16) + 0x3000u;
+    projectile.tile_x = 4;
+    projectile.tile_y = 5;
+    projectile.kind = WL_PROJECTILE_ROCKET;
+    projectile.active = 1;
+    CHECK(wl_step_projectile(&state, &projectile_model, &shot_motion,
+                             &projectile, WL_DIFFICULTY_BABY,
+                             0, -0x10000, 80, 0, 0,
+                             &projectile_step) == 0);
+    CHECK(projectile_step.hit_player == 1);
+    CHECK(projectile_step.damage.requested_points == 40);
+    CHECK(projectile_step.damage.effective_points == 10);
+    CHECK(state.health == 90);
+    CHECK(wl_init_player_gameplay_state(&state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    projectile.x = (2u << 16) + 0x8000u;
+    projectile.y = (4u << 16) + 0x8000u;
+    projectile.tile_x = 2;
+    projectile.tile_y = 4;
+    projectile.kind = WL_PROJECTILE_FIRE;
+    projectile.active = 1;
+    CHECK(wl_step_projectile(&state, &projectile_model, &shot_motion,
+                             &projectile, WL_DIFFICULTY_HARD,
+                             0x10000, 0, 80, 0, 0,
+                             &projectile_step) == 0);
+    CHECK(projectile_step.hit_player == 0);
+    CHECK(projectile_step.removed == 0);
+    CHECK(projectile.active == 1);
+    CHECK(projectile.tile_x == 3);
+    CHECK(wl_step_projectile(&state, &projectile_model, &shot_motion,
+                             &projectile, WL_DIFFICULTY_HARD,
+                             0x10000, 0, 80, 0, 0,
+                             &projectile_step) == 0);
+    CHECK(projectile_step.hit_player == 1);
+    CHECK(projectile_step.damage.effective_points == 10);
+    CHECK(state.health == 90);
+    CHECK(wl_step_projectile(&state, &projectile_model, &shot_motion,
+                             &projectile, WL_DIFFICULTY_HARD,
+                             0, 0, 80, 0, 0,
+                             &projectile_step) == -1);
+
     uint8_t picked_up = 255;
     CHECK(wl_init_player_gameplay_state(&state, 50, 2, 0, WL_EXTRA_POINTS) == 0);
     CHECK(wl_apply_player_bonus(&state, WL_BONUS_FOOD, &picked_up) == 0);
@@ -3136,6 +3214,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-actor-shoot tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-projectile-damage tests passed for %s\n", dir);
     return 0;
 }
