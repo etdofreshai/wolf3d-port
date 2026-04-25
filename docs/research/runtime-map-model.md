@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/visible-static-pickup tests passed for game-files/base
+asset/decompression/semantics/model/vswap/player-motion tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -133,3 +133,8 @@ Runtime static descriptors now carry an `active` flag. `wl_try_pickup_static_bon
 ## Cycle update: visible static pickup probe
 
 Added `wl_try_pickup_visible_static_bonus`, a headless gameplay/render seam based on the original `WL_DRAW.C::TransformTile` pickup test used before drawing bonus statics. The probe scans active bonus statics, applies the same near/in-front/lateral pickup window using 16.16 world coordinates and a view vector, then routes the touched static through `wl_try_pickup_static_bonus`. Tests cover an out-of-lateral-range miss, an in-range full-health food rejection that leaves the static active, and a successful in-range food pickup that heals, starts the bonus flash, deactivates the static, and removes it from later scene refs.
+
+
+## Cycle update: player motion/pickup tick
+
+Added a small headless player motion seam around the existing gameplay/model data. `wl_init_player_motion_from_spawn` creates the original `SpawnPlayer`-style centered 16.16 position from the runtime model's player start, and `wl_step_player_motion` mirrors the original `ClipMove` fallback shape: try combined X/Y movement, then X-only, then Y-only, otherwise stay put. The collision check uses `PLAYERSIZE`/`MINDIST`-style bounds against solid model tiles, closed door centers, and active blocking statics, then runs the visible static pickup probe after the movement attempt. Tests now cover spawn centering from WL6 map 0, a moving step that picks up food and deactivates it through the gameplay path, and a blocking-static collision that prevents movement.

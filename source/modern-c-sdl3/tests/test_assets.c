@@ -499,6 +499,55 @@ static int check_wl6(const char *dir) {
                                        &scene_ref_count) == 0);
     CHECK(scene_ref_count == 133);
 
+    wl_player_motion_state spawn_motion;
+    CHECK(wl_init_player_motion_from_spawn(&model, &spawn_motion) == 0);
+    CHECK(spawn_motion.tile_x == 29);
+    CHECK(spawn_motion.tile_y == 57);
+    CHECK(spawn_motion.x == 0x1d8000u);
+    CHECK(spawn_motion.y == 0x398000u);
+
+    wl_game_model motion_model;
+    memset(&motion_model, 0, sizeof(motion_model));
+    motion_model.static_count = 1;
+    motion_model.statics[0].x = 4;
+    motion_model.statics[0].y = 4;
+    motion_model.statics[0].type = 24;
+    motion_model.statics[0].bonus = 1;
+    motion_model.statics[0].active = 1;
+    wl_player_motion_state motion = {0x3f000u, 0x48000u, 3, 4};
+    wl_player_step_result step_result;
+    CHECK(wl_init_player_gameplay_state(&pickup_state, 90, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_step_player_motion(&pickup_state, &motion_model, &motion,
+                                0x1000, 0, 0x10000, 0,
+                                &step_result) == 0);
+    CHECK(step_result.moved == 1);
+    CHECK(step_result.blocked == 0);
+    CHECK(step_result.picked_up == 1);
+    CHECK(step_result.static_index == 0);
+    CHECK(step_result.x == 0x40000u);
+    CHECK(step_result.y == 0x48000u);
+    CHECK(step_result.tile_x == 4);
+    CHECK(step_result.tile_y == 4);
+    CHECK(pickup_state.health == 100);
+    CHECK(motion_model.statics[0].active == 0);
+
+    wl_game_model blocked_model;
+    memset(&blocked_model, 0, sizeof(blocked_model));
+    blocked_model.static_count = 1;
+    blocked_model.statics[0].x = 4;
+    blocked_model.statics[0].y = 4;
+    blocked_model.statics[0].blocking = 1;
+    blocked_model.statics[0].active = 1;
+    wl_player_motion_state blocked_motion = {0x38000u, 0x48000u, 3, 4};
+    CHECK(wl_step_player_motion(&pickup_state, &blocked_model, &blocked_motion,
+                                0x10000, 0, 0x10000, 0,
+                                &step_result) == 0);
+    CHECK(step_result.moved == 0);
+    CHECK(step_result.blocked == 1);
+    CHECK(step_result.picked_up == 0);
+    CHECK(blocked_motion.x == 0x38000u);
+    CHECK(blocked_motion.y == 0x48000u);
+
     wl_vswap_directory sprite_dirinfo;
     CHECK(wl_read_vswap_directory(vswap_path, &sprite_dirinfo) == 0);
     const uint16_t ref_chunks[] = {
@@ -2157,6 +2206,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/visible-static-pickup tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/player-motion tests passed for %s\n", dir);
     return 0;
 }

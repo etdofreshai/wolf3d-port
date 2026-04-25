@@ -439,6 +439,113 @@ int wl_try_pickup_visible_static_bonus(wl_player_gameplay_state *state,
     return 0;
 }
 
+int wl_init_player_motion_from_spawn(const wl_game_model *model,
+                                     wl_player_motion_state *motion) {
+    if (!model || !motion || !model->player.present ||
+        model->player.x >= WL_MAP_SIDE || model->player.y >= WL_MAP_SIDE) {
+        return -1;
+    }
+    motion->tile_x = model->player.x;
+    motion->tile_y = model->player.y;
+    motion->x = ((uint32_t)model->player.x << 16) + 0x8000u;
+    motion->y = ((uint32_t)model->player.y << 16) + 0x8000u;
+    return 0;
+}
+
+static int tile_blocks_player_motion(const wl_game_model *model,
+                                     uint16_t tile_x, uint16_t tile_y) {
+    if (!model || tile_x >= WL_MAP_SIDE || tile_y >= WL_MAP_SIDE) {
+        return 1;
+    }
+    uint16_t tile = model->tilemap[(size_t)tile_y * WL_MAP_SIDE + tile_x];
+    if (tile != 0 && tile != 0x40u) {
+        return 1;
+    }
+    for (size_t i = 0; i < model->static_count; ++i) {
+        const wl_static_desc *stat = &model->statics[i];
+        if (stat->active && stat->blocking && stat->x == tile_x && stat->y == tile_y) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int player_position_is_clear(const wl_game_model *model, uint32_t x, uint32_t y) {
+    const uint32_t player_size = 0x5800u;
+    if (!model || x < player_size || y < player_size ||
+        x + player_size >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        y + player_size >= ((uint32_t)WL_MAP_SIDE << 16)) {
+        return 0;
+    }
+    uint16_t xl = (uint16_t)((x - player_size) >> 16);
+    uint16_t yl = (uint16_t)((y - player_size) >> 16);
+    uint16_t xh = (uint16_t)((x + player_size) >> 16);
+    uint16_t yh = (uint16_t)((y + player_size) >> 16);
+    for (uint16_t ty = yl; ty <= yh; ++ty) {
+        for (uint16_t tx = xl; tx <= xh; ++tx) {
+            if (tile_blocks_player_motion(model, tx, ty)) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+static void update_player_motion_tiles(wl_player_motion_state *motion) {
+    motion->tile_x = (uint16_t)(motion->x >> 16);
+    motion->tile_y = (uint16_t)(motion->y >> 16);
+}
+
+int wl_step_player_motion(wl_player_gameplay_state *state, wl_game_model *model,
+                          wl_player_motion_state *motion,
+                          int32_t xmove, int32_t ymove,
+                          int32_t forward_x, int32_t forward_y,
+                          wl_player_step_result *out) {
+    if (!state || !model || !motion || !out || (forward_x == 0 && forward_y == 0) ||
+        motion->x >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        motion->y >= ((uint32_t)WL_MAP_SIDE << 16)) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->static_index = model->static_count;
+    uint32_t base_x = motion->x;
+    uint32_t base_y = motion->y;
+    uint32_t target_x = (uint32_t)((int64_t)base_x + xmove);
+    uint32_t target_y = (uint32_t)((int64_t)base_y + ymove);
+
+    if (player_position_is_clear(model, target_x, target_y)) {
+        motion->x = target_x;
+        motion->y = target_y;
+    } else if (player_position_is_clear(model, target_x, base_y)) {
+        motion->x = target_x;
+        out->blocked = 1;
+    } else if (player_position_is_clear(model, base_x, target_y)) {
+        motion->y = target_y;
+        out->blocked = 1;
+    } else {
+        out->blocked = 1;
+    }
+
+    out->moved = motion->x != base_x || motion->y != base_y;
+    update_player_motion_tiles(motion);
+
+    uint8_t picked_up = 0;
+    size_t static_index = model->static_count;
+    if (wl_try_pickup_visible_static_bonus(state, model, motion->x, motion->y,
+                                           forward_x, forward_y,
+                                           &picked_up, &static_index) != 0) {
+        return -1;
+    }
+    out->x = motion->x;
+    out->y = motion->y;
+    out->tile_x = motion->tile_x;
+    out->tile_y = motion->tile_y;
+    out->picked_up = picked_up;
+    out->static_index = static_index;
+    return 0;
+}
+
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state) {
     if (!state) {
         return -1;

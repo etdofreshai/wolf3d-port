@@ -4,6 +4,7 @@
 #include "wl_assets.h"
 #include "wl_game_model.h"
 
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -75,6 +76,24 @@ typedef struct wl_player_damage_result {
     int32_t damage_count;
 } wl_player_damage_result;
 
+typedef struct wl_player_motion_state {
+    uint32_t x;
+    uint32_t y;
+    uint16_t tile_x;
+    uint16_t tile_y;
+} wl_player_motion_state;
+
+typedef struct wl_player_step_result {
+    uint32_t x;
+    uint32_t y;
+    uint16_t tile_x;
+    uint16_t tile_y;
+    uint8_t moved;
+    uint8_t blocked;
+    uint8_t picked_up;
+    size_t static_index;
+} wl_player_step_result;
+
 int wl_init_player_gameplay_state(wl_player_gameplay_state *state,
                                   int32_t health, int32_t lives,
                                   int32_t score, int32_t next_extra);
@@ -100,6 +119,13 @@ int wl_try_pickup_visible_static_bonus(wl_player_gameplay_state *state,
                                        int32_t forward_x, int32_t forward_y,
                                        uint8_t *out_picked_up,
                                        size_t *out_static_index);
+int wl_init_player_motion_from_spawn(const wl_game_model *model,
+                                     wl_player_motion_state *motion);
+int wl_step_player_motion(wl_player_gameplay_state *state, wl_game_model *model,
+                          wl_player_motion_state *motion,
+                          int32_t xmove, int32_t ymove,
+                          int32_t forward_x, int32_t forward_y,
+                          wl_player_step_result *out);
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state);
 
 #ifdef __cplusplus
