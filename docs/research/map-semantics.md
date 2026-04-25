@@ -208,3 +208,8 @@ Actor AI/chase semantics now flow into combat from the updated actor tile. The t
 ## Cycle update: live AI dog chase bite bridge
 
 Chase direction/tic semantics now feed dog contact combat. The deterministic test proves the chase-updated dog tile is close enough for bite range and damage.
+
+
+## Cycle update: live AI shooter-class chase combat
+
+Chase-updated actor tiles now drive deterministic shooting across officer, SS, mutant, and boss classes. The assertions preserve distance and damage differences without requiring SDL.

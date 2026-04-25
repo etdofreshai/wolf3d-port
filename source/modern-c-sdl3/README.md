@@ -331,3 +331,8 @@ Live AI chase movement now feeds combat attack selection in the same determinist
 ## Live AI dog chase bite bridge
 
 Chase-combat coverage now includes a dog actor. Two half-tile live AI chase frames complete a dog step, then the moved dog feeds the actor tick bite path with deterministic damage and red palette state.
+
+
+## Live AI shooter-class chase combat
+
+Chase-combat coverage now includes officer, SS, mutant, and boss shooter classes. Each case completes two half-tile live AI chase frames, then verifies the moved actor can shoot with deterministic original-style distance scaling and damage.

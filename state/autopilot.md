@@ -4825,3 +4825,40 @@ Next likely move:
 - Combine live AI chase, attack, actor damage/drop/death orchestration in a single frame seam, or broaden chase-combat coverage to officer/SS/mutant/boss shooters.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 09:53 CDT
+
+Action taken:
+
+- Broadened live AI chase/combat coverage across shooter actor classes.
+- Added deterministic officer, SS, mutant, and boss chase-combat cases: each runs two half-tile live AI chase frames, completes movement, then feeds the moved actor into `wl_step_live_actor_tick`.
+- Verified normal shooter distance-2 damage for officer/mutant and SS/boss distance scaling to distance 1 with higher damage.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-ai-shooter-chase-combat tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Combine live AI chase/attack with actor damage/drop/death orchestration in one frame seam, or add renderer-facing chase-combat scene coverage for additional actor classes.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

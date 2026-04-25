@@ -387,3 +387,8 @@ Chase movement still preserves VSWAP guard metadata while the moved actor feeds 
 ## Cycle update: live AI dog chase bite bridge
 
 The new dog chase-combat check remains metadata/state-only and does not commit decoded VSWAP bytes; it broadens behavior coverage around the same runtime actor refs.
+
+
+## Cycle update: live AI shooter-class chase combat
+
+Shooter-class chase combat remains metadata/state-only and does not commit VSWAP bytes. The coverage complements existing renderer-facing class refs with combat behavior checks.

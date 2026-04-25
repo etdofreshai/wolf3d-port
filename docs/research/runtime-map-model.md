@@ -463,3 +463,8 @@ Chase movement now connects to the existing actor attack tick seam. After live A
 ## Cycle update: live AI dog chase bite bridge
 
 The live AI chase/combat bridge now covers contact attackers as well as shooters. A dog chase actor completes accumulated movement before `wl_step_live_actor_tick` applies bite damage from the moved tile.
+
+
+## Cycle update: live AI shooter-class chase combat
+
+The live AI chase/combat bridge now covers the shooter class matrix. Officer, SS, mutant, and boss actors complete accumulated chase movement before feeding `wl_step_live_actor_tick`, including SS/boss distance scaling.

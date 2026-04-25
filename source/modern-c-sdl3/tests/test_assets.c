@@ -4254,6 +4254,65 @@ static int check_wl6(const char *dir) {
     CHECK(chase_attack_tick.bite.damage.effective_points == 5);
     CHECK(chase_attack_player.health == 95);
 
+    const struct {
+        wl_actor_kind kind;
+        uint16_t expected_distance;
+        int32_t expected_damage;
+        int32_t expected_health;
+    } shooter_chase_cases[] = {
+        { WL_ACTOR_OFFICER, 2, 10, 90 },
+        { WL_ACTOR_SS, 1, 20, 80 },
+        { WL_ACTOR_MUTANT, 2, 10, 90 },
+        { WL_ACTOR_BOSS, 1, 20, 80 },
+    };
+    for (size_t shooter_case = 0;
+         shooter_case < sizeof(shooter_chase_cases) / sizeof(shooter_chase_cases[0]);
+         ++shooter_case) {
+        wl_game_model shooter_chase_model;
+        memset(&shooter_chase_model, 0, sizeof(shooter_chase_model));
+        shooter_chase_model.actor_count = 1;
+        shooter_chase_model.actors[0].kind = shooter_chase_cases[shooter_case].kind;
+        shooter_chase_model.actors[0].shootable = 1;
+        shooter_chase_model.actors[0].mode = WL_ACTOR_CHASE;
+        shooter_chase_model.actors[0].dir = WL_DIR_EAST;
+        shooter_chase_model.actors[0].tile_x = 5;
+        shooter_chase_model.actors[0].tile_y = 5;
+        CHECK(wl_step_live_actor_ai_tick(&live_ai_render_player,
+                                         &shooter_chase_model,
+                                         use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                         &live_ai_render_motion, 0, 0,
+                                         0x10000, 0, WL_DIR_EAST, 0, 0,
+                                         0x8000u, 1,
+                                         &live_ai_render_tick) == 0);
+        CHECK(wl_step_live_actor_ai_tick(&live_ai_render_player,
+                                         &shooter_chase_model,
+                                         use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                         &live_ai_render_motion, 0, 0,
+                                         0x10000, 0, WL_DIR_EAST, 0, 0,
+                                         0x8000u, 1,
+                                         &live_ai_render_tick) == 0);
+        CHECK(live_ai_render_tick.chases.tiles_stepped == 1);
+        CHECK(wl_init_player_gameplay_state(&chase_attack_player, 100, 3, 0,
+                                            WL_EXTRA_POINTS) == 0);
+        CHECK(wl_step_live_actor_tick(&chase_attack_player, &shooter_chase_model,
+                                      use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                      &live_ai_render_motion, 0, 0,
+                                      0x10000, 0, WL_DIR_EAST, 0, 0,
+                                      &shooter_chase_model.actors[0],
+                                      WL_DIFFICULTY_HARD,
+                                      1, 1, 1, 1, 0, 80, 0, 0, 1,
+                                      &chase_attack_tick) == 0);
+        CHECK(chase_attack_tick.actor_attacked == 1);
+        CHECK(chase_attack_tick.attack_kind == WL_LIVE_ACTOR_ATTACK_SHOOT);
+        CHECK(chase_attack_tick.shot.damaged == 1);
+        CHECK(chase_attack_tick.shot.distance_tiles ==
+              shooter_chase_cases[shooter_case].expected_distance);
+        CHECK(chase_attack_tick.shot.damage.effective_points ==
+              shooter_chase_cases[shooter_case].expected_damage);
+        CHECK(chase_attack_player.health ==
+              shooter_chase_cases[shooter_case].expected_health);
+    }
+
     wl_game_model live_drop_scene_model;
     memset(&live_drop_scene_model, 0, sizeof(live_drop_scene_model));
     live_drop_scene_model.tilemap[7 + 4 * WL_MAP_SIDE] = 2;
@@ -5084,6 +5143,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-dog-chase-combat tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-shooter-chase-combat tests passed for %s\n", dir);
     return 0;
 }
