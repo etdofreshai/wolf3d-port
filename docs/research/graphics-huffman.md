@@ -394,3 +394,8 @@ Headless presentation coverage now includes chase movement emitted by the live A
 ## Cycle update: live AI chase remainder rendering
 
 Headless presentation now verifies multi-frame chase movement from fine placement to tile-centered placement. This gives SDL3 a deterministic chase animation input before any display dependency.
+
+
+## Cycle update: live AI chase combat bridge
+
+The headless renderer/combat bridge now covers a chase actor moving through live AI before attacking. Palette effects and future SDL upload state can consume the same result.

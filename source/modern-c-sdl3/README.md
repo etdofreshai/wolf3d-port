@@ -321,3 +321,8 @@ The live actor AI wrapper now advances chase actors as well as patrol actors. A 
 ## Live AI chase remainder rendering
 
 Live AI chase rendering now covers two half-tile frames. The first frame stores chase remainder and renders fine coords with hash `0xa71311c2`; the second consumes the carried movement into tile-centered coords `0x58000/0x48000` with hash `0x4a4c3e4f`.
+
+
+## Live AI chase combat bridge
+
+Live AI chase movement now feeds combat attack selection in the same deterministic harness. A chase guard completes its accumulated tile step, then the moved actor is used by `wl_step_live_actor_tick` for a distance-2 shot that applies a red palette shift.

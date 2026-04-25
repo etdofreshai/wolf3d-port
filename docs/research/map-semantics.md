@@ -198,3 +198,8 @@ Chase direction/tic semantics now run inside the live AI frame wrapper. The wrap
 ## Cycle update: live AI chase remainder rendering
 
 Chase direction/tic semantics now persist across live AI frames: first frame stores partial movement, second frame completes the tile step and clears the remainder.
+
+
+## Cycle update: live AI chase combat bridge
+
+Actor AI/chase semantics now flow into combat from the updated actor tile. The test verifies chase-completed coordinates feed distance-2 shooting and damage state without SDL.

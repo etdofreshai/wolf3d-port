@@ -453,3 +453,8 @@ Chase tic fine-position movement now reaches scene refs and the door-aware rende
 ## Cycle update: live AI chase remainder rendering
 
 Multi-frame chase remainder now reaches the live AI render boundary. Two half-tile live AI frames first emit fine chase refs, then consume the accumulated full tile and clear actor remainder.
+
+
+## Cycle update: live AI chase combat bridge
+
+Chase movement now connects to the existing actor attack tick seam. After live AI consumes chase remainder into a tile-centered actor position, the moved runtime actor can drive `wl_step_live_actor_tick` shooting metadata and damage.

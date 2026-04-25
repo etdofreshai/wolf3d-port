@@ -377,3 +377,8 @@ Live AI chase refs now consume the same VSWAP sprite-cache path as patrol refs. 
 ## Cycle update: live AI chase remainder rendering
 
 The live AI chase remainder path keeps guard source/chunk `58/164` stable while placement changes across frames. Render hashes `0xa71311c2` then `0x4a4c3e4f` verify metadata-only placement changes.
+
+
+## Cycle update: live AI chase combat bridge
+
+Chase movement still preserves VSWAP guard metadata while the moved actor feeds combat. Asset assertions remain metadata/hash-only; combat validation uses deterministic rolls.

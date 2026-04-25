@@ -4751,3 +4751,40 @@ Next likely move:
 - Combine chase movement with attack/combat orchestration or broaden chase rendering across actor classes.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 09:46 CDT
+
+Action taken:
+
+- Bridged live AI chase movement into actor attack/combat ticking.
+- Extended the multi-frame chase test so the guard completes its accumulated live AI chase step, then the moved runtime actor is passed to `wl_step_live_actor_tick`.
+- Verified the chase-moved guard performs a deterministic distance-2 shot, applies 10 damage, reduces player health to 90, and emits a red palette shift.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-ai-chase-combat tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Combine live AI chase, attack, and actor damage/drop/death orchestration, or broaden chase-combat coverage across actor classes.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
