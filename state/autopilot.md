@@ -3680,3 +3680,33 @@ Next likely move:
 - Continue headless port work under the new supervisor behavior, using low thinking, provider-aware budget rotation, and automatic commit/push/update loop hygiene.
 
 Blockers: none for headless work.
+
+
+## Cycle 2026-04-25 08:23 CDT Short Usage Windows
+
+Action taken:
+
+- Extended provider usage budgeting to check both the long quota window (`Week` or provider-specific `Monthly`) and extra short windows such as `5h`.
+- Added `--usage-extra-windows`, defaulting to `5h`; a model provider must be inside budget on every available configured window before it is selected.
+- Made usage-window matching tolerant enough for provider labels such as `Tokens (5h)` when the configured window is `5h`.
+- If a provider is blocked on either long-window or short-window usage, the supervisor skips to the next configured provider; it pauses only when all providers are blocked.
+- Updated supervisor docs with the short-window guard behavior.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_autopilot_supervisor.py
+scripts/wolf3d_autopilot_supervisor.py --help
+cd source/modern-c-sdl3 && make test
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+
+Next likely move:
+
+- Continue headless port work with both short-window and long-window provider budgeting enabled.
+
+Blockers: none for headless work.

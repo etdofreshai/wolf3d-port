@@ -283,6 +283,10 @@ def build_agent_command(
     return cmd
 
 
+def parse_csv(raw: str) -> list[str]:
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
 def parse_provider_windows(raw: str) -> dict[str, str]:
     result: dict[str, str] = {}
     for part in raw.split(","):
@@ -318,12 +322,18 @@ def budget_start_for_window(reset_at: datetime, window_label: str) -> datetime:
 
 def find_usage_window(status: dict[str, Any], provider: str, window_label: str) -> dict[str, Any] | None:
     usage = status.get("usage") or {}
+    wanted = window_label.lower()
     for item in usage.get("providers") or []:
         if str(item.get("provider")) != provider:
             continue
-        for window in item.get("windows") or []:
-            if str(window.get("label", "")).lower() == window_label.lower():
-                return dict(window)
+        windows = [dict(window) for window in item.get("windows") or []]
+        for window in windows:
+            if str(window.get("label", "")).lower() == wanted:
+                return window
+        for window in windows:
+            label = str(window.get("label", "")).lower()
+            if wanted and (wanted in label or label in wanted):
+                return window
     return None
 
 
@@ -339,14 +349,14 @@ def load_usage_status() -> dict[str, Any] | None:
         return None
 
 
-def usage_wait_seconds_for_provider(args: argparse.Namespace, status: dict[str, Any] | None, provider: str) -> int:
+def usage_wait_seconds_for_provider_window(args: argparse.Namespace, status: dict[str, Any] | None, provider: str, window_label: str) -> int:
     if status is None:
         return 0
-    window_label = usage_window_for_provider(args, provider)
     window = find_usage_window(status, provider, window_label)
     if not window:
-        log(f"usage guard: no {window_label} usage window for provider={provider}; treating provider as available")
+        log(f"usage guard: no {window_label} usage window for provider={provider}; treating that window as available")
         return 0
+    actual_label = str(window.get("label") or window_label)
     used_percent = float(window.get("usedPercent") or 0)
     reset_at_ms = window.get("resetAt")
     if args.usage_budget_reset:
@@ -354,16 +364,16 @@ def usage_wait_seconds_for_provider(args: argparse.Namespace, status: dict[str, 
     elif reset_at_ms:
         reset_at = datetime.fromtimestamp(float(reset_at_ms) / 1000, tz=timezone.utc)
     else:
-        log(f"usage guard: provider={provider} window={window_label} has no resetAt; treating provider as available")
+        log(f"usage guard: provider={provider} window={actual_label} has no resetAt; treating window as available")
         return 0
-    start_at = parse_iso_datetime(args.usage_budget_start) if args.usage_budget_start else budget_start_for_window(reset_at, window_label)
+    start_at = parse_iso_datetime(args.usage_budget_start) if args.usage_budget_start else budget_start_for_window(reset_at, actual_label)
     now_dt = datetime.now(timezone.utc)
     total = max((reset_at - start_at).total_seconds(), 1)
     elapsed = min(max((now_dt - start_at).total_seconds(), 0), total)
     elapsed_percent = elapsed / total * 100.0
     allowed_percent = min(100.0, max(args.usage_min_allowed_percent, elapsed_percent + args.usage_slack_percent))
     log(
-        f"usage guard: provider={provider} window={window_label} "
+        f"usage guard: provider={provider} window={actual_label} "
         f"used={used_percent:.1f}% allowed={allowed_percent:.1f}% reset={reset_at.isoformat()}"
     )
     if used_percent <= allowed_percent:
@@ -371,8 +381,14 @@ def usage_wait_seconds_for_provider(args: argparse.Namespace, status: dict[str, 
     target_elapsed_percent = max(0.0, min(100.0, used_percent - args.usage_slack_percent))
     resume_at = start_at + timedelta(seconds=total * (target_elapsed_percent / 100.0))
     wait_seconds = max(0, int((resume_at - now_dt).total_seconds()))
-    log(f"usage guard: provider={provider} window={window_label} blocked until {resume_at.isoformat()} ({wait_seconds}s)")
+    log(f"usage guard: provider={provider} window={actual_label} blocked until {resume_at.isoformat()} ({wait_seconds}s)")
     return wait_seconds
+
+
+def usage_wait_seconds_for_provider(args: argparse.Namespace, status: dict[str, Any] | None, provider: str) -> int:
+    windows = [usage_window_for_provider(args, provider), *args.usage_extra_windows]
+    waits = [usage_wait_seconds_for_provider_window(args, status, provider, window) for window in dict.fromkeys(windows)]
+    return max(waits) if waits else 0
 
 
 def select_available_model(args: argparse.Namespace, models: list[str], stop_ref: dict[str, bool]) -> str | None:
@@ -503,6 +519,7 @@ def main() -> int:
     ap.add_argument("--usage-provider", default="openai-codex", help="fallback provider key from openclaw status --usage for models without a provider prefix")
     ap.add_argument("--usage-window", default="Week", help="default usage window label from openclaw status --usage")
     ap.add_argument("--usage-provider-windows", default="zai:Monthly", help="comma-separated provider:window overrides, e.g. zai:Monthly,openai-codex:Week")
+    ap.add_argument("--usage-extra-windows", default="5h", help="comma-separated extra usage windows that must also be inside budget, e.g. 5h")
     ap.add_argument("--usage-budget-start", default="", help="ISO timestamp for budget start; default is inferred from the usage window label")
     ap.add_argument("--usage-budget-reset", default="", help="ISO timestamp for weekly budget reset; default uses provider resetAt")
     ap.add_argument("--usage-slack-percent", type=float, default=5.0, help="allowed percentage above the linear weekly budget curve")
@@ -515,6 +532,7 @@ def main() -> int:
     ap.add_argument("--summary-target", default="telegram:-5268853419", help="OpenClaw delivery target for summaries")
     args = ap.parse_args()
     args.usage_provider_windows = parse_provider_windows(args.usage_provider_windows)
+    args.usage_extra_windows = parse_csv(args.usage_extra_windows)
 
     write_pid()
     stop_ref = {"stop": False}

@@ -35,6 +35,7 @@ scripts/wolf3d_autopilot_supervisor.py --include-models 'openai-codex/gpt-5.5,an
 scripts/wolf3d_autopilot_supervisor.py --exclude-models 'zai/glm-5.1'
 scripts/wolf3d_autopilot_supervisor.py --exclude-models 'zai'  # exclude a whole provider prefix
 scripts/wolf3d_autopilot_supervisor.py --usage-provider-windows 'zai:Monthly,openai-codex:Week'
+scripts/wolf3d_autopilot_supervisor.py --usage-extra-windows '5h'
 scripts/wolf3d_autopilot_supervisor.py --no-fast-mode
 scripts/wolf3d_autopilot_supervisor.py --worker-poll 30 --max-worker-wait 7200
 scripts/wolf3d_autopilot_supervisor.py --push-after-cycle
@@ -51,6 +52,7 @@ Defaults are intentionally conservative:
 - fast mode: off
 - model preference rotation: `openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1`
 - provider usage-window override: `zai:Monthly`, while other providers default to `Week`
+- extra short-window guard: `5h` must also be inside budget when the provider reports it
 - explicit model inclusion: `--include-models` (`--models` remains an alias)
 - optional model/provider exclusion after inclusion: `--exclude-models 'zai/glm-5.1'` or `--exclude-models 'zai'`
 - push after cycle: on; uses normal git auth or `GH_TOKEN_ETDOFRESHAI` / `GITHUB_TOKEN` / `GH_TOKEN` from the environment
@@ -67,7 +69,8 @@ Default policy:
 - default to the `Week` usage window unless a provider override exists
 - use `zai:Monthly` by default because Z.ai reports a monthly quota window
 - infer the budget start from the window label: `Monthly` → `resetAt - 30 days`, `Week` → `resetAt - 7 days`, `5h` → `resetAt - 5 hours`
-- allow usage up to `elapsed_window_percent + 5%` slack
+- check both the provider's long window and any `--usage-extra-windows` such as `5h`
+- allow usage up to `elapsed_window_percent + 5%` slack for each checked window
 - allow at least `3%` early in the window
 - if one provider is ahead of schedule, skip that model and try the next configured provider
 - if all configured providers are ahead of schedule, sleep until the earliest provider should be back inside budget, then re-check
@@ -79,6 +82,7 @@ scripts/wolf3d_autopilot_supervisor.py --include-models 'openai-codex/gpt-5.5,an
 scripts/wolf3d_autopilot_supervisor.py --exclude-models 'anthropic/claude-opus-4.7'
 scripts/wolf3d_autopilot_supervisor.py --exclude-models 'zai'
 scripts/wolf3d_autopilot_supervisor.py --usage-window Week --usage-provider-windows 'zai:Monthly'
+scripts/wolf3d_autopilot_supervisor.py --usage-extra-windows '5h'
 scripts/wolf3d_autopilot_supervisor.py --usage-budget-start 2026-04-22T12:33:16Z
 scripts/wolf3d_autopilot_supervisor.py --usage-budget-reset 2026-04-29T12:33:16Z
 scripts/wolf3d_autopilot_supervisor.py --usage-slack-percent 10
@@ -86,7 +90,7 @@ scripts/wolf3d_autopilot_supervisor.py --usage-check-interval 1800
 scripts/wolf3d_autopilot_supervisor.py --no-usage-guard
 ```
 
-This is deliberately simple: near the start of the week, each provider spends slowly; near the end, each provider can use the full 100%. If Codex is over budget but Anthropic or Z.ai is still under budget, the supervisor should continue on the available provider instead of pausing the whole autopilot.
+This is deliberately simple: near the start of each long or short window, each provider spends slowly; near the end, each provider can use the full 100%. If Codex is over budget but Anthropic or Z.ai is still under budget on both long and short windows, the supervisor should continue on the available provider instead of pausing the whole autopilot.
 
 ## Stop
 
