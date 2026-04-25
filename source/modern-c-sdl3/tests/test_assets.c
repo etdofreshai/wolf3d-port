@@ -1,4 +1,5 @@
 #include "wl_assets.h"
+#include "wl_game_model.h"
 #include "wl_map_semantics.h"
 
 #include <stdio.h>
@@ -185,6 +186,64 @@ static int check_wl6(const char *dir) {
     CHECK(sem.ghost_starts == 0);
     CHECK(sem.unknown_info_tiles == 0);
 
+    wl_game_model model;
+    CHECK(wl_build_game_model(wall_plane, info_plane, WL_MAP_PLANE_WORDS,
+                              WL_DIFFICULTY_EASY, &model) == 0);
+    CHECK(model.player.present == 1);
+    CHECK(model.player.x == 29);
+    CHECK(model.player.y == 57);
+    CHECK(model.player.dir == WL_DIR_EAST);
+    CHECK(model.door_count == 22);
+    CHECK(model.doors[0].x == 28);
+    CHECK(model.doors[0].y == 11);
+    CHECK(model.doors[0].vertical == 1);
+    CHECK(model.doors[0].lock == 0);
+    CHECK(model.doors[17].source_tile == 100);
+    CHECK(model.doors[17].lock == 5);
+    CHECK(model.static_count == 121);
+    CHECK(model.blocking_static_count == 34);
+    CHECK(model.bonus_static_count == 48);
+    CHECK(model.treasure_total == 23);
+    CHECK(model.statics[0].x == 29);
+    CHECK(model.statics[0].y == 8);
+    CHECK(model.statics[0].source_tile == 35);
+    CHECK(model.statics[0].blocking == 1);
+    CHECK(model.path_marker_count == 18);
+    CHECK(model.path_markers[0].x == 2);
+    CHECK(model.path_markers[0].y == 33);
+    CHECK(model.path_markers[0].source_tile == 96);
+    CHECK(model.pushwall_count == 5);
+    CHECK(model.secret_total == 5);
+    CHECK(model.pushwalls[0].x == 10);
+    CHECK(model.pushwalls[0].y == 13);
+    CHECK(model.actor_count == 12);
+    CHECK(model.kill_total == 11);
+    CHECK(model.actors[0].source_tile == 111);
+    CHECK(model.actors[0].spawn_x == 33);
+    CHECK(model.actors[0].spawn_y == 9);
+    CHECK(model.actors[0].kind == WL_ACTOR_GUARD);
+    CHECK(model.actors[0].mode == WL_ACTOR_STAND);
+    CHECK(model.actors[9].kind == WL_ACTOR_DOG);
+    CHECK(model.actors[9].mode == WL_ACTOR_PATROL);
+    CHECK(model.actors[9].spawn_x == 54);
+    CHECK(model.actors[9].spawn_y == 45);
+    CHECK(model.actors[9].tile_x == 55);
+    CHECK(model.actors[11].kind == WL_ACTOR_DEAD_GUARD);
+    CHECK(model.actors[11].counts_for_kill_total == 0);
+    CHECK(model.unknown_info_tiles == 0);
+
+    CHECK(wl_build_game_model(wall_plane, info_plane, WL_MAP_PLANE_WORDS,
+                              WL_DIFFICULTY_MEDIUM, &model) == 0);
+    CHECK(model.actor_count == 21);
+    CHECK(model.kill_total == 20);
+    CHECK(model.unknown_info_tiles == 0);
+
+    CHECK(wl_build_game_model(wall_plane, info_plane, WL_MAP_PLANE_WORDS,
+                              WL_DIFFICULTY_HARD, &model) == 0);
+    CHECK(model.actor_count == 38);
+    CHECK(model.kill_total == 37);
+    CHECK(model.unknown_info_tiles == 0);
+
     wl_vswap_header vs;
     CHECK(wl_read_vswap_header(vswap_path, &vs) == 0);
     CHECK(vs.file_size == 1544376);
@@ -243,6 +302,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model tests passed for %s\n", dir);
     return 0;
 }

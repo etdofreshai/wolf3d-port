@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Decoded WL6 map 0 semantic classification is implemented and passing on headless Linux. Next phase should build a minimal SetupGameLevel-style runtime map model while staying pure C/headless.
+A minimal `SetupGameLevel`-style runtime map model is implemented and passing on headless Linux for WL6 map 0. Next phase should deepen gameplay setup (door-area connectivity) or move into VSWAP chunk descriptors.
 
 ## Latest Verified Milestone
 
@@ -18,6 +18,7 @@ Decoded WL6 map 0 semantic classification is implemented and passing on headless
 - `docs/research/asset-metadata-harness.md` records the initial metadata seam, assertions, and verification output.
 - `docs/research/map-decompression.md` records the Carmack/RLEW implementation seam, hash/count assertions, and verification output.
 - `docs/research/map-semantics.md` records original source references and WL6 map 0 semantic-count assertions.
+- `docs/research/runtime-map-model.md` records the pure C runtime model seam, descriptor assertions, and verification output.
 
 ## Verified Findings
 
@@ -75,21 +76,20 @@ Use tests as the bridge from the original code to modern C:
 2. `MAPHEAD`/`GAMEMAPS` parser test.
 3. Carmack + RLEW map-plane decompression test. **Done for WL6 map 0.**
 4. Decoded map semantic characterization: wall/object/player-start/actor/static classifications. **Done for WL6 map 0.**
-5. Minimal SetupGameLevel-style runtime map model: tilemap, doors, statics, player spawn, and difficulty-filtered actor descriptors.
-6. `VSWAP` parser/chunk descriptor test.
+5. Minimal SetupGameLevel-style runtime map model: tilemap, doors, statics, player spawn, and difficulty-filtered actor descriptors. **Done for WL6 map 0.**
+6. Door-area connectivity model and/or `VSWAP` parser/chunk descriptor test.
 7. `VGAHEAD`/`VGADICT`/`VGAGRAPH` Huffman smoke test.
 
 ## Next Likely Move
 
-Build a minimal `SetupGameLevel`-style runtime map model from decoded WL6 map 0 planes.
+Deepen the runtime setup model with door-area connectivity, or start the next asset seam with VSWAP chunk descriptors.
 
-Recommended files for the next commit:
+Recommended next commits, in priority order:
 
-- add pure C structs/functions for tilemap initialization, door descriptors, static descriptors, player spawn, and difficulty-filtered actor descriptors
-- keep this as a data/model step only; no SDL3 window or renderer yet
-- assert descriptor counts against `docs/research/map-semantics.md` so future gameplay code can preserve original setup semantics
+1. Add door-area connectivity descriptors using the wall-plane area tiles around each door, matching `WL_ACT1.C::DoorOpening`/`DoorClosing` area behavior.
+2. If connectivity gets awkward, pivot to `VSWAP` chunk descriptor parsing: read all offsets/lengths, validate sparse chunks, and assert first wall/sprite/sound ranges.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header values, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, and WL6 map 0 semantic classification counts.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header values, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, and a WL6 map 0 `SetupGameLevel`-style runtime model.
 
 ## Blockers
 
@@ -213,5 +213,43 @@ Safety/legal checks:
 Next likely move:
 
 - Build a minimal `SetupGameLevel`-style runtime map model: tilemap, doors, statics, player spawn, and difficulty-filtered actor descriptors.
+
+Blockers: none.
+
+
+## Cycle 2026-04-24 22:28 CDT
+
+Action taken:
+
+- Added `wl_game_model`, a pure C data-only runtime model for decoded WL6 map 0 planes.
+- Modeled original-style tilemap initialization, door descriptors/side markers, static descriptors, player spawn, pushwalls/secrets, path markers, and difficulty-filtered guard/dog/dead-guard actor descriptors.
+- Extended tests with easy/medium/hard descriptor and total assertions.
+- Updated `source/modern-c-sdl3/README.md` and added `docs/research/runtime-map-model.md`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only model counts/descriptors are committed.
+
+Next likely move:
+
+- Add door-area connectivity descriptors from wall-plane area tiles, or pivot to full VSWAP chunk descriptors if connectivity needs more original-source research.
 
 Blockers: none.

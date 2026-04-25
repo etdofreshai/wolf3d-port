@@ -11,7 +11,7 @@ Goals:
 
 ## Current headless verification
 
-The first runnable milestone is a pure C asset/decompression/semantics harness. It has no SDL dependency yet and verifies local WL6 data discovery, `MAPHEAD`, `GAMEMAPS`, and `VSWAP` header parsing, Carmack/RLEW map-plane decompression, and first-pass map semantic classification.
+The first runnable milestone is a pure C asset/decompression/semantics/model harness. It has no SDL dependency yet and verifies local WL6 data discovery, `MAPHEAD`, `GAMEMAPS`, and `VSWAP` header parsing, Carmack/RLEW map-plane decompression, first-pass map semantic classification, and a minimal `SetupGameLevel`-style runtime model.
 
 Run from this directory:
 
@@ -25,4 +25,4 @@ By default the test uses `game-files/base` relative to the repo root. Override w
 WOLF3D_DATA_DIR=/path/to/WL6/data make test
 ```
 
-The test only reads local data files and commits metadata/hash/semantic-count expectations, not proprietary game bytes.
+The test only reads local data files and commits metadata/hash/semantic/model-count expectations, not proprietary game bytes.
