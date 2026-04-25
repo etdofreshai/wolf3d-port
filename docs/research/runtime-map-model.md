@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-live-tick tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-live-tick-upload tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -208,3 +208,8 @@ Broadened runtime-scene coverage by feeding five real WL6 map-0 `wl_collect_scen
 ## Cycle update: headless live gameplay tick
 
 Added `wl_step_live_tick`, a deterministic orchestration seam that ties together existing player motion, visible pickup probing, optional use-button dispatch, door stepping, pushwall stepping, and palette-shift updates. This is not a full game loop yet, but it gives future SDL3 input/render frames one pure-C state transition entry point. Headless tests verify a movement tick can pick up food, heal the player, deactivate the runtime static, and emit a white palette shift; a separate use tick starts a pushwall and advances it across the first block boundary in the same call.
+
+
+## Cycle update: live tick palette upload
+
+The live tick seam now has coverage proving its palette result can drive renderer upload metadata. The test runs a food-pickup tick, observes the white palette-shift output, and passes that result to the existing shifted texture upload descriptor path. This connects runtime gameplay events to future presentation-facing palette selection without SDL or committed pixel assets.

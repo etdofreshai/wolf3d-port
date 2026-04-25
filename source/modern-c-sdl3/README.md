@@ -76,3 +76,8 @@ The broader WL6 runtime-ref sprite set now also flows through `wl_render_runtime
 ## Headless live gameplay tick
 
 `wl_step_live_tick` is a small deterministic orchestration seam for future frame updates. It combines player motion/pickup probing, optional use-button dispatch, door progression, pushwall progression, and palette-shift advancement into one headless call. Current tests cover a movement tick that picks up food and emits a white palette shift, plus a use tick that starts and advances a pushwall across its first block boundary.
+
+
+## Live tick palette upload
+
+The live tick output now feeds the existing palette-shifted upload metadata path. A headless test runs a food-pickup tick, consumes the returned white palette-shift result with `wl_describe_palette_shifted_texture_upload`, and verifies the selected palette/RGBA expansion hash. This keeps gameplay-driven palette selection connected to the future SDL3 texture upload boundary without needing SDL at test time.

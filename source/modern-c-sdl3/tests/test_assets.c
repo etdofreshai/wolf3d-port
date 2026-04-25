@@ -1121,6 +1121,35 @@ static int check_wl6(const char *dir) {
                                             sizeof(fade_sample_rgba),
                                             NULL) == 0);
     CHECK(fnv1a_bytes(fade_sample_rgba, sizeof(fade_sample_rgba)) == 0xccd1a665);
+
+    memset(&live_tick_pickup_model, 0, sizeof(live_tick_pickup_model));
+    live_tick_pickup_model.static_count = 1;
+    live_tick_pickup_model.statics[0].x = 4;
+    live_tick_pickup_model.statics[0].y = 4;
+    live_tick_pickup_model.statics[0].type = 24;
+    live_tick_pickup_model.statics[0].bonus = 1;
+    live_tick_pickup_model.statics[0].active = 1;
+    live_tick_motion.x = 0x3f000u;
+    live_tick_motion.y = 0x48000u;
+    live_tick_motion.tile_x = 3;
+    live_tick_motion.tile_y = 4;
+    CHECK(wl_init_player_gameplay_state(&pickup_state, 90, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_step_live_tick(&pickup_state, &live_tick_pickup_model,
+                            use_wall, use_info, WL_MAP_PLANE_WORDS,
+                            &live_tick_motion, 0x1000, 0, 0x10000, 0,
+                            WL_DIR_EAST, 0, 0, 1, &live_tick) == 0);
+    CHECK(live_tick.palette.kind == WL_PALETTE_SHIFT_WHITE);
+    CHECK(wl_describe_palette_shifted_texture_upload(
+              &fade_sample_surface, &live_tick.palette, upload_palette,
+              red_shift_palettes, WL_NUM_RED_SHIFTS, white_shift_palettes,
+              WL_NUM_WHITE_SHIFTS, sizeof(upload_palette), 6, &upload) == 0);
+    CHECK(upload.palette == white_shift_palettes + 2u * sizeof(upload_palette));
+    CHECK(wl_expand_indexed_surface_to_rgba(&fade_sample_surface, upload.palette,
+                                            sizeof(upload_palette), 6,
+                                            fade_sample_rgba,
+                                            sizeof(fade_sample_rgba),
+                                            NULL) == 0);
+    CHECK(fnv1a_bytes(fade_sample_rgba, sizeof(fade_sample_rgba)) == 0x93adda7f);
     CHECK(wl_update_palette_shift_state(&shift_state, 1, &shift_result) == 0);
     CHECK(shift_result.kind == WL_PALETTE_SHIFT_NONE);
     CHECK(wl_start_damage_palette_shift(&shift_state, -1) == -1);
@@ -2837,6 +2866,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-tick tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-tick-upload tests passed for %s\n", dir);
     return 0;
 }

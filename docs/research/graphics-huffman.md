@@ -184,3 +184,8 @@ Connected bonus pickup semantics to runtime static descriptors with `wl_try_pick
 ## Cycle update: live tick palette bridge
 
 The gameplay palette-shift state is now advanced through `wl_step_live_tick`, alongside movement/use/door/pushwall state. The new tick test proves a food pickup can start the bonus flash and return a white palette-selection result from the same headless update call, keeping future SDL3 texture-upload/palette selection tied to gameplay events without needing a display.
+
+
+## Cycle update: live tick palette upload
+
+Extended the live tick palette bridge into upload metadata. A movement tick that picks up food now returns a white palette-shift result, which is immediately passed to `wl_describe_palette_shifted_texture_upload`; the test asserts the selected white-shift palette pointer and RGBA sample hash `0x93adda7f`. This ties gameplay-triggered palette flashes to the SDL-free texture upload descriptor seam.
