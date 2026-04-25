@@ -222,3 +222,8 @@ The VSWAP sprite-cache path is now exercised through live door-aware model rende
 ## Cycle update: live tick scene rendering
 
 The live wall+sprite renderer now has coverage driven by `wl_step_live_tick` rather than manual tilemap mutation. A keyed use tick opens a door and clears the live tilemap center, then `wl_render_runtime_door_camera_scene_view` renders the resulting open doorway using local VSWAP wall/sprite pages. The assertion compares the tick-driven scene hash to the existing open-door scene hash, keeping verification metadata-only.
+
+
+## Cycle update: live tick pushwall scene rendering
+
+Moving-pushwall scene rendering is now driven by `wl_step_live_tick`, not only manual tilemap setup. A use-button tick starts and advances a pushwall to a live `0xc0` marker; the runtime scene renderer then consumes local VSWAP wall page `73` and produces the same committed moving-pushwall occlusion hash. No decoded wall/sprite bytes are committed.

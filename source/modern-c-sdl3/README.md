@@ -86,3 +86,8 @@ The live tick output now feeds the existing palette-shifted upload metadata path
 ## Live tick scene rendering
 
 `wl_step_live_tick` state changes now feed directly into the live door-aware scene renderer. A headless test uses a keyed use-button tick to open a door, verifies the door progression clears the live collision tile in the same update, then renders the resulting open doorway scene through `wl_render_runtime_door_camera_scene_view`. This closes the loop from input-style tick state to renderer-facing wall+sprite output without requiring SDL3.
+
+
+## Live tick pushwall scene rendering
+
+Live tick state now drives moving-pushwall scene rendering too. A headless test runs a use-button tick that starts a pushwall and advances it across its first block boundary, then renders the resulting moving marker through `wl_render_runtime_door_camera_scene_view`. The tick-driven scene is asserted against the independently rendered moving-pushwall scene hash, keeping the input/state/render path deterministic and SDL-free.

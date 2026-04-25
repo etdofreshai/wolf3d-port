@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-live-tick-scene tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-live-tick-pushwall-scene tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -218,3 +218,8 @@ The live tick seam now has coverage proving its palette result can drive rendere
 ## Cycle update: live tick scene rendering
 
 Connected the headless live tick seam to live door-aware scene rendering. The test runs a keyed use-button tick against a closed door, lets `wl_step_doors` open and clear the live tilemap entry during the same update, then renders the scene through `wl_render_runtime_door_camera_scene_view` and confirms it matches the independently rendered open-door scene hash. This proves tick-driven mutable state is now on the presentation path.
+
+
+## Cycle update: live tick pushwall scene rendering
+
+Extended the live tick → scene path from doors to pushwalls. The new test runs a `wl_step_live_tick` use-button update against a pushwall marker, advances the pushwall across the first block boundary in the same tick, verifies the mutable tilemap now carries the `37 | 0xc0` moving marker, and renders that state through `wl_render_runtime_door_camera_scene_view`. The resulting scene hash matches the existing deterministic moving-pushwall occlusion hash, proving tick-driven pushwall state reaches the renderer path.
