@@ -204,3 +204,8 @@ The red palette-shift path now receives deterministic actor shooting damage as w
 ## Cycle update: projectile palette damage
 
 Projectile impacts now feed the same red palette-shift path as direct, bite, and shooting damage. The headless projectile test routes needle/rocket/fire impact damage through `wl_apply_player_damage`, verifies difficulty scaling and damage counters, and keeps the future presentation boundary on existing SDL-free palette/upload metadata.
+
+
+## Cycle update: live projectile tick palette damage
+
+Projectile impact damage now reaches palette selection through live tick orchestration. `wl_step_live_projectile_tick` steps projectile damage before `wl_update_palette_shift_state`, so the same frame returns a red palette-shift result suitable for the existing shifted texture-upload descriptor path.

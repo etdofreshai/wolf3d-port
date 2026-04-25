@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-projectile-damage tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-live-projectile-tick tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -243,3 +243,8 @@ Added a deterministic actor shooting event seam following the original `T_Shoot`
 ## Cycle update: projectile damage seam
 
 Added a deterministic projectile movement/collision/damage seam based on original `ProjectileTryMove` / `T_Projectile`. `wl_step_projectile` advances a projectile in 16.16 world space, applies the original positive one-tile movement clamp shape, checks `PROJSIZE` collision against the mutable runtime tilemap, detects player impacts with `PROJECTILESIZE`, maps needle/rocket/hrocket/spark/fire damage from the original `damage_roll >> 3` formulas, and routes hits through `wl_apply_player_damage`. Headless tests cover wall impact/removal, needle damage, rocket baby-difficulty scaling, fire projectile travel before impact, tile updates, and inactive-projectile rejection.
+
+
+## Cycle update: live projectile tick seam
+
+Connected projectile damage into a broader live tick path. `wl_step_live_projectile_tick` mirrors the existing live tick sequence for player motion/use/doors/pushwalls, optionally steps an active projectile with `wl_step_projectile`, then advances palette shifts after projectile damage has updated gameplay state. The headless test verifies a needle projectile impact during the tick damages the player, removes the projectile, and returns a red palette result in the same frame, while a null projectile path leaves projectile stepping disabled.

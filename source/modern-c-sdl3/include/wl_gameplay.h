@@ -199,6 +199,12 @@ typedef struct wl_live_tick_result {
     uint8_t used;
 } wl_live_tick_result;
 
+typedef struct wl_live_projectile_tick_result {
+    wl_live_tick_result live;
+    wl_projectile_step_result projectile;
+    uint8_t projectile_stepped;
+} wl_live_projectile_tick_result;
+
 int wl_init_player_gameplay_state(wl_player_gameplay_state *state,
                                   int32_t health, int32_t lives,
                                   int32_t score, int32_t next_extra);
@@ -275,6 +281,24 @@ int wl_step_live_tick(wl_player_gameplay_state *state, wl_game_model *model,
                       int32_t forward_x, int32_t forward_y,
                       wl_direction facing, int use_button, int button_held,
                       int32_t tics, wl_live_tick_result *out);
+int wl_step_live_projectile_tick(wl_player_gameplay_state *state,
+                                 wl_game_model *model,
+                                 const uint16_t *wall_plane,
+                                 const uint16_t *info_plane,
+                                 size_t word_count,
+                                 wl_player_motion_state *motion,
+                                 int32_t xmove, int32_t ymove,
+                                 int32_t forward_x, int32_t forward_y,
+                                 wl_direction facing, int use_button,
+                                 int button_held,
+                                 wl_projectile_state *projectile,
+                                 wl_difficulty difficulty,
+                                 int32_t projectile_xmove,
+                                 int32_t projectile_ymove,
+                                 uint8_t projectile_damage_roll,
+                                 int god_mode, int victory_flag,
+                                 int32_t tics,
+                                 wl_live_projectile_tick_result *out);
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state);
 
 #ifdef __cplusplus

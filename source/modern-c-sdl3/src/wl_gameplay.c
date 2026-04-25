@@ -1259,6 +1259,69 @@ int wl_step_live_tick(wl_player_gameplay_state *state, wl_game_model *model,
     return 0;
 }
 
+int wl_step_live_projectile_tick(wl_player_gameplay_state *state,
+                                 wl_game_model *model,
+                                 const uint16_t *wall_plane,
+                                 const uint16_t *info_plane,
+                                 size_t word_count,
+                                 wl_player_motion_state *motion,
+                                 int32_t xmove, int32_t ymove,
+                                 int32_t forward_x, int32_t forward_y,
+                                 wl_direction facing, int use_button,
+                                 int button_held,
+                                 wl_projectile_state *projectile,
+                                 wl_difficulty difficulty,
+                                 int32_t projectile_xmove,
+                                 int32_t projectile_ymove,
+                                 uint8_t projectile_damage_roll,
+                                 int god_mode, int victory_flag,
+                                 int32_t tics,
+                                 wl_live_projectile_tick_result *out) {
+    if (!state || !model || !wall_plane || !info_plane || !motion || !out ||
+        tics < 0 || difficulty > WL_DIFFICULTY_HARD) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->live.use.door_index = model->door_count;
+    out->live.use.pushwall_index = model->pushwall_count;
+
+    if (wl_step_player_motion(state, model, motion, xmove, ymove,
+                              forward_x, forward_y, &out->live.motion) != 0) {
+        return -1;
+    }
+
+    if (use_button) {
+        if (wl_use_player_facing(state, model, wall_plane, info_plane, word_count,
+                                 motion, facing, button_held,
+                                 &out->live.use) != 0) {
+            return -1;
+        }
+        out->live.used = 1;
+    }
+
+    if (wl_step_doors(model, motion, tics, &out->live.doors) != 0) {
+        return -1;
+    }
+    if (wl_step_pushwall(model, tics, &out->live.pushwall) != 0) {
+        return -1;
+    }
+    if (projectile && projectile->active) {
+        if (wl_step_projectile(state, model, motion, projectile, difficulty,
+                               projectile_xmove, projectile_ymove,
+                               projectile_damage_roll, god_mode, victory_flag,
+                               &out->projectile) != 0) {
+            return -1;
+        }
+        out->projectile_stepped = 1;
+    }
+    if (wl_update_palette_shift_state(&state->palette_shift, tics,
+                                      &out->live.palette) != 0) {
+        return -1;
+    }
+    return 0;
+}
+
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state) {
     if (!state) {
         return -1;

@@ -111,3 +111,8 @@ The gameplay layer now has a deterministic `T_Shoot`-style actor shooting seam. 
 ## Projectile damage seam
 
 The gameplay layer now has a deterministic projectile step seam. `wl_step_projectile` moves a projectile by caller-supplied fixed deltas with the original one-tile positive clamp shape, checks `PROJSIZE` wall collision against the live runtime tilemap, checks `PROJECTILESIZE` player impact range, maps needle/rocket/hrocket/spark/fire damage from the original random-roll formulas, and routes hits through `wl_apply_player_damage`.
+
+
+## Live projectile tick seam
+
+Projectile damage is now connected to a live tick orchestration path. `wl_step_live_projectile_tick` runs the same movement/use/door/pushwall work as `wl_step_live_tick`, steps an optional active projectile before palette advancement, and returns the final palette state so projectile impacts can select a red flash in the same headless frame.
