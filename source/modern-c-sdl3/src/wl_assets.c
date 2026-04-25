@@ -2272,6 +2272,31 @@ int wl_describe_audio_chunk(size_t chunk_index,
     return 0;
 }
 
+int wl_describe_pc_speaker_sound(const unsigned char *chunk, size_t chunk_size,
+                                  wl_pc_speaker_sound_metadata *out) {
+    uint32_t sample_count;
+    size_t payload_offset = sizeof(uint32_t) + sizeof(uint16_t);
+    if (!chunk || !out || chunk_size < payload_offset) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    sample_count = read_le32(chunk);
+    if ((size_t)sample_count > chunk_size - payload_offset) {
+        return -1;
+    }
+    if ((size_t)sample_count == chunk_size - payload_offset) {
+        return -1;
+    }
+    out->sample_count = sample_count;
+    if (sample_count > 0) {
+        out->first_sample = chunk[payload_offset];
+        out->last_sample = chunk[payload_offset + (size_t)sample_count - 1u];
+    }
+    out->terminator = chunk[payload_offset + (size_t)sample_count];
+    out->trailing_bytes = chunk_size - payload_offset - (size_t)sample_count - 1u;
+    return 0;
+}
+
 int wl_describe_imf_music_chunk(const unsigned char *chunk, size_t chunk_size,
                                 wl_imf_music_metadata *out) {
     uint64_t total_delay = 0;
