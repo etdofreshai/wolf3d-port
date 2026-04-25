@@ -43,7 +43,7 @@ The model currently captures:
 - patrol path markers.
 - difficulty-filtered actor descriptors for WL6 map 0 guard/dog/dead-guard tiles.
 - kill, treasure, and secret totals.
-- renderer-facing scene sprite references for statics and initial actor states, including shapenum, VSWAP chunk index, and 16.16 world center.
+- renderer-facing scene sprite references for statics and initial actor states, including shapenum, VSWAP chunk index, 16.16 world center, and validated surface-cache input chunks.
 
 This is intentionally not a live game loop yet. It is a deterministic setup model that future gameplay, collision, and renderer code can consume.
 
@@ -61,7 +61,7 @@ Easy difficulty model:
 - first actor: guard at `(33,9)` from tile `111`.
 - first dog patrol actor: source `(54,45)`, active tile shifted to `(55,45)`.
 - unknown info-plane tiles after gating: `0`.
-- scene sprite references: `133` total (`121` statics + `12` actors), first static ref `model_index=0`, shapenum `14`, VSWAP chunk `120`, world center `(0x1d8000,0x088000)`, representative patrol guard ref shapenum `58` / chunk `164`, dog ref shapenum `99` / chunk `205`, dead guard ref shapenum `95` / chunk `201`, descriptor hash `0x2ab36473`.
+- scene sprite references: `133` total (`121` statics + `12` actors), first static ref `model_index=0`, shapenum `14`, VSWAP chunk `120`, world center `(0x1d8000,0x088000)`, representative patrol guard ref shapenum `58` / chunk `164`, dog ref shapenum `99` / chunk `205`, dead guard ref shapenum `95` / chunk `201`, descriptor hash `0x2ab36473`; representative surface-cache hashes `0x38769770`, `0xbd6176ba`, `0x0fe580fa`, `0xa875d685`, `0x63f7eba2`, combined cache hash `0x4a8eb8db`.
 
 Difficulty-gating assertions:
 
@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/sprite-ref tests passed for game-files/base
+asset/decompression/semantics/model/vswap/sprite-cache tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -93,8 +93,8 @@ The door model now stores the original `DoorOpening`/`DoorClosing` area pair for
 
 ## Cycle update: renderer sprite refs
 
-Added `wl_scene_sprite_ref` and `wl_collect_scene_sprite_refs`, bridging the runtime model to the renderer without decoding or committing asset bytes. Static refs map `statinfo`-style types to `SPR_STAT_*` shapenum values; actor refs map initial guard/dog/dead-guard states to their starting shapenum values. Each ref includes model kind/index, shapenum source index, VSWAP chunk index, and 16.16 world-center coordinates.
+Added `wl_scene_sprite_ref` and `wl_collect_scene_sprite_refs`, bridging the runtime model to the renderer without decoding or committing asset bytes. Static refs map `statinfo`-style types to `SPR_STAT_*` shapenum values; actor refs map initial guard/dog/dead-guard states to their starting shapenum values. Each ref includes model kind/index, shapenum source index, VSWAP chunk index, and 16.16 world-center coordinates. The current tests feed representative ref chunk indices into the sprite surface-cache decoder and assert metadata/hashes only.
 
 ## Next step
 
-Use scene sprite references to decode/cache the needed VSWAP sprite surfaces for the combined scene renderer, or add a small SDL3 presentation seam when SDL3 is available. Keep verification headless and deterministic.
+Feed scene sprite references directly into the combined scene renderer via decoded/cached VSWAP sprite surfaces, or add a small SDL3 presentation seam when SDL3 is available. Keep verification headless and deterministic.

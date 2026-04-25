@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Runtime map statics/actors now produce renderer-facing sprite references with VSWAP chunk indices on headless Linux for WL6. Next phase should use those refs to decode/cache needed sprite surfaces for the combined scene renderer, add a small SDL3 presentation boundary, or add palette-effect metadata.
+Runtime sprite refs now feed a VSWAP sprite surface-cache decoder on headless Linux for WL6. Next phase should pass those cached surfaces directly into the combined scene renderer, add a small SDL3 presentation boundary, or add palette-effect metadata.
 
 ## Latest Verified Milestone
 
@@ -19,7 +19,7 @@ Runtime map statics/actors now produce renderer-facing sprite references with VS
 - `docs/research/map-decompression.md` records the Carmack/RLEW implementation seam, hash/count assertions, and verification output.
 - `docs/research/map-semantics.md` records original source references and WL6 map 0 semantic-count assertions.
 - `docs/research/runtime-map-model.md` records the pure C runtime model seam, door-area connectivity descriptors, renderer-facing scene sprite references, descriptor assertions, and verification output.
-- `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall-page metadata/surface/column-sampler/scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view assertions, sprite shape metadata assertions, sprite post-command metadata/indexed-surface/scaled-render/world-projection/scene-render assertions, range/count assertions, and verification output.
+- `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall-page metadata/surface/column-sampler/scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view assertions, sprite shape metadata assertions, sprite post-command metadata/indexed-surface/surface-cache/scaled-render/world-projection/scene-render assertions, range/count assertions, and verification output.
 - `docs/research/graphics-huffman.md` records VGAHEAD/VGADICT/VGAGRAPH parsing, pure C Huffman expansion, STRUCTPIC picture-table metadata, planar-to-indexed surface conversion, renderer-facing indexed-surface descriptors, upload metadata/RGBA expansion, SDL-free indexed blitting, WL6/SOD graphics chunk smoke assertions, and verification output.
 
 ## Verified Findings
@@ -109,19 +109,20 @@ Use tests as the bridge from the original code to modern C:
 31. World-space sprite projection/ordering. **Done for representative WL6 sprite positions.**
 32. Combined wall+sprite camera render. **Done for representative WL6 sprite positions.**
 33. Runtime actor/static sprite-reference selection. **Done for WL6 map 0 easy difficulty.**
-34. Sprite surface cache/feed into scene renderer, SDL3 presentation seam, or palette-effect metadata.
+34. VSWAP sprite surface-cache decoding from runtime refs. **Done for representative WL6 refs.**
+35. Feed cached ref surfaces into scene renderer, SDL3 presentation seam, or palette-effect metadata.
 
 ## Next Likely Move
 
-Add sprite surface cache/feed into the scene renderer, a small SDL3 presentation seam, or palette-effect metadata.
+Feed cached ref surfaces into the scene renderer, add a small SDL3 presentation seam, or add palette-effect metadata.
 
 Recommended next commit:
 
-- use runtime sprite references to decode/cache the needed VSWAP sprite surfaces and feed them into `wl_render_camera_scene_view`;
+- feed runtime-ref decoded sprite surfaces directly into `wl_render_camera_scene_view`;
 - or add a small SDL3 presentation seam using `wl_texture_upload_descriptor`;
 - or expand renderer metadata for palette effects before presentation.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, scaled-sprite viewport hashes, world-sprite projection/sorted-render hashes, combined scene render hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, door-area connectivity descriptors, and runtime scene sprite-reference descriptors.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, scaled-sprite viewport hashes, world-sprite projection/sorted-render hashes, combined scene render hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, door-area connectivity descriptors, and runtime scene sprite-reference descriptors, and VSWAP sprite surface-cache hashes.
 
 ## Blockers
 
@@ -1355,5 +1356,43 @@ Safety/legal checks:
 Next likely move:
 
 - Use scene sprite refs to decode/cache needed VSWAP sprite surfaces and feed them into the combined wall+sprite scene renderer, or add a small SDL3 presentation seam once SDL3 is available.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+## Cycle 2026-04-25 00:06 CDT
+
+Action taken:
+
+- Added `wl_decode_vswap_sprite_surface_cache`, decoding caller-provided VSWAP sprite chunk-index lists into contiguous caller-owned `64x64` indexed surfaces.
+- Corrected sprite post decoding to honor original 16-bit wraparound of corrected top/source offsets, which is required by some static sprite chunks such as WL6 chunk `134`.
+- Extended WL6 assertions by feeding runtime scene sprite refs into the cache decoder for representative static/guard/dog/dead-guard chunks, with per-surface hashes `0x38769770`, `0xbd6176ba`, `0x0fe580fa`, `0xa875d685`, `0x63f7eba2`, combined cache hash `0x4a8eb8db`, and invalid wall/small-buffer checks.
+- Updated `docs/research/vswap-directory.md`, `docs/research/runtime-map-model.md`, and `source/modern-c-sdl3/README.md`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/sprite-cache tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash assertions are committed.
+
+Next likely move:
+
+- Feed runtime-ref decoded sprite surfaces directly into `wl_render_camera_scene_view`, or add a small SDL3 presentation seam once SDL3 is available.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

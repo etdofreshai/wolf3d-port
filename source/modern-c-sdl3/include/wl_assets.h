@@ -228,6 +228,14 @@ int wl_decode_sprite_shape_surface(const unsigned char *chunk, size_t chunk_size
                                    unsigned char transparent_index,
                                    unsigned char *pixels, size_t pixel_size,
                                    wl_indexed_surface *out);
+int wl_decode_vswap_sprite_surface_cache(const char *path,
+                                         const wl_vswap_directory *directory,
+                                         const uint16_t *chunk_indices,
+                                         size_t surface_count,
+                                         unsigned char transparent_index,
+                                         unsigned char *pixel_storage,
+                                         size_t pixel_storage_size,
+                                         wl_indexed_surface *surfaces);
 int wl_sample_wall_page_column(const unsigned char *chunk, size_t chunk_size,
                                uint16_t texture_offset, unsigned char *out,
                                size_t out_size);

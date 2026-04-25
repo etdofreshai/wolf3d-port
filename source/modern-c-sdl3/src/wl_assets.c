@@ -915,10 +915,11 @@ int wl_decode_sprite_shape_to_indexed(const unsigned char *chunk, size_t chunk_s
             uint16_t start_y = (uint16_t)(start / 2u);
             uint16_t end_y = (uint16_t)(end / 2u);
             for (uint16_t y = start_y; y < end_y; ++y) {
-                if ((size_t)source_offset + y >= chunk_size) {
+                uint16_t wrapped_offset = (uint16_t)(source_offset + y);
+                if ((size_t)wrapped_offset >= chunk_size) {
                     return -1;
                 }
-                indexed[(size_t)y * WL_MAP_SIDE + x] = chunk[(size_t)source_offset + y];
+                indexed[(size_t)y * WL_MAP_SIDE + x] = chunk[wrapped_offset];
             }
         }
     }
@@ -934,6 +935,59 @@ int wl_decode_sprite_shape_surface(const unsigned char *chunk, size_t chunk_size
         return -1;
     }
     return wl_wrap_indexed_surface(WL_MAP_SIDE, WL_MAP_SIDE, pixels, pixel_size, out);
+}
+
+int wl_decode_vswap_sprite_surface_cache(const char *path,
+                                         const wl_vswap_directory *directory,
+                                         const uint16_t *chunk_indices,
+                                         size_t surface_count,
+                                         unsigned char transparent_index,
+                                         unsigned char *pixel_storage,
+                                         size_t pixel_storage_size,
+                                         wl_indexed_surface *surfaces) {
+    if (!path || !directory || (!chunk_indices && surface_count != 0) ||
+        (!pixel_storage && surface_count != 0) || (!surfaces && surface_count != 0)) {
+        return -1;
+    }
+    if (surface_count == 0) {
+        return 0;
+    }
+    if (surface_count > SIZE_MAX / (size_t)WL_MAP_PLANE_WORDS ||
+        pixel_storage_size < surface_count * (size_t)WL_MAP_PLANE_WORDS) {
+        return -1;
+    }
+
+    for (size_t i = 0; i < surface_count; ++i) {
+        uint16_t chunk_index = chunk_indices[i];
+        if (chunk_index >= directory->header.chunks_in_file ||
+            directory->chunks[chunk_index].kind != WL_VSWAP_CHUNK_SPRITE ||
+            directory->chunks[chunk_index].length == 0) {
+            return -1;
+        }
+
+        size_t chunk_size = directory->chunks[chunk_index].length;
+        unsigned char *chunk = (unsigned char *)malloc(chunk_size);
+        if (!chunk) {
+            return -1;
+        }
+        size_t bytes_read = 0;
+        int ok = wl_read_vswap_chunk(path, directory, chunk_index, chunk, chunk_size,
+                                     &bytes_read);
+        if (ok == 0 && bytes_read != chunk_size) {
+            ok = -1;
+        }
+        if (ok == 0) {
+            ok = wl_decode_sprite_shape_surface(chunk, bytes_read, transparent_index,
+                                                pixel_storage + i * (size_t)WL_MAP_PLANE_WORDS,
+                                                pixel_storage_size - i * (size_t)WL_MAP_PLANE_WORDS,
+                                                &surfaces[i]);
+        }
+        free(chunk);
+        if (ok != 0) {
+            return -1;
+        }
+    }
+    return 0;
 }
 
 int wl_sample_wall_page_column(const unsigned char *chunk, size_t chunk_size,

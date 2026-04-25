@@ -312,6 +312,40 @@ static int check_wl6(const char *dir) {
     CHECK(scene_refs[132].source_index == 95);
     CHECK(scene_refs[132].vswap_chunk_index == 201);
     CHECK(fnv1a_scene_sprite_refs(scene_refs, scene_ref_count) == 0x2ab36473);
+    wl_vswap_directory sprite_dirinfo;
+    CHECK(wl_read_vswap_directory(vswap_path, &sprite_dirinfo) == 0);
+    const uint16_t ref_chunks[] = {
+        scene_refs[0].vswap_chunk_index,
+        scene_refs[2].vswap_chunk_index,
+        scene_refs[128].vswap_chunk_index,
+        scene_refs[130].vswap_chunk_index,
+        scene_refs[132].vswap_chunk_index,
+    };
+    unsigned char ref_sprite_pixels[5 * WL_MAP_PLANE_WORDS];
+    wl_indexed_surface ref_surfaces[5];
+    CHECK(wl_decode_vswap_sprite_surface_cache(vswap_path, &sprite_dirinfo,
+                                               ref_chunks, 5, 0, ref_sprite_pixels,
+                                               sizeof(ref_sprite_pixels),
+                                               ref_surfaces) == 0);
+    CHECK(fnv1a_bytes(ref_surfaces[0].pixels, ref_surfaces[0].pixel_count) == 0x38769770);
+    CHECK(fnv1a_bytes(ref_surfaces[1].pixels, ref_surfaces[1].pixel_count) == 0xbd6176ba);
+    CHECK(fnv1a_bytes(ref_surfaces[2].pixels, ref_surfaces[2].pixel_count) == 0x0fe580fa);
+    CHECK(fnv1a_bytes(ref_surfaces[3].pixels, ref_surfaces[3].pixel_count) == 0xa875d685);
+    CHECK(fnv1a_bytes(ref_surfaces[4].pixels, ref_surfaces[4].pixel_count) == 0x63f7eba2);
+    CHECK(fnv1a_bytes(ref_sprite_pixels, sizeof(ref_sprite_pixels)) == 0x4a8eb8db);
+    CHECK(wl_decode_vswap_sprite_surface_cache(vswap_path, &sprite_dirinfo,
+                                               ref_chunks, 5, 0, ref_sprite_pixels,
+                                               sizeof(ref_sprite_pixels) - 1,
+                                               ref_surfaces) == -1);
+    const uint16_t wall_chunk_ref[] = { 0 };
+    CHECK(wl_decode_vswap_sprite_surface_cache(vswap_path, &sprite_dirinfo,
+                                               wall_chunk_ref, 1, 0,
+                                               ref_sprite_pixels,
+                                               sizeof(ref_sprite_pixels),
+                                               ref_surfaces) == -1);
+    CHECK(wl_decode_vswap_sprite_surface_cache(vswap_path, &sprite_dirinfo,
+                                               ref_chunks, 0, 0, NULL, 0,
+                                               NULL) == 0);
     CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs, 132,
                                        &scene_ref_count) == -1);
 
@@ -1476,6 +1510,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/sprite-ref tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/sprite-cache tests passed for %s\n", dir);
     return 0;
 }
