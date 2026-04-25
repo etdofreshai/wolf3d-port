@@ -14,9 +14,40 @@ static uint32_t read_le32(const unsigned char *p) {
     return (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
 }
 
+static int wl_data_dir_has_wl6(const char *dir) {
+    char path[512];
+    if (!dir) {
+        return 0;
+    }
+    int n = snprintf(path, sizeof(path), "%s/%s", dir, "MAPHEAD.WL6");
+    if (n < 0 || (size_t)n >= sizeof(path)) {
+        return 0;
+    }
+    FILE *f = fopen(path, "rb");
+    if (!f) {
+        return 0;
+    }
+    fclose(f);
+    return 1;
+}
+
 const char *wl_default_data_dir(void) {
     const char *env = getenv("WOLF3D_DATA_DIR");
-    return (env && env[0]) ? env : "game-files/base";
+    if (env && env[0]) {
+        return env;
+    }
+
+    static const char *candidates[] = {
+        "game-files/base",
+        "../../game-files/base",
+        "../../../game-files/base",
+    };
+    for (size_t i = 0; i < sizeof(candidates) / sizeof(candidates[0]); ++i) {
+        if (wl_data_dir_has_wl6(candidates[i])) {
+            return candidates[i];
+        }
+    }
+    return candidates[0];
 }
 
 int wl_join_path(char *out, size_t out_size, const char *dir, const char *file_name) {
