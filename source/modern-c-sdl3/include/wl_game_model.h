@@ -90,6 +90,8 @@ typedef struct wl_actor_desc {
     wl_actor_kind kind;
     wl_actor_mode mode;
     wl_direction dir;
+    uint16_t scene_source_index;
+    uint8_t scene_source_override;
     int ambush;
     int shootable;
     int counts_for_kill_total;

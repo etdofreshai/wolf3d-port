@@ -592,6 +592,23 @@ int wl_build_actor_death_scene_ref(const wl_actor_combat_state *actor,
     return 0;
 }
 
+int wl_apply_actor_death_final_frame(wl_game_model *model,
+                                     uint16_t model_index,
+                                     const wl_actor_death_state *death) {
+    if (!model || !death || model_index >= model->actor_count ||
+        !death->finished || death->stage >= death->stage_count ||
+        death->sprite_source_index == UINT16_MAX) {
+        return -1;
+    }
+
+    wl_actor_desc *actor = &model->actors[model_index];
+    actor->mode = WL_ACTOR_INERT;
+    actor->shootable = 0;
+    actor->scene_source_index = death->sprite_source_index;
+    actor->scene_source_override = 1;
+    return 0;
+}
+
 int wl_try_actor_shoot_player(wl_player_gameplay_state *state,
                               const wl_actor_desc *actor,
                               const wl_player_motion_state *player,

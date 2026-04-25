@@ -308,3 +308,8 @@ The full live combat frame transition now emits renderer-facing death metadata. 
 ## Cycle update: full combat death-ref scene rendering
 
 Full live combat output now feeds the live scene renderer directly for death frames. The test kills a guard with `wl_step_live_full_combat_tick`, consumes the returned `actor_death_ref`, decodes its local VSWAP sprite surface, and renders it through `wl_render_runtime_door_camera_scene_view`. The hash matches the standalone death-state render (`0x2e8b4819`), proving the frame result can drive presentation without an intermediate hand-built ref.
+
+
+## Cycle update: actor death final-frame refs
+
+Runtime actor refs now have a small death-finalization seam. A finished `wl_actor_death_state` can be applied to a model actor slot, marking it inert/non-shootable and replacing the source sprite emitted by `wl_collect_scene_sprite_refs` while preserving the actor model index and world position. The headless guard test verifies source `50` becomes final source `95` / chunk `201`.

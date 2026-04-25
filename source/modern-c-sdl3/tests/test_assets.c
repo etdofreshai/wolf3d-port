@@ -331,6 +331,43 @@ static int check_gameplay_events(void) {
     CHECK(death_ref.vswap_chunk_index == 201);
     CHECK(death_ref.world_x == ((uint32_t)actor_state.tile_x << 16) + 0x8000u);
     CHECK(death_ref.world_y == ((uint32_t)actor_state.tile_y << 16) + 0x8000u);
+    wl_game_model final_frame_model;
+    memset(&final_frame_model, 0, sizeof(final_frame_model));
+    final_frame_model.actor_count = 1;
+    final_frame_model.actors[0].kind = WL_ACTOR_GUARD;
+    final_frame_model.actors[0].mode = WL_ACTOR_STAND;
+    final_frame_model.actors[0].shootable = 1;
+    final_frame_model.actors[0].tile_x = actor_state.tile_x;
+    final_frame_model.actors[0].tile_y = actor_state.tile_y;
+    wl_scene_sprite_ref final_frame_refs[1];
+    size_t final_frame_ref_count = 0;
+    CHECK(wl_collect_scene_sprite_refs(&final_frame_model, 106,
+                                       final_frame_refs, 1,
+                                       &final_frame_ref_count) == 0);
+    CHECK(final_frame_ref_count == 1);
+    CHECK(final_frame_refs[0].source_index == 50);
+    CHECK(wl_apply_actor_death_final_frame(&final_frame_model, 0,
+                                           &death_state) == 0);
+    CHECK(final_frame_model.actors[0].mode == WL_ACTOR_INERT);
+    CHECK(final_frame_model.actors[0].shootable == 0);
+    CHECK(final_frame_model.actors[0].scene_source_override == 1);
+    CHECK(wl_collect_scene_sprite_refs(&final_frame_model, 106,
+                                       final_frame_refs, 1,
+                                       &final_frame_ref_count) == 0);
+    CHECK(final_frame_ref_count == 1);
+    CHECK(final_frame_refs[0].kind == WL_SCENE_SPRITE_ACTOR);
+    CHECK(final_frame_refs[0].model_index == 0);
+    CHECK(final_frame_refs[0].source_index == death_state.sprite_source_index);
+    CHECK(final_frame_refs[0].source_index == 95);
+    CHECK(final_frame_refs[0].vswap_chunk_index == 201);
+    CHECK(final_frame_refs[0].world_x == death_ref.world_x);
+    CHECK(final_frame_refs[0].world_y == death_ref.world_y);
+    death_state.finished = 0;
+    CHECK(wl_apply_actor_death_final_frame(&final_frame_model, 0,
+                                           &death_state) == -1);
+    death_state.finished = 1;
+    CHECK(wl_apply_actor_death_final_frame(&final_frame_model, 1,
+                                           &death_state) == -1);
     wl_game_model drop_model;
     memset(&drop_model, 0, sizeof(drop_model));
     size_t drop_static_index = 999;
@@ -3882,6 +3919,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-full-combat-death-scene tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-actor-death-final-frame tests passed for %s\n", dir);
     return 0;
 }

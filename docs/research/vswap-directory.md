@@ -257,3 +257,8 @@ Live full-combat results now carry death-frame VSWAP metadata directly. The same
 ## Cycle update: full combat death-ref scene rendering
 
 The VSWAP cache path now consumes death refs emitted directly by full live combat. A same-frame guard kill returns source sprite `91` / chunk `197`; the test decodes that chunk locally and renders it with stable scene hash `0x2e8b4819`, committing only metadata and hashes.
+
+
+## Cycle update: actor death final-frame refs
+
+The runtime actor-ref path can now carry final death-frame VSWAP metadata. Applying a finished guard death state to an actor slot causes `wl_collect_scene_sprite_refs` to emit source sprite `95` / chunk `201` for that same model index, without storing decoded sprite bytes.

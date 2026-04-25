@@ -269,3 +269,8 @@ Death-frame presentation metadata is now part of full live combat output. A same
 ## Cycle update: full combat death-ref scene rendering
 
 Full live combat death refs now reach indexed scene composition before SDL3. The returned death sprite ref is decoded from local VSWAP data and rendered with the door-aware scene renderer, producing hash `0x2e8b4819` and keeping presentation verification headless.
+
+
+## Cycle update: actor death final-frame refs
+
+Actor death progression now has a persistent renderer-facing final-frame bridge. Once death state finishes, the runtime actor scene ref can be overridden to the final death sprite, so future SDL3 presentation can continue drawing the corpse from normal scene-ref collection instead of a one-off combat result.

@@ -471,6 +471,9 @@ static uint16_t actor_to_sprite_index(const wl_actor_desc *actor) {
     if (!actor) {
         return UINT16_MAX;
     }
+    if (actor->scene_source_override) {
+        return actor->scene_source_index;
+    }
     switch (actor->kind) {
     case WL_ACTOR_GUARD:
         return actor->mode == WL_ACTOR_PATROL ? 58 : 50; /* SPR_GRD_W1_1 / SPR_GRD_S_1 */
