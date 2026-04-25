@@ -5782,6 +5782,7 @@ static int check_audio_wl6(const char *dir) {
     wl_imf_music_command imf_command;
     wl_imf_playback_window imf_window;
     wl_imf_playback_position imf_position;
+    wl_imf_playback_cursor imf_cursor;
 
     CHECK(wl_join_path(audiohed_path, sizeof(audiohed_path), dir, "AUDIOHED.WL6") == 0);
     CHECK(wl_join_path(audiot_path, sizeof(audiot_path), dir, "AUDIOT.WL6") == 0);
@@ -5967,6 +5968,35 @@ static int check_audio_wl6(const char *dir) {
     CHECK(wl_describe_imf_playback_position(chunk_buf, chunk_bytes, imf_meta.total_delay, &imf_position) == 0);
     CHECK(imf_position.command_index == 1864);
     CHECK(imf_position.completed == 1);
+    CHECK(wl_advance_imf_playback_cursor(chunk_buf, chunk_bytes, 0, 0, 188, &imf_cursor) == 0);
+    CHECK(imf_cursor.command_index == 0);
+    CHECK(imf_cursor.command_delay == 189);
+    CHECK(imf_cursor.delay_elapsed == 188);
+    CHECK(imf_cursor.delay_remaining == 1);
+    CHECK(imf_cursor.commands_advanced == 0);
+    CHECK(imf_cursor.completed == 0);
+    CHECK(wl_advance_imf_playback_cursor(chunk_buf, chunk_bytes, 0, 188, 1, &imf_cursor) == 0);
+    CHECK(imf_cursor.command_index == 1);
+    CHECK(imf_cursor.command_delay == 8);
+    CHECK(imf_cursor.delay_elapsed == 0);
+    CHECK(imf_cursor.delay_remaining == 8);
+    CHECK(imf_cursor.ticks_consumed == 1);
+    CHECK(imf_cursor.commands_advanced == 1);
+    CHECK(wl_advance_imf_playback_cursor(chunk_buf, chunk_bytes, 1, 7, 20289, &imf_cursor) == 0);
+    CHECK(imf_cursor.command_index == 3);
+    CHECK(imf_cursor.delay_elapsed == 0);
+    CHECK(imf_cursor.commands_advanced == 2);
+    CHECK(imf_cursor.completed == 0);
+    CHECK(wl_advance_imf_playback_cursor(chunk_buf, chunk_bytes, 1863, 0, 1, &imf_cursor) == 0);
+    CHECK(imf_cursor.command_index == 1864);
+    CHECK(imf_cursor.commands_advanced == 1);
+    CHECK(imf_cursor.completed == 1);
+    CHECK(wl_advance_imf_playback_cursor(chunk_buf, chunk_bytes, 1864, 0, 99, &imf_cursor) == 0);
+    CHECK(imf_cursor.command_index == 1864);
+    CHECK(imf_cursor.ticks_consumed == 0);
+    CHECK(imf_cursor.completed == 1);
+    CHECK(wl_advance_imf_playback_cursor(chunk_buf, chunk_bytes, 0, 190, 1, &imf_cursor) == -1);
+    CHECK(wl_advance_imf_playback_cursor(chunk_buf, chunk_bytes, 1864, 1, 1, &imf_cursor) == -1);
 
     /* Boundary: last chunk */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 287, chunk_buf, sizeof(chunk_buf),

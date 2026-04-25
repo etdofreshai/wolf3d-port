@@ -2514,3 +2514,76 @@ int wl_describe_imf_playback_position(const unsigned char *chunk, size_t chunk_s
     out->completed = 1u;
     return 0;
 }
+
+int wl_advance_imf_playback_cursor(const unsigned char *chunk, size_t chunk_size,
+                                   size_t start_command, uint16_t start_delay_elapsed,
+                                   uint32_t tick_delta,
+                                   wl_imf_playback_cursor *out) {
+    uint32_t declared_bytes;
+    size_t command_count;
+    uint32_t remaining = tick_delta;
+    size_t index = start_command;
+    if (!chunk || !out || chunk_size < sizeof(uint32_t)) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    declared_bytes = read_le32(chunk);
+    if ((declared_bytes % 4u) != 0u || (size_t)declared_bytes > chunk_size - sizeof(uint32_t)) {
+        return -1;
+    }
+    command_count = (size_t)declared_bytes / 4u;
+    if (start_command > command_count) {
+        return -1;
+    }
+    if (start_command == command_count) {
+        if (start_delay_elapsed != 0u) {
+            return -1;
+        }
+        out->command_index = command_count;
+        out->completed = 1u;
+        return 0;
+    }
+
+    while (index < command_count) {
+        wl_imf_music_command command;
+        uint32_t elapsed = (index == start_command) ? (uint32_t)start_delay_elapsed : 0u;
+        uint32_t available;
+        if (wl_get_imf_music_command(chunk, chunk_size, index, &command) != 0) {
+            return -1;
+        }
+        if (elapsed > command.delay) {
+            return -1;
+        }
+        available = (uint32_t)command.delay - elapsed;
+        if (remaining < available) {
+            out->command_index = index;
+            out->command_delay = command.delay;
+            out->delay_elapsed = (uint16_t)(elapsed + remaining);
+            out->delay_remaining = (uint16_t)(available - remaining);
+            out->ticks_consumed = tick_delta;
+            return 0;
+        }
+        remaining -= available;
+        out->ticks_consumed += available;
+        ++out->commands_advanced;
+        ++index;
+        if (remaining == 0u) {
+            break;
+        }
+    }
+
+    out->command_index = index;
+    if (index >= command_count) {
+        out->completed = 1u;
+        return 0;
+    }
+    {
+        wl_imf_music_command command;
+        if (wl_get_imf_music_command(chunk, chunk_size, index, &command) != 0) {
+            return -1;
+        }
+        out->command_delay = command.delay;
+        out->delay_remaining = command.delay;
+    }
+    return 0;
+}
