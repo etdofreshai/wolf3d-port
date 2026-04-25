@@ -1,0 +1,5 @@
+
+# Autopilot runtime logs/state
+logs/
+state/autopilot-supervisor.pid
+state/STOP_AUTOPILOT
