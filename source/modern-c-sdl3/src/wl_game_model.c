@@ -420,7 +420,14 @@ int wl_build_game_model(const uint16_t *wall_plane, const uint16_t *info_plane,
                     }
                     continue;
                 }
-                if (match == -1 || in_range(tile, 224, 227)) {
+                if (in_range(tile, 224, 227)) {
+                    if (add_actor(out, x, y, tile, WL_ACTOR_GHOST, WL_ACTOR_GHOST_MODE,
+                                  WL_DIR_EAST, 0, 1) != 0) {
+                        return -1;
+                    }
+                    continue;
+                }
+                if (match == -1) {
                     ++out->unknown_info_tiles;
                 }
             }
@@ -493,7 +500,18 @@ static uint16_t actor_to_sprite_index(const wl_actor_desc *actor) {
             return UINT16_MAX;
         }
     case WL_ACTOR_GHOST:
-        return UINT16_MAX;
+        switch (actor->source_tile) {
+        case 224:
+            return 288; /* SPR_BLINKY_W1 */
+        case 225:
+            return 292; /* SPR_CLYDE_W1 */
+        case 226:
+            return 290; /* SPR_PINKY_W1 */
+        case 227:
+            return 294; /* SPR_INKY_W1 */
+        default:
+            return UINT16_MAX;
+        }
     }
     return UINT16_MAX;
 }

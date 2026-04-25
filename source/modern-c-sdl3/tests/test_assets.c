@@ -382,15 +382,18 @@ static int check_wl6(const char *dir) {
         size_t dog_count;
         size_t mutant_count;
         size_t boss_count;
+        size_t ghost_count;
     } model_maps[] = {
         { 1, "Wolf1 Map2", 16, 61, WL_DIR_NORTH, 47, 344, 40, 40, 62, 4, 52,
-          384, 0xab87ed41, 29, 0, 5, 6, 0, 0 },
+          384, 0xab87ed41, 29, 0, 5, 6, 0, 0, 0 },
         { 10, "Wolf2 Map1", 7, 45, WL_DIR_EAST, 16, 173, 8, 8, 17, 4, 0,
-          181, 0x89b8f3c0, 0, 0, 0, 0, 8, 0 },
+          181, 0x89b8f3c0, 0, 0, 0, 0, 8, 0, 0 },
         { 18, "Wolf2 Boss", 31, 62, WL_DIR_NORTH, 2, 165, 3, 3, 1, 6, 0,
-          168, 0xb2dab28b, 0, 0, 0, 0, 2, 1 },
+          168, 0xb2dab28b, 0, 0, 0, 0, 2, 1, 0 },
         { 20, "Wolf3 Map1", 9, 17, WL_DIR_EAST, 8, 132, 9, 9, 41, 5, 22,
-          141, 0xc090c2df, 8, 1, 0, 0, 0, 0 },
+          141, 0xc090c2df, 8, 1, 0, 0, 0, 0, 0 },
+        { 29, "Wolf3 Secret", 33, 53, WL_DIR_WEST, 2, 110, 24, 24, 97, 0, 17,
+          134, 0xe03fdb45, 17, 2, 1, 0, 0, 0, 4 },
     };
     for (size_t i = 0; i < sizeof(model_maps) / sizeof(model_maps[0]); ++i) {
         wl_map_header extra_map;
@@ -426,6 +429,7 @@ static int check_wl6(const char *dir) {
         CHECK(actor_kind_counts[WL_ACTOR_DOG] == model_maps[i].dog_count);
         CHECK(actor_kind_counts[WL_ACTOR_MUTANT] == model_maps[i].mutant_count);
         CHECK(actor_kind_counts[WL_ACTOR_BOSS] == model_maps[i].boss_count);
+        CHECK(actor_kind_counts[WL_ACTOR_GHOST] == model_maps[i].ghost_count);
         CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs,
                                            sizeof(scene_refs) / sizeof(scene_refs[0]),
                                            &scene_ref_count) == 0);
@@ -1965,6 +1969,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/boss-map-scene tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/ghost-map-scene tests passed for %s\n", dir);
     return 0;
 }
