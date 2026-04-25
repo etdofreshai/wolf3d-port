@@ -3771,3 +3771,33 @@ Next likely move:
 - Start the autopilot only after ET explicitly says to start; skipped models will now be announced with usage details.
 
 Blockers: none for headless work.
+
+
+## Cycle 2026-04-25 08:36 CDT Lifecycle Updates
+
+Action taken:
+
+- Added startup Telegram updates for the supervisor, enabled by default with `--start-update` / `--no-start-update`.
+- Added graceful-stop Telegram updates, enabled by default with `--stop-update` / `--no-stop-update`.
+- The stop update reports loops run, elapsed supervisor runtime, model counts, and last commit after the current loop drains.
+- Updated supervisor docs with lifecycle update behavior.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_autopilot_supervisor.py
+scripts/wolf3d_autopilot_supervisor.py --help
+cd source/modern-c-sdl3 && make test
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Did not start the autopilot; `state/STOP_AUTOPILOT` remains present.
+
+Next likely move:
+
+- Remove `state/STOP_AUTOPILOT` and start the supervisor only after ET explicitly says to start.
+
+Blockers: none for headless work.

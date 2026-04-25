@@ -447,6 +447,51 @@ def send_usage_skip_update(args: argparse.Namespace, blocked: list[dict[str, Any
     log(f"usage skip update rc={cp.returncode}")
 
 
+def send_plain_update(args: argparse.Namespace, text: str, help_text: str, label: str) -> None:
+    log(f"sending {label}: {text.replace(chr(10), ' | ')}")
+    cp = run(
+        build_agent_command(
+            message="Send this exact Telegram update, with no extra title or commentary:\n" + text,
+            thinking=args.summary_thinking,
+            timeout=120,
+            model="runtime default",
+            deliver=True,
+            reply_channel=args.summary_channel,
+            reply_target=args.summary_target,
+            help_text=help_text,
+        ),
+        timeout=180,
+    )
+    log(f"{label} rc={cp.returncode}")
+
+
+def send_start_update(args: argparse.Namespace, models: list[str], help_text: str) -> None:
+    if not args.start_update:
+        return
+    text = (
+        "Starting Wolf3D autopilot.\n"
+        f"Models: {', '.join(models)}.\n"
+        f"Thinking: {args.thinking}; fast mode: {'on' if args.fast_mode else 'off'}.\n"
+        f"Usage guard: {'on' if args.usage_guard else 'off'}; push after cycle: {'on' if args.push_after_cycle else 'off'}."
+    )
+    send_plain_update(args, text, help_text, "start update")
+
+
+def send_stop_update(args: argparse.Namespace, stats: dict[str, Any], help_text: str) -> None:
+    if not args.stop_update:
+        return
+    model_counts = stats.get("modelCounts") or {}
+    model_text = ", ".join(f"{model} x{count}" for model, count in model_counts.items()) or "none"
+    elapsed = format_duration(time.time() - float(stats.get("startedAt", time.time())))
+    text = (
+        "Wolf3D autopilot stopped after current loop.\n"
+        f"Loops run: {stats.get('cycles', 0)}; elapsed: {elapsed}.\n"
+        f"Models run: {model_text}.\n"
+        f"Last commit: {git_current_head()}."
+    )
+    send_plain_update(args, text, help_text, "stop update")
+
+
 def select_available_model(args: argparse.Namespace, models: list[str], stop_ref: dict[str, bool], help_text: str) -> str | None:
     if not args.usage_guard:
         return select_model(models, args.usage_provider)
@@ -586,6 +631,8 @@ def main() -> int:
     ap.add_argument("--usage-min-allowed-percent", type=float, default=3.0, help="minimum allowed percentage early in a budget window")
     ap.add_argument("--usage-check-interval", type=int, default=1800, help="seconds between usage checks while paused")
     ap.add_argument("--summary-interval", type=int, default=0, help="optional periodic summary seconds while waiting for workers; 0 disables")
+    ap.add_argument("--start-update", action=argparse.BooleanOptionalAction, default=True, help="send a Telegram update when the supervisor starts")
+    ap.add_argument("--stop-update", action=argparse.BooleanOptionalAction, default=True, help="send a Telegram update when graceful stop exits after the current loop")
     ap.add_argument("--push-after-cycle", action=argparse.BooleanOptionalAction, default=True, help="push the current branch after each completed cycle before sending the completion summary")
     ap.add_argument("--completion-summary", action=argparse.BooleanOptionalAction, default=True, help="deliver a chat summary after each completed supervisor cycle")
     ap.add_argument("--summary-channel", default="telegram", help="OpenClaw delivery channel for summaries")
@@ -618,6 +665,8 @@ def main() -> int:
 
     try:
         cycle_count = 0
+        run_stats: dict[str, Any] = {"startedAt": time.time(), "cycles": 0, "modelCounts": {}}
+        send_start_update(args, models, help_text)
         cycle_log_index = next_cycle_index()
         while not stop_ref["stop"]:
             if STOP_FILE.exists():
@@ -625,6 +674,7 @@ def main() -> int:
                 break
             if STOP_AFTER_CYCLE_FILE.exists() and cycle_count > 0:
                 log(f"graceful stop file exists after completed cycle: {STOP_AFTER_CYCLE_FILE}; exiting")
+                send_stop_update(args, run_stats, help_text)
                 break
             if args.max_cycles and cycle_count >= args.max_cycles:
                 log(f"max cycles reached: {args.max_cycles}; exiting")
@@ -633,6 +683,8 @@ def main() -> int:
             if selected_model is None or stop_ref["stop"] or STOP_FILE.exists():
                 break
             cycle_count += 1
+            run_stats["cycles"] = cycle_count
+            run_stats["modelCounts"][selected_model] = run_stats["modelCounts"].get(selected_model, 0) + 1
             cycle_start = time.time()
             cycle_prompt = CYCLE_PROMPT_TEMPLATE.format(model_hint=selected_model)
             log(f"cycle {cycle_count}: starting OpenClaw agent turn thinking={args.thinking} model_hint={selected_model} fast_mode={args.fast_mode}")
@@ -671,6 +723,7 @@ def main() -> int:
                 send_summary(args.summary_channel, args.summary_target, thinking=args.summary_thinking, timeout=180, help_text=help_text)
             if STOP_AFTER_CYCLE_FILE.exists():
                 log(f"graceful stop requested; finished current cycle and will not start another: {STOP_AFTER_CYCLE_FILE}")
+                send_stop_update(args, run_stats, help_text)
                 break
             if not stop_ref["stop"] and not STOP_FILE.exists():
                 time.sleep(max(0, args.cycle_delay))

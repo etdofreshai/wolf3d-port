@@ -43,6 +43,8 @@ scripts/wolf3d_autopilot_supervisor.py --push-after-cycle
 scripts/wolf3d_autopilot_supervisor.py --no-push-after-cycle
 scripts/wolf3d_autopilot_supervisor.py --completion-summary
 scripts/wolf3d_autopilot_supervisor.py --no-completion-summary
+scripts/wolf3d_autopilot_supervisor.py --start-update
+scripts/wolf3d_autopilot_supervisor.py --stop-update
 scripts/wolf3d_autopilot_supervisor.py --summary-interval 300  # optional periodic summaries while waiting
 ```
 
@@ -54,6 +56,8 @@ Defaults are intentionally conservative:
 - model preference rotation: `openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1`
 - provider usage-window override: `zai:Monthly`, while other providers default to `Week`
 - extra short-window guard: `5h` must also be inside budget when the provider reports it
+- start update: on; sends Telegram a short debug line when the supervisor starts
+- graceful stop update: on; reports loops run, elapsed time, models used, and last commit
 - usage skip updates: on; report skipped models to Telegram with used vs allowed percentages
 - explicit model inclusion: `--include-models` (`--models` remains an alias)
 - optional model/provider exclusion after inclusion: `--exclude-models 'zai/glm-5.1'` or `--exclude-models 'zai'`
@@ -103,7 +107,7 @@ Immediate stop before another cycle starts:
 touch state/STOP_AUTOPILOT
 ```
 
-Graceful stop after the current loop finishes, including worker wait, push, and chat update:
+Graceful stop after the current loop finishes, including worker wait, push, completion update, and final stop update:
 
 ```bash
 touch state/STOP_AFTER_CURRENT_LOOP
@@ -139,7 +143,7 @@ scripts/wolf3d_autopilot_supervisor.py --no-push-after-cycle
 
 ## Chat updates
 
-The supervisor reports directly to the Telegram project chat using OpenClaw delivery after each completed cycle/work unit by default. Updates are intentionally short and should include model used, provider usage/window when available, elapsed time when available, commit/push status, verification, and terse work completed:
+The supervisor reports directly to the Telegram project chat using OpenClaw delivery when it starts, when models are skipped for usage, after each completed cycle/work unit, and after a graceful stop. Updates are intentionally short. Completion updates should include model used, provider usage/window when available, elapsed time when available, commit/push status, verification, and terse work completed:
 
 ```bash
 scripts/wolf3d_autopilot_supervisor.py --completion-summary --summary-channel telegram --summary-target 'telegram:-5268853419'
