@@ -45,3 +45,8 @@ This is intentionally tiny: it proves the repo-local SDL3 install can accept ren
 `tests/test_sdl3_present.c` now feeds actual local WL6 VSWAP data into the SDL3 presentation smoke path. It reads `VSWAP.WL6`, decodes wall page 0 to an indexed `wl_indexed_surface`, describes the frame through `wl_describe_present_frame`, expands it to RGBA via `wl_expand_indexed_surface_to_rgba`, and blits that frame to a hidden SDL3 window surface under the dummy video driver.
 
 The committed assertions remain metadata-only: wall indexed hash `0x8fe4d8ff` and RGBA hash `0x71d4b5b6`. No decoded proprietary pixels are committed.
+
+
+## SDL3 Wolf wall screenshot artifact
+
+The SDL3 present test now saves the headless wall-frame surface to ignored `source/modern-c-sdl3/build/wolf-wall-present.bmp` after blitting/updating the hidden dummy-driver window. The test asserts the artifact exists and is non-empty; decoded proprietary pixels remain generated-only under `build/` and are not committed.

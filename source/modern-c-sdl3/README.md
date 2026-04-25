@@ -415,3 +415,8 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 - `test_sdl3_present` expands a deterministic indexed frame to RGBA, blits it to a hidden SDL3 window surface, and updates it.
 
 `test_sdl3_present` now uses actual local WL6 `VSWAP.WL6` data: it decodes wall page 0, routes it through the existing present-frame descriptor and RGBA expansion seam, then blits it to a hidden SDL3 window surface under the dummy video driver. The test commits only hashes/metadata, not decoded game pixels.
+
+
+## SDL3 screenshot artifact smoke
+
+`make test-sdl3-present` now writes `build/wolf-wall-present.bmp` from the actual WL6 wall-frame present path under the SDL dummy video driver. The file is generated inside ignored `build/` for local inspection only; committed checks remain metadata/hash assertions.

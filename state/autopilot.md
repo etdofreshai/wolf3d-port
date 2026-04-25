@@ -5458,3 +5458,44 @@ Next likely move:
 - Save a headless SDL3 screenshot artifact from the Wolf wall present seam, or route a fuller rendered scene frame through the same SDL3 path.
 
 Blockers: none for repo-local headless SDL3 presentation work.
+
+
+
+## Cycle 2026-04-25 10:41 CDT SDL3 Screenshot Artifact
+
+Action taken:
+
+- Extended the SDL3 Wolf wall present smoke test to emit a headless screenshot artifact.
+- `test_sdl3_present` now saves the generated wall-frame surface to ignored `source/modern-c-sdl3/build/wolf-wall-present.bmp` after SDL dummy-driver blit/update.
+- Verified the artifact is created and non-empty (`16522` bytes locally) while keeping decoded proprietary pixels under ignored `build/` only.
+- Updated the SDL3 bootstrap research note, README, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test-sdl3-present
+make test-sdl3
+make test
+```
+
+Result:
+
+```text
+SDL3 Wolf wall screenshot smoke test passed
+SDL3 smoke test passed
+SDL3 Wolf wall screenshot smoke test passed
+asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Generated screenshot artifact remains ignored under `source/modern-c-sdl3/build/`.
+
+Next likely move:
+
+- Route a fuller rendered scene frame through the SDL3 screenshot seam, or add palette-shifted SDL3 screenshot coverage.
+
+Blockers: none for repo-local headless SDL3 presentation smoke work.

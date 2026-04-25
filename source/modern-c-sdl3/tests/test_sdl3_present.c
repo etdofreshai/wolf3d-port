@@ -15,6 +15,21 @@ static uint32_t fnv1a_bytes(const unsigned char *data, size_t size) {
     return h;
 }
 
+static long file_size(const char *path) {
+    FILE *f = fopen(path, "rb");
+    long size;
+    if (!f) {
+        return -1;
+    }
+    if (fseek(f, 0, SEEK_END) != 0) {
+        fclose(f);
+        return -1;
+    }
+    size = ftell(f);
+    fclose(f);
+    return size;
+}
+
 int main(void) {
     char vswap_path[512];
     wl_vswap_directory directory;
@@ -133,9 +148,24 @@ int main(void) {
         return 1;
     }
 
+    if (!SDL_SaveBMP(source, "build/wolf-wall-present.bmp")) {
+        fprintf(stderr, "SDL_SaveBMP failed: %s\n", SDL_GetError());
+        SDL_DestroySurface(source);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (file_size("build/wolf-wall-present.bmp") <= 0) {
+        fprintf(stderr, "unexpected screenshot artifact size\n");
+        SDL_DestroySurface(source);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+
     SDL_DestroySurface(source);
     SDL_DestroyWindow(window);
     SDL_Quit();
-    puts("SDL3 Wolf wall present smoke test passed");
+    puts("SDL3 Wolf wall screenshot smoke test passed");
     return 0;
 }
