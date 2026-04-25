@@ -84,7 +84,7 @@ The parser:
 - wall metadata for chunk `63`: colors `26..223`, `31` unique colors, row-major indexed hash `0x5b4d4c38`, sampled column hash `0x8a859220`, combined scaled-strip/viewport canvas hash `0x0b200118`; map-derived viewport hash `0x7ffb21c0`; cardinal/fixed-ray viewport hash `0xa4c9e6e1`, DDA mixed-ray viewport hash `0xae40b70c`, projected-ray viewport hash `0xd48f2f6d`, batched-view viewport hash `0x7209a9ed`, camera-ray viewport hash `0x7320f695`, tiny-view render hash `0xfad71929`
 - wall metadata for chunk `105`: colors `0..31`, `11` unique colors, row-major indexed hash `0x66874cf5`
 - sprite metadata for chunk `106`: `64x64`, left/right pixels `4..58`, `55` visible columns, first/last column offsets `800/1298`
-- sprite post metadata for chunk `106`: `66` posts, `55` column terminators, `1..2` posts/column, span range `2..40`, source-offset range `108..782`, total post span `1372`, transparent indexed-surface hash `0x918ed728`, non-transparent pixels `614`; scaled-sprite viewport hashes `0x3f753ac8`, occluded `0xaa7c2838`, clipped `0x6ff0f5c8`; world-projected sprite descriptors `(view_x,height,distance)=(39,42,0x51700)/(46,30,0x71700)`, sorted render hash `0x819b1035`, combined wall+sprite scene hash `0x1e4a8264`; sprite-ref surface-cache hashes `0x38769770`, `0xbd6176ba`, `0x0fe580fa`, `0xa875d685`, `0x63f7eba2`, combined cache hash `0x4a8eb8db`; broader runtime-ref scene hash `0xb92e568b`
+- sprite post metadata for chunk `106`: `66` posts, `55` column terminators, `1..2` posts/column, span range `2..40`, source-offset range `108..782`, total post span `1372`, transparent indexed-surface hash `0x918ed728`, non-transparent pixels `614`; scaled-sprite viewport hashes `0x3f753ac8`, occluded `0xaa7c2838`, clipped `0x6ff0f5c8`; world-projected sprite descriptors `(view_x,height,distance)=(39,42,0x51700)/(46,30,0x71700)`, sorted render hash `0x819b1035`, combined wall+sprite scene hash `0x1e4a8264`; sprite-ref surface-cache hashes `0x38769770`, `0xbd6176ba`, `0x0fe580fa`, `0xa875d685`, `0x63f7eba2`, combined cache hash `0x4a8eb8db`; broader runtime-ref scene hashes `0xb92e568b` and `0x4668f191`
 - sprite post metadata for chunk `107`: `85` posts, `62` column terminators, `1..3` posts/column, max span `36`, source-offset range `113..904`, total post span `1586`, transparent indexed-surface hash `0x88a2d1b4`, non-transparent pixels `384`
 
 ## Optional SOD committed assertions
@@ -126,7 +126,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/broad-scene tests passed for game-files/base
+asset/decompression/semantics/model/vswap/camera-scene tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
@@ -147,8 +147,8 @@ The headless scene test now selects visible WL6 map-0 runtime sprite refs `113` 
 
 ## Cycle update: broader runtime-ref scene coverage
 
-Expanded the runtime-ref scene smoke test from two visible refs to five WL6 map-0 refs (`110`, `111`, `113`, `114`, `115`). The test decodes their VSWAP chunks through the sprite surface cache, verifies per-surface hashes plus combined cache hash `0x61a879ca`, feeds their runtime world coordinates/source ids into `wl_render_camera_scene_view`, and asserts sorted projected source order `21,11,26,16,16` with final indexed scene hash `0xb92e568b`. This gives broader deterministic coverage for overlapping static refs, duplicate chunks, clipping, and far-to-near composition without storing proprietary sprite bytes.
+Expanded the runtime-ref scene smoke test from two visible refs to five WL6 map-0 refs (`110`, `111`, `113`, `114`, `115`). The test decodes their VSWAP chunks through the sprite surface cache, verifies per-surface hashes plus combined cache hash `0x61a879ca`, feeds their runtime world coordinates/source ids into `wl_render_camera_scene_view`, and asserts sorted projected source order `21,11,26,16,16` with final indexed scene hash `0xb92e568b`. The same cached runtime refs are also rendered through a northeast camera vector, asserting shifted view-x/height/distance descriptors and final scene hash `0x4668f191`. This gives broader deterministic coverage for overlapping static refs, duplicate chunks, clipping, and far-to-near composition without storing proprietary sprite bytes.
 
 ## Next step
 
-Add more map/camera runtime-scene coverage, connect renderer seams to future live gameplay events, or add a small SDL3 presentation boundary. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.
+Add more map runtime-scene coverage, connect renderer seams to future live gameplay events, or add a small SDL3 presentation boundary. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.
