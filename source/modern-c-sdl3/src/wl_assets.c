@@ -418,6 +418,83 @@ int wl_build_palette_shift(const unsigned char *base_palette,
     return 0;
 }
 
+
+int wl_reset_palette_shift_state(wl_palette_shift_state *state) {
+    if (!state) {
+        return -1;
+    }
+    memset(state, 0, sizeof(*state));
+    return 0;
+}
+
+int wl_start_bonus_palette_shift(wl_palette_shift_state *state) {
+    if (!state) {
+        return -1;
+    }
+    state->bonus_count = WL_NUM_WHITE_SHIFTS * WL_WHITE_SHIFT_TICS;
+    return 0;
+}
+
+int wl_start_damage_palette_shift(wl_palette_shift_state *state,
+                                  int32_t damage) {
+    if (!state || damage < 0) {
+        return -1;
+    }
+    state->damage_count += damage;
+    return 0;
+}
+
+int wl_update_palette_shift_state(wl_palette_shift_state *state, int32_t tics,
+                                  wl_palette_shift_result *out) {
+    if (!state || !out || tics < 0) {
+        return -1;
+    }
+
+    int white = 0;
+    if (state->bonus_count > 0) {
+        white = state->bonus_count / WL_WHITE_SHIFT_TICS + 1;
+        if (white > WL_NUM_WHITE_SHIFTS) {
+            white = WL_NUM_WHITE_SHIFTS;
+        }
+        state->bonus_count -= tics;
+        if (state->bonus_count < 0) {
+            state->bonus_count = 0;
+        }
+    }
+
+    int red = 0;
+    if (state->damage_count > 0) {
+        red = state->damage_count / 10 + 1;
+        if (red > WL_NUM_RED_SHIFTS) {
+            red = WL_NUM_RED_SHIFTS;
+        }
+        state->damage_count -= tics;
+        if (state->damage_count < 0) {
+            state->damage_count = 0;
+        }
+    }
+
+    memset(out, 0, sizeof(*out));
+    if (red > 0) {
+        out->kind = WL_PALETTE_SHIFT_RED;
+        out->shift_index = (uint8_t)(red - 1);
+        state->palette_shifted = 1;
+    } else if (white > 0) {
+        out->kind = WL_PALETTE_SHIFT_WHITE;
+        out->shift_index = (uint8_t)(white - 1);
+        state->palette_shifted = 1;
+    } else if (state->palette_shifted) {
+        out->kind = WL_PALETTE_SHIFT_BASE;
+        state->palette_shifted = 0;
+    } else {
+        out->kind = WL_PALETTE_SHIFT_NONE;
+    }
+    out->damage_count = state->damage_count;
+    out->bonus_count = state->bonus_count;
+    out->palette_shifted = state->palette_shifted;
+    return 0;
+}
+
 int wl_describe_indexed_texture_upload(const wl_indexed_surface *surface,
                                        const unsigned char *palette,
                                        size_t palette_size,

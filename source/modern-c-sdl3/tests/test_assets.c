@@ -476,6 +476,44 @@ static int check_wl6(const char *dir) {
     CHECK(wl_build_palette_shift(upload_palette, sizeof(upload_palette), 6,
                                  64, 0, 0, 9, 8, fade_palette,
                                  sizeof(fade_palette)) == -1);
+    wl_palette_shift_state shift_state;
+    wl_palette_shift_result shift_result;
+    CHECK(wl_reset_palette_shift_state(&shift_state) == 0);
+    CHECK(wl_update_palette_shift_state(&shift_state, 1, &shift_result) == 0);
+    CHECK(shift_result.kind == WL_PALETTE_SHIFT_NONE);
+    CHECK(shift_result.shift_index == 0);
+    CHECK(shift_result.damage_count == 0);
+    CHECK(shift_result.bonus_count == 0);
+    CHECK(shift_result.palette_shifted == 0);
+    CHECK(wl_start_bonus_palette_shift(&shift_state) == 0);
+    CHECK(wl_update_palette_shift_state(&shift_state, 5, &shift_result) == 0);
+    CHECK(shift_result.kind == WL_PALETTE_SHIFT_WHITE);
+    CHECK(shift_result.shift_index == 2);
+    CHECK(shift_result.damage_count == 0);
+    CHECK(shift_result.bonus_count == 13);
+    CHECK(shift_result.palette_shifted == 1);
+    CHECK(wl_start_damage_palette_shift(&shift_state, 25) == 0);
+    CHECK(wl_update_palette_shift_state(&shift_state, 4, &shift_result) == 0);
+    CHECK(shift_result.kind == WL_PALETTE_SHIFT_RED);
+    CHECK(shift_result.shift_index == 2);
+    CHECK(shift_result.damage_count == 21);
+    CHECK(shift_result.bonus_count == 9);
+    CHECK(shift_result.palette_shifted == 1);
+    CHECK(wl_update_palette_shift_state(&shift_state, 30, &shift_result) == 0);
+    CHECK(shift_result.kind == WL_PALETTE_SHIFT_RED);
+    CHECK(shift_result.shift_index == 2);
+    CHECK(shift_result.damage_count == 0);
+    CHECK(shift_result.bonus_count == 0);
+    CHECK(shift_result.palette_shifted == 1);
+    CHECK(wl_update_palette_shift_state(&shift_state, 1, &shift_result) == 0);
+    CHECK(shift_result.kind == WL_PALETTE_SHIFT_BASE);
+    CHECK(shift_result.shift_index == 0);
+    CHECK(shift_result.palette_shifted == 0);
+    CHECK(wl_update_palette_shift_state(&shift_state, 1, &shift_result) == 0);
+    CHECK(shift_result.kind == WL_PALETTE_SHIFT_NONE);
+    CHECK(wl_start_damage_palette_shift(&shift_state, -1) == -1);
+    CHECK(wl_update_palette_shift_state(&shift_state, -1, &shift_result) == -1);
+    CHECK(wl_start_bonus_palette_shift(NULL) == -1);
     CHECK(wl_read_graphics_header(vgahead_path, &gh) == 0);
     CHECK(gh.chunk_count == 149);
     CHECK(gh.file_size == 450);
@@ -1659,6 +1697,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/palette-shift tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/palette-state tests passed for %s\n", dir);
     return 0;
 }

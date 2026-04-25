@@ -1,7 +1,7 @@
 # Graphics Huffman Notes
 
 Research/implementation cycle: 2026-04-24 22:53-23:15 CDT  
-Scope: `VGAHEAD`/`VGADICT`/`VGAGRAPH` header parsing, Huffman smoke decoding, `STRUCTPIC` picture-table metadata, indexed-surface conversion, texture-upload metadata, and palette/fade/shift metadata for WL6 and optional SOD, without committing proprietary graphics bytes.
+Scope: `VGAHEAD`/`VGADICT`/`VGAGRAPH` header parsing, Huffman smoke decoding, `STRUCTPIC` picture-table metadata, indexed-surface conversion, texture-upload metadata, palette/fade/shift metadata, and palette-shift state for WL6 and optional SOD, without committing proprietary graphics bytes.
 
 ## Original reference
 
@@ -59,6 +59,7 @@ Added graphics APIs/types to `wl_assets`:
 - `wl_expand_indexed_surface_to_rgba(...)`
 - `wl_interpolate_palette_range(...)`
 - `wl_build_palette_shift(...)`
+- `wl_palette_shift_state` / `wl_update_palette_shift_state(...)`
 
 The implementation:
 
@@ -73,6 +74,7 @@ The implementation:
 - describes indexed-8 + RGB-palette texture upload metadata and expands indexed surfaces to RGBA8888 using 6-bit VGA DAC or 8-bit palette components;
 - interpolates palette ranges with the original integer fade math so fade-in/fade-out and palette-flash effects can be tested before SDL presentation;
 - builds original-style full-palette red/white shift tables for damage and bonus flashes without touching VGA hardware;
+- advances damage/bonus palette-shift counters with the original red-over-white priority and base-palette reset selection;
 - records only sizes/counts/hashes/dimensions in tests and docs, not graphics bytes.
 
 ## WL6 committed assertions
@@ -148,6 +150,10 @@ Added `wl_interpolate_palette_range`, a pure C helper that mirrors the original 
 
 Added `wl_build_palette_shift`, a display-free helper for the original gameplay flash tables from `WL_PLAY.C::InitRedShifts`: damage palettes interpolate toward `(64,0,0)` with `REDSTEPS=8`, and bonus palettes interpolate toward `(64,62,0)` with `WHITESTEPS=20`. The headless tests assert the strongest representative damage/bonus hashes (`0xb8462fc5` and `0x3c8da1ed`), corresponding RGBA sample hashes (`0xfa0a0cd7` and `0x93adda7f`), endpoint component values, and invalid target/component/step validation. This gives future gameplay and SDL presentation code deterministic palette-flash data before any real palette upload.
 
+## Cycle update: palette-shift state
+
+Added a small `wl_palette_shift_state` seam with reset/start/update helpers mirroring `WL_PLAY.C::StartBonusFlash`, `StartDamageFlash`, and `UpdatePaletteShifts`. The update helper computes the palette selection before decrementing counters, clamps red to six shifts and white to three shifts, prioritizes red over white when both are active, requests a base-palette reset after the last shifted frame, and then returns no-op updates when already clear. Tests cover the no-op path, bonus-only white selection, overlapping damage+bonus red priority, counter clamping to zero, base reset, and invalid negative/null inputs.
+
 ## Next step
 
-Add a minimal SDL3 presentation seam using the upload/palette metadata, or connect palette-shift state to gameplay counters. Keep headless tests comparing metadata/hashes before requiring a display.
+Add a minimal SDL3 presentation seam using the upload/palette metadata, or connect this palette-shift state to future live gameplay/player damage and bonus events. Keep headless tests comparing metadata/hashes before requiring a display.

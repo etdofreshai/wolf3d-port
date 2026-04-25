@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer, and palette fade plus damage/bonus shift metadata are now covered headlessly. Next phase should connect palette-shift state to gameplay counters, broaden runtime-scene coverage, or add a small SDL3 presentation boundary when SDL3 is available.
+Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer, and palette fade/shift generation plus palette-shift state are now covered headlessly. Next phase should connect this to live gameplay events, broaden runtime-scene coverage, or add a small SDL3 presentation boundary when SDL3 is available.
 
 ## Latest Verified Milestone
 
@@ -20,7 +20,7 @@ Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+spr
 - `docs/research/map-semantics.md` records original source references and WL6 map 0 semantic-count assertions.
 - `docs/research/runtime-map-model.md` records the pure C runtime model seam, door-area connectivity descriptors, renderer-facing scene sprite references, descriptor assertions, and verification output.
 - `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall-page metadata/surface/column-sampler/scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view assertions, sprite shape metadata assertions, sprite post-command metadata/indexed-surface/surface-cache/scaled-render/world-projection/scene-render/runtime-ref-scene assertions, range/count assertions, and verification output.
-- `docs/research/graphics-huffman.md` records VGAHEAD/VGADICT/VGAGRAPH parsing, pure C Huffman expansion, STRUCTPIC picture-table metadata, planar-to-indexed surface conversion, renderer-facing indexed-surface descriptors, upload metadata/RGBA expansion, palette fade/shift metadata, SDL-free indexed blitting, WL6/SOD graphics chunk smoke assertions, and verification output.
+- `docs/research/graphics-huffman.md` records VGAHEAD/VGADICT/VGAGRAPH parsing, pure C Huffman expansion, STRUCTPIC picture-table metadata, planar-to-indexed surface conversion, renderer-facing indexed-surface descriptors, upload metadata/RGBA expansion, palette fade/shift metadata and state, SDL-free indexed blitting, WL6/SOD graphics chunk smoke assertions, and verification output.
 
 ## Verified Findings
 
@@ -113,19 +113,20 @@ Use tests as the bridge from the original code to modern C:
 35. Feed cached ref surfaces into scene renderer. **Done for representative visible WL6 refs.**
 36. Palette-effect interpolation metadata. **Done for synthetic 6-bit VGA fade ranges.**
 37. Damage/bonus palette shift metadata. **Done for original-style red/white flash targets.**
-38. Palette-shift gameplay state, broader runtime-scene coverage, or SDL3 presentation seam.
+38. Palette-shift gameplay state. **Done for original-style damage/bonus counters and red-over-white priority.**
+39. Live gameplay events, broader runtime-scene coverage, or SDL3 presentation seam.
 
 ## Next Likely Move
 
-Connect palette shifts to gameplay flash state, broaden runtime-ref scene coverage, or add a small SDL3 presentation seam.
+Connect palette shift state to future live gameplay events, broaden runtime-ref scene coverage, or add a small SDL3 presentation seam.
 
 Recommended next commit:
 
 - broaden runtime-ref scene coverage beyond the first visible refs;
 - or add a small SDL3 presentation seam using `wl_texture_upload_descriptor`;
-- or connect palette effects to game flash counters before presentation.
+- or connect palette effects to future live player damage/bonus events before presentation.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, scaled-sprite viewport hashes, world-sprite projection/sorted-render hashes, combined scene render hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA/palette-fade/shift hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, door-area connectivity descriptors, and runtime scene sprite-reference descriptors, and VSWAP sprite surface-cache hashes.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, scaled-sprite viewport hashes, world-sprite projection/sorted-render hashes, combined scene render hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA/palette-fade/shift hashes and shift-state transitions, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, door-area connectivity descriptors, and runtime scene sprite-reference descriptors, and VSWAP sprite surface-cache hashes.
 
 ## Blockers
 
@@ -1510,5 +1511,43 @@ Safety/legal checks:
 Next likely move:
 
 - Connect palette-shift state to damage/bonus counters, broaden runtime-ref scene coverage, or add a small SDL3 presentation seam once SDL3 is available.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+## Cycle 2026-04-25 00:19 CDT
+
+Action taken:
+
+- Added `wl_palette_shift_state`, `wl_palette_shift_result`, and reset/start/update helpers for the original palette flash counter behavior.
+- Mirrored `WL_PLAY.C::StartBonusFlash`, `StartDamageFlash`, and `UpdatePaletteShifts`: bonus starts at `NUMWHITESHIFTS * WHITETICS`, damage accumulates, update selects white/red before decrementing counters, clamps counts to zero, prioritizes red over white, and emits a base-palette reset after shifted frames clear.
+- Extended headless tests with no-op, bonus-only, overlapping damage+bonus, base-reset, and invalid-input state transitions.
+- Updated `docs/research/graphics-huffman.md`, `source/modern-c-sdl3/README.md`, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/palette-state tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/state assertions are committed.
+
+Next likely move:
+
+- Connect this palette state to future live gameplay/player events, broaden runtime-ref scene coverage, or add a small SDL3 presentation seam once SDL3 is available.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

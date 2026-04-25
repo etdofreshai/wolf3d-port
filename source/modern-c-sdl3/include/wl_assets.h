@@ -119,6 +119,35 @@ typedef struct wl_texture_upload_descriptor {
     uint8_t palette_component_bits;
 } wl_texture_upload_descriptor;
 
+enum {
+    WL_NUM_RED_SHIFTS = 6,
+    WL_RED_SHIFT_STEPS = 8,
+    WL_NUM_WHITE_SHIFTS = 3,
+    WL_WHITE_SHIFT_STEPS = 20,
+    WL_WHITE_SHIFT_TICS = 6,
+};
+
+typedef enum wl_palette_shift_kind {
+    WL_PALETTE_SHIFT_NONE = 0,
+    WL_PALETTE_SHIFT_BASE = 1,
+    WL_PALETTE_SHIFT_RED = 2,
+    WL_PALETTE_SHIFT_WHITE = 3,
+} wl_palette_shift_kind;
+
+typedef struct wl_palette_shift_state {
+    int32_t damage_count;
+    int32_t bonus_count;
+    uint8_t palette_shifted;
+} wl_palette_shift_state;
+
+typedef struct wl_palette_shift_result {
+    wl_palette_shift_kind kind;
+    uint8_t shift_index;
+    int32_t damage_count;
+    int32_t bonus_count;
+    uint8_t palette_shifted;
+} wl_palette_shift_result;
+
 int wl_interpolate_palette_range(const unsigned char *from_palette,
                                  const unsigned char *to_palette,
                                  size_t palette_size,
@@ -137,6 +166,13 @@ int wl_build_palette_shift(const unsigned char *base_palette,
                            uint16_t step, uint16_t steps,
                            unsigned char *out_palette,
                            size_t out_palette_size);
+
+int wl_reset_palette_shift_state(wl_palette_shift_state *state);
+int wl_start_bonus_palette_shift(wl_palette_shift_state *state);
+int wl_start_damage_palette_shift(wl_palette_shift_state *state,
+                                  int32_t damage);
+int wl_update_palette_shift_state(wl_palette_shift_state *state, int32_t tics,
+                                  wl_palette_shift_result *out);
 
 typedef struct wl_wall_page_metadata {
     uint16_t width;
