@@ -266,6 +266,31 @@ static int check_wl6(const char *dir) {
     CHECK(vs.first_offsets[2] == 12288);
     CHECK(vs.first_offsets[3] == 16384);
     CHECK(vs.first_offsets[4] == 20480);
+
+    wl_vswap_directory dirinfo;
+    CHECK(wl_read_vswap_directory(vswap_path, &dirinfo) == 0);
+    CHECK(dirinfo.header.chunks_in_file == 663);
+    CHECK(dirinfo.data_start == 3984);
+    CHECK(dirinfo.max_chunk_end == 1544376);
+    CHECK(dirinfo.wall_count == 106);
+    CHECK(dirinfo.sprite_count == 436);
+    CHECK(dirinfo.sound_count == 121);
+    CHECK(dirinfo.sparse_count == 0);
+    CHECK(dirinfo.chunks[0].offset == 4096);
+    CHECK(dirinfo.chunks[0].length == 4096);
+    CHECK(dirinfo.chunks[0].kind == WL_VSWAP_CHUNK_WALL);
+    CHECK(dirinfo.chunks[105].offset == 434176);
+    CHECK(dirinfo.chunks[105].length == 4096);
+    CHECK(dirinfo.chunks[106].offset == 438272);
+    CHECK(dirinfo.chunks[106].length == 1306);
+    CHECK(dirinfo.chunks[106].kind == WL_VSWAP_CHUNK_SPRITE);
+    CHECK(dirinfo.chunks[541].offset == 1139200);
+    CHECK(dirinfo.chunks[541].length == 650);
+    CHECK(dirinfo.chunks[542].offset == 1140224);
+    CHECK(dirinfo.chunks[542].length == 4096);
+    CHECK(dirinfo.chunks[542].kind == WL_VSWAP_CHUNK_SOUND);
+    CHECK(dirinfo.chunks[662].offset == 1544192);
+    CHECK(dirinfo.chunks[662].length == 184);
     return 0;
 }
 
@@ -305,6 +330,25 @@ static int check_optional_sod(const char *dir) {
     CHECK(vs.chunks_in_file == 666);
     CHECK(vs.sprite_start == 134);
     CHECK(vs.sound_start == 555);
+
+    wl_vswap_directory dirinfo;
+    CHECK(wl_read_vswap_directory(vswap_path, &dirinfo) == 0);
+    CHECK(dirinfo.header.file_size == 1616544);
+    CHECK(dirinfo.data_start == 4002);
+    CHECK(dirinfo.max_chunk_end == 1616544);
+    CHECK(dirinfo.wall_count == 134);
+    CHECK(dirinfo.sprite_count == 421);
+    CHECK(dirinfo.sound_count == 111);
+    CHECK(dirinfo.sparse_count == 0);
+    CHECK(dirinfo.chunks[133].offset == 548864);
+    CHECK(dirinfo.chunks[133].length == 4096);
+    CHECK(dirinfo.chunks[134].offset == 552960);
+    CHECK(dirinfo.chunks[134].length == 1306);
+    CHECK(dirinfo.chunks[134].kind == WL_VSWAP_CHUNK_SPRITE);
+    CHECK(dirinfo.chunks[555].offset == 1233408);
+    CHECK(dirinfo.chunks[555].length == 4096);
+    CHECK(dirinfo.chunks[665].offset == 1616384);
+    CHECK(dirinfo.chunks[665].length == 160);
     return 0;
 }
 
@@ -313,6 +357,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap tests passed for %s\n", dir);
     return 0;
 }

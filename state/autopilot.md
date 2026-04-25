@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Door-area connectivity is now included in the WL6 map 0 runtime model and passing on headless Linux. Next phase should move into VSWAP chunk descriptors for the wall/sprite/sound asset path.
+Full VSWAP chunk-directory parsing is implemented and passing on headless Linux for WL6 and optional SOD. Next phase should add VSWAP chunk read smoke tests and/or shape metadata decoding.
 
 ## Latest Verified Milestone
 
@@ -19,6 +19,7 @@ Door-area connectivity is now included in the WL6 map 0 runtime model and passin
 - `docs/research/map-decompression.md` records the Carmack/RLEW implementation seam, hash/count assertions, and verification output.
 - `docs/research/map-semantics.md` records original source references and WL6 map 0 semantic-count assertions.
 - `docs/research/runtime-map-model.md` records the pure C runtime model seam, door-area connectivity descriptors, descriptor assertions, and verification output.
+- `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, range/count assertions, and verification output.
 
 ## Verified Findings
 
@@ -78,19 +79,21 @@ Use tests as the bridge from the original code to modern C:
 4. Decoded map semantic characterization: wall/object/player-start/actor/static classifications. **Done for WL6 map 0.**
 5. Minimal SetupGameLevel-style runtime map model: tilemap, doors, statics, player spawn, and difficulty-filtered actor descriptors. **Done for WL6 map 0.**
 6. Door-area connectivity model. **Done for WL6 map 0.**
-7. `VSWAP` parser/chunk descriptor test.
-8. `VGAHEAD`/`VGADICT`/`VGAGRAPH` Huffman smoke test.
+7. `VSWAP` parser/chunk descriptor test. **Done for WL6 and optional SOD.**
+8. VSWAP chunk read smoke tests / wall-sprite shape metadata.
+9. `VGAHEAD`/`VGADICT`/`VGAGRAPH` Huffman smoke test.
 
 ## Next Likely Move
 
-Start the next asset seam with full VSWAP chunk descriptors.
+Use the VSWAP directory to add first chunk read smoke tests and/or begin wall/sprite shape metadata.
 
 Recommended next commit:
 
-- read all VSWAP offsets and lengths, validate wall/sprite/sound ranges, sparse chunks, monotonic offsets, and first chunk descriptors for WL6 and optional SOD.
-- keep decoding of wall/sprite shapes for a later commit; this step should produce trustworthy chunk metadata only.
+- add `wl_read_vswap_chunk` or equivalent bounded read helper;
+- verify first wall/sprite/sound chunks by length and stable hash only;
+- then begin wall/sprite shape metadata decoding once the chunk-read seam is trustworthy.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header values, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
 
 ## Blockers
 
@@ -290,5 +293,44 @@ Safety/legal checks:
 Next likely move:
 
 - Implement full VSWAP chunk descriptors: all offsets/lengths, range validation, sparse chunk handling, and first wall/sprite/sound metadata assertions.
+
+Blockers: none.
+
+
+## Cycle 2026-04-24 22:41 CDT
+
+Action taken:
+
+- Implemented full VSWAP chunk-directory parsing in `wl_assets`.
+- Added chunk kind classification for wall/sprite/sound/sparse ranges.
+- Validated table bounds, file bounds, monotonic non-overlap, max chunk end, and aggregate range counts.
+- Added WL6 assertions and optional SOD assertions for first/last wall, first sprite, first sound, final chunk, counts, and file end.
+- Updated `source/modern-c-sdl3/README.md` and added `docs/research/vswap-directory.md`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only VSWAP metadata/count assertions are committed.
+
+Next likely move:
+
+- Add bounded VSWAP chunk read smoke tests with stable hashes, then start wall/sprite shape metadata decoding.
 
 Blockers: none.

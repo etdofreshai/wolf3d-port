@@ -138,6 +138,104 @@ int wl_read_vswap_header(const char *path, wl_vswap_header *out) {
     return 0;
 }
 
+
+static wl_vswap_chunk_kind vswap_kind(size_t index, const wl_vswap_header *header,
+                                      uint32_t offset, uint16_t length) {
+    if (offset == 0 || length == 0) {
+        return WL_VSWAP_CHUNK_SPARSE;
+    }
+    if (index < header->sprite_start) {
+        return WL_VSWAP_CHUNK_WALL;
+    }
+    if (index < header->sound_start) {
+        return WL_VSWAP_CHUNK_SPRITE;
+    }
+    return WL_VSWAP_CHUNK_SOUND;
+}
+
+int wl_read_vswap_directory(const char *path, wl_vswap_directory *out) {
+    if (!path || !out) {
+        return -1;
+    }
+
+    wl_vswap_header header;
+    if (wl_read_vswap_header(path, &header) != 0) {
+        return -1;
+    }
+    if (header.chunks_in_file == 0 || header.chunks_in_file > WL_VSWAP_MAX_CHUNKS ||
+        header.sprite_start >= header.sound_start || header.sound_start > header.chunks_in_file) {
+        return -1;
+    }
+
+    size_t table_bytes = (size_t)header.chunks_in_file * (sizeof(uint32_t) + sizeof(uint16_t));
+    size_t data_start = 6 + table_bytes;
+    if (data_start > header.file_size) {
+        return -1;
+    }
+
+    unsigned char *tables = (unsigned char *)malloc(table_bytes);
+    if (!tables) {
+        return -1;
+    }
+    if (read_exact_at(path, 6, tables, table_bytes) != 0) {
+        free(tables);
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->header = header;
+    out->data_start = data_start;
+
+    uint32_t previous_end = 0;
+    const unsigned char *offsets = tables;
+    const unsigned char *lengths = tables + (size_t)header.chunks_in_file * sizeof(uint32_t);
+    for (size_t i = 0; i < header.chunks_in_file; ++i) {
+        uint32_t offset = read_le32(offsets + i * sizeof(uint32_t));
+        uint16_t length = read_le16(lengths + i * sizeof(uint16_t));
+        wl_vswap_chunk_kind kind = vswap_kind(i, &header, offset, length);
+
+        out->chunks[i].offset = offset;
+        out->chunks[i].length = length;
+        out->chunks[i].kind = kind;
+
+        if (kind == WL_VSWAP_CHUNK_SPARSE) {
+            ++out->sparse_count;
+            continue;
+        }
+
+        if (offset < data_start || offset > header.file_size ||
+            (size_t)length > header.file_size - (size_t)offset) {
+            free(tables);
+            return -1;
+        }
+        if (previous_end != 0 && offset < previous_end) {
+            free(tables);
+            return -1;
+        }
+        previous_end = offset + length;
+        if (previous_end > out->max_chunk_end) {
+            out->max_chunk_end = previous_end;
+        }
+
+        switch (kind) {
+        case WL_VSWAP_CHUNK_WALL:
+            ++out->wall_count;
+            break;
+        case WL_VSWAP_CHUNK_SPRITE:
+            ++out->sprite_count;
+            break;
+        case WL_VSWAP_CHUNK_SOUND:
+            ++out->sound_count;
+            break;
+        case WL_VSWAP_CHUNK_SPARSE:
+            break;
+        }
+    }
+
+    free(tables);
+    return out->max_chunk_end <= out->header.file_size ? 0 : -1;
+}
+
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written) {
     const uint16_t near_tag = 0xa7;
