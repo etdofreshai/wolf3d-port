@@ -116,6 +116,16 @@ typedef struct wl_player_use_result {
     size_t pushwall_index;
 } wl_player_use_result;
 
+typedef struct wl_door_step_result {
+    size_t opening_count;
+    size_t open_count;
+    size_t closing_count;
+    size_t closed_count;
+    size_t released_collision_count;
+    size_t restored_collision_count;
+    size_t reopened_blocked_count;
+} wl_door_step_result;
+
 int wl_init_player_gameplay_state(wl_player_gameplay_state *state,
                                   int32_t health, int32_t lives,
                                   int32_t score, int32_t next_extra);
@@ -153,6 +163,8 @@ int wl_use_player_facing(wl_player_gameplay_state *state, wl_game_model *model,
                          size_t word_count, const wl_player_motion_state *motion,
                          wl_direction facing, int button_held,
                          wl_player_use_result *out);
+int wl_step_doors(wl_game_model *model, const wl_player_motion_state *motion,
+                  int32_t tics, wl_door_step_result *out);
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state);
 
 #ifdef __cplusplus

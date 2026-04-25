@@ -612,6 +612,44 @@ static int check_wl6(const char *dir) {
     CHECK(use_result.closed == 1);
     CHECK(use_model.doors[0].action == WL_DOOR_CLOSING);
 
+    wl_door_step_result door_step;
+    use_model.doors[0].action = WL_DOOR_OPENING;
+    use_model.doors[0].position = 0;
+    use_model.doors[0].ticcount = 123;
+    use_model.doors[0].vertical = 1;
+    CHECK(wl_step_doors(&use_model, &use_motion, 10, &door_step) == 0);
+    CHECK(use_model.doors[0].action == WL_DOOR_OPENING);
+    CHECK(use_model.doors[0].position == (10u << 10));
+    CHECK(door_step.opening_count == 1);
+    CHECK(wl_step_doors(&use_model, &use_motion, 100, &door_step) == 0);
+    CHECK(use_model.doors[0].action == WL_DOOR_OPEN);
+    CHECK(use_model.doors[0].position == 0xffffu);
+    CHECK(use_model.doors[0].ticcount == 0);
+    CHECK(use_model.tilemap[4 + 4 * WL_MAP_SIDE] == 0);
+    CHECK(door_step.open_count == 1);
+    CHECK(door_step.released_collision_count == 1);
+    CHECK(wl_step_doors(&use_model, &use_motion, 299, &door_step) == 0);
+    CHECK(use_model.doors[0].action == WL_DOOR_OPEN);
+    CHECK(use_model.doors[0].ticcount == 299);
+    CHECK(door_step.open_count == 1);
+    CHECK(wl_step_doors(&use_model, &use_motion, 1, &door_step) == 0);
+    CHECK(use_model.doors[0].action == WL_DOOR_CLOSING);
+    CHECK(use_model.tilemap[4 + 4 * WL_MAP_SIDE] == 0x80u);
+    CHECK(door_step.closing_count == 1);
+    CHECK(door_step.restored_collision_count == 1);
+    wl_player_motion_state door_block_motion = {0x48000u, 0x48000u, 4, 4};
+    CHECK(wl_step_doors(&use_model, &door_block_motion, 1, &door_step) == 0);
+    CHECK(use_model.doors[0].action == WL_DOOR_OPENING);
+    CHECK(door_step.reopened_blocked_count == 1);
+    use_model.doors[0].action = WL_DOOR_CLOSING;
+    use_model.doors[0].position = 2048;
+    use_model.tilemap[4 + 4 * WL_MAP_SIDE] = 0x80u;
+    CHECK(wl_step_doors(&use_model, NULL, 2, &door_step) == 0);
+    CHECK(use_model.doors[0].action == WL_DOOR_CLOSED);
+    CHECK(use_model.doors[0].position == 0);
+    CHECK(use_model.tilemap[4 + 4 * WL_MAP_SIDE] == 0x80u);
+    CHECK(door_step.closed_count == 1);
+
     wl_vswap_directory sprite_dirinfo;
     CHECK(wl_read_vswap_directory(vswap_path, &sprite_dirinfo) == 0);
     const uint16_t ref_chunks[] = {
@@ -2270,6 +2308,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/player-use tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/door-progression tests passed for %s\n", dir);
     return 0;
 }

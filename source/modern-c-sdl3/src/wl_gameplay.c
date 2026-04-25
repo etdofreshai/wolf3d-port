@@ -666,6 +666,96 @@ int wl_use_player_facing(wl_player_gameplay_state *state, wl_game_model *model,
     return 0;
 }
 
+static int door_player_blocks_close(const wl_door_desc *door,
+                                    const wl_player_motion_state *motion) {
+    const uint32_t player_size = 0x5800u;
+    if (!door || !motion) {
+        return 0;
+    }
+    if (motion->tile_x == door->x && motion->tile_y == door->y) {
+        return 1;
+    }
+    if (door->vertical) {
+        if (motion->tile_y == door->y &&
+            (((motion->x + player_size) >> 16) == door->x ||
+             (motion->x >= player_size && ((motion->x - player_size) >> 16) == door->x))) {
+            return 1;
+        }
+    } else {
+        if (motion->tile_x == door->x &&
+            (((motion->y + player_size) >> 16) == door->y ||
+             (motion->y >= player_size && ((motion->y - player_size) >> 16) == door->y))) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int wl_step_doors(wl_game_model *model, const wl_player_motion_state *motion,
+                  int32_t tics, wl_door_step_result *out) {
+    if (!model || !out || tics < 0) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->door_count; ++i) {
+        wl_door_desc *door = &model->doors[i];
+        size_t idx = gameplay_map_index(door->x, door->y);
+        switch (door->action) {
+        case WL_DOOR_OPEN:
+            door->ticcount += tics;
+            if (door->ticcount >= 300) {
+                door->ticcount = 0;
+                door->action = WL_DOOR_CLOSING;
+                model->tilemap[idx] = (uint16_t)(i | 0x80u);
+                ++out->restored_collision_count;
+                ++out->closing_count;
+            } else {
+                ++out->open_count;
+            }
+            break;
+        case WL_DOOR_OPENING: {
+            uint32_t position = door->position;
+            position += (uint32_t)tics << 10;
+            if (position >= 0xffffu) {
+                door->position = 0xffffu;
+                door->ticcount = 0;
+                door->action = WL_DOOR_OPEN;
+                model->tilemap[idx] = 0;
+                ++out->released_collision_count;
+                ++out->open_count;
+            } else {
+                door->position = (uint16_t)position;
+                ++out->opening_count;
+            }
+            break;
+        }
+        case WL_DOOR_CLOSING:
+            if (door_player_blocks_close(door, motion)) {
+                door->action = WL_DOOR_OPENING;
+                door->ticcount = 0;
+                ++out->reopened_blocked_count;
+                ++out->opening_count;
+                break;
+            }
+            if (((uint32_t)tics << 10) >= door->position) {
+                door->position = 0;
+                door->ticcount = 0;
+                door->action = WL_DOOR_CLOSED;
+                model->tilemap[idx] = (uint16_t)(i | 0x80u);
+                ++out->closed_count;
+            } else {
+                door->position = (uint16_t)(door->position - ((uint32_t)tics << 10));
+                ++out->closing_count;
+            }
+            break;
+        case WL_DOOR_CLOSED:
+            ++out->closed_count;
+            break;
+        }
+    }
+    return 0;
+}
+
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state) {
     if (!state) {
         return -1;

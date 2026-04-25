@@ -66,6 +66,8 @@ typedef struct wl_door_desc {
     uint8_t area1;
     uint8_t area2;
     wl_door_action action;
+    uint16_t position;
+    int32_t ticcount;
 } wl_door_desc;
 
 typedef struct wl_static_desc {

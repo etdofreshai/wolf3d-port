@@ -84,6 +84,8 @@ static int add_door(wl_game_model *out, const uint16_t *wall_plane,
     door->vertical = (tile % 2) == 0;
     door->lock = (uint8_t)((tile - (door->vertical ? 90 : 91)) / 2);
     door->action = WL_DOOR_CLOSED;
+    door->position = 0;
+    door->ticcount = 0;
 
     out->tilemap[map_index(x, y)] = (uint16_t)(out->door_count | 0x80u);
     if (door->vertical) {

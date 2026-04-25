@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/player-use tests passed for game-files/base
+asset/decompression/semantics/model/vswap/door-progression tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -143,3 +143,8 @@ Added a small headless player motion seam around the existing gameplay/model dat
 ## Cycle update: use-button dispatch seam
 
 Added a headless `Cmd_Use`-style dispatch seam in `wl_use_player_facing`. The helper derives the cardinal target tile from the player's current tile and facing direction, detects pushwall markers from the info plane, flips east/west elevator switches and marks level completion/secret completion from the wall plane, and applies `OperateDoor`-style locked-door/opening/closing transitions to runtime door descriptors. Door descriptors now carry the original `dr_open/dr_closed/dr_opening/dr_closing` action state. Tests cover pushwall target metadata, secret elevator completion and switch flip, locked-door rejection without a key, keyed opening, and closing an already-opening door.
+
+
+## Cycle update: door progression seam
+
+Added `wl_step_doors`, a deterministic headless door update seam mirroring the original `MoveDoors`/`DoorOpening`/`DoorOpen`/`DoorClosing` state transitions. Runtime door descriptors now retain `doorposition` and `ticcount` equivalents. Opening doors advance by `tics << 10`, become fully open at `0xffff`, reset ticcount, and release player collision by clearing the door-center tile. Open doors accumulate ticcount until `OPENTICS=300`, then begin closing and restore the solid door-center marker. Closing doors decrement by `tics << 10`, close at zero, and reopen if the player overlaps the doorway while closing. Tests cover partial opening, full opening/collision release, open wait, close start/collision restore, blocked close reopen, and full close.
