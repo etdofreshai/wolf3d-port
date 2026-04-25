@@ -480,6 +480,12 @@ typedef struct wl_audio_chunk_metadata {
     size_t payload_size;
 } wl_audio_chunk_metadata;
 
+typedef struct wl_imf_music_command {
+    uint8_t reg;
+    uint8_t value;
+    uint16_t delay;
+} wl_imf_music_command;
+
 typedef struct wl_imf_music_metadata {
     uint32_t declared_bytes;
     size_t command_count;
@@ -506,6 +512,8 @@ int wl_describe_audio_chunk(size_t chunk_index,
                             wl_audio_chunk_metadata *out);
 int wl_describe_imf_music_chunk(const unsigned char *chunk, size_t chunk_size,
                                 wl_imf_music_metadata *out);
+int wl_get_imf_music_command(const unsigned char *chunk, size_t chunk_size,
+                             size_t command_index, wl_imf_music_command *out);
 
 #ifdef __cplusplus
 }

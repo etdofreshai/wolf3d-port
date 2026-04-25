@@ -2292,29 +2292,52 @@ int wl_describe_imf_music_chunk(const unsigned char *chunk, size_t chunk_size,
     out->command_count = (size_t)out->declared_bytes / 4u;
     out->trailing_bytes = chunk_size - sizeof(uint32_t) - (size_t)out->declared_bytes;
     if (out->command_count > 0) {
+        wl_imf_music_command command;
         const unsigned char *payload = chunk + sizeof(uint32_t);
         out->first_register = payload[0];
         out->first_value = payload[1];
         out->first_delay = read_le16(payload + 2);
         for (size_t i = 0; i < out->command_count; ++i) {
-            const unsigned char *cmd = payload + (i * 4u);
-            uint16_t delay = read_le16(cmd + 2u);
-            total_delay += delay;
-            if (delay == 0) {
+            if (wl_get_imf_music_command(chunk, chunk_size, i, &command) != 0) {
+                return -1;
+            }
+            total_delay += command.delay;
+            if (command.delay == 0) {
                 ++out->zero_delay_count;
             }
-            if (delay > out->max_delay) {
-                out->max_delay = delay;
+            if (command.delay > out->max_delay) {
+                out->max_delay = command.delay;
             }
         }
-        const unsigned char *last = payload + ((out->command_count - 1u) * 4u);
-        out->last_register = last[0];
-        out->last_value = last[1];
-        out->last_delay = read_le16(last + 2u);
+        if (wl_get_imf_music_command(chunk, chunk_size, out->command_count - 1u, &command) != 0) {
+            return -1;
+        }
+        out->last_register = command.reg;
+        out->last_value = command.value;
+        out->last_delay = command.delay;
         if (total_delay > UINT32_MAX) {
             return -1;
         }
         out->total_delay = (uint32_t)total_delay;
     }
+    return 0;
+}
+
+int wl_get_imf_music_command(const unsigned char *chunk, size_t chunk_size,
+                             size_t command_index, wl_imf_music_command *out) {
+    uint32_t declared_bytes;
+    const unsigned char *cmd;
+    if (!chunk || !out || chunk_size < sizeof(uint32_t)) {
+        return -1;
+    }
+    declared_bytes = read_le32(chunk);
+    if ((declared_bytes % 4u) != 0u || (size_t)declared_bytes > chunk_size - sizeof(uint32_t) ||
+        command_index >= (size_t)declared_bytes / 4u) {
+        return -1;
+    }
+    cmd = chunk + sizeof(uint32_t) + (command_index * 4u);
+    out->reg = cmd[0];
+    out->value = cmd[1];
+    out->delay = read_le16(cmd + 2u);
     return 0;
 }
