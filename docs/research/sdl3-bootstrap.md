@@ -60,3 +60,8 @@ The Wolf wall present smoke now also routes a red-shifted present descriptor thr
 ## SDL3 screenshot artifact hashes
 
 The SDL3 present smoke now hashes the generated BMP artifacts themselves, not just the source indexed/RGBA buffers. The base wall screenshot is pinned at size `16522` and hash `0xb49b4cbf`; the red-shifted wall screenshot is pinned at size `16522` and hash `0xaa1c75c5`. This keeps screenshot verification deterministic while artifacts remain ignored.
+
+
+## SDL3 wall atlas screenshot seam
+
+The SDL3 present smoke now routes a fuller two-wall WL6 atlas through the screenshot seam. It decodes wall pages 0 and 1, composes a `128x64` indexed surface, verifies wall-1 hash `0xcc7509fd`, atlas indexed hash `0x223d2caf`, atlas RGBA hash `0x3a8ae4e9`, and saves ignored `build/wolf-wall-atlas-present.bmp` with size/hash `32906` / `0xaf70162c`.

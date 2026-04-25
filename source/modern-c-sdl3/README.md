@@ -430,3 +430,8 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## SDL3 screenshot artifact hashes
 
 `make test-sdl3-present` now verifies the generated BMP artifact bytes: base `build/wolf-wall-present.bmp` size/hash `16522` / `0xb49b4cbf`, red `build/wolf-wall-present-red.bmp` size/hash `16522` / `0xaa1c75c5`.
+
+
+## SDL3 wall atlas screenshot smoke
+
+`make test-sdl3-present` now also generates `build/wolf-wall-atlas-present.bmp` from a two-wall WL6 atlas. The atlas remains generated-only and ignored; tests pin indexed, RGBA, and BMP artifact hashes.

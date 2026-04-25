@@ -5581,3 +5581,44 @@ Next likely move:
 - Route a fuller rendered scene frame through the SDL3 screenshot seam.
 
 Blockers: none for repo-local headless SDL3 presentation smoke work.
+
+
+
+## Cycle 2026-04-25 10:48 CDT SDL3 Wall Atlas Screenshot
+
+Action taken:
+
+- Routed a fuller WL6 frame through the SDL3 screenshot seam.
+- `test_sdl3_present` now decodes wall pages 0 and 1, composes a `128x64` indexed atlas, expands it through the present descriptor path, and saves ignored `build/wolf-wall-atlas-present.bmp`.
+- Verified wall-1 hash `0xcc7509fd`, atlas indexed hash `0x223d2caf`, atlas RGBA hash `0x3a8ae4e9`, and atlas BMP size/hash `32906` / `0xaf70162c`.
+- Updated the SDL3 bootstrap research note, README, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test-sdl3-present
+make test-sdl3
+make test
+```
+
+Result:
+
+```text
+SDL3 Wolf wall atlas screenshot smoke test passed
+SDL3 smoke test passed
+SDL3 Wolf wall atlas screenshot smoke test passed
+asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Generated BMP artifacts remain ignored under `source/modern-c-sdl3/build/`.
+
+Next likely move:
+
+- Route a sprite-bearing rendered scene frame through the SDL3 screenshot seam.
+
+Blockers: none for repo-local headless SDL3 presentation smoke work.

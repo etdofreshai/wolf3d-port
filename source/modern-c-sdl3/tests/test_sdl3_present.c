@@ -55,10 +55,15 @@ int main(void) {
     unsigned char chunk[4096];
     size_t chunk_size = 0;
     unsigned char wall_pixels[WL_MAP_PLANE_WORDS];
+    unsigned char wall_pixels_1[WL_MAP_PLANE_WORDS];
+    unsigned char atlas_pixels[WL_MAP_SIDE * 2u * WL_MAP_SIDE];
     wl_indexed_surface wall;
+    wl_indexed_surface wall_1;
+    wl_indexed_surface atlas;
     unsigned char palette[256 * 3];
     unsigned char red_palettes[WL_NUM_RED_SHIFTS * 256u * 3u];
     unsigned char rgba[WL_MAP_PLANE_WORDS * 4];
+    unsigned char atlas_rgba[WL_MAP_SIDE * 2u * WL_MAP_SIDE * 4u];
     wl_palette_shift_result shift;
     wl_present_frame_descriptor present;
     long bmp_size = 0;
@@ -101,6 +106,32 @@ int main(void) {
     }
     if (fnv1a_bytes(wall.pixels, wall.pixel_count) != 0x8fe4d8ffu) {
         fprintf(stderr, "unexpected wall-page pixel hash\n");
+        return 1;
+    }
+    if (wl_read_vswap_chunk(vswap_path, &directory, 1, chunk, sizeof(chunk),
+                            &chunk_size) != 0) {
+        fprintf(stderr, "could not read VSWAP wall chunk 1\n");
+        return 1;
+    }
+    if (wl_decode_wall_page_surface(chunk, chunk_size, wall_pixels_1,
+                                    sizeof(wall_pixels_1), &wall_1) != 0) {
+        fprintf(stderr, "could not decode VSWAP wall chunk 1\n");
+        return 1;
+    }
+    for (size_t y = 0; y < WL_MAP_SIDE; ++y) {
+        memcpy(atlas_pixels + y * WL_MAP_SIDE * 2u,
+               wall.pixels + y * WL_MAP_SIDE, WL_MAP_SIDE);
+        memcpy(atlas_pixels + y * WL_MAP_SIDE * 2u + WL_MAP_SIDE,
+               wall_1.pixels + y * WL_MAP_SIDE, WL_MAP_SIDE);
+    }
+    if (wl_wrap_indexed_surface(WL_MAP_SIDE * 2u, WL_MAP_SIDE, atlas_pixels,
+                                sizeof(atlas_pixels), &atlas) != 0) {
+        fprintf(stderr, "could not wrap wall atlas\n");
+        return 1;
+    }
+    if (fnv1a_bytes(wall_1.pixels, wall_1.pixel_count) != 0xcc7509fdu ||
+        fnv1a_bytes(atlas.pixels, atlas.pixel_count) != 0x223d2cafu) {
+        fprintf(stderr, "unexpected wall atlas pixel hash\n");
         return 1;
     }
 
@@ -277,8 +308,62 @@ int main(void) {
     }
 
     SDL_DestroySurface(source);
+    source = NULL;
+
+    memset(&shift, 0, sizeof(shift));
+    shift.kind = WL_PALETTE_SHIFT_NONE;
+    if (wl_describe_present_frame(&atlas, &shift, palette, NULL, 0, NULL, 0,
+                                  sizeof(palette), 6, &present) != 0) {
+        fprintf(stderr, "could not describe atlas present frame\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (wl_expand_indexed_surface_to_rgba(&atlas, present.texture.palette,
+                                          sizeof(palette), 6, atlas_rgba,
+                                          sizeof(atlas_rgba), NULL) != 0) {
+        fprintf(stderr, "could not expand atlas frame to RGBA\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (present.viewport_width != WL_MAP_SIDE * 2u ||
+        present.viewport_height != WL_MAP_SIDE ||
+        present.pixel_hash != 0x223d2cafu ||
+        fnv1a_bytes(atlas_rgba, sizeof(atlas_rgba)) != 0x3a8ae4e9u) {
+        fprintf(stderr, "unexpected atlas present metadata\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    source = SDL_CreateSurfaceFrom(present.viewport_width,
+                                   present.viewport_height,
+                                   SDL_PIXELFORMAT_RGBA32, atlas_rgba,
+                                   present.viewport_width * 4);
+    if (!source) {
+        fprintf(stderr, "SDL_CreateSurfaceFrom atlas failed: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (!SDL_SaveBMP(source, "build/wolf-wall-atlas-present.bmp")) {
+        fprintf(stderr, "SDL_SaveBMP atlas failed: %s\n", SDL_GetError());
+        SDL_DestroySurface(source);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (file_stats("build/wolf-wall-atlas-present.bmp", &bmp_size, &bmp_hash) != 0 ||
+        bmp_size != 32906 || bmp_hash != 0xaf70162cu) {
+        fprintf(stderr, "unexpected atlas screenshot artifact stats\n");
+        SDL_DestroySurface(source);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    SDL_DestroySurface(source);
     SDL_DestroyWindow(window);
     SDL_Quit();
-    puts("SDL3 Wolf wall palette screenshot smoke test passed");
+    puts("SDL3 Wolf wall atlas screenshot smoke test passed");
     return 0;
 }
