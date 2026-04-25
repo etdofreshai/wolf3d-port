@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Initial VSWAP wall/sprite shape metadata decoding is implemented and passing on headless Linux for WL6 and optional SOD. Next phase should deepen sprite post-command metadata or move to VGA Huffman smoke tests.
+VSWAP sprite post-command metadata decoding is implemented and passing on headless Linux for WL6 and optional SOD. Next phase should start VGA Huffman smoke tests or decode wall-page metadata for the renderer path.
 
 ## Latest Verified Milestone
 
@@ -19,7 +19,7 @@ Initial VSWAP wall/sprite shape metadata decoding is implemented and passing on 
 - `docs/research/map-decompression.md` records the Carmack/RLEW implementation seam, hash/count assertions, and verification output.
 - `docs/research/map-semantics.md` records original source references and WL6 map 0 semantic-count assertions.
 - `docs/research/runtime-map-model.md` records the pure C runtime model seam, door-area connectivity descriptors, descriptor assertions, and verification output.
-- `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall/sprite shape metadata assertions, range/count assertions, and verification output.
+- `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall/sprite shape metadata assertions, sprite post-command metadata assertions, range/count assertions, and verification output.
 
 ## Verified Findings
 
@@ -82,18 +82,19 @@ Use tests as the bridge from the original code to modern C:
 7. `VSWAP` parser/chunk descriptor test. **Done for WL6 and optional SOD.**
 8. VSWAP chunk read smoke tests. **Done for WL6 and optional SOD.**
 9. VSWAP wall/sprite shape metadata decoding. **Initial representative WL6/SOD metadata done.**
-10. VSWAP sprite post-command metadata or `VGAHEAD`/`VGADICT`/`VGAGRAPH` Huffman smoke test.
+10. VSWAP sprite post-command metadata. **Done for representative WL6/SOD sprites.**
+11. `VGAHEAD`/`VGADICT`/`VGAGRAPH` Huffman smoke test or wall-page metadata decoding.
 
 ## Next Likely Move
 
-Deepen sprite metadata decoding or move to VGA graphics Huffman smoke tests.
+Start VGA graphics Huffman smoke tests or decode wall-page metadata.
 
 Recommended next commit:
 
-- either parse sprite post-command streams enough to count posts/validate vertical ranges per representative chunk;
-- or start `VGAHEAD`/`VGADICT`/`VGAGRAPH` parsing and port `CAL_HuffExpand` for one graphics chunk smoke test.
+- start `VGAHEAD`/`VGADICT`/`VGAGRAPH` parsing and port `CAL_HuffExpand` for one graphics chunk smoke test;
+- or decode wall-page column/pixel metadata from raw VSWAP wall chunks for the renderer path.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
 
 ## Blockers
 
@@ -409,5 +410,43 @@ Safety/legal checks:
 Next likely move:
 
 - Parse sprite post-command streams more deeply, or start VGAHEAD/VGAGRAPH/VGADICT Huffman smoke tests.
+
+Blockers: none.
+
+
+## Cycle 2026-04-24 22:50 CDT
+
+Action taken:
+
+- Extended `wl_decode_vswap_shape_metadata` to walk representative sprite post-command lists.
+- Validates each post's start/end pixel*2 bounds, column zero terminators, posts-per-column bounds, source-offset ranges, and aggregate post spans.
+- Added WL6 assertions for sprite chunks `106` and `107`; added matching optional SOD assertions for chunks `134` and `135`.
+- Updated `docs/research/vswap-directory.md` and `source/modern-c-sdl3/README.md`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap-sprite-post tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only decoded metadata/hash/count assertions are committed.
+
+Next likely move:
+
+- Start VGAHEAD/VGAGRAPH/VGADICT Huffman smoke tests, or decode wall-page metadata from raw VSWAP wall chunks.
 
 Blockers: none.

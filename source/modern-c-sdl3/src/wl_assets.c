@@ -310,6 +310,17 @@ int wl_decode_vswap_shape_metadata(const unsigned char *chunk, size_t chunk_size
     uint16_t min_offset = UINT16_MAX;
     uint16_t max_offset = 0;
     uint16_t last_offset = first_offset;
+    uint16_t post_count = 0;
+    uint16_t terminal_count = 0;
+    uint16_t min_posts_per_column = UINT16_MAX;
+    uint16_t max_posts_per_column = 0;
+    uint16_t min_post_span = UINT16_MAX;
+    uint16_t max_post_span = 0;
+    uint16_t max_post_start = 0;
+    uint16_t max_post_end = 0;
+    uint16_t min_source_offset = UINT16_MAX;
+    uint16_t max_source_offset = 0;
+    uint32_t total_post_span = 0;
     for (uint16_t i = 0; i < columns; ++i) {
         uint16_t offset = read_le16(chunk + 4 + (size_t)i * sizeof(uint16_t));
         if (offset < table_bytes || offset >= chunk_size || (offset % 2) != 0) {
@@ -326,6 +337,62 @@ int wl_decode_vswap_shape_metadata(const unsigned char *chunk, size_t chunk_size
         }
         previous = offset;
         last_offset = offset;
+
+        uint16_t column_posts = 0;
+        size_t pos = offset;
+        while (1) {
+            if (pos + sizeof(uint16_t) > chunk_size) {
+                return -1;
+            }
+            uint16_t end = read_le16(chunk + pos);
+            pos += sizeof(uint16_t);
+            if (end == 0) {
+                ++terminal_count;
+                break;
+            }
+            if (pos + 2 * sizeof(uint16_t) > chunk_size) {
+                return -1;
+            }
+            uint16_t source_offset = read_le16(chunk + pos);
+            uint16_t start = read_le16(chunk + pos + sizeof(uint16_t));
+            pos += 2 * sizeof(uint16_t);
+
+            if ((start % 2) != 0 || (end % 2) != 0 || start >= end || end > WL_MAP_SIDE * 2u) {
+                return -1;
+            }
+            uint16_t span = (uint16_t)(end - start);
+            ++column_posts;
+            ++post_count;
+            total_post_span += span;
+            if (span < min_post_span) {
+                min_post_span = span;
+            }
+            if (span > max_post_span) {
+                max_post_span = span;
+            }
+            if (start > max_post_start) {
+                max_post_start = start;
+            }
+            if (end > max_post_end) {
+                max_post_end = end;
+            }
+            if (source_offset < min_source_offset) {
+                min_source_offset = source_offset;
+            }
+            if (source_offset > max_source_offset) {
+                max_source_offset = source_offset;
+            }
+        }
+        if (column_posts < min_posts_per_column) {
+            min_posts_per_column = column_posts;
+        }
+        if (column_posts > max_posts_per_column) {
+            max_posts_per_column = column_posts;
+        }
+    }
+
+    if (terminal_count != columns || post_count == 0) {
+        return -1;
     }
 
     out->width = WL_MAP_SIDE;
@@ -337,6 +404,17 @@ int wl_decode_vswap_shape_metadata(const unsigned char *chunk, size_t chunk_size
     out->last_column_offset = last_offset;
     out->min_column_offset = min_offset;
     out->max_column_offset = max_offset;
+    out->post_count = post_count;
+    out->terminal_count = terminal_count;
+    out->min_posts_per_column = min_posts_per_column;
+    out->max_posts_per_column = max_posts_per_column;
+    out->min_post_span = min_post_span;
+    out->max_post_span = max_post_span;
+    out->max_post_start = max_post_start;
+    out->max_post_end = max_post_end;
+    out->min_source_offset = min_source_offset;
+    out->max_source_offset = max_source_offset;
+    out->total_post_span = total_post_span;
     return 0;
 }
 

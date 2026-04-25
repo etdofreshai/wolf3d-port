@@ -331,6 +331,36 @@ static int check_wl6(const char *dir) {
     CHECK(shape.last_column_offset == 1298);
     CHECK(shape.min_column_offset == 800);
     CHECK(shape.max_column_offset == 1298);
+    CHECK(shape.post_count == 66);
+    CHECK(shape.terminal_count == 55);
+    CHECK(shape.min_posts_per_column == 1);
+    CHECK(shape.max_posts_per_column == 2);
+    CHECK(shape.min_post_span == 2);
+    CHECK(shape.max_post_span == 40);
+    CHECK(shape.max_post_start == 36);
+    CHECK(shape.max_post_end == 46);
+    CHECK(shape.min_source_offset == 108);
+    CHECK(shape.max_source_offset == 782);
+    CHECK(shape.total_post_span == 1372);
+
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 107, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 1556);
+    CHECK(wl_decode_vswap_shape_metadata(chunk_buf, chunk_bytes, dirinfo.chunks[107].kind,
+                                         &shape) == 0);
+    CHECK(shape.leftpix == 1);
+    CHECK(shape.rightpix == 62);
+    CHECK(shape.visible_columns == 62);
+    CHECK(shape.post_count == 85);
+    CHECK(shape.terminal_count == 62);
+    CHECK(shape.min_posts_per_column == 1);
+    CHECK(shape.max_posts_per_column == 3);
+    CHECK(shape.max_post_span == 36);
+    CHECK(shape.max_post_start == 32);
+    CHECK(shape.max_post_end == 36);
+    CHECK(shape.min_source_offset == 113);
+    CHECK(shape.max_source_offset == 904);
+    CHECK(shape.total_post_span == 1586);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 542, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -425,6 +455,29 @@ static int check_optional_sod(const char *dir) {
     CHECK(shape.visible_columns == 55);
     CHECK(shape.first_column_offset == 800);
     CHECK(shape.last_column_offset == 1298);
+    CHECK(shape.post_count == 66);
+    CHECK(shape.terminal_count == 55);
+    CHECK(shape.min_posts_per_column == 1);
+    CHECK(shape.max_posts_per_column == 2);
+    CHECK(shape.max_post_span == 40);
+    CHECK(shape.min_source_offset == 108);
+    CHECK(shape.max_source_offset == 782);
+    CHECK(shape.total_post_span == 1372);
+
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 135, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 1556);
+    CHECK(wl_decode_vswap_shape_metadata(chunk_buf, chunk_bytes, dirinfo.chunks[135].kind,
+                                         &shape) == 0);
+    CHECK(shape.leftpix == 1);
+    CHECK(shape.rightpix == 62);
+    CHECK(shape.visible_columns == 62);
+    CHECK(shape.post_count == 85);
+    CHECK(shape.terminal_count == 62);
+    CHECK(shape.max_posts_per_column == 3);
+    CHECK(shape.max_post_span == 36);
+    CHECK(shape.max_source_offset == 904);
+    CHECK(shape.total_post_span == 1586);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 555, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -442,6 +495,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap-shape tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap-sprite-post tests passed for %s\n", dir);
     return 0;
 }

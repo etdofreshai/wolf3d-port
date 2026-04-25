@@ -72,6 +72,17 @@ typedef struct wl_vswap_shape_metadata {
     uint16_t last_column_offset;
     uint16_t min_column_offset;
     uint16_t max_column_offset;
+    uint16_t post_count;
+    uint16_t terminal_count;
+    uint16_t min_posts_per_column;
+    uint16_t max_posts_per_column;
+    uint16_t min_post_span;
+    uint16_t max_post_span;
+    uint16_t max_post_start;
+    uint16_t max_post_end;
+    uint16_t min_source_offset;
+    uint16_t max_source_offset;
+    uint32_t total_post_span;
 } wl_vswap_shape_metadata;
 
 typedef struct wl_required_file {
