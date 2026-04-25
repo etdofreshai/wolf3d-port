@@ -1,3 +1,3 @@
-[submodule "upstream/wolf3d"]
-	path = original
+[submodule "source/original"]
+	path = source/original
 	url = https://github.com/id-Software/wolf3d.git
