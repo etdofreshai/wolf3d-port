@@ -107,7 +107,7 @@ Extended the runtime model beyond guard/dog/dead-guard handling to spawn origina
 
 ## Cycle update: boss-map runtime coverage
 
-Added WL6 boss tile handling for the non-Spear boss spawns (`SpawnBoss`, `SpawnSchabbs`, `SpawnGift`, `SpawnFat`, `SpawnFakeHitler`, `SpawnHitler`, and `SpawnGretel`) as data-only runtime actors. The model records their source tile, original north/south starting direction, shootable/kill-total behavior, and renderer-facing starting sprite when known. Headless coverage now includes `Wolf2 Boss`, asserting map/model totals, two mutants plus one boss, zero unknown info tiles, scene-ref count `168`, and descriptor hash `0xb2dab28b`.
+Added WL6 boss tile handling for the non-Spear boss spawns (`SpawnBoss`, `SpawnSchabbs`, `SpawnGift`, `SpawnFat`, `SpawnFakeHitler`, `SpawnHitler`, and `SpawnGretel`) as data-only runtime actors. The model records their source tile, original north/south starting direction, shootable/kill-total behavior, and renderer-facing starting sprite when known. Headless coverage now includes `Wolf2 Boss`, `Wolf3 Boss`, `Wolf4 Boss`, and `Wolf6 Boss`, asserting map/model totals, zero unknown info tiles, actor-kind counts, scene-ref counts/hashes, and broader boss mixes (mutants, guards, officers, SS, and boss actors). `Wolf1 Boss` and `Wolf5 Boss` are intentionally left for a later classification pass because they still report unknown info tiles in the current model.
 
 
 ## Cycle update: ghost-map runtime coverage

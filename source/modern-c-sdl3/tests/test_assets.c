@@ -1619,8 +1619,16 @@ static int check_wl6(const char *dir) {
           168, 0xb2dab28b, 0, 0, 0, 0, 2, 1, 0 },
         { 20, "Wolf3 Map1", 9, 17, WL_DIR_EAST, 8, 132, 9, 9, 41, 5, 22,
           141, 0xc090c2df, 8, 1, 0, 0, 0, 0, 0 },
+        { 28, "Wolf3 Boss", 13, 57, WL_DIR_EAST, 6, 85, 12, 12, 0, 1, 0,
+          97, 0x713b74e4, 2, 4, 0, 0, 0, 6, 0 },
         { 29, "Wolf3 Secret", 33, 53, WL_DIR_WEST, 2, 110, 24, 24, 97, 0, 17,
           134, 0xe03fdb45, 17, 2, 1, 0, 0, 0, 4 },
+        { 38, "Wolf4 Boss", 10, 1, WL_DIR_SOUTH, 9, 130, 9, 9, 1, 1, 0,
+          139, 0x7a3bd88c, 1, 7, 0, 0, 0, 1, 0 },
+        { 58, "Wolf6 Boss", 32, 61, WL_DIR_NORTH, 9, 200, 41, 41, 48, 5, 24,
+          241, 0x2b8bf08d, 14, 12, 14, 0, 0, 1, 0 },
+        { 59, "Wolf6 Secret", 34, 32, WL_DIR_EAST, 29, 386, 37, 37, 35, 17, 8,
+          423, 0x59f0ca20, 11, 8, 3, 2, 9, 3, 1 },
     };
     for (size_t i = 0; i < sizeof(model_maps) / sizeof(model_maps[0]); ++i) {
         wl_map_header extra_map;
@@ -4125,6 +4133,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-actor-death-final-broaden tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-map-boss-scene-broaden tests passed for %s\n", dir);
     return 0;
 }
