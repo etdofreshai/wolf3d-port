@@ -388,3 +388,8 @@ Patrol movement now preserves fixed-point actor placement. `wl_actor_desc` carri
 ## Cycle update: live AI fine-position patrol rendering
 
 The live actor AI frame wrapper now preserves fine-position patrol output all the way to runtime scene refs and rendering. A half-tile budget keeps the guard on tile `(5,5)` but emits world `0x60000/0x58000`, then renders through the door-aware scene path with hash `0xcf61b07b`.
+
+
+## Cycle update: patrol remainder accumulation
+
+`wl_actor_desc` now carries `patrol_remainder` so tic-budgeted patrol motion accumulates across frames. A half-tile update advances fine refs, a second half-tile update consumes the accumulated whole tile, and scene-ref fallback remains deterministic.

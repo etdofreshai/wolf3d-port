@@ -88,6 +88,7 @@ typedef struct wl_actor_desc {
     uint16_t tile_y;
     uint32_t fine_x;
     uint32_t fine_y;
+    uint32_t patrol_remainder;
     uint16_t source_tile;
     wl_actor_kind kind;
     wl_actor_mode mode;

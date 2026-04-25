@@ -1268,10 +1268,18 @@ static int check_wl6(const char *dir) {
                                        &patrol_ref_count) == 0);
     CHECK(patrol_refs[0].world_x == 0x60000u);
     CHECK(patrol_refs[0].world_y == 0x58000u);
-    CHECK(wl_step_patrol_actor_tics(&path_model, 0, 0x10000u, 2,
+    CHECK(path_model.actors[0].patrol_remainder == 0x8000u);
+    CHECK(wl_step_patrol_actor_tics(&path_model, 0, 0x8000u, 1,
                                     &patrol_tics) == 0);
-    CHECK(patrol_tics.requested_move == 0x20000u);
-    CHECK(patrol_tics.tiles_stepped == 2);
+    CHECK(patrol_tics.requested_move == 0x10000u);
+    CHECK(patrol_tics.tiles_stepped == 1);
+    CHECK(patrol_tics.leftover_move == 0);
+    CHECK(patrol_tics.tile_x == 6);
+    CHECK(path_model.actors[0].patrol_remainder == 0);
+    CHECK(wl_step_patrol_actor_tics(&path_model, 0, 0x10000u, 1,
+                                    &patrol_tics) == 0);
+    CHECK(patrol_tics.requested_move == 0x10000u);
+    CHECK(patrol_tics.tiles_stepped == 1);
     CHECK(patrol_tics.leftover_move == 0);
     CHECK(patrol_tics.tile_x == 7);
     CHECK(patrol_tics.tile_y == 5);
@@ -4461,6 +4469,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-fine-patrol-render tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-patrol-remainder-accumulation tests passed for %s\n", dir);
     return 0;
 }

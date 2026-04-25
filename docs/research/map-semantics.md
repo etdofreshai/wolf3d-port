@@ -133,3 +133,8 @@ Tile-granular patrol semantics now have partial movement metadata. A half-tile p
 ## Cycle update: live AI fine-position patrol rendering
 
 Path/tic patrol semantics now pass through the full live AI presentation path at sub-tile precision. A partial movement budget updates renderer-facing world coordinates without consuming a whole tile.
+
+
+## Cycle update: patrol remainder accumulation
+
+The patrol path/tic seam now models original-style distance accumulation across calls instead of treating each frame independently. Partial budgets persist until they form a whole tile step.

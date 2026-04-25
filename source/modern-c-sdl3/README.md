@@ -256,3 +256,8 @@ Patrol actors now carry optional fixed-point `fine_x`/`fine_y` coordinates. Tic-
 ## Live AI fine-position patrol rendering
 
 Live actor AI now drives sub-tile patrol placement into rendering. A half-tic patrol budget leaves the actor on its current tile, emits fine world coordinates through scene refs, decodes the guard sprite locally, and renders a stable door-aware scene hash `0xcf61b07b`.
+
+
+## Patrol remainder accumulation
+
+Patrol actors now retain sub-tile movement remainder across tic calls. Two half-tile budgets accumulate into a whole-tile step, then reset the renderer-facing fine position to the new tile center while keeping blocked movement deterministic.

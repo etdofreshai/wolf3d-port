@@ -1068,7 +1068,8 @@ int wl_step_patrol_actor_tics(wl_game_model *model, uint16_t actor_index,
         return -1;
     }
 
-    uint64_t move64 = (uint64_t)speed * (uint32_t)tics;
+    uint64_t move64 = (uint64_t)actor->patrol_remainder +
+        ((uint64_t)speed * (uint32_t)tics);
     if (move64 > UINT32_MAX) {
         move64 = UINT32_MAX;
     }
@@ -1094,9 +1095,11 @@ int wl_step_patrol_actor_tics(wl_game_model *model, uint16_t actor_index,
             break;
         }
         ++out->tiles_stepped;
+        actor->patrol_remainder = 0;
         move -= 0x10000u;
     }
     out->leftover_move = move;
+    actor->patrol_remainder = move;
     actor->fine_x = ((uint32_t)actor->tile_x << 16) + 0x8000u;
     actor->fine_y = ((uint32_t)actor->tile_y << 16) + 0x8000u;
     if (!out->blocked && move > 0) {

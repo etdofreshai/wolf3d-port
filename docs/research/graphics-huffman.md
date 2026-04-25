@@ -329,3 +329,8 @@ Renderer-facing actor refs now can use fixed-point partial patrol positions. Thi
 ## Cycle update: live AI fine-position patrol rendering
 
 The headless renderer now verifies sub-tile patrol placement emitted by live AI. Fine actor coordinates feed scene projection and produce stable hash `0xcf61b07b`, preparing smoother future SDL3 presentation without requiring SDL in tests.
+
+
+## Cycle update: patrol remainder accumulation
+
+Renderer-facing actor movement can now receive accumulated sub-tile patrol state across frames, giving the future SDL3 path smoother movement inputs without changing sprite assets.

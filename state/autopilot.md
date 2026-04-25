@@ -4268,3 +4268,40 @@ Next likely move:
 - Add fine-position accumulation across multiple live AI frames, deepen chase/attack progression, or broaden live AI fine-position rendering across actor classes/maps.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 09:12 CDT
+
+Action taken:
+
+- Added multi-frame patrol sub-tile remainder accumulation.
+- Extended `wl_actor_desc` with `patrol_remainder`; `wl_step_patrol_actor_tics` now adds prior leftover movement to the next tic budget.
+- Headless tests verify a half-tile patrol update stores fine position/remainder, a second half-tile update consumes one whole tile and clears the remainder, and subsequent whole-tile/blocked behavior remains deterministic.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-patrol-remainder-accumulation tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Feed accumulated remainder through live AI multi-frame rendering, deepen chase/attack progression, or broaden live AI fine-position rendering across actor classes/maps.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
