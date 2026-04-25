@@ -8,8 +8,9 @@ It is intentionally simple:
 2. Select the next model whose provider is within budget, skipping over-budget providers.
 3. Let that cycle implement directly or spawn `wolf3d-*` workers.
 4. Watch OpenClaw's task ledger until project-related workers finish.
-5. Deliver a concise progress summary to the project chat when a cycle/work unit finishes.
-6. Start the next cycle.
+5. Commit work inside the cycle, then push the current branch after the cycle finishes.
+6. Deliver a concise progress update to the project chat when a cycle/work unit finishes.
+7. Start the next cycle.
 
 Durable state remains in the repo:
 
@@ -36,6 +37,8 @@ scripts/wolf3d_autopilot_supervisor.py --exclude-models 'zai'  # exclude a whole
 scripts/wolf3d_autopilot_supervisor.py --usage-provider-windows 'zai:Monthly,openai-codex:Week'
 scripts/wolf3d_autopilot_supervisor.py --no-fast-mode
 scripts/wolf3d_autopilot_supervisor.py --worker-poll 30 --max-worker-wait 7200
+scripts/wolf3d_autopilot_supervisor.py --push-after-cycle
+scripts/wolf3d_autopilot_supervisor.py --no-push-after-cycle
 scripts/wolf3d_autopilot_supervisor.py --completion-summary
 scripts/wolf3d_autopilot_supervisor.py --no-completion-summary
 scripts/wolf3d_autopilot_supervisor.py --summary-interval 300  # optional periodic summaries while waiting
@@ -50,6 +53,7 @@ Defaults are intentionally conservative:
 - provider usage-window override: `zai:Monthly`, while other providers default to `Week`
 - explicit model inclusion: `--include-models` (`--models` remains an alias)
 - optional model/provider exclusion after inclusion: `--exclude-models 'zai/glm-5.1'` or `--exclude-models 'zai'`
+- push after cycle: on; uses normal git auth or `GH_TOKEN_ETDOFRESHAI` / `GITHUB_TOKEN` / `GH_TOKEN` from the environment
 - usage guard: on; skip over-budget providers and pause only if all configured providers are over budget
 
 Current OpenClaw CLI builds may not expose a direct `openclaw agent --model` flag. The supervisor still rotates the model preference and injects it into the cycle prompt; if a future CLI exposes `--model`, the supervisor will pass it automatically.
@@ -102,12 +106,24 @@ cat state/autopilot-supervisor.pid
 
 Cron is time-based. The supervisor is completion-based: it waits for spawned workers to finish, then immediately starts the next adaptive cycle if at least one configured provider's usage budget allows. That better matches the desired “chain work all night” behavior without accidentally burning a whole weekly token budget.
 
-## Chat summaries
+## Push after cycle
 
-The supervisor reports directly to the Telegram project chat using OpenClaw delivery after each completed cycle/work unit by default:
+The cycle prompt tells the agent to commit useful changes. After the cycle and any project workers finish, the supervisor runs `git push origin <current-branch>` before sending the chat update.
+
+If a token is available in `GH_TOKEN_ETDOFRESHAI`, `GITHUB_TOKEN`, or `GH_TOKEN`, the supervisor uses a temporary `GIT_ASKPASS` helper. Otherwise it falls back to normal git credentials/SSH. The temporary helper is ignored by git and removed after use.
+
+Disable automatic pushes with:
+
+```bash
+scripts/wolf3d_autopilot_supervisor.py --no-push-after-cycle
+```
+
+## Chat updates
+
+The supervisor reports directly to the Telegram project chat using OpenClaw delivery after each completed cycle/work unit by default. Updates are intentionally short and should include model used, provider usage/window when available, elapsed time when available, commit/push status, verification, and terse work completed:
 
 ```bash
 scripts/wolf3d_autopilot_supervisor.py --completion-summary --summary-channel telegram --summary-target 'telegram:-5268853419'
 ```
 
-Optional periodic summaries while waiting for long workers can be enabled with `--summary-interval 300`, but the preferred mode is completion-based reporting. This replaces the separate summary cron job when the supervisor is running.
+Optional periodic updates while waiting for long workers can be enabled with `--summary-interval 300`, but the preferred mode is completion-based reporting. This replaces the separate summary cron job when the supervisor is running.

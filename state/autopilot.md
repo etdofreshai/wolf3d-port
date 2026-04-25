@@ -3648,3 +3648,35 @@ Next likely move:
 - Use `--include-models` for explicit autopilot model allow-lists and `--exclude-models` for temporary removals.
 
 Blockers: none for headless work.
+
+
+## Cycle 2026-04-25 08:22 CDT Supervisor Updates
+
+Action taken:
+
+- Pushed the existing autopilot model/budget/include/exclude changes to GitHub before continuing.
+- Updated the supervisor completion update prompt to include model used, provider usage/window, elapsed time, commit/push status, verification, terse work completed, and token counts when available.
+- Removed the previous generic "summary" framing from the chat-update prompt.
+- Added `--push-after-cycle` / `--no-push-after-cycle`, defaulting to push after each cycle before sending the completion update.
+- Added token-aware git push support using normal git auth or `GH_TOKEN_ETDOFRESHAI`, `GITHUB_TOKEN`, or `GH_TOKEN` from the environment through a temporary askpass helper.
+- Updated supervisor docs with push-after-cycle and chat-update behavior.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_autopilot_supervisor.py
+scripts/wolf3d_autopilot_supervisor.py --help
+cd source/modern-c-sdl3 && make test
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Temporary git askpass helper does not store the token and is gitignored.
+
+Next likely move:
+
+- Continue headless port work under the new supervisor behavior, using low thinking, provider-aware budget rotation, and automatic commit/push/update loop hygiene.
+
+Blockers: none for headless work.

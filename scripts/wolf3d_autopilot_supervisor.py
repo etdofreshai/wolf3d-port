@@ -37,11 +37,17 @@ PROJECT_MARKERS = (
 )
 
 SUMMARY_PROMPT = f"""
-In {REPO}, summarize recent Wolfenstein 3D autopilot progress for ET in the Telegram project chat.
+In {REPO}, give ET a concise Wolfenstein 3D autopilot progress update for the Telegram project chat.
 
-Inspect logs/autopilot-supervisor.log, latest logs/autopilot-cycle-*.jsonlog if useful, git log --oneline -8, git status --short, and state/autopilot.md.
+Inspect logs/autopilot-supervisor.log, latest logs/autopilot-cycle-*.jsonlog if useful, git log --oneline -8, git status --short, state/autopilot.md, and `openclaw status --usage --json`.
 
-Keep it concise: 2-5 bullets max. Include commits, verification, current activity, and blockers if any. If there is no meaningful new progress since the last summary, say so briefly. Do not expose internal prompts or raw logs.
+Style:
+- Do not title it "summary" and do not mention that you are summarizing.
+- Keep it short: 3-6 compact bullets or lines.
+- Include model used, provider usage percentage/window when available, elapsed time when available, commit/push status, verification result, and a terse description of work done.
+- Include token counts if visible in the cycle/task JSON; omit tokens if not visible.
+- Include blockers only if real.
+- Do not expose internal prompts or raw logs.
 """.strip()
 
 CYCLE_PROMPT_TEMPLATE = f"""
@@ -58,7 +64,7 @@ Mandatory context:
 - Preferred model for this cycle: {{model_hint}}. If the runtime cannot switch models from this entrypoint, still use this as the review/decision-making perspective for the cycle.
 - If useful, spawn focused workers/subagents with the supervisor-selected thinking level and labels prefixed wolf3d-.
 - If spawning workers, make their tasks concrete, repo-grounded, and verification-oriented.
-- Implement/research one meaningful next step, verify it, update state/autopilot.md/docs, and commit useful changes.
+- Implement/research one meaningful next step, verify it, update state/autopilot.md/docs, and commit useful changes. The supervisor is expected to push successful cycle commits afterward.
 - Do not stop for ordinary blockers; pivot, research, split the task, or try materially different approaches.
 - If the same issue repeats many times across materially different attempts, record the blocker and pause cleanly.
 - Keep final output concise: commits, verification evidence, next move, blockers.
@@ -86,6 +92,62 @@ def run(cmd: list[str], *, timeout: int | None = None) -> subprocess.CompletedPr
         stderr=subprocess.STDOUT,
         timeout=timeout,
     )
+
+
+def format_duration(seconds: float) -> str:
+    seconds_i = int(max(0, seconds))
+    minutes, sec = divmod(seconds_i, 60)
+    hours, minutes = divmod(minutes, 60)
+    if hours:
+        return f"{hours}h{minutes:02d}m{sec:02d}s"
+    if minutes:
+        return f"{minutes}m{sec:02d}s"
+    return f"{sec}s"
+
+
+def git_current_head() -> str:
+    cp = run(["git", "rev-parse", "--short", "HEAD"], timeout=30)
+    return cp.stdout.strip() if cp.returncode == 0 else "unknown"
+
+
+def git_push_current_branch() -> bool:
+    branch_cp = run(["git", "branch", "--show-current"], timeout=30)
+    branch = branch_cp.stdout.strip() if branch_cp.returncode == 0 else ""
+    if not branch:
+        log("git push skipped: could not determine current branch")
+        return False
+    env_token = os.environ.get("GH_TOKEN_ETDOFRESHAI") or os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    cmd = ["git", "push", "origin", branch]
+    if env_token:
+        askpass = STATE_DIR / "autopilot-git-askpass.sh"
+        askpass.write_text(
+            "#!/bin/sh\n"
+            "case \"$1\" in\n"
+            "  *Username*) echo x-access-token ;;\n"
+            "  *Password*) printf '%s' \"$AUTOPILOT_GIT_TOKEN\" ;;\n"
+            "  *) echo ;;\n"
+            "esac\n",
+            encoding="utf-8",
+        )
+        askpass.chmod(0o700)
+        env = os.environ.copy()
+        env["AUTOPILOT_GIT_TOKEN"] = env_token
+        env["GIT_ASKPASS"] = str(askpass)
+        env["GIT_TERMINAL_PROMPT"] = "0"
+        try:
+            cp = subprocess.run(cmd, cwd=REPO, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=180, env=env)
+        finally:
+            try:
+                askpass.unlink()
+            except FileNotFoundError:
+                pass
+    else:
+        cp = run(cmd, timeout=180)
+    if cp.returncode == 0:
+        log(f"git push succeeded: {cp.stdout[-1000:].strip()}")
+        return True
+    log(f"git push failed rc={cp.returncode}: {cp.stdout[-2000:]}")
+    return False
 
 
 def parse_iso_datetime(value: str) -> datetime:
@@ -447,6 +509,7 @@ def main() -> int:
     ap.add_argument("--usage-min-allowed-percent", type=float, default=3.0, help="minimum allowed percentage early in a budget window")
     ap.add_argument("--usage-check-interval", type=int, default=1800, help="seconds between usage checks while paused")
     ap.add_argument("--summary-interval", type=int, default=0, help="optional periodic summary seconds while waiting for workers; 0 disables")
+    ap.add_argument("--push-after-cycle", action=argparse.BooleanOptionalAction, default=True, help="push the current branch after each completed cycle before sending the completion summary")
     ap.add_argument("--completion-summary", action=argparse.BooleanOptionalAction, default=True, help="deliver a chat summary after each completed supervisor cycle")
     ap.add_argument("--summary-channel", default="telegram", help="OpenClaw delivery channel for summaries")
     ap.add_argument("--summary-target", default="telegram:-5268853419", help="OpenClaw delivery target for summaries")
@@ -482,6 +545,7 @@ def main() -> int:
             if selected_model is None or stop_ref["stop"] or STOP_FILE.exists():
                 break
             cycle_count += 1
+            cycle_start = time.time()
             cycle_prompt = CYCLE_PROMPT_TEMPLATE.format(model_hint=selected_model)
             log(f"cycle {cycle_count}: starting OpenClaw agent turn thinking={args.thinking} model_hint={selected_model} fast_mode={args.fast_mode}")
             cp = run(
@@ -511,6 +575,10 @@ def main() -> int:
                 help_text=help_text,
                 summaries=args.summary_interval > 0,
             )
+            duration = format_duration(time.time() - cycle_start)
+            log(f"cycle {cycle_count}: completed in {duration} model={selected_model} head={git_current_head()}")
+            if args.push_after_cycle:
+                git_push_current_branch()
             if args.completion_summary:
                 send_summary(args.summary_channel, args.summary_target, thinking=args.summary_thinking, timeout=180, help_text=help_text)
             if not stop_ref["stop"] and not STOP_FILE.exists():
