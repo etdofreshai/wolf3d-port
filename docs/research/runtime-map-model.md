@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/pushwall-progression tests passed for game-files/base
+asset/decompression/semantics/model/vswap/live-solid-ray tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -153,3 +153,8 @@ Added `wl_step_doors`, a deterministic headless door update seam mirroring the o
 ## Cycle update: pushwall progression seam
 
 Added runtime pushwall motion state plus `wl_start_pushwall` and `wl_step_pushwall`, mirroring the original `PushWall`/`MovePWalls` data transitions headlessly. Starting a pushwall now rejects concurrent pushes, requires a solid source tile and clear destination, increments the player's secret count, marks the source tile with the original `0xc0` moving bits, and reserves the next tile. Progression advances `pwallstate` by tics, derives `pwallpos=(state/2)&63`, clears the vacated tile when crossing a 128-tic block boundary, shifts the moving marker forward one tile, reserves the second tile, and stops after the second block crossing while leaving the final wall tile in place. Tests cover start metadata, secret count, sub-tile position, first tile crossing, reserved destination, and final stop.
+
+
+## Cycle update: live solid-plane raycast bridge
+
+Added `wl_build_runtime_solid_plane`, a renderer/raycast-facing bridge from mutable runtime `tilemap` state to the existing wall-ray helpers. The bridge converts clear floor and door-side markers to empty space, keeps normal wall tiles as-is, maps closed door centers to a caller-selected placeholder wall tile until door rendering exists, and preserves moving pushwall wall ids from the low six bits of the original `0xc0` moving marker. Tests now prove live door state affects ray hits: a closed door blocks an east ray, clearing that door lets the ray continue to a later wall, and a moving pushwall marker becomes the first ray hit with its original wall id.

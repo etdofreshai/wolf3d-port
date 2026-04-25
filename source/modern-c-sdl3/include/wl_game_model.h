@@ -161,6 +161,8 @@ typedef struct wl_game_model {
 int wl_build_game_model(const uint16_t *wall_plane, const uint16_t *info_plane,
                         size_t word_count, wl_difficulty difficulty,
                         wl_game_model *out);
+int wl_build_runtime_solid_plane(const wl_game_model *model, uint16_t door_tile,
+                                 uint16_t *out);
 int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_sprite_start,
                                  wl_scene_sprite_ref *refs, size_t max_refs,
                                  size_t *out_count);

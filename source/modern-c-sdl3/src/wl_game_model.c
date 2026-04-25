@@ -520,6 +520,27 @@ static uint16_t actor_to_sprite_index(const wl_actor_desc *actor) {
     return UINT16_MAX;
 }
 
+int wl_build_runtime_solid_plane(const wl_game_model *model, uint16_t door_tile,
+                                 uint16_t *out) {
+    if (!model || !out || door_tile == 0 || door_tile >= 64) {
+        return -1;
+    }
+    for (size_t i = 0; i < WL_MAP_PLANE_WORDS; ++i) {
+        uint16_t tile = model->tilemap[i];
+        if (tile == 0 || tile == 0x40u) {
+            out[i] = 0;
+        } else if (tile & 0x80u) {
+            uint16_t moving_tile = (uint16_t)(tile & 63u);
+            out[i] = moving_tile ? moving_tile : door_tile;
+        } else if (tile < 64u) {
+            out[i] = tile;
+        } else {
+            out[i] = 0;
+        }
+    }
+    return 0;
+}
+
 int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_sprite_start,
                                  wl_scene_sprite_ref *refs, size_t max_refs,
                                  size_t *out_count) {

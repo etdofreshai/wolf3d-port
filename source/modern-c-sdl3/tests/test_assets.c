@@ -603,6 +603,39 @@ static int check_wl6(const char *dir) {
     CHECK(use_model.tilemap[5 + 4 * WL_MAP_SIDE] == 0);
     CHECK(use_model.tilemap[6 + 4 * WL_MAP_SIDE] == 37);
 
+    wl_game_model runtime_model;
+    uint16_t runtime_plane[WL_MAP_PLANE_WORDS];
+    wl_map_wall_hit live_hit;
+    memset(&runtime_model, 0, sizeof(runtime_model));
+    runtime_model.door_count = 1;
+    runtime_model.doors[0].x = 4;
+    runtime_model.doors[0].y = 4;
+    runtime_model.doors[0].action = WL_DOOR_CLOSED;
+    runtime_model.tilemap[4 + 4 * WL_MAP_SIDE] = 0x80u;
+    runtime_model.tilemap[6 + 4 * WL_MAP_SIDE] = 22;
+    CHECK(wl_build_runtime_solid_plane(&runtime_model, 1, runtime_plane) == 0);
+    CHECK(runtime_plane[4 + 4 * WL_MAP_SIDE] == 1);
+    CHECK(wl_cast_cardinal_wall_ray(runtime_plane, WL_MAP_PLANE_WORDS, 3, 4,
+                                    WL_RAY_EAST, 0, 7, 64, &live_hit) == 0);
+    CHECK(live_hit.tile_x == 4);
+    CHECK(live_hit.tile_y == 4);
+    CHECK(live_hit.source_tile == 1);
+    runtime_model.tilemap[4 + 4 * WL_MAP_SIDE] = 0;
+    CHECK(wl_build_runtime_solid_plane(&runtime_model, 1, runtime_plane) == 0);
+    CHECK(wl_cast_cardinal_wall_ray(runtime_plane, WL_MAP_PLANE_WORDS, 3, 4,
+                                    WL_RAY_EAST, 0, 7, 64, &live_hit) == 0);
+    CHECK(live_hit.tile_x == 6);
+    CHECK(live_hit.source_tile == 22);
+    runtime_model.tilemap[5 + 4 * WL_MAP_SIDE] = (uint16_t)(37 | 0xc0u);
+    runtime_model.tilemap[6 + 4 * WL_MAP_SIDE] = 37;
+    CHECK(wl_build_runtime_solid_plane(&runtime_model, 1, runtime_plane) == 0);
+    CHECK(runtime_plane[5 + 4 * WL_MAP_SIDE] == 37);
+    CHECK(runtime_plane[6 + 4 * WL_MAP_SIDE] == 37);
+    CHECK(wl_cast_cardinal_wall_ray(runtime_plane, WL_MAP_PLANE_WORDS, 4, 4,
+                                    WL_RAY_EAST, 0, 7, 64, &live_hit) == 0);
+    CHECK(live_hit.tile_x == 5);
+    CHECK(live_hit.source_tile == 37);
+
     memset(use_info, 0, sizeof(use_info));
     memset(&use_model, 0, sizeof(use_model));
     CHECK(wl_init_player_gameplay_state(&pickup_state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
@@ -2342,6 +2375,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/pushwall-progression tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/live-solid-ray tests passed for %s\n", dir);
     return 0;
 }

@@ -126,7 +126,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/ghost-map-scene tests passed for game-files/base
+asset/decompression/semantics/model/vswap/live-solid-ray tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
@@ -167,3 +167,8 @@ Boss runtime actors now flow through `wl_collect_scene_sprite_refs` with origina
 ## Cycle update: ghost-map scene refs
 
 Ghost runtime actors now flow through `wl_collect_scene_sprite_refs` with original starting sprite indices for Blinky, Clyde, Pinky, and Inky. The `Wolf3 Secret` test asserts scene-ref descriptor hashes instead of committing any decoded ghost sprite bytes.
+
+
+## Cycle update: live solid-plane raycast bridge
+
+Runtime tilemap changes from door and pushwall seams can now feed the existing raycaster through `wl_build_runtime_solid_plane`. Headless tests assert that closed doors and moving pushwalls alter cardinal ray hits before a full animated door/pushwall renderer exists. Door centers currently use a caller-selected placeholder wall tile for solid-ray coverage; textured door rendering remains a later presentation/raycast specialization.
