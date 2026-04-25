@@ -5663,3 +5663,33 @@ Next likely move:
 - Route a gameplay-rendered scene frame through the SDL3 screenshot seam, or consolidate the SDL3 presentation helper to reduce smoke-test duplication.
 
 Blockers: none for repo-local headless SDL3 presentation smoke work.
+
+
+## Cycle 2026-04-25 10:55 CDT Cross-Model Review
+
+Action taken:
+
+- Added a cross-model review phase to the autopilot cycle prompt.
+- When multiple models are configured, the selected model now reviews recent previous-loop commits, latest cycle logs, and `state/autopilot.md` before choosing new implementation work.
+- The review phase asks the model to inspect especially work likely produced under a different model preference, fix concrete issues before unrelated feature work, or record a terse review note if prior work looks sound.
+- Added supervisor options `--review-previous-steps` / `--no-review-previous-steps` and `--review-commit-count`, defaulting to enabled and 3 commits.
+- Updated supervisor docs with the new cross-model review behavior.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_autopilot_supervisor.py
+scripts/wolf3d_autopilot_supervisor.py --help
+cd source/modern-c-sdl3 && make test-sdl3 && make test
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+
+Next likely move:
+
+- Resume autopilot so each model reviews recent prior model work before doing the next porting step.
+
+Blockers: none for repo-local headless SDL3 or autopilot review work.

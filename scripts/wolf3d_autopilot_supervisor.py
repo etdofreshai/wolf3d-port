@@ -63,6 +63,7 @@ Mandatory context:
 - Do not commit proprietary game-files assets.
 - Do not use fast mode unless the supervisor explicitly enables it.
 - Preferred model for this cycle: {{model_hint}}. If the runtime cannot switch models from this entrypoint, still use this as the review/decision-making perspective for the cycle.
+{{review_instructions}}
 - If useful, spawn focused workers/subagents with the supervisor-selected thinking level and labels prefixed wolf3d-.
 - If spawning workers, make their tasks concrete, repo-grounded, and verification-oriented.
 - Implement/research one meaningful next step, verify it, update state/autopilot.md/docs, and commit useful changes. The supervisor is expected to push successful cycle commits afterward.
@@ -492,6 +493,19 @@ def send_stop_update(args: argparse.Namespace, stats: dict[str, Any], help_text:
     send_plain_update(args, text, help_text, "stop update")
 
 
+def build_review_instructions(args: argparse.Namespace, models: list[str]) -> str:
+    if not args.review_previous_steps or len(models) <= 1:
+        return "- Cross-model review phase: disabled or unnecessary because only one model is configured."
+    return (
+        f"- Cross-model review phase: before choosing new work, inspect the last {args.review_commit_count} commit(s), "
+        "latest autopilot cycle logs, and state/autopilot.md. Review the previous loop(s), especially work likely produced under a different model preference. "
+        "Look for correctness issues, missing tests, docs/state drift, unsafe commits, or better next-step suggestions. "
+        "If you find a concrete issue, fix it in this cycle before starting unrelated new feature work. "
+        "If the prior work looks sound, record a terse review note in state/autopilot.md and continue with the best next porting step. "
+        "Do not perform a long abstract critique; keep review tied to code/tests/docs and verification."
+    )
+
+
 def select_available_model(args: argparse.Namespace, models: list[str], stop_ref: dict[str, bool], help_text: str) -> str | None:
     if not args.usage_guard:
         return select_model(models, args.usage_provider)
@@ -635,6 +649,8 @@ def main() -> int:
     ap.add_argument("--summary-thinking", default="low", help="completion/periodic summary thinking level")
     ap.add_argument("--models", "--include-models", dest="models", default="openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1", help="comma-separated included model rotation; provider is inferred from the prefix before '/'")
     ap.add_argument("--exclude-models", default="", help="comma-separated model ids or provider prefixes to exclude from this run after includes are applied")
+    ap.add_argument("--review-previous-steps", action=argparse.BooleanOptionalAction, default=True, help="when multiple models are configured, review recent previous-loop commits before new work")
+    ap.add_argument("--review-commit-count", type=int, default=3, help="number of recent commits to inspect during the cross-model review phase")
     ap.add_argument("--fast-mode", action=argparse.BooleanOptionalAction, default=False, help="request fast mode if the OpenClaw CLI supports it; default is off")
     ap.add_argument("--usage-guard", action=argparse.BooleanOptionalAction, default=True, help="skip over-budget model providers and pause only when every configured provider is ahead of schedule")
     ap.add_argument("--usage-provider", default="openai-codex", help="fallback provider key from openclaw status --usage for models without a provider prefix")
@@ -708,7 +724,10 @@ def main() -> int:
             run_stats["cycles"] = cycle_count
             run_stats["modelCounts"][selected_model] = run_stats["modelCounts"].get(selected_model, 0) + 1
             cycle_start = time.time()
-            cycle_prompt = CYCLE_PROMPT_TEMPLATE.format(model_hint=selected_model)
+            cycle_prompt = CYCLE_PROMPT_TEMPLATE.format(
+                model_hint=selected_model,
+                review_instructions=build_review_instructions(args, models),
+            )
             log(f"cycle {cycle_count}: starting OpenClaw agent turn thinking={args.thinking} model_hint={selected_model} fast_mode={args.fast_mode}")
             cp = run(
                 build_agent_command(
