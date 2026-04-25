@@ -6,7 +6,8 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 
 - `wl_read_audio_header()` reads little-endian 32-bit chunk offsets from `AUDIOHED.*`.
 - `wl_read_audio_chunk()` copies bounded raw chunk bytes from `AUDIOT.*` using adjacent offsets.
-- Tests intentionally treat the bytes as opaque for now; format-specific PC speaker, AdLib, digitized sound, and IMF parsing can build on this seam later.
+- `wl_describe_audio_chunk()` classifies the original WL6 chunk ranges and exposes raw size, declared length, sound priority where present, and payload bounds.
+- `wl_describe_imf_music_chunk()` validates IMF music chunks by their declared byte count and summarizes command count, first command, total delay ticks, and trailing AUDIOT bytes.
 
 ## Verified WL6 metadata
 
@@ -18,8 +19,8 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
   - chunk 1: 13 bytes, FNV-1a `0x21985d89`.
   - chunk 87: 41 bytes, FNV-1a `0x799f60b1`.
   - chunk 174: 0 bytes.
-  - chunk 261: 7,546 bytes, FNV-1a `0xea0d69d8`.
-  - chunk 287: 20,926 bytes, FNV-1a `0x65998666`.
+  - chunk 261: 7,546 bytes, FNV-1a `0xea0d69d8`; IMF declared bytes 7,456, command count 1,864, first command `(reg=0, value=0, delay=189)`, total delay 25,697,407, trailing bytes 86.
+  - chunk 287: 20,926 bytes, FNV-1a `0x65998666`; IMF declared bytes 20,836, command count 5,209, first delay 189, total delay 71,494,600, trailing bytes 86.
 
 ## Verified optional SOD metadata
 
