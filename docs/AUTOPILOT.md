@@ -27,6 +27,18 @@ Escalate only for:
 
 Everything else should be handled autonomously.
 
+## Runtime Environment
+
+The autopilot runs on a headless Linux machine. All verification must target headless Linux first.
+
+Implications:
+
+- Prefer CLI tests, unit tests, parsers, build checks, and deterministic file/output validation.
+- Do not require an interactive display for normal verification.
+- SDL3 work should support headless-friendly smoke tests where possible, using dummy/offscreen drivers or non-rendering seams before graphical inspection.
+- Screenshot/manual visual checks are optional later-stage evidence, not a dependency for early progress.
+- Long-running cycles should continue autonomously overnight and avoid pausing for routine clarification.
+
 ## Loop Shape
 
 Each autopilot cycle should:
@@ -45,7 +57,7 @@ Each autopilot cycle should:
    - Update `state/autopilot.md` with what happened, what was verified, and the next likely move.
 6. **Continue or Pause**
    - Continue automatically if safe and useful.
-   - Pause only on a real blocker or explicit owner stop.
+   - Pause only on a hard safety/legal/destructive blocker, repeated materially different verification failures, or explicit owner stop. Otherwise choose the next best step and continue.
 
 ## Technical Boundaries
 

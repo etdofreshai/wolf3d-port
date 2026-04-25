@@ -89,3 +89,10 @@ First assertions should verify the observed WL6 file sizes, `MAPHEAD.WL6` RLEW t
 ## Blockers
 
 None. SDL3 integration can safely wait until asset/decompression tests exist.
+
+
+## Runtime Notes
+
+- Target verification environment is headless Linux.
+- Prefer automated CLI/build/unit tests over visual/manual checks.
+- Autopilot is expected to continue overnight without asking ET for routine decisions.
