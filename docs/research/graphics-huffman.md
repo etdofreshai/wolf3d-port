@@ -354,3 +354,8 @@ Headless presentation coverage now includes a fine-position patrol officer. The 
 ## Cycle update: live AI SS fine-position rendering
 
 Headless presentation coverage now includes a fine-position patrol SS. The scene renderer projects the SS sprite from live AI refs and verifies stable hash `0x0b6fe30b` before SDL3.
+
+
+## Cycle update: live AI mutant fine-position rendering
+
+Headless presentation coverage now includes a fine-position patrol mutant. The scene renderer projects the mutant sprite from live AI refs and verifies stable hash `0x96655cea` before SDL3.

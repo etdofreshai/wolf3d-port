@@ -413,3 +413,8 @@ Live AI fine-position refs now cover officer patrol actors in addition to guards
 ## Cycle update: live AI SS fine-position rendering
 
 Live AI fine-position refs now cover SS patrol actors alongside guards/dogs/officers. A half-tile SS patrol emits source/chunk `146/252` at fine world coordinates and renders through the door-aware scene path.
+
+
+## Cycle update: live AI mutant fine-position rendering
+
+Live AI fine-position refs now cover mutant patrol actors alongside guards/dogs/officers/SS. A half-tile mutant patrol emits source/chunk `195/301` at fine world coordinates and renders through the door-aware scene path.
