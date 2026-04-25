@@ -5880,3 +5880,32 @@ Next likely move:
 - Rerun the parallel wave runner; conflicts should now get an automated repair attempt before the wave stops.
 
 Blockers: resolver may still fail or intentionally abort if a conflict is unsafe or tests fail.
+
+
+## Cycle 2026-04-25 18:54 CDT Aggressive Merge Resolver
+
+Action taken:
+
+- Made the parallel wave merge resolver more aggressive by default.
+- Resolver now tries up to `--merge-resolver-attempts` model attempts, defaulting to 3, before giving up.
+- Added `--merge-resolver-thinking`, defaulting to `medium`, for resolver agents.
+- Resolver prompts now explicitly prioritize avoiding human intervention when safe, combining additive docs/state/test notes, preserving useful changes from both sides, and only aborting on genuinely unsafe conflicts or unfixable verification failures.
+- Updated docs with the multi-attempt resolver behavior.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_parallel_wave.py
+scripts/wolf3d_parallel_wave.py --help
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add proprietary game data.
+
+Next likely move:
+
+- Continue the parallel wave runner; merge conflicts will now receive multiple automated repair attempts before stopping.
+
+Blockers: none.
