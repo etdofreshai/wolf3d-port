@@ -112,6 +112,11 @@ typedef struct wl_wall_page_metadata {
     uint16_t unique_color_count;
 } wl_wall_page_metadata;
 
+typedef enum wl_wall_side {
+    WL_WALL_SIDE_HORIZONTAL = 0,
+    WL_WALL_SIDE_VERTICAL = 1,
+} wl_wall_side;
+
 typedef struct wl_wall_strip {
     const unsigned char *wall_page;
     size_t wall_page_size;
@@ -119,6 +124,17 @@ typedef struct wl_wall_strip {
     uint16_t x;
     uint16_t scaled_height;
 } wl_wall_strip;
+
+typedef struct wl_map_wall_hit {
+    uint16_t tile_x;
+    uint16_t tile_y;
+    uint16_t source_tile;
+    wl_wall_side side;
+    uint16_t wall_page_index;
+    uint16_t texture_offset;
+    uint16_t x;
+    uint16_t scaled_height;
+} wl_map_wall_hit;
 
 typedef struct wl_vswap_shape_metadata {
     wl_vswap_chunk_kind kind;
@@ -179,6 +195,12 @@ int wl_scale_wall_column_to_surface(const unsigned char *column, size_t column_s
                                     uint16_t scaled_height);
 int wl_render_wall_strip_viewport(const wl_wall_strip *strips, size_t strip_count,
                                   wl_indexed_surface *dst);
+int wl_build_map_wall_hit(const uint16_t *wall_plane, size_t wall_count,
+                          uint16_t tile_x, uint16_t tile_y, wl_wall_side side,
+                          uint16_t texture_column, uint16_t x,
+                          uint16_t scaled_height, wl_map_wall_hit *out);
+int wl_wall_hit_to_strip(const wl_map_wall_hit *hit, const unsigned char *wall_page,
+                         size_t wall_page_size, wl_wall_strip *out);
 int wl_read_graphics_header(const char *path, wl_graphics_header *out);
 int wl_read_huffman_dictionary(const char *path, wl_huffman_node nodes[WL_HUFFMAN_NODE_COUNT]);
 int wl_huff_expand(const unsigned char *src, size_t src_len,

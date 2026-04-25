@@ -866,6 +866,50 @@ int wl_render_wall_strip_viewport(const wl_wall_strip *strips, size_t strip_coun
     return 0;
 }
 
+int wl_build_map_wall_hit(const uint16_t *wall_plane, size_t wall_count,
+                          uint16_t tile_x, uint16_t tile_y, wl_wall_side side,
+                          uint16_t texture_column, uint16_t x,
+                          uint16_t scaled_height, wl_map_wall_hit *out) {
+    if (!wall_plane || !out || wall_count < WL_MAP_PLANE_WORDS ||
+        tile_x >= WL_MAP_SIDE || tile_y >= WL_MAP_SIDE || texture_column >= WL_MAP_SIDE ||
+        scaled_height == 0 ||
+        (side != WL_WALL_SIDE_HORIZONTAL && side != WL_WALL_SIDE_VERTICAL)) {
+        return -1;
+    }
+
+    uint16_t tile = wall_plane[(size_t)tile_y * WL_MAP_SIDE + tile_x];
+    if (tile == 0 || tile >= 64) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->tile_x = tile_x;
+    out->tile_y = tile_y;
+    out->source_tile = tile;
+    out->side = side;
+    out->wall_page_index = (uint16_t)((tile - 1u) * 2u +
+                                      (side == WL_WALL_SIDE_VERTICAL ? 1u : 0u));
+    out->texture_offset = (uint16_t)(texture_column * WL_MAP_SIDE);
+    out->x = x;
+    out->scaled_height = scaled_height;
+    return 0;
+}
+
+int wl_wall_hit_to_strip(const wl_map_wall_hit *hit, const unsigned char *wall_page,
+                         size_t wall_page_size, wl_wall_strip *out) {
+    if (!hit || !wall_page || !out || wall_page_size != WL_MAP_PLANE_WORDS) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->wall_page = wall_page;
+    out->wall_page_size = wall_page_size;
+    out->texture_offset = hit->texture_offset;
+    out->x = hit->x;
+    out->scaled_height = hit->scaled_height;
+    return 0;
+}
+
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written) {
     const uint16_t near_tag = 0xa7;
