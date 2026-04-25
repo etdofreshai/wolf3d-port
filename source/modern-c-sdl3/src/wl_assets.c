@@ -2297,6 +2297,33 @@ int wl_describe_pc_speaker_sound(const unsigned char *chunk, size_t chunk_size,
     return 0;
 }
 
+int wl_describe_adlib_sound(const unsigned char *chunk, size_t chunk_size,
+                            wl_adlib_sound_metadata *out) {
+    uint32_t sample_count;
+    const size_t common_bytes = sizeof(uint32_t) + sizeof(uint16_t);
+    const size_t instrument_bytes = 16u;
+    const size_t data_offset = common_bytes + instrument_bytes;
+    if (!chunk || !out || chunk_size < data_offset) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    sample_count = read_le32(chunk);
+    if ((size_t)sample_count > chunk_size - data_offset) {
+        return -1;
+    }
+    out->sample_count = sample_count;
+    out->priority = read_le16(chunk + sizeof(uint32_t));
+    out->instrument_bytes = (uint8_t)instrument_bytes;
+    out->first_instrument_byte = chunk[common_bytes];
+    out->last_instrument_byte = chunk[data_offset - 1u];
+    if (sample_count > 0) {
+        out->first_sample = chunk[data_offset];
+        out->last_sample = chunk[data_offset + (size_t)sample_count - 1u];
+    }
+    out->trailing_bytes = chunk_size - data_offset - (size_t)sample_count;
+    return 0;
+}
+
 int wl_describe_imf_music_chunk(const unsigned char *chunk, size_t chunk_size,
                                 wl_imf_music_metadata *out) {
     uint64_t total_delay = 0;
