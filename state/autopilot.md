@@ -5821,3 +5821,32 @@ Next likely move:
 - Resume parallel waves; state-file merge conflicts should be less likely because per-worker notes are isolated.
 
 Blockers: other source/docs conflicts can still happen and should remain explicit merge failures.
+
+
+## Cycle 2026-04-25 12:06 CDT Parallel Wave Numbering and Stats
+
+Action taken:
+
+- Added a persistent auto-incrementing parallel wave counter in ignored `state/autopilot-parallel-wave-state.json`.
+- Parallel wave start/finish Telegram messages now use simple numbers like `parallel wave 1` instead of timestamp IDs.
+- Finish messages now include per-model elapsed time and a short extracted work summary from each worker's final output.
+- Finish messages still include merged commits, issues/conflicts, verification, push status, and final head.
+- Updated docs and gitignore for the wave state file.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_parallel_wave.py
+scripts/wolf3d_parallel_wave.py --help
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add proprietary game data.
+
+Next likely move:
+
+- Resume parallel waves; Telegram updates should now be numbered and more informative.
+
+Blockers: none.

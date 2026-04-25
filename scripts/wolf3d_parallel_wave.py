@@ -17,6 +17,7 @@ REPO = Path(__file__).resolve().parents[1]
 SUPERVISOR = REPO / "scripts" / "wolf3d_autopilot_supervisor.py"
 WORKTREES_DIR = REPO / ".worktrees"
 LOG_DIR = REPO / "logs"
+WAVE_STATE_FILE = REPO / "state" / "autopilot-parallel-wave-state.json"
 
 
 def load_supervisor() -> Any:
@@ -36,6 +37,66 @@ def run(cmd: list[str], *, cwd: Path = REPO, timeout: int | None = None) -> subp
 def slug_model(model: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]+", "-", model).strip("-").lower()
 
+
+
+
+def load_wave_state() -> dict[str, Any]:
+    if not WAVE_STATE_FILE.exists():
+        return {"lastWaveNumber": 0}
+    try:
+        data = json.loads(WAVE_STATE_FILE.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            data.setdefault("lastWaveNumber", 0)
+            return data
+    except json.JSONDecodeError:
+        pass
+    return {"lastWaveNumber": 0}
+
+
+def next_wave_number() -> int:
+    state = load_wave_state()
+    try:
+        number = int(state.get("lastWaveNumber", 0)) + 1
+    except (TypeError, ValueError):
+        number = 1
+    WAVE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    WAVE_STATE_FILE.write_text(json.dumps({"lastWaveNumber": number, "updatedAt": time.time()}, indent=2) + "\n", encoding="utf-8")
+    return number
+
+
+def extract_worker_text(json_text: str) -> str:
+    try:
+        data = json.loads(json_text)
+        payloads = (((data.get("result") or {}).get("payloads")) or [])
+        texts = [p.get("text", "") for p in payloads if isinstance(p, dict) and p.get("text")]
+        if texts:
+            return "\n".join(texts)
+    except Exception:
+        pass
+    return json_text or ""
+
+
+def summarize_worker_output(json_text: str) -> str:
+    text = extract_worker_text(json_text)
+    lines = [line.strip() for line in text.splitlines()]
+    for heading in ("Work done:", "Accomplished:", "Review findings:"):
+        for i, line in enumerate(lines):
+            if line.lower() == heading.lower():
+                bullets = []
+                for nxt in lines[i + 1:i + 5]:
+                    if not nxt:
+                        continue
+                    if nxt.endswith(":") and not nxt.startswith("-"):
+                        break
+                    bullets.append(nxt.lstrip("- "))
+                    if len(bullets) >= 2:
+                        break
+                if bullets:
+                    return "; ".join(bullets)
+    for line in lines:
+        if line.startswith("-"):
+            return line.lstrip("- ")
+    return "completed" if text else "no worker summary"
 
 def git_head() -> str:
     cp = run(["git", "rev-parse", "--short", "HEAD"])
@@ -159,13 +220,15 @@ def main() -> int:
             print("stop file present; exiting parallel wave runner")
             break
         waves_run += 1
+        wave_number = next_wave_number()
         wave_id = time.strftime("%Y%m%d-%H%M%S")
+        wave_label = f"wave {wave_number}"
         base = git_full_head()
         models = eligible_models(sup, args, {"stop": False})
         if not models:
             print("no eligible models for this wave")
             break
-        sup.send_plain_update(args, f"Starting Wolf3D parallel wave {wave_id}.\nModels: {', '.join(models)}.", args.help_text, "parallel wave start")
+        sup.send_plain_update(args, f"Starting Wolf3D parallel wave {wave_number}.\nModels: {', '.join(models)}.", args.help_text, "parallel wave start")
         workers = []
         for model in models:
             slug = slug_model(model)
@@ -177,17 +240,21 @@ def main() -> int:
             cmd = ["openclaw", "agent", "--agent", "main", "--session-id", f"wolf3d-wave-{wave_id}-{slug}",
                    "--message", prompt, "--thinking", args.thinking, "--timeout", str(args.timeout), "--json"]
             proc = subprocess.Popen(cmd, cwd=wt, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            workers.append({"model": model, "slug": slug, "branch": branch, "worktree": wt, "proc": proc, "log": log_path})
+            workers.append({"model": model, "slug": slug, "branch": branch, "worktree": wt, "proc": proc, "log": log_path, "startedAt": time.time()})
         results = []
         for worker in workers:
             out, _ = worker["proc"].communicate(timeout=args.timeout + 180)
             worker["log"].write_text(out or "", encoding="utf-8")
-            results.append({**worker, "returncode": worker["proc"].returncode})
+            duration = time.time() - float(worker.get("startedAt", time.time()))
+            results.append({**worker, "returncode": worker["proc"].returncode, "output": out or "", "duration": duration, "summary": summarize_worker_output(out or "")})
         merged = []
         conflicts = []
+        model_lines = []
         for result in results:
             branch = result["branch"]
             model = result["model"]
+            duration_text = sup.format_duration(float(result.get("duration", 0)))
+            model_lines.append(f"{model}: {duration_text}; {result.get('summary', 'completed')}")
             if result["returncode"] != 0:
                 conflicts.append(f"{model}: worker rc={result['returncode']}")
                 continue
@@ -209,11 +276,11 @@ def main() -> int:
         if args.cleanup_worktrees:
             for result in results:
                 run(["git", "worktree", "remove", "--force", str(result["worktree"])], timeout=120)
-        text = (f"Wolf3D parallel wave {wave_id} complete.\n"
+        text = (f"Wolf3D parallel wave {wave_number} complete.\n"
+                f"Models: {' | '.join(model_lines) or 'none'}.\n"
                 f"Merged: {', '.join(merged) or 'none'}.\n"
                 f"Issues: {', '.join(conflicts) or 'none'}.\n"
-                f"Verification: {'passed' if verify.returncode == 0 else 'failed'}. Push: {'yes' if pushed else 'no'}.\n"
-                f"Head: {git_head()}.")
+                f"Verification: {'passed' if verify.returncode == 0 else 'failed'}. Push: {'yes' if pushed else 'no'}. Head: {git_head()}.")
         sup.send_plain_update(args, text, args.help_text, "parallel wave complete")
         if verify.returncode != 0 or conflicts:
             break
