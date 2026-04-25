@@ -7,7 +7,7 @@ It is intentionally simple:
 1. Run one OpenClaw high-reasoning autopilot cycle.
 2. Let that cycle implement directly or spawn `wolf3d-*` workers.
 3. Watch OpenClaw's task ledger until project-related workers finish.
-4. Deliver concise progress summaries to the project chat every few minutes.
+4. Deliver a concise progress summary to the project chat when a cycle/work unit finishes.
 5. Start the next cycle.
 
 Durable state remains in the repo:
@@ -28,8 +28,9 @@ Useful options:
 ```bash
 scripts/wolf3d_autopilot_supervisor.py --max-cycles 1
 scripts/wolf3d_autopilot_supervisor.py --worker-poll 30 --max-worker-wait 7200
-scripts/wolf3d_autopilot_supervisor.py --summary-interval 300
-scripts/wolf3d_autopilot_supervisor.py --summary-interval 0  # disable built-in summaries
+scripts/wolf3d_autopilot_supervisor.py --completion-summary
+scripts/wolf3d_autopilot_supervisor.py --no-completion-summary
+scripts/wolf3d_autopilot_supervisor.py --summary-interval 300  # optional periodic summaries while waiting
 ```
 
 ## Stop
@@ -52,10 +53,10 @@ Cron is time-based. The supervisor is completion-based: it waits for spawned wor
 
 ## Chat summaries
 
-The supervisor can report directly to the Telegram project chat using OpenClaw delivery:
+The supervisor reports directly to the Telegram project chat using OpenClaw delivery after each completed cycle/work unit by default:
 
 ```bash
-scripts/wolf3d_autopilot_supervisor.py --summary-interval 300 --summary-channel telegram --summary-target 'telegram:-5268853419'
+scripts/wolf3d_autopilot_supervisor.py --completion-summary --summary-channel telegram --summary-target 'telegram:-5268853419'
 ```
 
-This replaces the separate summary cron job when the supervisor is running.
+Optional periodic summaries while waiting for long workers can be enabled with `--summary-interval 300`, but the preferred mode is completion-based reporting. This replaces the separate summary cron job when the supervisor is running.

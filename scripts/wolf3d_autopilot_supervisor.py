@@ -193,7 +193,8 @@ def main() -> int:
     ap.add_argument("--max-worker-wait", type=int, default=7200, help="max seconds to wait for workers per cycle")
     ap.add_argument("--max-cycles", type=int, default=0, help="0 means run until stopped")
     ap.add_argument("--timeout", type=int, default=1800, help="OpenClaw agent turn timeout seconds")
-    ap.add_argument("--summary-interval", type=int, default=300, help="seconds between delivered chat summaries; 0 disables")
+    ap.add_argument("--summary-interval", type=int, default=0, help="optional periodic summary seconds while waiting for workers; 0 disables")
+    ap.add_argument("--completion-summary", action=argparse.BooleanOptionalAction, default=True, help="deliver a chat summary after each completed supervisor cycle")
     ap.add_argument("--summary-channel", default="telegram", help="OpenClaw delivery channel for summaries")
     ap.add_argument("--summary-target", default="telegram:-5268853419", help="OpenClaw delivery target for summaries")
     args = ap.parse_args()
@@ -240,8 +241,6 @@ def main() -> int:
             if cp.stdout.strip():
                 (LOG_DIR / f"autopilot-cycle-{cycle:04d}.jsonlog").write_text(cp.stdout, encoding="utf-8")
                 log(f"cycle {cycle}: wrote logs/autopilot-cycle-{cycle:04d}.jsonlog")
-            if args.summary_interval > 0:
-                send_summary(args.summary_channel, args.summary_target)
             wait_for_workers(
                 args.max_worker_wait,
                 args.worker_poll,
@@ -250,6 +249,8 @@ def main() -> int:
                 summary_target=args.summary_target,
                 summaries=args.summary_interval > 0,
             )
+            if args.completion_summary:
+                send_summary(args.summary_channel, args.summary_target)
             if not stop and not STOP_FILE.exists():
                 time.sleep(max(0, args.cycle_delay))
         return 0
