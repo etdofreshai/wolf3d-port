@@ -609,6 +609,45 @@ int wl_apply_actor_death_final_frame(wl_game_model *model,
     return 0;
 }
 
+int wl_step_live_actor_death_tick(wl_game_model *model,
+                                  uint16_t actor_model_index,
+                                  wl_actor_death_state *death,
+                                  int32_t tics,
+                                  uint16_t vswap_sprite_start,
+                                  wl_live_actor_death_tick_result *out) {
+    if (!model || !death || !out || actor_model_index >= model->actor_count ||
+        vswap_sprite_start == 0) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    if (wl_step_actor_death_state(death, tics, &out->step) != 0) {
+        return -1;
+    }
+
+    const wl_actor_desc *actor = &model->actors[actor_model_index];
+    if (death->sprite_source_index == UINT16_MAX || actor->tile_x >= WL_MAP_SIDE ||
+        actor->tile_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+    out->death_ref.kind = WL_SCENE_SPRITE_ACTOR;
+    out->death_ref.model_index = actor_model_index;
+    out->death_ref.source_index = death->sprite_source_index;
+    out->death_ref.vswap_chunk_index = (uint16_t)(vswap_sprite_start +
+                                                  death->sprite_source_index);
+    out->death_ref.world_x = ((uint32_t)actor->tile_x << 16) + 0x8000u;
+    out->death_ref.world_y = ((uint32_t)actor->tile_y << 16) + 0x8000u;
+    out->death_ref_built = 1;
+
+    if (death->finished) {
+        if (wl_apply_actor_death_final_frame(model, actor_model_index, death) != 0) {
+            return -1;
+        }
+        out->final_frame_applied = 1;
+    }
+    return 0;
+}
+
 int wl_try_actor_shoot_player(wl_player_gameplay_state *state,
                               const wl_actor_desc *actor,
                               const wl_player_motion_state *player,

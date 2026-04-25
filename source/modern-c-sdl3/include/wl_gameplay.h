@@ -298,6 +298,13 @@ typedef struct wl_live_full_combat_tick_result {
     uint8_t death_ref_built;
 } wl_live_full_combat_tick_result;
 
+typedef struct wl_live_actor_death_tick_result {
+    wl_actor_death_step_result step;
+    wl_scene_sprite_ref death_ref;
+    uint8_t death_ref_built;
+    uint8_t final_frame_applied;
+} wl_live_actor_death_tick_result;
+
 int wl_init_player_gameplay_state(wl_player_gameplay_state *state,
                                   int32_t health, int32_t lives,
                                   int32_t score, int32_t next_extra);
@@ -345,6 +352,12 @@ int wl_build_actor_death_scene_ref(const wl_actor_combat_state *actor,
 int wl_apply_actor_death_final_frame(wl_game_model *model,
                                      uint16_t model_index,
                                      const wl_actor_death_state *death);
+int wl_step_live_actor_death_tick(wl_game_model *model,
+                                  uint16_t actor_model_index,
+                                  wl_actor_death_state *death,
+                                  int32_t tics,
+                                  uint16_t vswap_sprite_start,
+                                  wl_live_actor_death_tick_result *out);
 int wl_step_projectile(wl_player_gameplay_state *state,
                        const wl_game_model *model,
                        const wl_player_motion_state *player,

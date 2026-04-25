@@ -368,6 +368,50 @@ static int check_gameplay_events(void) {
     death_state.finished = 1;
     CHECK(wl_apply_actor_death_final_frame(&final_frame_model, 1,
                                            &death_state) == -1);
+
+    wl_game_model death_tick_model;
+    memset(&death_tick_model, 0, sizeof(death_tick_model));
+    death_tick_model.actor_count = 1;
+    death_tick_model.actors[0].kind = WL_ACTOR_GUARD;
+    death_tick_model.actors[0].mode = WL_ACTOR_STAND;
+    death_tick_model.actors[0].shootable = 1;
+    death_tick_model.actors[0].tile_x = actor_state.tile_x;
+    death_tick_model.actors[0].tile_y = actor_state.tile_y;
+    CHECK(wl_start_actor_death_state(&actor_state, &actor_damage,
+                                     &death_state) == 0);
+    wl_live_actor_death_tick_result live_death_tick;
+    CHECK(wl_step_live_actor_death_tick(&death_tick_model, 0,
+                                        &death_state, 15, 106,
+                                        &live_death_tick) == 0);
+    CHECK(live_death_tick.step.advanced == 1);
+    CHECK(live_death_tick.step.sprite_source_index == 92);
+    CHECK(live_death_tick.death_ref_built == 1);
+    CHECK(live_death_tick.final_frame_applied == 0);
+    CHECK(live_death_tick.death_ref.source_index == 92);
+    CHECK(live_death_tick.death_ref.vswap_chunk_index == 198);
+    CHECK(death_tick_model.actors[0].scene_source_override == 0);
+    CHECK(wl_step_live_actor_death_tick(&death_tick_model, 0,
+                                        &death_state, 30, 106,
+                                        &live_death_tick) == 0);
+    CHECK(live_death_tick.step.finished == 1);
+    CHECK(live_death_tick.step.sprite_source_index == 95);
+    CHECK(live_death_tick.death_ref.source_index == 95);
+    CHECK(live_death_tick.death_ref.vswap_chunk_index == 201);
+    CHECK(live_death_tick.death_ref.world_x == death_ref.world_x);
+    CHECK(live_death_tick.death_ref.world_y == death_ref.world_y);
+    CHECK(live_death_tick.final_frame_applied == 1);
+    CHECK(death_tick_model.actors[0].mode == WL_ACTOR_INERT);
+    CHECK(death_tick_model.actors[0].shootable == 0);
+    CHECK(death_tick_model.actors[0].scene_source_override == 1);
+    CHECK(wl_collect_scene_sprite_refs(&death_tick_model, 106,
+                                       final_frame_refs, 1,
+                                       &final_frame_ref_count) == 0);
+    CHECK(final_frame_ref_count == 1);
+    CHECK(final_frame_refs[0].source_index == 95);
+    CHECK(final_frame_refs[0].vswap_chunk_index == 201);
+    CHECK(wl_step_live_actor_death_tick(&death_tick_model, 1,
+                                        &death_state, 1, 106,
+                                        &live_death_tick) == -1);
     wl_game_model drop_model;
     memset(&drop_model, 0, sizeof(drop_model));
     size_t drop_static_index = 999;
@@ -3919,6 +3963,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-actor-death-final-frame tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-actor-death-tick tests passed for %s\n", dir);
     return 0;
 }

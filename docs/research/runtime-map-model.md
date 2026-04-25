@@ -313,3 +313,8 @@ Full live combat output now feeds the live scene renderer directly for death fra
 ## Cycle update: actor death final-frame refs
 
 Runtime actor refs now have a small death-finalization seam. A finished `wl_actor_death_state` can be applied to a model actor slot, marking it inert/non-shootable and replacing the source sprite emitted by `wl_collect_scene_sprite_refs` while preserving the actor model index and world position. The headless guard test verifies source `50` becomes final source `95` / chunk `201`.
+
+
+## Cycle update: live actor death tick
+
+Actor death animation now advances through a runtime tick seam. `wl_step_live_actor_death_tick` steps death-state tics, emits a scene ref for the current death frame, and applies the final corpse-frame override to the model actor slot when finished. The guard test proves the same actor model index progresses to source `92`, then persists as source `95` / chunk `201` through normal scene-ref collection.

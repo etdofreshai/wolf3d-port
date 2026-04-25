@@ -181,3 +181,8 @@ Full live combat death refs now drive the renderer-facing path directly. A headl
 ## Actor death final-frame actor refs
 
 Runtime actor scene refs now support a final death-frame replacement. `wl_apply_actor_death_final_frame` consumes a finished `wl_actor_death_state`, makes the target actor slot inert/non-shootable, and enables an actor scene-source override so `wl_collect_scene_sprite_refs` emits the final death sprite for the same model index. The first headless check verifies a guard ref changes from source `50` to final source `95` / VSWAP chunk `201`.
+
+
+## Live actor death tick
+
+Actor death animation now has a live tick seam. `wl_step_live_actor_death_tick` advances a `wl_actor_death_state`, returns a renderer-facing scene ref for the current death frame, and applies the persistent final-frame override to the actor slot when the sequence finishes. The guard test advances source `91` → `92` → final `95` / VSWAP chunk `201`.

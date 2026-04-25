@@ -262,3 +262,8 @@ The VSWAP cache path now consumes death refs emitted directly by full live comba
 ## Cycle update: actor death final-frame refs
 
 The runtime actor-ref path can now carry final death-frame VSWAP metadata. Applying a finished guard death state to an actor slot causes `wl_collect_scene_sprite_refs` to emit source sprite `95` / chunk `201` for that same model index, without storing decoded sprite bytes.
+
+
+## Cycle update: live actor death tick
+
+Death-frame VSWAP metadata now updates through a live tick boundary. The guard death tick emits source `92` / chunk `198` during progression and final source `95` / chunk `201` at completion, after which `wl_collect_scene_sprite_refs` carries the corpse frame from the runtime actor slot.

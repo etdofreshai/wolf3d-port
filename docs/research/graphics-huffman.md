@@ -274,3 +274,8 @@ Full live combat death refs now reach indexed scene composition before SDL3. The
 ## Cycle update: actor death final-frame refs
 
 Actor death progression now has a persistent renderer-facing final-frame bridge. Once death state finishes, the runtime actor scene ref can be overridden to the final death sprite, so future SDL3 presentation can continue drawing the corpse from normal scene-ref collection instead of a one-off combat result.
+
+
+## Cycle update: live actor death tick
+
+The renderer-facing death animation path now has a live ticking contract. Each tick can return the current death-frame scene ref, and the final tick installs the corpse sprite override so ordinary scene collection keeps drawing the final frame for future SDL3 presentation.
