@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-live-tick-upload tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-live-tick-scene tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -213,3 +213,8 @@ Added `wl_step_live_tick`, a deterministic orchestration seam that ties together
 ## Cycle update: live tick palette upload
 
 The live tick seam now has coverage proving its palette result can drive renderer upload metadata. The test runs a food-pickup tick, observes the white palette-shift output, and passes that result to the existing shifted texture upload descriptor path. This connects runtime gameplay events to future presentation-facing palette selection without SDL or committed pixel assets.
+
+
+## Cycle update: live tick scene rendering
+
+Connected the headless live tick seam to live door-aware scene rendering. The test runs a keyed use-button tick against a closed door, lets `wl_step_doors` open and clear the live tilemap entry during the same update, then renders the scene through `wl_render_runtime_door_camera_scene_view` and confirms it matches the independently rendered open-door scene hash. This proves tick-driven mutable state is now on the presentation path.

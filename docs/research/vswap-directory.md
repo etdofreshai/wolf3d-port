@@ -217,3 +217,8 @@ Moving pushwall render coverage now includes the `pwallpos` sub-tile offset. Run
 ## Cycle update: live runtime-ref scene rendering
 
 The VSWAP sprite-cache path is now exercised through live door-aware model rendering with real runtime refs. Five decoded local sprite surfaces are composited behind the mutable `wl_game_model::tilemap`; a closed door uses VSWAP door page `99`, while clearing that live tile lets the scene render against the later wall. Tests commit only emitted page metadata and scene hashes (`0x21495346` closed, `0x2e4660d2` open).
+
+
+## Cycle update: live tick scene rendering
+
+The live wall+sprite renderer now has coverage driven by `wl_step_live_tick` rather than manual tilemap mutation. A keyed use tick opens a door and clears the live tilemap center, then `wl_render_runtime_door_camera_scene_view` renders the resulting open doorway using local VSWAP wall/sprite pages. The assertion compares the tick-driven scene hash to the existing open-door scene hash, keeping verification metadata-only.

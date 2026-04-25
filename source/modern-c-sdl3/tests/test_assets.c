@@ -2234,6 +2234,47 @@ static int check_wl6(const char *dir) {
     CHECK(closed_door_scene_hash == 0x01053e89);
     CHECK(open_door_scene_hash == 0xa06c2183);
 
+    memset(use_wall, 0, sizeof(use_wall));
+    memset(use_info, 0, sizeof(use_info));
+    CHECK(wl_init_player_gameplay_state(&pickup_state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_give_player_key(&pickup_state, 0) == 0);
+    ray_model.tilemap[4 + 4 * WL_MAP_SIDE] = 0x80u;
+    ray_model.doors[0].action = WL_DOOR_CLOSED;
+    ray_model.doors[0].position = 0;
+    live_tick_motion.x = (3u << 16) + 0x8000u;
+    live_tick_motion.y = (4u << 16) + 0x8000u;
+    live_tick_motion.tile_x = 3;
+    live_tick_motion.tile_y = 4;
+    CHECK(wl_step_live_tick(&pickup_state, &ray_model,
+                            use_wall, use_info, WL_MAP_PLANE_WORDS,
+                            &live_tick_motion, 0, 0, 0x10000, 0,
+                            WL_DIR_EAST, 1, 0, 100, &live_tick) == 0);
+    CHECK(live_tick.used == 1);
+    CHECK(live_tick.use.kind == WL_USE_DOOR);
+    CHECK(live_tick.use.opened == 1);
+    CHECK(live_tick.doors.open_count == 1);
+    CHECK(live_tick.doors.released_collision_count == 1);
+    CHECK(ray_model.doors[0].action == WL_DOOR_OPEN);
+    CHECK(ray_model.tilemap[4 + 4 * WL_MAP_SIDE] == 0);
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_runtime_door_camera_scene_view(&ray_model,
+                                                   dirinfo.header.sprite_start,
+                                                   (3u << 16) + 0x8000u,
+                                                   (4u << 16) + 0x8000u,
+                                                   0x10000, 0, 0, -0x8000, 39, 1, 3,
+                                                   runtime_door_pages,
+                                                   runtime_door_page_sizes, 106,
+                                                   runtime_scene_sprites,
+                                                   runtime_scene_x, runtime_scene_y,
+                                                   runtime_scene_ids, 1, 0,
+                                                   &canvas, runtime_dirs_x,
+                                                   runtime_dirs_y, runtime_view_hits,
+                                                   runtime_view_strips, sprites,
+                                                   wall_heights) == 0);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == open_door_scene_hash);
+
     const uint32_t pushwall_scene_x[] = { (6u << 16) + 0x8000u };
     const uint32_t pushwall_scene_y[] = { (4u << 16) + 0x8000u };
     ray_model.tilemap[4 + 4 * WL_MAP_SIDE] = 0;
@@ -2866,6 +2907,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-tick-upload tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-tick-scene tests passed for %s\n", dir);
     return 0;
 }

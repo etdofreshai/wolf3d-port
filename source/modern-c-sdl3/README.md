@@ -81,3 +81,8 @@ The broader WL6 runtime-ref sprite set now also flows through `wl_render_runtime
 ## Live tick palette upload
 
 The live tick output now feeds the existing palette-shifted upload metadata path. A headless test runs a food-pickup tick, consumes the returned white palette-shift result with `wl_describe_palette_shifted_texture_upload`, and verifies the selected palette/RGBA expansion hash. This keeps gameplay-driven palette selection connected to the future SDL3 texture upload boundary without needing SDL at test time.
+
+
+## Live tick scene rendering
+
+`wl_step_live_tick` state changes now feed directly into the live door-aware scene renderer. A headless test uses a keyed use-button tick to open a door, verifies the door progression clears the live collision tile in the same update, then renders the resulting open doorway scene through `wl_render_runtime_door_camera_scene_view`. This closes the loop from input-style tick state to renderer-facing wall+sprite output without requiring SDL3.
