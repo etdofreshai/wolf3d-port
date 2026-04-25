@@ -287,3 +287,8 @@ Final death-frame VSWAP metadata is now asserted for more enemy classes through 
 ## Cycle update: patrol actor scene refs
 
 Patrol stepping now verifies renderer-facing VSWAP metadata remains stable while actor world coordinates change. The patrol guard ref keeps source/chunk `58/164` through `wl_collect_scene_sprite_refs`, proving movement can update scene placement without reclassifying the sprite asset.
+
+
+## Cycle update: patrol actor scene render
+
+Patrol actor source/chunk metadata (`58/164`) now feeds the scene render path, not just ref collection. The renderer test consumes local sprite/cache metadata and asserts projection behavior without committing proprietary sprite bytes.

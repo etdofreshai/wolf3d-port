@@ -3172,6 +3172,41 @@ static int check_wl6(const char *dir) {
                                                    wall_heights) == 0);
     CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == open_door_scene_hash);
 
+    wl_game_model patrol_render_model;
+    memset(&patrol_render_model, 0, sizeof(patrol_render_model));
+    for (size_t i = 0; i < WL_MAP_SIDE; ++i) {
+        patrol_render_model.tilemap[i] = 15;
+        patrol_render_model.tilemap[i + (WL_MAP_SIDE - 1u) * WL_MAP_SIDE] = 15;
+        patrol_render_model.tilemap[i * WL_MAP_SIDE] = 15;
+        patrol_render_model.tilemap[(WL_MAP_SIDE - 1u) + i * WL_MAP_SIDE] = 15;
+    }
+    const wl_indexed_surface *patrol_scene_surfaces[] = { &surface };
+    const uint32_t patrol_scene_x[] = { (5u << 16) + 0x8000u };
+    const uint32_t patrol_scene_y[] = { (4u << 16) + 0x8000u };
+    const uint16_t patrol_scene_ids[] = { patrol_refs[0].source_index };
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_runtime_door_camera_scene_view(&ray_model,
+                                                   dirinfo.header.sprite_start,
+                                                   (3u << 16) + 0x8000u,
+                                                   (4u << 16) + 0x8000u,
+                                                   0x10000, 0, 0, -0x8000,
+                                                   39, 1, 3,
+                                                   runtime_door_pages,
+                                                   runtime_door_page_sizes, 106,
+                                                   patrol_scene_surfaces,
+                                                   patrol_scene_x, patrol_scene_y,
+                                                   patrol_scene_ids, 1, 0,
+                                                   &canvas, runtime_dirs_x,
+                                                   runtime_dirs_y, runtime_view_hits,
+                                                   runtime_view_strips, sprites,
+                                                   wall_heights) == 0);
+    CHECK(sprites[0].source_index == 58);
+    CHECK(sprites[0].visible == 1);
+    uint32_t patrol_scene_hash = fnv1a_bytes(canvas.pixels, canvas.pixel_count);
+    CHECK(patrol_scene_hash == open_door_scene_hash);
+
     const uint32_t pushwall_scene_x[] = { (6u << 16) + 0x8000u };
     const uint32_t pushwall_scene_y[] = { (4u << 16) + 0x8000u };
     ray_model.tilemap[4 + 4 * WL_MAP_SIDE] = 0;
@@ -4209,6 +4244,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-patrol-actor-scene-ref tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-patrol-actor-scene-render tests passed for %s\n", dir);
     return 0;
 }

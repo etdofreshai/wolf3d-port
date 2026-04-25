@@ -299,3 +299,8 @@ The persistent corpse-frame presentation bridge now covers more actor classes. F
 ## Cycle update: patrol actor scene refs
 
 The actor movement seam now has presentation-input coverage before SDL3. Patrol stepping updates the runtime actor tile, then scene-ref collection reports deterministic guard sprite metadata and world-center coordinates for future wall+sprite composition.
+
+
+## Cycle update: patrol actor scene render
+
+The patrol actor movement/ref seam now reaches indexed scene composition before SDL3. A patrol guard ref is projected through the runtime door-aware scene renderer with stable source/visibility/hash assertions, keeping presentation verification headless.

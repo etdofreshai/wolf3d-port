@@ -216,3 +216,8 @@ Final corpse-frame actor refs now have coverage beyond the guard path. Headless 
 ## Patrol actor scene refs
 
 Patrol stepping now feeds renderer-facing actor refs. Headless tests step a patrol actor through marker-selected movement, collect `wl_scene_sprite_ref` output after movement and after a blocked step, and verify the patrol guard source/chunk plus world-center coordinates update or persist deterministically.
+
+
+## Patrol actor scene render
+
+Patrol actor scene-ref metadata now reaches the headless wall+sprite scene renderer. The test projects a patrol guard ref through `wl_render_runtime_door_camera_scene_view`, verifies source/visibility metadata, and keeps the canvas hash stable against the established open-door scene path.

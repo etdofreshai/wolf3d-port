@@ -348,3 +348,8 @@ The patrol path-direction seam now mutates runtime actor descriptors through `wl
 ## Cycle update: patrol actor scene refs
 
 Patrol actor movement now reaches the normal runtime scene-ref collection path. After `wl_step_patrol_actor` mutates a patrol actor slot, `wl_collect_scene_sprite_refs` emits the updated world-center coordinates while preserving the patrol guard sprite source/VSWAP metadata; blocked steps preserve the previous renderer-facing position.
+
+
+## Cycle update: patrol actor scene render
+
+Patrol actor refs now flow into the door-aware runtime scene renderer. The test feeds patrol guard source/VSWAP/world metadata through `wl_render_runtime_door_camera_scene_view`, verifies projection visibility/source metadata, and preserves a deterministic canvas hash without storing decoded sprite bytes.
