@@ -50,3 +50,8 @@ The committed assertions remain metadata-only: wall indexed hash `0x8fe4d8ff` an
 ## SDL3 Wolf wall screenshot artifact
 
 The SDL3 present test now saves the headless wall-frame surface to ignored `source/modern-c-sdl3/build/wolf-wall-present.bmp` after blitting/updating the hidden dummy-driver window. The test asserts the artifact exists and is non-empty; decoded proprietary pixels remain generated-only under `build/` and are not committed.
+
+
+## SDL3 palette-shifted screenshot artifact
+
+The Wolf wall present smoke now also routes a red-shifted present descriptor through the same SDL dummy-window path and saves ignored `source/modern-c-sdl3/build/wolf-wall-present-red.bmp`. Assertions pin indexed hash `0x8fe4d8ff`, red palette hash `0xd0d5c585`, red RGBA hash `0x1dcaf8c4`, and non-empty screenshot files.

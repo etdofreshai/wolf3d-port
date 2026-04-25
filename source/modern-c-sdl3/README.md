@@ -420,3 +420,8 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## SDL3 screenshot artifact smoke
 
 `make test-sdl3-present` now writes `build/wolf-wall-present.bmp` from the actual WL6 wall-frame present path under the SDL dummy video driver. The file is generated inside ignored `build/` for local inspection only; committed checks remain metadata/hash assertions.
+
+
+## SDL3 palette screenshot smoke
+
+`make test-sdl3-present` now emits both base and red-shifted ignored BMP artifacts from the WL6 wall present path: `build/wolf-wall-present.bmp` and `build/wolf-wall-present-red.bmp`. The red path verifies palette descriptor metadata and RGBA hash before saving.

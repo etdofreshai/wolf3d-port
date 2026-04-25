@@ -38,6 +38,7 @@ int main(void) {
     unsigned char wall_pixels[WL_MAP_PLANE_WORDS];
     wl_indexed_surface wall;
     unsigned char palette[256 * 3];
+    unsigned char red_palettes[WL_NUM_RED_SHIFTS * 256u * 3u];
     unsigned char rgba[WL_MAP_PLANE_WORDS * 4];
     wl_palette_shift_result shift;
     wl_present_frame_descriptor present;
@@ -46,6 +47,16 @@ int main(void) {
         palette[i * 3u + 0u] = (unsigned char)(i & 63u);
         palette[i * 3u + 1u] = (unsigned char)((i * 2u) & 63u);
         palette[i * 3u + 2u] = (unsigned char)((63u - i) & 63u);
+    }
+    for (uint8_t i = 1; i <= WL_NUM_RED_SHIFTS; ++i) {
+        if (wl_build_palette_shift(palette, sizeof(palette), 6, 63, 0, 0,
+                                   i, WL_RED_SHIFT_STEPS,
+                                   red_palettes +
+                                       (size_t)(i - 1u) * sizeof(palette),
+                                   sizeof(palette)) != 0) {
+            fprintf(stderr, "could not build red palette shift\n");
+            return 1;
+        }
     }
 
     if (wl_join_path(vswap_path, sizeof(vswap_path), wl_default_data_dir(),
@@ -164,8 +175,87 @@ int main(void) {
     }
 
     SDL_DestroySurface(source);
+    source = NULL;
+
+    memset(&shift, 0, sizeof(shift));
+    shift.kind = WL_PALETTE_SHIFT_RED;
+    shift.shift_index = 2;
+    if (wl_describe_present_frame(&wall, &shift, palette,
+                                  red_palettes, WL_NUM_RED_SHIFTS,
+                                  NULL, 0, sizeof(palette), 6,
+                                  &present) != 0) {
+        fprintf(stderr, "could not describe red present frame\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (present.pixel_hash != 0x8fe4d8ffu ||
+        present.palette_hash != 0xd0d5c585u ||
+        present.palette_shift_kind != WL_PALETTE_SHIFT_RED ||
+        present.palette_shift_index != 2) {
+        fprintf(stderr, "unexpected red present descriptor: pixel=0x%08x palette=0x%08x kind=%u index=%u\n",
+                present.pixel_hash, present.palette_hash,
+                present.palette_shift_kind, present.palette_shift_index);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (wl_expand_indexed_surface_to_rgba(&wall, present.texture.palette,
+                                          sizeof(palette), 6, rgba,
+                                          sizeof(rgba), NULL) != 0) {
+        fprintf(stderr, "could not expand red wall frame to RGBA\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (fnv1a_bytes(rgba, sizeof(rgba)) != 0x1dcaf8c4u) {
+        fprintf(stderr, "unexpected red wall RGBA hash\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    source = SDL_CreateSurfaceFrom(present.viewport_width,
+                                   present.viewport_height,
+                                   SDL_PIXELFORMAT_RGBA32, rgba,
+                                   present.viewport_width * 4);
+    if (!source) {
+        fprintf(stderr, "SDL_CreateSurfaceFrom red failed: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (!SDL_BlitSurface(source, NULL, surface, NULL)) {
+        fprintf(stderr, "SDL_BlitSurface red failed: %s\n", SDL_GetError());
+        SDL_DestroySurface(source);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (!SDL_UpdateWindowSurface(window)) {
+        fprintf(stderr, "SDL_UpdateWindowSurface red failed: %s\n", SDL_GetError());
+        SDL_DestroySurface(source);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (!SDL_SaveBMP(source, "build/wolf-wall-present-red.bmp")) {
+        fprintf(stderr, "SDL_SaveBMP red failed: %s\n", SDL_GetError());
+        SDL_DestroySurface(source);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (file_size("build/wolf-wall-present-red.bmp") <= 0) {
+        fprintf(stderr, "unexpected red screenshot artifact size\n");
+        SDL_DestroySurface(source);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+
+    SDL_DestroySurface(source);
     SDL_DestroyWindow(window);
     SDL_Quit();
-    puts("SDL3 Wolf wall screenshot smoke test passed");
+    puts("SDL3 Wolf wall palette screenshot smoke test passed");
     return 0;
 }

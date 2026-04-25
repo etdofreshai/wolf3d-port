@@ -5499,3 +5499,44 @@ Next likely move:
 - Route a fuller rendered scene frame through the SDL3 screenshot seam, or add palette-shifted SDL3 screenshot coverage.
 
 Blockers: none for repo-local headless SDL3 presentation smoke work.
+
+
+
+## Cycle 2026-04-25 10:43 CDT SDL3 Palette Screenshot
+
+Action taken:
+
+- Added palette-shifted SDL3 screenshot coverage to the Wolf wall present smoke test.
+- `test_sdl3_present` now builds red shift palettes, describes the wall frame with `WL_PALETTE_SHIFT_RED`, expands it to RGBA, blits/updates it through the SDL dummy window, and saves ignored `build/wolf-wall-present-red.bmp` alongside the base artifact.
+- Verified indexed wall hash `0x8fe4d8ff`, red palette hash `0xd0d5c585`, red RGBA hash `0x1dcaf8c4`, and non-empty base/red BMP artifacts (`16522` bytes each locally).
+- Updated the SDL3 bootstrap research note, README, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test-sdl3-present
+make test-sdl3
+make test
+```
+
+Result:
+
+```text
+SDL3 Wolf wall palette screenshot smoke test passed
+SDL3 smoke test passed
+SDL3 Wolf wall palette screenshot smoke test passed
+asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Generated BMP artifacts remain ignored under `source/modern-c-sdl3/build/`.
+
+Next likely move:
+
+- Route a fuller rendered scene frame through the SDL3 screenshot seam.
+
+Blockers: none for repo-local headless SDL3 presentation smoke work.
