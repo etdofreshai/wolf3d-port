@@ -2289,11 +2289,30 @@ int wl_describe_pc_speaker_sound(const unsigned char *chunk, size_t chunk_size,
     }
     out->sample_count = sample_count;
     if (sample_count > 0) {
-        out->first_sample = chunk[payload_offset];
-        out->last_sample = chunk[payload_offset + (size_t)sample_count - 1u];
+        if (wl_get_pc_speaker_sound_sample(chunk, chunk_size, 0, &out->first_sample) != 0 ||
+            wl_get_pc_speaker_sound_sample(chunk, chunk_size, (size_t)sample_count - 1u,
+                                           &out->last_sample) != 0) {
+            return -1;
+        }
     }
     out->terminator = chunk[payload_offset + (size_t)sample_count];
     out->trailing_bytes = chunk_size - payload_offset - (size_t)sample_count - 1u;
+    return 0;
+}
+
+int wl_get_pc_speaker_sound_sample(const unsigned char *chunk, size_t chunk_size,
+                                   size_t sample_index, uint8_t *out_sample) {
+    uint32_t sample_count;
+    const size_t payload_offset = sizeof(uint32_t) + sizeof(uint16_t);
+    if (!chunk || !out_sample || chunk_size < payload_offset) {
+        return -1;
+    }
+    sample_count = read_le32(chunk);
+    if ((size_t)sample_count >= chunk_size - payload_offset ||
+        sample_index >= (size_t)sample_count) {
+        return -1;
+    }
+    *out_sample = chunk[payload_offset + sample_index];
     return 0;
 }
 
