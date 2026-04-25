@@ -26,6 +26,67 @@ static int expect_file_size(const char *dir, const char *name, size_t expected) 
     return 0;
 }
 
+static uint32_t fnv1a_words(const uint16_t *words, size_t count) {
+    uint32_t hash = 2166136261u;
+    for (size_t i = 0; i < count; ++i) {
+        hash ^= (uint8_t)(words[i] & 0xffu);
+        hash *= 16777619u;
+        hash ^= (uint8_t)(words[i] >> 8);
+        hash *= 16777619u;
+    }
+    return hash;
+}
+
+static size_t count_value(const uint16_t *words, size_t count, uint16_t value) {
+    size_t hits = 0;
+    for (size_t i = 0; i < count; ++i) {
+        if (words[i] == value) {
+            ++hits;
+        }
+    }
+    return hits;
+}
+
+static size_t count_nonzero(const uint16_t *words, size_t count) {
+    size_t hits = 0;
+    for (size_t i = 0; i < count; ++i) {
+        if (words[i] != 0) {
+            ++hits;
+        }
+    }
+    return hits;
+}
+
+static int check_decode_helpers(void) {
+    const unsigned char carmack_src[] = {
+        0x11, 0x11, 0x22, 0x22, 0x02, 0xa7, 0x02,
+        0x00, 0xa7, 0x44, 0x00, 0xa8, 0x55,
+    };
+    uint16_t carmack_out[6];
+    size_t written = 0;
+    CHECK(wl_carmack_expand(carmack_src, sizeof(carmack_src), sizeof(carmack_out),
+                            carmack_out, 6, &written) == 0);
+    CHECK(written == 6);
+    CHECK(carmack_out[0] == 0x1111);
+    CHECK(carmack_out[1] == 0x2222);
+    CHECK(carmack_out[2] == 0x1111);
+    CHECK(carmack_out[3] == 0x2222);
+    CHECK(carmack_out[4] == 0xa744);
+    CHECK(carmack_out[5] == 0xa855);
+
+    const uint16_t rlew_src[] = { 7, 0xabcd, 3, 9, 11 };
+    uint16_t rlew_out[5];
+    CHECK(wl_rlew_expand(rlew_src, 5, 0xabcd, sizeof(rlew_out),
+                         rlew_out, 5, &written) == 0);
+    CHECK(written == 5);
+    CHECK(rlew_out[0] == 7);
+    CHECK(rlew_out[1] == 9);
+    CHECK(rlew_out[2] == 9);
+    CHECK(rlew_out[3] == 9);
+    CHECK(rlew_out[4] == 11);
+    return 0;
+}
+
 static int check_wl6(const char *dir) {
     CHECK(expect_file_size(dir, "MAPHEAD.WL6", 402) == 0);
     CHECK(expect_file_size(dir, "GAMEMAPS.WL6", 150652) == 0);
@@ -60,6 +121,29 @@ static int check_wl6(const char *dir) {
     CHECK(map0.plane_lengths[0] == 1434);
     CHECK(map0.plane_lengths[1] == 795);
     CHECK(map0.plane_lengths[2] == 10);
+
+    uint16_t plane[WL_MAP_PLANE_WORDS];
+    CHECK(wl_read_map_plane(gamemaps_path, &map0, 0, mh.rlew_tag,
+                            plane, WL_MAP_PLANE_WORDS) == 0);
+    CHECK(fnv1a_words(plane, WL_MAP_PLANE_WORDS) == 0x5940a18e);
+    CHECK(count_nonzero(plane, WL_MAP_PLANE_WORDS) == 4096);
+    CHECK(count_value(plane, WL_MAP_PLANE_WORDS, 1) == 2331);
+    CHECK(count_value(plane, WL_MAP_PLANE_WORDS, 8) == 230);
+    CHECK(plane[0] == 1);
+    CHECK(plane[WL_MAP_SIDE - 1] == 1);
+
+    CHECK(wl_read_map_plane(gamemaps_path, &map0, 1, mh.rlew_tag,
+                            plane, WL_MAP_PLANE_WORDS) == 0);
+    CHECK(fnv1a_words(plane, WL_MAP_PLANE_WORDS) == 0xacf24351);
+    CHECK(count_nonzero(plane, WL_MAP_PLANE_WORDS) == 183);
+    CHECK(count_value(plane, WL_MAP_PLANE_WORDS, 0) == 3913);
+    CHECK(count_value(plane, WL_MAP_PLANE_WORDS, 37) == 30);
+    CHECK(plane[0] == 0);
+
+    CHECK(wl_read_map_plane(gamemaps_path, &map0, 2, mh.rlew_tag,
+                            plane, WL_MAP_PLANE_WORDS) == 0);
+    CHECK(fnv1a_words(plane, WL_MAP_PLANE_WORDS) == 0xbcc31dc5);
+    CHECK(count_nonzero(plane, WL_MAP_PLANE_WORDS) == 0);
 
     wl_vswap_header vs;
     CHECK(wl_read_vswap_header(vswap_path, &vs) == 0);
@@ -116,6 +200,7 @@ static int check_optional_sod(const char *dir) {
 
 int main(void) {
     const char *dir = wl_default_data_dir();
+    CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
     printf("asset metadata tests passed for %s\n", dir);

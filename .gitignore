@@ -4,5 +4,6 @@ logs/
 state/autopilot-supervisor.pid
 state/STOP_AUTOPILOT
 
-# Build outputs
+# Build/cache outputs
 source/modern-c-sdl3/build/
+__pycache__/

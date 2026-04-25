@@ -137,3 +137,180 @@ int wl_read_vswap_header(const char *path, wl_vswap_header *out) {
     }
     return 0;
 }
+
+int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
+                      uint16_t *out, size_t out_words, size_t *words_written) {
+    const uint16_t near_tag = 0xa7;
+    const uint16_t far_tag = 0xa8;
+
+    if (!src || !out || (expanded_bytes % 2) != 0) {
+        return -1;
+    }
+
+    size_t target_words = expanded_bytes / 2;
+    if (target_words > out_words) {
+        return -1;
+    }
+
+    size_t src_pos = 0;
+    size_t out_pos = 0;
+    while (out_pos < target_words) {
+        if (src_pos + 2 > src_len) {
+            return -1;
+        }
+
+        uint16_t ch = read_le16(src + src_pos);
+        src_pos += 2;
+        uint16_t ch_high = ch >> 8;
+        if (ch_high == near_tag) {
+            uint16_t count = ch & 0xff;
+            if (count == 0) {
+                if (src_pos >= src_len) {
+                    return -1;
+                }
+                out[out_pos++] = ch | src[src_pos++];
+            } else {
+                if (src_pos >= src_len) {
+                    return -1;
+                }
+                size_t offset = src[src_pos++];
+                if (offset == 0 || offset > out_pos || out_pos + count > target_words) {
+                    return -1;
+                }
+                size_t copy_pos = out_pos - offset;
+                while (count--) {
+                    if (copy_pos >= out_pos) {
+                        return -1;
+                    }
+                    out[out_pos++] = out[copy_pos++];
+                }
+            }
+        } else if (ch_high == far_tag) {
+            uint16_t count = ch & 0xff;
+            if (count == 0) {
+                if (src_pos >= src_len) {
+                    return -1;
+                }
+                out[out_pos++] = ch | src[src_pos++];
+            } else {
+                if (src_pos + 2 > src_len || out_pos + count > target_words) {
+                    return -1;
+                }
+                size_t copy_pos = read_le16(src + src_pos);
+                src_pos += 2;
+                while (count--) {
+                    if (copy_pos >= out_pos) {
+                        return -1;
+                    }
+                    out[out_pos++] = out[copy_pos++];
+                }
+            }
+        } else {
+            out[out_pos++] = ch;
+        }
+    }
+
+    if (words_written) {
+        *words_written = out_pos;
+    }
+    return 0;
+}
+
+int wl_rlew_expand(const uint16_t *src, size_t src_words, uint16_t rlew_tag,
+                   size_t expanded_bytes, uint16_t *out, size_t out_words,
+                   size_t *words_written) {
+    if (!src || !out || (expanded_bytes % 2) != 0) {
+        return -1;
+    }
+
+    size_t target_words = expanded_bytes / 2;
+    if (target_words > out_words) {
+        return -1;
+    }
+
+    size_t src_pos = 0;
+    size_t out_pos = 0;
+    while (out_pos < target_words) {
+        if (src_pos >= src_words) {
+            return -1;
+        }
+        uint16_t value = src[src_pos++];
+        if (value != rlew_tag) {
+            out[out_pos++] = value;
+        } else {
+            if (src_pos + 2 > src_words) {
+                return -1;
+            }
+            uint16_t count = src[src_pos++];
+            value = src[src_pos++];
+            if (out_pos + count > target_words) {
+                return -1;
+            }
+            while (count--) {
+                out[out_pos++] = value;
+            }
+        }
+    }
+
+    if (words_written) {
+        *words_written = out_pos;
+    }
+    return 0;
+}
+
+int wl_read_map_plane(const char *gamemaps_path, const wl_map_header *header,
+                      size_t plane_index, uint16_t rlew_tag,
+                      uint16_t *out, size_t out_words) {
+    if (!gamemaps_path || !header || !out || plane_index >= WL_MAP_PLANE_COUNT ||
+        out_words < WL_MAP_PLANE_WORDS) {
+        return -1;
+    }
+
+    uint16_t compressed_len = header->plane_lengths[plane_index];
+    if (compressed_len < 2) {
+        return -1;
+    }
+
+    unsigned char *compressed = (unsigned char *)malloc(compressed_len);
+    if (!compressed) {
+        return -1;
+    }
+
+    int ok = read_exact_at(gamemaps_path, (long)header->plane_starts[plane_index],
+                           compressed, compressed_len);
+    if (ok != 0) {
+        free(compressed);
+        return -1;
+    }
+
+    size_t carmack_bytes = read_le16(compressed);
+    if ((carmack_bytes % 2) != 0 || carmack_bytes < 2) {
+        free(compressed);
+        return -1;
+    }
+
+    size_t carmack_words = carmack_bytes / 2;
+    uint16_t *rlew_words = (uint16_t *)malloc(carmack_words * sizeof(*rlew_words));
+    if (!rlew_words) {
+        free(compressed);
+        return -1;
+    }
+
+    size_t words_written = 0;
+    ok = wl_carmack_expand(compressed + 2, compressed_len - 2, carmack_bytes,
+                           rlew_words, carmack_words, &words_written);
+    free(compressed);
+    if (ok != 0 || words_written != carmack_words || rlew_words[0] != WL_MAP_PLANE_WORDS * 2) {
+        free(rlew_words);
+        return -1;
+    }
+
+    ok = wl_rlew_expand(rlew_words + 1, carmack_words - 1, rlew_tag,
+                        WL_MAP_PLANE_WORDS * 2, out, out_words, &words_written);
+    free(rlew_words);
+    if (ok != 0 || words_written != WL_MAP_PLANE_WORDS) {
+        return -1;
+    }
+
+    return 0;
+}

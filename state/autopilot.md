@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-First runnable modern C asset-loader metadata tests are implemented and passing on headless Linux. Next phase should add Carmack/RLEW map-plane decompression tests.
+Carmack/RLEW map-plane decompression is implemented and passing on headless Linux for WL6 map 0. Next phase should classify decoded map semantics while staying pure C/headless.
 
 ## Latest Verified Milestone
 
@@ -14,8 +14,9 @@ First runnable modern C asset-loader metadata tests are implemented and passing 
 - Autopilot operating rules are documented in `docs/AUTOPILOT.md`.
 - `source/original/` was inspected but not modified.
 - `docs/research/source-inventory.md` records the first source/data inventory and practical test-driven porting strategy.
-- `source/modern-c-sdl3` now contains the first pure C asset metadata harness (`wl_assets`) plus `make test` headless verification.
-- `docs/research/asset-metadata-harness.md` records the implemented seam, assertions, and verification output.
+- `source/modern-c-sdl3` now contains the first pure C asset/decompression harness (`wl_assets`) plus `make test` headless verification.
+- `docs/research/asset-metadata-harness.md` records the initial metadata seam, assertions, and verification output.
+- `docs/research/map-decompression.md` records the Carmack/RLEW implementation seam, hash/count assertions, and verification output.
 
 ## Verified Findings
 
@@ -71,22 +72,22 @@ Use tests as the bridge from the original code to modern C:
 
 1. Asset locator + required file metadata test.
 2. `MAPHEAD`/`GAMEMAPS` parser test.
-3. Carmack + RLEW map-plane decompression test.
-4. `VSWAP` parser/chunk descriptor test.
-5. `VGAHEAD`/`VGADICT`/`VGAGRAPH` Huffman smoke test.
+3. Carmack + RLEW map-plane decompression test. **Done for WL6 map 0.**
+4. Decoded map semantic characterization: wall/object/player-start/actor/static classifications.
+5. `VSWAP` parser/chunk descriptor test.
+6. `VGAHEAD`/`VGADICT`/`VGAGRAPH` Huffman smoke test.
 
 ## Next Likely Move
 
-Implement pure C Carmack expansion and RLEW expansion, then decode WL6 map 0 planes.
+Use decoded WL6 map 0 planes to build the first map semantic characterization.
 
 Recommended files for the next commit:
 
-- extend `source/modern-c-sdl3/include/wl_assets.h` with decompression APIs
-- extend `source/modern-c-sdl3/src/wl_assets.c` or add `src/wl_decompress.c`
-- add tests that decode WL6 map 0 planes 0/1 into 4096-word arrays
-- assert output sizes and stable hashes/counts rather than committing proprietary map bytes
+- add pure C helpers that classify wall plane/object plane values into wall, door, pushwall, player start, static object, and actor-start categories where the original constants are clear
+- extend `source/modern-c-sdl3/tests/test_assets.c` or split a map test to assert stable semantic counts for WL6 map 0
+- update research notes with source references from `WL_GAME.C`/`WL_ACT*.C` for tile/object meanings
 
-The current metadata harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header values, and optional SOD metadata.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header values, optional SOD metadata, Carmack/RLEW helper behavior, and WL6 map 0 plane hashes/counts.
 
 ## Blockers
 
@@ -135,5 +136,44 @@ Safety/legal checks:
 Next likely move:
 
 - Add pure C Carmack + RLEW expansion and decode WL6 map 0 planes into 4096-word arrays with hash/count assertions.
+
+Blockers: none.
+
+
+## Cycle 2026-04-24 22:26 CDT
+
+Action taken:
+
+- Implemented faithful pure C Carmack expansion and RLEW expansion in `wl_assets`.
+- Added `wl_read_map_plane` to read one `GAMEMAPS` plane, Carmack-expand it, validate the embedded RLEW expanded length, and decode to `64x64` words.
+- Extended `test_assets` with synthetic decode-helper tests and WL6 map 0 plane 0/1/2 hash/count assertions.
+- Updated `source/modern-c-sdl3/README.md`, `.gitignore`, and added `docs/research/map-decompression.md`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset metadata tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only hashes/counts and metadata are committed.
+- Build/cache outputs are ignored.
+
+Next likely move:
+
+- Use decoded planes to classify WL6 map 0 semantics: wall/door/pushwall tiles, static objects, actors, and player start metadata.
 
 Blockers: none.

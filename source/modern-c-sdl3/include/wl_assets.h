@@ -10,6 +10,9 @@ extern "C" {
 
 #define WL_MAPHEAD_OFFSET_COUNT 100
 #define WL_MAP_NAME_SIZE 16
+#define WL_MAP_PLANE_COUNT 3
+#define WL_MAP_SIDE 64
+#define WL_MAP_PLANE_WORDS (WL_MAP_SIDE * WL_MAP_SIDE)
 
 typedef struct wl_maphead {
     uint16_t rlew_tag;
@@ -44,6 +47,14 @@ int wl_file_size(const char *path, size_t *size_out);
 int wl_read_maphead(const char *path, wl_maphead *out);
 int wl_read_map_header(const char *gamemaps_path, uint32_t offset, wl_map_header *out);
 int wl_read_vswap_header(const char *path, wl_vswap_header *out);
+int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
+                      uint16_t *out, size_t out_words, size_t *words_written);
+int wl_rlew_expand(const uint16_t *src, size_t src_words, uint16_t rlew_tag,
+                   size_t expanded_bytes, uint16_t *out, size_t out_words,
+                   size_t *words_written);
+int wl_read_map_plane(const char *gamemaps_path, const wl_map_header *header,
+                      size_t plane_index, uint16_t rlew_tag,
+                      uint16_t *out, size_t out_words);
 
 #ifdef __cplusplus
 }
