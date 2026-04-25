@@ -11,8 +11,8 @@ all: $(TEST_ASSETS)
 $(BUILD_DIR):
 	mkdir -p $@
 
-$(TEST_ASSETS): src/wl_assets.c tests/test_assets.c include/wl_assets.h | $(BUILD_DIR)
-	$(CC) $(CPPFLAGS) $(CFLAGS) src/wl_assets.c tests/test_assets.c -o $@
+$(TEST_ASSETS): src/wl_assets.c src/wl_map_semantics.c tests/test_assets.c include/wl_assets.h include/wl_map_semantics.h | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) src/wl_assets.c src/wl_map_semantics.c tests/test_assets.c -o $@
 
 test: $(TEST_ASSETS)
 	cd ../.. && source/modern-c-sdl3/$(TEST_ASSETS)

@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Carmack/RLEW map-plane decompression is implemented and passing on headless Linux for WL6 map 0. Next phase should classify decoded map semantics while staying pure C/headless.
+Decoded WL6 map 0 semantic classification is implemented and passing on headless Linux. Next phase should build a minimal SetupGameLevel-style runtime map model while staying pure C/headless.
 
 ## Latest Verified Milestone
 
@@ -17,6 +17,7 @@ Carmack/RLEW map-plane decompression is implemented and passing on headless Linu
 - `source/modern-c-sdl3` now contains the first pure C asset/decompression harness (`wl_assets`) plus `make test` headless verification.
 - `docs/research/asset-metadata-harness.md` records the initial metadata seam, assertions, and verification output.
 - `docs/research/map-decompression.md` records the Carmack/RLEW implementation seam, hash/count assertions, and verification output.
+- `docs/research/map-semantics.md` records original source references and WL6 map 0 semantic-count assertions.
 
 ## Verified Findings
 
@@ -73,21 +74,22 @@ Use tests as the bridge from the original code to modern C:
 1. Asset locator + required file metadata test.
 2. `MAPHEAD`/`GAMEMAPS` parser test.
 3. Carmack + RLEW map-plane decompression test. **Done for WL6 map 0.**
-4. Decoded map semantic characterization: wall/object/player-start/actor/static classifications.
-5. `VSWAP` parser/chunk descriptor test.
-6. `VGAHEAD`/`VGADICT`/`VGAGRAPH` Huffman smoke test.
+4. Decoded map semantic characterization: wall/object/player-start/actor/static classifications. **Done for WL6 map 0.**
+5. Minimal SetupGameLevel-style runtime map model: tilemap, doors, statics, player spawn, and difficulty-filtered actor descriptors.
+6. `VSWAP` parser/chunk descriptor test.
+7. `VGAHEAD`/`VGADICT`/`VGAGRAPH` Huffman smoke test.
 
 ## Next Likely Move
 
-Use decoded WL6 map 0 planes to build the first map semantic characterization.
+Build a minimal `SetupGameLevel`-style runtime map model from decoded WL6 map 0 planes.
 
 Recommended files for the next commit:
 
-- add pure C helpers that classify wall plane/object plane values into wall, door, pushwall, player start, static object, and actor-start categories where the original constants are clear
-- extend `source/modern-c-sdl3/tests/test_assets.c` or split a map test to assert stable semantic counts for WL6 map 0
-- update research notes with source references from `WL_GAME.C`/`WL_ACT*.C` for tile/object meanings
+- add pure C structs/functions for tilemap initialization, door descriptors, static descriptors, player spawn, and difficulty-filtered actor descriptors
+- keep this as a data/model step only; no SDL3 window or renderer yet
+- assert descriptor counts against `docs/research/map-semantics.md` so future gameplay code can preserve original setup semantics
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header values, optional SOD metadata, Carmack/RLEW helper behavior, and WL6 map 0 plane hashes/counts.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header values, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, and WL6 map 0 semantic classification counts.
 
 ## Blockers
 
@@ -175,5 +177,41 @@ Safety/legal checks:
 Next likely move:
 
 - Use decoded planes to classify WL6 map 0 semantics: wall/door/pushwall tiles, static objects, actors, and player start metadata.
+
+Blockers: none.
+
+
+## Cycle 2026-04-24 22:27 CDT
+
+Action taken:
+
+- Researched original map constants and setup behavior in `WL_DEF.H`, `WL_GAME.C`, `WL_ACT1.C`, and `WL_ACT2.C` without modifying `source/original/`.
+- Added `wl_map_semantics` pure C classifier for decoded wall/info planes.
+- Extended headless tests with WL6 map 0 semantic assertions: solid/area/door/lock counts, player start, static blockers/bonuses/treasures, pushwalls, path markers, enemy starts by difficulty tier, and unknown-tile check.
+- Updated `source/modern-c-sdl3/README.md` and added `docs/research/map-semantics.md`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only semantic counts/metadata are committed.
+
+Next likely move:
+
+- Build a minimal `SetupGameLevel`-style runtime map model: tilemap, doors, statics, player spawn, and difficulty-filtered actor descriptors.
 
 Blockers: none.

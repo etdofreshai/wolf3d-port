@@ -1,4 +1,5 @@
 #include "wl_assets.h"
+#include "wl_map_semantics.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -122,28 +123,67 @@ static int check_wl6(const char *dir) {
     CHECK(map0.plane_lengths[1] == 795);
     CHECK(map0.plane_lengths[2] == 10);
 
-    uint16_t plane[WL_MAP_PLANE_WORDS];
+    uint16_t wall_plane[WL_MAP_PLANE_WORDS];
+    uint16_t info_plane[WL_MAP_PLANE_WORDS];
+    uint16_t extra_plane[WL_MAP_PLANE_WORDS];
     CHECK(wl_read_map_plane(gamemaps_path, &map0, 0, mh.rlew_tag,
-                            plane, WL_MAP_PLANE_WORDS) == 0);
-    CHECK(fnv1a_words(plane, WL_MAP_PLANE_WORDS) == 0x5940a18e);
-    CHECK(count_nonzero(plane, WL_MAP_PLANE_WORDS) == 4096);
-    CHECK(count_value(plane, WL_MAP_PLANE_WORDS, 1) == 2331);
-    CHECK(count_value(plane, WL_MAP_PLANE_WORDS, 8) == 230);
-    CHECK(plane[0] == 1);
-    CHECK(plane[WL_MAP_SIDE - 1] == 1);
+                            wall_plane, WL_MAP_PLANE_WORDS) == 0);
+    CHECK(fnv1a_words(wall_plane, WL_MAP_PLANE_WORDS) == 0x5940a18e);
+    CHECK(count_nonzero(wall_plane, WL_MAP_PLANE_WORDS) == 4096);
+    CHECK(count_value(wall_plane, WL_MAP_PLANE_WORDS, 1) == 2331);
+    CHECK(count_value(wall_plane, WL_MAP_PLANE_WORDS, 8) == 230);
+    CHECK(wall_plane[0] == 1);
+    CHECK(wall_plane[WL_MAP_SIDE - 1] == 1);
 
     CHECK(wl_read_map_plane(gamemaps_path, &map0, 1, mh.rlew_tag,
-                            plane, WL_MAP_PLANE_WORDS) == 0);
-    CHECK(fnv1a_words(plane, WL_MAP_PLANE_WORDS) == 0xacf24351);
-    CHECK(count_nonzero(plane, WL_MAP_PLANE_WORDS) == 183);
-    CHECK(count_value(plane, WL_MAP_PLANE_WORDS, 0) == 3913);
-    CHECK(count_value(plane, WL_MAP_PLANE_WORDS, 37) == 30);
-    CHECK(plane[0] == 0);
+                            info_plane, WL_MAP_PLANE_WORDS) == 0);
+    CHECK(fnv1a_words(info_plane, WL_MAP_PLANE_WORDS) == 0xacf24351);
+    CHECK(count_nonzero(info_plane, WL_MAP_PLANE_WORDS) == 183);
+    CHECK(count_value(info_plane, WL_MAP_PLANE_WORDS, 0) == 3913);
+    CHECK(count_value(info_plane, WL_MAP_PLANE_WORDS, 37) == 30);
+    CHECK(info_plane[0] == 0);
 
     CHECK(wl_read_map_plane(gamemaps_path, &map0, 2, mh.rlew_tag,
-                            plane, WL_MAP_PLANE_WORDS) == 0);
-    CHECK(fnv1a_words(plane, WL_MAP_PLANE_WORDS) == 0xbcc31dc5);
-    CHECK(count_nonzero(plane, WL_MAP_PLANE_WORDS) == 0);
+                            extra_plane, WL_MAP_PLANE_WORDS) == 0);
+    CHECK(fnv1a_words(extra_plane, WL_MAP_PLANE_WORDS) == 0xbcc31dc5);
+    CHECK(count_nonzero(extra_plane, WL_MAP_PLANE_WORDS) == 0);
+
+    wl_map_semantics sem;
+    CHECK(wl_classify_map_semantics(wall_plane, info_plane, WL_MAP_PLANE_WORDS, &sem) == 0);
+    CHECK(sem.solid_tiles == 3082);
+    CHECK(sem.area_tiles == 1014);
+    CHECK(sem.door_tiles == 22);
+    CHECK(sem.vertical_doors == 14);
+    CHECK(sem.horizontal_doors == 8);
+    CHECK(sem.locked_doors[0] == 20);
+    CHECK(sem.locked_doors[5] == 2);
+    CHECK(sem.ambush_tiles == 3);
+    CHECK(sem.elevator_tiles == 6);
+    CHECK(sem.alt_elevator_tiles == 1);
+
+    CHECK(sem.player_starts == 1);
+    CHECK(sem.first_player_x == 29);
+    CHECK(sem.first_player_y == 57);
+    CHECK(sem.first_player_dir == WL_DIR_EAST);
+    CHECK(sem.static_objects == 121);
+    CHECK(sem.static_blocking == 34);
+    CHECK(sem.static_bonus == 48);
+    CHECK(sem.static_treasure == 23);
+    CHECK(sem.pushwall_markers == 5);
+    CHECK(sem.path_markers == 18);
+    CHECK(sem.guard_easy_starts == 10);
+    CHECK(sem.guard_medium_starts == 7);
+    CHECK(sem.guard_hard_starts == 15);
+    CHECK(sem.dog_easy_starts == 1);
+    CHECK(sem.dog_medium_starts == 2);
+    CHECK(sem.dog_hard_starts == 2);
+    CHECK(sem.dead_guards == 1);
+    CHECK(sem.officer_starts == 0);
+    CHECK(sem.ss_starts == 0);
+    CHECK(sem.mutant_starts == 0);
+    CHECK(sem.boss_starts == 0);
+    CHECK(sem.ghost_starts == 0);
+    CHECK(sem.unknown_info_tiles == 0);
 
     wl_vswap_header vs;
     CHECK(wl_read_vswap_header(vswap_path, &vs) == 0);
@@ -203,6 +243,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset metadata tests passed for %s\n", dir);
+    printf("asset/decompression/semantics tests passed for %s\n", dir);
     return 0;
 }
