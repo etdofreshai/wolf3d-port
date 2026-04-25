@@ -286,6 +286,91 @@ int wl_apply_player_bonus(wl_player_gameplay_state *state, wl_bonus_item item,
     return 0;
 }
 
+static int static_type_to_bonus_item(uint16_t type, wl_bonus_item *out) {
+    if (!out) {
+        return -1;
+    }
+    switch (type) {
+    case 6:
+        *out = WL_BONUS_ALPO;
+        return 0;
+    case 20:
+        *out = WL_BONUS_KEY1;
+        return 0;
+    case 21:
+        *out = WL_BONUS_KEY2;
+        return 0;
+    case 24:
+        *out = WL_BONUS_FOOD;
+        return 0;
+    case 25:
+        *out = WL_BONUS_FIRSTAID;
+        return 0;
+    case 26:
+        *out = WL_BONUS_CLIP;
+        return 0;
+    case 27:
+        *out = WL_BONUS_MACHINEGUN;
+        return 0;
+    case 28:
+        *out = WL_BONUS_CHAINGUN;
+        return 0;
+    case 29:
+        *out = WL_BONUS_CROSS;
+        return 0;
+    case 30:
+        *out = WL_BONUS_CHALICE;
+        return 0;
+    case 31:
+        *out = WL_BONUS_BIBLE;
+        return 0;
+    case 32:
+        *out = WL_BONUS_CROWN;
+        return 0;
+    case 33:
+        *out = WL_BONUS_FULLHEAL;
+        return 0;
+    case 34:
+    case 38:
+        *out = WL_BONUS_GIBS;
+        return 0;
+    case 48:
+        *out = WL_BONUS_CLIP2;
+        return 0;
+    default:
+        return -1;
+    }
+}
+
+int wl_try_pickup_static_bonus(wl_player_gameplay_state *state,
+                               wl_static_desc *stat,
+                               uint8_t *out_picked_up) {
+    if (!state || !stat) {
+        return -1;
+    }
+    if (!stat->active || !stat->bonus) {
+        if (out_picked_up) {
+            *out_picked_up = 0;
+        }
+        return 0;
+    }
+    wl_bonus_item item;
+    if (static_type_to_bonus_item(stat->type, &item) != 0) {
+        return -1;
+    }
+    uint8_t picked_up = 0;
+    if (wl_apply_player_bonus(state, item, &picked_up) != 0) {
+        return -1;
+    }
+    if (picked_up) {
+        stat->active = 0;
+    }
+    if (out_picked_up) {
+        *out_picked_up = picked_up;
+    }
+    return 0;
+}
+
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state) {
     if (!state) {
         return -1;

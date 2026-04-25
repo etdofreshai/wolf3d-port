@@ -91,6 +91,9 @@ int wl_give_player_weapon(wl_player_gameplay_state *state, wl_weapon_type weapon
 int wl_give_player_key(wl_player_gameplay_state *state, uint8_t key);
 int wl_apply_player_bonus(wl_player_gameplay_state *state, wl_bonus_item item,
                           uint8_t *out_picked_up);
+int wl_try_pickup_static_bonus(wl_player_gameplay_state *state,
+                               wl_static_desc *stat,
+                               uint8_t *out_picked_up);
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state);
 
 #ifdef __cplusplus

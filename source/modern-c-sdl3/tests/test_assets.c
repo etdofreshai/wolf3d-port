@@ -442,6 +442,46 @@ static int check_wl6(const char *dir) {
     CHECK(scene_refs[132].source_index == 95);
     CHECK(scene_refs[132].vswap_chunk_index == 201);
     CHECK(fnv1a_scene_sprite_refs(scene_refs, scene_ref_count) == 0x2ab36473);
+
+    wl_game_model pickup_model = model;
+    wl_player_gameplay_state pickup_state;
+    uint8_t picked_up = 255;
+    CHECK(wl_init_player_gameplay_state(&pickup_state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_try_pickup_static_bonus(&pickup_state, &pickup_model.statics[0],
+                                     &picked_up) == 0);
+    CHECK(picked_up == 0);
+    CHECK(pickup_model.statics[0].active == 1);
+    size_t food_static_index = pickup_model.static_count;
+    for (size_t i = 0; i < pickup_model.static_count; ++i) {
+        if (pickup_model.statics[i].type == 24) {
+            food_static_index = i;
+            break;
+        }
+    }
+    CHECK(food_static_index < pickup_model.static_count);
+    CHECK(wl_try_pickup_static_bonus(&pickup_state, &pickup_model.statics[food_static_index],
+                                     &picked_up) == 0);
+    CHECK(picked_up == 0);
+    CHECK(pickup_model.statics[food_static_index].active == 1);
+    pickup_state.health = 90;
+    CHECK(wl_try_pickup_static_bonus(&pickup_state, &pickup_model.statics[food_static_index],
+                                     &picked_up) == 0);
+    CHECK(picked_up == 1);
+    CHECK(pickup_state.health == 100);
+    CHECK(pickup_state.palette_shift.bonus_count == WL_NUM_WHITE_SHIFTS * WL_WHITE_SHIFT_TICS);
+    CHECK(pickup_model.statics[food_static_index].active == 0);
+    CHECK(wl_collect_scene_sprite_refs(&pickup_model, 106, scene_refs,
+                                       sizeof(scene_refs) / sizeof(scene_refs[0]),
+                                       &scene_ref_count) == 0);
+    CHECK(scene_ref_count == 132);
+    CHECK(wl_try_pickup_static_bonus(&pickup_state, &pickup_model.statics[food_static_index],
+                                     &picked_up) == 0);
+    CHECK(picked_up == 0);
+    CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs,
+                                       sizeof(scene_refs) / sizeof(scene_refs[0]),
+                                       &scene_ref_count) == 0);
+    CHECK(scene_ref_count == 133);
+
     wl_vswap_directory sprite_dirinfo;
     CHECK(wl_read_vswap_directory(vswap_path, &sprite_dirinfo) == 0);
     const uint16_t ref_chunks[] = {
@@ -2100,6 +2140,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/bonus-events tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/static-pickup tests passed for %s\n", dir);
     return 0;
 }

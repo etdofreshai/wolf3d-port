@@ -68,6 +68,7 @@ typedef struct wl_static_desc {
     int blocking;
     int bonus;
     int treasure;
+    uint8_t active;
 } wl_static_desc;
 
 typedef struct wl_actor_desc {

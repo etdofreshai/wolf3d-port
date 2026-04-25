@@ -174,3 +174,8 @@ Added a small `wl_gameplay` seam that connects original-style player events to t
 ## Cycle update: bonus pickup events
 
 Extended `wl_gameplay` to model original-style pickup events from `GetBonus`, `GiveAmmo`, `GiveWeapon`, and `GiveKey`. The seam now covers ammo restoration from knife, 99-ammo clamp, ammo-full pickup rejection, key bitmasks, machinegun/chaingun weapon promotion, chaingun face flag, treasure point awards, first-aid/food/alpo/gibs health gates, full-heal one-up/ammo/treasure behavior, Spear completion state, and bonus flash triggering only for picked-up items. Headless tests assert state transitions without depending on sound, status-bar drawing, or VGA hardware.
+
+
+## Cycle update: runtime static pickup hooks
+
+Connected bonus pickup semantics to runtime static descriptors with `wl_try_pickup_static_bonus`. Active bonus statics map from `statinfo` type ids to `wl_bonus_item`, call the same gameplay event seam, and are deactivated only when the pickup succeeds, matching the original `GetBonus` behavior where full-health/full-ammo pickups remain in the world. Scene-ref collection skips inactive statics, giving renderer-facing proof that a consumed bonus disappears from future sprite input without mutating asset bytes.

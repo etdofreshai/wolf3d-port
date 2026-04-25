@@ -137,6 +137,7 @@ static int add_static(wl_game_model *out, size_t x, size_t y, uint16_t tile) {
     stat->blocking = blocking;
     stat->bonus = bonus;
     stat->treasure = treasure;
+    stat->active = 1;
     if (blocking) {
         ++out->blocking_static_count;
     }
@@ -525,6 +526,9 @@ int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_spri
 
     size_t count = 0;
     for (size_t i = 0; i < model->static_count; ++i) {
+        if (!model->statics[i].active) {
+            continue;
+        }
         uint16_t sprite = static_type_to_sprite_index(model->statics[i].type);
         if (sprite == UINT16_MAX) {
             continue;
