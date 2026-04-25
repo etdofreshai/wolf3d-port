@@ -351,3 +351,8 @@ The chase full-combat seam now reaches the headless scene renderer: a chase-move
 ## Live AI chase death-final render
 
 Chase-started full combat now advances through the combined death-tick final-frame path. The moved guard death ref switches from `91/197` to final corpse `95/201`, keeps the spawned drop visible, and renders with stable hash `0x8a2741bf`.
+
+
+## Live AI chase death-transition render
+
+The chase-started death render now explicitly verifies the rendered transition from initial death+drop hash `0x4a76f09a` to final corpse+drop hash `0x8a2741bf`, and checks it differs from the older no-drop final-corpse scene.

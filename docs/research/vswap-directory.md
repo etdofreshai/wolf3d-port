@@ -407,3 +407,8 @@ The chase full-combat render path decodes only local VSWAP sprite chunks for ver
 ## Cycle update: live AI chase death-final render
 
 The final chase death render verifies VSWAP metadata only: initial death `91/197`, final corpse `95/201`, drop `28/134`, and scene hash `0x8a2741bf`.
+
+
+## Cycle update: live AI chase death-transition render
+
+The VSWAP-backed chase death transition now asserts both sprite phases: initial death `91/197` and final corpse `95/201`, with the same drop `28/134`, using hashes only.

@@ -4973,3 +4973,40 @@ Next likely move:
 - Broaden chase full-combat/death-final render coverage across actor classes, or start an SDL3 presentation boundary when SDL3 dev files are available.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 10:01 CDT
+
+Action taken:
+
+- Tightened the chase-started death render seam into an explicit multi-frame transition check.
+- The live AI chase full-combat case now records both the initial death+drop scene hash and the final corpse+drop scene hash, proving the rendered state changes after `wl_step_live_full_combat_death_tick`.
+- Verified initial death/drop hash `0x4a76f09a`, final corpse/drop hash `0x8a2741bf`, and that the final chase/drop scene differs from the older no-drop final-corpse hash.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-ai-chase-death-transition-render tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Broaden chase full-combat/death-final render coverage across actor classes, or start an SDL3 presentation boundary when SDL3 dev files are available.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

@@ -424,3 +424,8 @@ Headless rendering now covers a chase-started full-combat frame with death and d
 ## Cycle update: live AI chase death-final render
 
 Headless rendering now covers the final corpse frame after a chase-started full-combat death tick. Final corpse plus drop render together with stable hash `0x8a2741bf`.
+
+
+## Cycle update: live AI chase death-transition render
+
+Headless rendering now verifies the chase-started death animation transition by comparing initial-death/drop hash `0x4a76f09a` against final-corpse/drop hash `0x8a2741bf`.

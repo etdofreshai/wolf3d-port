@@ -483,3 +483,8 @@ The chase full-combat result now feeds scene refs/rendering. The moved guard dea
 ## Cycle update: live AI chase death-final render
 
 The live AI chase/full-combat path now flows through `wl_step_live_full_combat_death_tick`. The actor slot receives the final corpse override after death ticking, while the drop remains collectible scene state.
+
+
+## Cycle update: live AI chase death-transition render
+
+The chase death render case now records both initial-death and final-corpse scene hashes. This pins the multi-frame runtime transition after chase full combat instead of only validating the terminal frame.

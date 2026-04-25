@@ -228,3 +228,8 @@ Combined chase/combat/death semantics now preserve moved actor coordinates throu
 ## Cycle update: live AI chase death-final render
 
 Chase-started combat/death semantics now preserve moved coordinates through final death ticking and scene collection: final corpse source `95` replaces the moving actor ref while the spawned drop persists.
+
+
+## Cycle update: live AI chase death-transition render
+
+Chase-started combat now has deterministic multi-frame render semantics: initial death ref plus drop and final corpse override plus drop are both asserted as distinct scene states.

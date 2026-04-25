@@ -4434,7 +4434,9 @@ static int check_wl6(const char *dir) {
     CHECK(sprites[0].source_index == 91);
     CHECK(sprites[0].visible == 1);
     CHECK(sprites[1].source_index == 28);
-    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0x4a76f09a);
+    uint32_t chase_initial_death_drop_hash =
+        fnv1a_bytes(canvas.pixels, canvas.pixel_count);
+    CHECK(chase_initial_death_drop_hash == 0x4a76f09a);
 
     wl_actor_death_state chase_active_death = chase_full_combat.actor_death;
     wl_live_full_combat_death_tick_result chase_final_death;
@@ -4517,7 +4519,11 @@ static int check_wl6(const char *dir) {
     CHECK(sprites[0].source_index == 95);
     CHECK(sprites[0].visible == 1);
     CHECK(sprites[1].source_index == 28);
-    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0x8a2741bf);
+    uint32_t chase_final_death_drop_hash =
+        fnv1a_bytes(canvas.pixels, canvas.pixel_count);
+    CHECK(chase_final_death_drop_hash == 0x8a2741bf);
+    CHECK(chase_final_death_drop_hash != chase_initial_death_drop_hash);
+    CHECK(chase_final_death_drop_hash != 0x81c10dcf);
 
     wl_game_model live_drop_scene_model;
     memset(&live_drop_scene_model, 0, sizeof(live_drop_scene_model));
@@ -5349,6 +5355,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-chase-death-final-render tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-chase-death-transition-render tests passed for %s\n", dir);
     return 0;
 }
