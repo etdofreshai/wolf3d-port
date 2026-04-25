@@ -96,3 +96,8 @@ Live tick state now drives moving-pushwall scene rendering too. A headless test 
 ## Live tick static pickup scene removal
 
 Static pickup/removal now reaches the live renderer path. A headless test collects a bonus static sprite ref, decodes the matching local VSWAP sprite surface, renders the active static through `wl_render_runtime_door_camera_scene_view`, then runs `wl_step_live_tick` to pick it up and deactivate the runtime static. A second sprite-ref collection returns no visible static, and the same scene renders to a distinct empty-static hash.
+
+
+## Actor bite damage seam
+
+The gameplay layer now has a deterministic dog-bite/contact damage seam. `wl_try_actor_bite_player` mirrors the original `T_Bite` shape by checking player/actor proximity against the original tile-global/min-actor-distance range, applying a caller-supplied chance roll threshold, deriving bite damage from a caller-supplied damage roll, then routing the result through `wl_apply_player_damage` so difficulty scaling, death state, and red palette-shift counters stay on the same gameplay path.

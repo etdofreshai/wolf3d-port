@@ -168,6 +168,44 @@ static int check_gameplay_events(void) {
     CHECK(wl_apply_player_damage(&state, WL_DIFFICULTY_HARD, -1, 0, 0, &damage) == -1);
     CHECK(wl_heal_player(&state, -1) == -1);
 
+    wl_actor_desc dog;
+    memset(&dog, 0, sizeof(dog));
+    dog.kind = WL_ACTOR_DOG;
+    dog.tile_x = 5;
+    dog.tile_y = 4;
+    wl_player_motion_state bite_motion = { (3u << 16) + 0x8000u, (4u << 16) + 0x8000u, 3, 4 };
+    wl_actor_contact_damage_result bite;
+    CHECK(wl_init_player_gameplay_state(&state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_try_actor_bite_player(&state, &dog, &bite_motion, WL_DIFFICULTY_HARD,
+                                   179, 80, 0, 0, &bite) == 0);
+    CHECK(bite.in_range == 1);
+    CHECK(bite.chance_hit == 1);
+    CHECK(bite.damaged == 1);
+    CHECK(bite.damage.effective_points == 5);
+    CHECK(state.health == 95);
+    CHECK(state.palette_shift.damage_count == 5);
+    CHECK(wl_update_palette_shift_state(&state.palette_shift, 1, &shift) == 0);
+    CHECK(shift.kind == WL_PALETTE_SHIFT_RED);
+    bite_motion.x = (2u << 16) + 0x7000u;
+    CHECK(wl_try_actor_bite_player(&state, &dog, &bite_motion, WL_DIFFICULTY_HARD,
+                                   0, 240, 0, 0, &bite) == 0);
+    CHECK(bite.in_range == 0);
+    CHECK(state.health == 95);
+    bite_motion.x = (4u << 16) + 0x8000u;
+    CHECK(wl_try_actor_bite_player(&state, &dog, &bite_motion, WL_DIFFICULTY_BABY,
+                                   180, 240, 0, 0, &bite) == 0);
+    CHECK(bite.in_range == 1);
+    CHECK(bite.chance_hit == 0);
+    CHECK(state.health == 95);
+    CHECK(wl_try_actor_bite_player(&state, &dog, &bite_motion, WL_DIFFICULTY_BABY,
+                                   0, 240, 0, 0, &bite) == 0);
+    CHECK(bite.chance_hit == 1);
+    CHECK(bite.damage.effective_points == 3);
+    CHECK(state.health == 92);
+    dog.kind = WL_ACTOR_GUARD;
+    CHECK(wl_try_actor_bite_player(&state, &dog, &bite_motion, WL_DIFFICULTY_HARD,
+                                   0, 80, 0, 0, &bite) == -1);
+
     uint8_t picked_up = 255;
     CHECK(wl_init_player_gameplay_state(&state, 50, 2, 0, WL_EXTRA_POINTS) == 0);
     CHECK(wl_apply_player_bonus(&state, WL_BONUS_FOOD, &picked_up) == 0);
@@ -3039,6 +3077,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-tick-static-scene tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-actor-bite tests passed for %s\n", dir);
     return 0;
 }

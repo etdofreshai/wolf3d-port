@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-live-tick-static-scene tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-actor-bite tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -228,3 +228,8 @@ Extended the live tick → scene path from doors to pushwalls. The new test runs
 ## Cycle update: live tick static scene removal
 
 Extended the live tick → scene path from doors and pushwalls to pickup statics. The new test builds a small live model with an active food static, collects its renderer-facing sprite ref, decodes the local VSWAP sprite surface, and renders the active static in a door-aware scene. A `wl_step_live_tick` movement update then picks up the static, starts the white palette shift, deactivates the static descriptor, and a fresh `wl_collect_scene_sprite_refs` call returns zero refs before rendering the empty-static scene. Active vs picked scene hashes (`0x7e68266c` vs `0xc928b202`) prove tick-driven static removal reaches renderer-facing scene input.
+
+
+## Cycle update: actor bite damage seam
+
+Added a first actor/player interaction event seam for dog bites. `wl_try_actor_bite_player` accepts runtime actor descriptors and player motion state, checks the original `T_Bite` proximity window (`abs(delta) - TILEGLOBAL <= MINACTORDIST` on both axes), applies the original chance threshold shape (`chance_roll < 180`), derives damage from `damage_roll >> 4`, and routes successful hits through `wl_apply_player_damage`. Headless tests cover in-range damage, out-of-range no-op, chance miss, baby-difficulty damage scaling, red palette-shift output, and rejection of non-dog actors.

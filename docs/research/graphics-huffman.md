@@ -189,3 +189,8 @@ The gameplay palette-shift state is now advanced through `wl_step_live_tick`, al
 ## Cycle update: live tick palette upload
 
 Extended the live tick palette bridge into upload metadata. A movement tick that picks up food now returns a white palette-shift result, which is immediately passed to `wl_describe_palette_shifted_texture_upload`; the test asserts the selected white-shift palette pointer and RGBA sample hash `0x93adda7f`. This ties gameplay-triggered palette flashes to the SDL-free texture upload descriptor seam.
+
+
+## Cycle update: actor bite palette damage
+
+The red palette-shift path now receives actor-driven damage, not only direct player-damage calls. A deterministic dog-bite test routes `damage_roll >> 4` through `wl_apply_player_damage`, verifies baby-difficulty scaling and red shift selection, and stays SDL-free for future texture-upload integration.

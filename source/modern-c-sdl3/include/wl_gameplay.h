@@ -77,6 +77,15 @@ typedef struct wl_player_damage_result {
     int32_t damage_count;
 } wl_player_damage_result;
 
+typedef struct wl_actor_contact_damage_result {
+    uint8_t in_range;
+    uint8_t chance_hit;
+    uint8_t damaged;
+    uint8_t chance_roll;
+    uint8_t damage_roll;
+    wl_player_damage_result damage;
+} wl_actor_contact_damage_result;
+
 typedef struct wl_player_motion_state {
     uint32_t x;
     uint32_t y;
@@ -155,6 +164,13 @@ int wl_apply_player_damage(wl_player_gameplay_state *state,
                            wl_difficulty difficulty, int32_t points,
                            int god_mode, int victory_flag,
                            wl_player_damage_result *out);
+int wl_try_actor_bite_player(wl_player_gameplay_state *state,
+                             const wl_actor_desc *actor,
+                             const wl_player_motion_state *player,
+                             wl_difficulty difficulty,
+                             uint8_t chance_roll, uint8_t damage_roll,
+                             int god_mode, int victory_flag,
+                             wl_actor_contact_damage_result *out);
 int wl_heal_player(wl_player_gameplay_state *state, int32_t points);
 int wl_award_player_points(wl_player_gameplay_state *state, int32_t points,
                            int32_t *out_extra_lives_awarded,

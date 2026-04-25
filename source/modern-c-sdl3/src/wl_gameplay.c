@@ -70,6 +70,56 @@ int wl_apply_player_damage(wl_player_gameplay_state *state,
     return 0;
 }
 
+static uint32_t actor_tile_center(uint16_t tile) {
+    return ((uint32_t)tile << 16) + 0x8000u;
+}
+
+static uint32_t abs_delta_u32(uint32_t a, uint32_t b) {
+    return a >= b ? a - b : b - a;
+}
+
+int wl_try_actor_bite_player(wl_player_gameplay_state *state,
+                             const wl_actor_desc *actor,
+                             const wl_player_motion_state *player,
+                             wl_difficulty difficulty,
+                             uint8_t chance_roll, uint8_t damage_roll,
+                             int god_mode, int victory_flag,
+                             wl_actor_contact_damage_result *out) {
+    const uint32_t bite_axis_range = 0x20000u;
+    if (!state || !actor || !player || !out || actor->kind != WL_ACTOR_DOG ||
+        actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE ||
+        player->x >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        player->y >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        difficulty > WL_DIFFICULTY_HARD) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->chance_roll = chance_roll;
+    out->damage_roll = damage_roll;
+
+    uint32_t actor_x = actor_tile_center(actor->tile_x);
+    uint32_t actor_y = actor_tile_center(actor->tile_y);
+    if (abs_delta_u32(player->x, actor_x) > bite_axis_range ||
+        abs_delta_u32(player->y, actor_y) > bite_axis_range) {
+        return 0;
+    }
+
+    out->in_range = 1;
+    if (chance_roll >= 180u) {
+        return 0;
+    }
+
+    out->chance_hit = 1;
+    int32_t points = (int32_t)(damage_roll >> 4);
+    if (wl_apply_player_damage(state, difficulty, points, god_mode, victory_flag,
+                               &out->damage) != 0) {
+        return -1;
+    }
+    out->damaged = out->damage.ignored ? 0 : 1;
+    return 0;
+}
+
 int wl_heal_player(wl_player_gameplay_state *state, int32_t points) {
     if (!state || points < 0) {
         return -1;
