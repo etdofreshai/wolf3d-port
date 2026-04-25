@@ -3620,3 +3620,31 @@ Next likely move:
 - Use `--exclude-models` when a model/provider should be temporarily avoided, then continue headless port work under the provider-aware budget policy.
 
 Blockers: none for headless work.
+
+
+## Cycle 2026-04-25 08:13 CDT Include Models
+
+Action taken:
+
+- Added `--include-models` as an explicit alias for `--models` so model allow-listing reads naturally alongside `--exclude-models`.
+- Exclusions are applied after the include list, allowing broad default includes with temporary exact-model or provider-prefix removals.
+- Updated supervisor docs with `--include-models` examples while keeping `--models` compatibility.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_autopilot_supervisor.py
+scripts/wolf3d_autopilot_supervisor.py --help
+cd source/modern-c-sdl3 && make test
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+
+Next likely move:
+
+- Use `--include-models` for explicit autopilot model allow-lists and `--exclude-models` for temporary removals.
+
+Blockers: none for headless work.
