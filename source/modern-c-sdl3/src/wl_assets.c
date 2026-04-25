@@ -236,6 +236,36 @@ int wl_read_vswap_directory(const char *path, wl_vswap_directory *out) {
     return out->max_chunk_end <= out->header.file_size ? 0 : -1;
 }
 
+
+int wl_read_vswap_chunk(const char *path, const wl_vswap_directory *directory,
+                        size_t chunk_index, unsigned char *out, size_t out_size,
+                        size_t *bytes_read) {
+    if (!path || !directory || !out || chunk_index >= directory->header.chunks_in_file) {
+        return -1;
+    }
+
+    const wl_vswap_chunk *chunk = &directory->chunks[chunk_index];
+    if (chunk->kind == WL_VSWAP_CHUNK_SPARSE || chunk->offset == 0 || chunk->length == 0) {
+        if (bytes_read) {
+            *bytes_read = 0;
+        }
+        return 0;
+    }
+    if (chunk->length > out_size || chunk->offset < directory->data_start ||
+        (size_t)chunk->offset > directory->header.file_size ||
+        (size_t)chunk->length > directory->header.file_size - (size_t)chunk->offset) {
+        return -1;
+    }
+
+    if (read_exact_at(path, (long)chunk->offset, out, chunk->length) != 0) {
+        return -1;
+    }
+    if (bytes_read) {
+        *bytes_read = chunk->length;
+    }
+    return 0;
+}
+
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written) {
     const uint16_t near_tag = 0xa7;

@@ -32,6 +32,7 @@ The parser:
 - classifies chunks as wall/sprite/sound/sparse based on `PMSpriteStart` and `PMSoundStart`;
 - validates range ordering, table/data bounds, and max chunk end;
 - records aggregate wall/sprite/sound/sparse counts;
+- provides a bounded chunk read helper for tests and later decoders;
 - does not copy or commit any proprietary chunk bytes.
 
 ## WL6 committed assertions
@@ -51,6 +52,7 @@ The parser:
 - last pre-sound sprite sample: index `541`, offset `1139200`, length `650`
 - first sound chunk: index `542`, offset `1140224`, length `4096`
 - final chunk: index `662`, offset `1544192`, length `184`
+- read smoke hashes: chunk `0` `0x98d020a5`, chunk `106` `0xbf4fcd99`, chunk `542` `0xaee73350`, chunk `662` `0xfba68c74`
 
 ## Optional SOD committed assertions
 
@@ -67,6 +69,7 @@ When `game-files/base/m1/VSWAP.SOD` is present:
 - first sprite chunk: index `134`, offset `552960`, length `1306`
 - first sound chunk: index `555`, offset `1233408`, length `4096`
 - final chunk: index `665`, offset `1616384`, length `160`
+- read smoke hashes: chunk `0` `0x98d020a5`, chunk `134` `0xbf4fcd99`, chunk `555` `0xaee73350`, chunk `665` `0xbb53ed59`
 
 ## Verification evidence
 
@@ -84,9 +87,13 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap tests passed for game-files/base
+asset/decompression/semantics/model/vswap-read tests passed for game-files/base
 ```
+
+## Cycle update: chunk reads
+
+Added `wl_read_vswap_chunk`, a bounded read helper that validates chunk index, sparse entries, output buffer size, and directory/file bounds before reading chunk bytes into caller-provided memory. Tests assert lengths and stable FNV-1a hashes for representative wall, sprite, sound, and final chunks without committing bytes.
 
 ## Next step
 
-Use the VSWAP directory to add first chunk read smoke tests and/or begin wall/sprite shape metadata decoding. Keep assertions to lengths, stable hashes, and decoded metadata rather than committing chunk bytes.
+Begin wall/sprite shape metadata decoding from VSWAP chunks. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.

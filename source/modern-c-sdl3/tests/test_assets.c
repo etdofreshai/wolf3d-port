@@ -28,6 +28,15 @@ static int expect_file_size(const char *dir, const char *name, size_t expected) 
     return 0;
 }
 
+static uint32_t fnv1a_bytes(const unsigned char *bytes, size_t count) {
+    uint32_t hash = 2166136261u;
+    for (size_t i = 0; i < count; ++i) {
+        hash ^= bytes[i];
+        hash *= 16777619u;
+    }
+    return hash;
+}
+
 static uint32_t fnv1a_words(const uint16_t *words, size_t count) {
     uint32_t hash = 2166136261u;
     for (size_t i = 0; i < count; ++i) {
@@ -291,6 +300,25 @@ static int check_wl6(const char *dir) {
     CHECK(dirinfo.chunks[542].kind == WL_VSWAP_CHUNK_SOUND);
     CHECK(dirinfo.chunks[662].offset == 1544192);
     CHECK(dirinfo.chunks[662].length == 184);
+
+    unsigned char chunk_buf[4096];
+    size_t chunk_bytes = 0;
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 0, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 4096);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x98d020a5);
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 106, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 1306);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xbf4fcd99);
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 542, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 4096);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xaee73350);
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 662, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 184);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xfba68c74);
     return 0;
 }
 
@@ -349,6 +377,25 @@ static int check_optional_sod(const char *dir) {
     CHECK(dirinfo.chunks[555].length == 4096);
     CHECK(dirinfo.chunks[665].offset == 1616384);
     CHECK(dirinfo.chunks[665].length == 160);
+
+    unsigned char chunk_buf[4096];
+    size_t chunk_bytes = 0;
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 0, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 4096);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x98d020a5);
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 134, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 1306);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xbf4fcd99);
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 555, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 4096);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xaee73350);
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 665, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 160);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xbb53ed59);
     return 0;
 }
 
@@ -357,6 +404,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap-read tests passed for %s\n", dir);
     return 0;
 }

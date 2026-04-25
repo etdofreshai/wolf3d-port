@@ -73,6 +73,9 @@ int wl_read_maphead(const char *path, wl_maphead *out);
 int wl_read_map_header(const char *gamemaps_path, uint32_t offset, wl_map_header *out);
 int wl_read_vswap_header(const char *path, wl_vswap_header *out);
 int wl_read_vswap_directory(const char *path, wl_vswap_directory *out);
+int wl_read_vswap_chunk(const char *path, const wl_vswap_directory *directory,
+                        size_t chunk_index, unsigned char *out, size_t out_size,
+                        size_t *bytes_read);
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written);
 int wl_rlew_expand(const uint16_t *src, size_t src_words, uint16_t rlew_tag,

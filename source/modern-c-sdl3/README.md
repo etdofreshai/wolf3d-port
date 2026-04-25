@@ -11,7 +11,7 @@ Goals:
 
 ## Current headless verification
 
-The first runnable milestone is a pure C asset/decompression/semantics/model harness. It has no SDL dependency yet and verifies local WL6 data discovery, `MAPHEAD`, `GAMEMAPS`, and full `VSWAP` chunk-directory parsing, Carmack/RLEW map-plane decompression, first-pass map semantic classification, and a minimal `SetupGameLevel`-style runtime model.
+The first runnable milestone is a pure C asset/decompression/semantics/model harness. It has no SDL dependency yet and verifies local WL6 data discovery, `MAPHEAD`, `GAMEMAPS`, full `VSWAP` chunk-directory parsing and bounded chunk reads, Carmack/RLEW map-plane decompression, first-pass map semantic classification, and a minimal `SetupGameLevel`-style runtime model.
 
 Run from this directory:
 
