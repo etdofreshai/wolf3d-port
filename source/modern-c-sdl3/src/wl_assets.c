@@ -113,6 +113,171 @@ int wl_read_map_header(const char *gamemaps_path, uint32_t offset, wl_map_header
     return 0;
 }
 
+
+int wl_read_graphics_header(const char *path, wl_graphics_header *out) {
+    if (!path || !out) {
+        return -1;
+    }
+
+    size_t size = 0;
+    if (wl_file_size(path, &size) != 0 || size < 6 || (size % 3) != 0) {
+        return -1;
+    }
+    size_t entries = size / 3;
+    if (entries < 2 || entries > WL_GRAPHICS_MAX_CHUNKS + 1) {
+        return -1;
+    }
+
+    unsigned char *buf = (unsigned char *)malloc(size);
+    if (!buf) {
+        return -1;
+    }
+    if (read_exact_at(path, 0, buf, size) != 0) {
+        free(buf);
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->chunk_count = entries - 1;
+    out->file_size = size;
+    for (size_t i = 0; i < entries; ++i) {
+        uint32_t offset = (uint32_t)buf[i * 3] | ((uint32_t)buf[i * 3 + 1] << 8) |
+                          ((uint32_t)buf[i * 3 + 2] << 16);
+        out->offsets[i] = (offset == 0x00ffffffu) ? -1 : (int32_t)offset;
+    }
+    free(buf);
+    return 0;
+}
+
+int wl_read_huffman_dictionary(const char *path, wl_huffman_node nodes[WL_HUFFMAN_NODE_COUNT]) {
+    if (!path || !nodes) {
+        return -1;
+    }
+
+    unsigned char buf[WL_HUFFMAN_NODE_COUNT * 4];
+    if (read_exact_at(path, 0, buf, sizeof(buf)) != 0) {
+        return -1;
+    }
+    for (size_t i = 0; i < WL_HUFFMAN_NODE_COUNT; ++i) {
+        nodes[i].bit0 = read_le16(buf + i * 4);
+        nodes[i].bit1 = read_le16(buf + i * 4 + 2);
+        if ((nodes[i].bit0 >= 256 && nodes[i].bit0 >= 256 + WL_HUFFMAN_NODE_COUNT) ||
+            (nodes[i].bit1 >= 256 && nodes[i].bit1 >= 256 + WL_HUFFMAN_NODE_COUNT)) {
+            return -1;
+        }
+    }
+    return 0;
+}
+
+int wl_huff_expand(const unsigned char *src, size_t src_len,
+                   const wl_huffman_node nodes[WL_HUFFMAN_NODE_COUNT],
+                   unsigned char *out, size_t out_size, size_t *bytes_consumed) {
+    if (!src || !nodes || !out) {
+        return -1;
+    }
+    if (out_size == 0) {
+        if (bytes_consumed) {
+            *bytes_consumed = 0;
+        }
+        return 0;
+    }
+    if (src_len == 0) {
+        return -1;
+    }
+
+    size_t src_pos = 1;
+    unsigned char current = src[0];
+    unsigned char mask = 1;
+    uint16_t node = WL_HUFFMAN_NODE_COUNT - 1;
+    size_t out_pos = 0;
+    while (out_pos < out_size) {
+        uint16_t code = (current & mask) ? nodes[node].bit1 : nodes[node].bit0;
+        mask = (unsigned char)(mask << 1);
+        if (mask == 0) {
+            if (src_pos >= src_len) {
+                return -1;
+            }
+            current = src[src_pos++];
+            mask = 1;
+        }
+
+        if (code < 256) {
+            out[out_pos++] = (unsigned char)code;
+            node = WL_HUFFMAN_NODE_COUNT - 1;
+        } else {
+            code = (uint16_t)(code - 256);
+            if (code >= WL_HUFFMAN_NODE_COUNT) {
+                return -1;
+            }
+            node = code;
+        }
+    }
+    if (bytes_consumed) {
+        *bytes_consumed = src_pos;
+    }
+    return 0;
+}
+
+int wl_read_graphics_chunk(const char *vgagraph_path, const wl_graphics_header *header,
+                           const wl_huffman_node nodes[WL_HUFFMAN_NODE_COUNT],
+                           size_t chunk_index, unsigned char *out, size_t out_size,
+                           size_t *bytes_read, size_t *compressed_size) {
+    if (!vgagraph_path || !header || !nodes || !out || chunk_index >= header->chunk_count) {
+        return -1;
+    }
+    int32_t pos = header->offsets[chunk_index];
+    if (pos < 0) {
+        if (bytes_read) {
+            *bytes_read = 0;
+        }
+        if (compressed_size) {
+            *compressed_size = 0;
+        }
+        return 0;
+    }
+
+    size_t next = chunk_index + 1;
+    while (next <= header->chunk_count && header->offsets[next] < 0) {
+        ++next;
+    }
+    if (next > header->chunk_count || header->offsets[next] < pos) {
+        return -1;
+    }
+
+    size_t compressed = (size_t)(header->offsets[next] - pos);
+    if (compressed < sizeof(uint32_t)) {
+        return -1;
+    }
+    unsigned char *buf = (unsigned char *)malloc(compressed);
+    if (!buf) {
+        return -1;
+    }
+    if (read_exact_at(vgagraph_path, pos, buf, compressed) != 0) {
+        free(buf);
+        return -1;
+    }
+
+    uint32_t expanded = read_le32(buf);
+    if (expanded > out_size) {
+        free(buf);
+        return -1;
+    }
+    size_t consumed = 0;
+    int rc = wl_huff_expand(buf + sizeof(uint32_t), compressed - sizeof(uint32_t), nodes,
+                            out, expanded, &consumed);
+    free(buf);
+    if (rc != 0) {
+        return -1;
+    }
+    if (bytes_read) {
+        *bytes_read = expanded;
+    }
+    if (compressed_size) {
+        *compressed_size = compressed;
+    }
+    return 0;
+}
+
 int wl_read_vswap_header(const char *path, wl_vswap_header *out) {
     if (!path || !out) {
         return -1;

@@ -111,9 +111,15 @@ static int check_wl6(const char *dir) {
     char maphead_path[1024];
     char gamemaps_path[1024];
     char vswap_path[1024];
+    char vgahead_path[1024];
+    char vgadict_path[1024];
+    char vgagraph_path[1024];
     CHECK(path(maphead_path, sizeof(maphead_path), dir, "MAPHEAD.WL6") == 0);
     CHECK(path(gamemaps_path, sizeof(gamemaps_path), dir, "GAMEMAPS.WL6") == 0);
     CHECK(path(vswap_path, sizeof(vswap_path), dir, "VSWAP.WL6") == 0);
+    CHECK(path(vgahead_path, sizeof(vgahead_path), dir, "VGAHEAD.WL6") == 0);
+    CHECK(path(vgadict_path, sizeof(vgadict_path), dir, "VGADICT.WL6") == 0);
+    CHECK(path(vgagraph_path, sizeof(vgagraph_path), dir, "VGAGRAPH.WL6") == 0);
 
     wl_maphead mh;
     CHECK(wl_read_maphead(maphead_path, &mh) == 0);
@@ -264,6 +270,44 @@ static int check_wl6(const char *dir) {
     CHECK(model.kill_total == 37);
     CHECK(model.unknown_info_tiles == 0);
 
+    wl_graphics_header gh;
+    wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
+    unsigned char graphics_buf[65536];
+    size_t graphics_bytes = 0;
+    size_t compressed_bytes = 0;
+    CHECK(wl_read_graphics_header(vgahead_path, &gh) == 0);
+    CHECK(gh.chunk_count == 149);
+    CHECK(gh.file_size == 450);
+    CHECK(gh.offsets[0] == 0);
+    CHECK(gh.offsets[1] == 354);
+    CHECK(gh.offsets[3] == 9570);
+    CHECK(gh.offsets[149] == 275774);
+    CHECK(wl_read_huffman_dictionary(vgadict_path, huff) == 0);
+    CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 0, graphics_buf,
+                                 sizeof(graphics_buf), &graphics_bytes,
+                                 &compressed_bytes) == 0);
+    CHECK(compressed_bytes == 354);
+    CHECK(graphics_bytes == 528);
+    CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0x0a6f459a);
+    CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 1, graphics_buf,
+                                 sizeof(graphics_buf), &graphics_bytes,
+                                 &compressed_bytes) == 0);
+    CHECK(compressed_bytes == 3467);
+    CHECK(graphics_bytes == 8300);
+    CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0xdb48ce2b);
+    CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 87, graphics_buf,
+                                 sizeof(graphics_buf), &graphics_bytes,
+                                 &compressed_bytes) == 0);
+    CHECK(compressed_bytes == 45948);
+    CHECK(graphics_bytes == 64000);
+    CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0x01643ebc);
+    CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 134, graphics_buf,
+                                 sizeof(graphics_buf), &graphics_bytes,
+                                 &compressed_bytes) == 0);
+    CHECK(compressed_bytes == 5127);
+    CHECK(graphics_bytes == 10752);
+    CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0xeb393cc0);
+
     wl_vswap_header vs;
     CHECK(wl_read_vswap_header(vswap_path, &vs) == 0);
     CHECK(vs.file_size == 1544376);
@@ -380,9 +424,15 @@ static int check_optional_sod(const char *dir) {
     char maphead_path[1024];
     char gamemaps_path[1024];
     char vswap_path[1024];
+    char vgahead_path[1024];
+    char vgadict_path[1024];
+    char vgagraph_path[1024];
     if (path(maphead_path, sizeof(maphead_path), sod_dir, "MAPHEAD.SOD") != 0 ||
         path(gamemaps_path, sizeof(gamemaps_path), sod_dir, "GAMEMAPS.SOD") != 0 ||
-        path(vswap_path, sizeof(vswap_path), sod_dir, "VSWAP.SOD") != 0) {
+        path(vswap_path, sizeof(vswap_path), sod_dir, "VSWAP.SOD") != 0 ||
+        path(vgahead_path, sizeof(vgahead_path), sod_dir, "VGAHEAD.SOD") != 0 ||
+        path(vgadict_path, sizeof(vgadict_path), sod_dir, "VGADICT.SOD") != 0 ||
+        path(vgagraph_path, sizeof(vgagraph_path), sod_dir, "VGAGRAPH.SOD") != 0) {
         return 0;
     }
 
@@ -403,6 +453,43 @@ static int check_optional_sod(const char *dir) {
     CHECK(strcmp(map0.name, "Tunnels 1") == 0);
     CHECK(map0.width == 64);
     CHECK(map0.height == 64);
+
+    wl_graphics_header gh;
+    wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
+    unsigned char graphics_buf[65536];
+    size_t graphics_bytes = 0;
+    size_t compressed_bytes = 0;
+    CHECK(wl_read_graphics_header(vgahead_path, &gh) == 0);
+    CHECK(gh.chunk_count == 169);
+    CHECK(gh.file_size == 510);
+    CHECK(gh.offsets[0] == 0);
+    CHECK(gh.offsets[1] == 383);
+    CHECK(gh.offsets[169] == 947979);
+    CHECK(wl_read_huffman_dictionary(vgadict_path, huff) == 0);
+    CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 0, graphics_buf,
+                                 sizeof(graphics_buf), &graphics_bytes,
+                                 &compressed_bytes) == 0);
+    CHECK(compressed_bytes == 383);
+    CHECK(graphics_bytes == 588);
+    CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0x43f617ea);
+    CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 1, graphics_buf,
+                                 sizeof(graphics_buf), &graphics_bytes,
+                                 &compressed_bytes) == 0);
+    CHECK(compressed_bytes == 4448);
+    CHECK(graphics_bytes == 8300);
+    CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0xdb48ce2b);
+    CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 3, graphics_buf,
+                                 sizeof(graphics_buf), &graphics_bytes,
+                                 &compressed_bytes) == 0);
+    CHECK(compressed_bytes == 42248);
+    CHECK(graphics_bytes == 64000);
+    CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0x3a6afac3);
+    CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 149, graphics_buf,
+                                 sizeof(graphics_buf), &graphics_bytes,
+                                 &compressed_bytes) == 0);
+    CHECK(compressed_bytes == 6243);
+    CHECK(graphics_bytes == 10752);
+    CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0xeb393cc0);
 
     wl_vswap_header vs;
     CHECK(wl_read_vswap_header(vswap_path, &vs) == 0);
@@ -495,6 +582,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap-sprite-post tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/vga-huffman tests passed for %s\n", dir);
     return 0;
 }

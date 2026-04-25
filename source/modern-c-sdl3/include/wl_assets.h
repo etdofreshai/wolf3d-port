@@ -14,6 +14,8 @@ extern "C" {
 #define WL_MAP_SIDE 64
 #define WL_MAP_PLANE_WORDS (WL_MAP_SIDE * WL_MAP_SIDE)
 #define WL_VSWAP_MAX_CHUNKS 2048
+#define WL_GRAPHICS_MAX_CHUNKS 2048
+#define WL_HUFFMAN_NODE_COUNT 255
 
 typedef struct wl_maphead {
     uint16_t rlew_tag;
@@ -61,6 +63,17 @@ typedef struct wl_vswap_directory {
     size_t sparse_count;
 } wl_vswap_directory;
 
+typedef struct wl_huffman_node {
+    uint16_t bit0;
+    uint16_t bit1;
+} wl_huffman_node;
+
+typedef struct wl_graphics_header {
+    size_t chunk_count;
+    int32_t offsets[WL_GRAPHICS_MAX_CHUNKS + 1];
+    size_t file_size;
+} wl_graphics_header;
+
 typedef struct wl_vswap_shape_metadata {
     wl_vswap_chunk_kind kind;
     uint16_t width;
@@ -103,6 +116,15 @@ int wl_read_vswap_chunk(const char *path, const wl_vswap_directory *directory,
 int wl_decode_vswap_shape_metadata(const unsigned char *chunk, size_t chunk_size,
                                    wl_vswap_chunk_kind kind,
                                    wl_vswap_shape_metadata *out);
+int wl_read_graphics_header(const char *path, wl_graphics_header *out);
+int wl_read_huffman_dictionary(const char *path, wl_huffman_node nodes[WL_HUFFMAN_NODE_COUNT]);
+int wl_huff_expand(const unsigned char *src, size_t src_len,
+                   const wl_huffman_node nodes[WL_HUFFMAN_NODE_COUNT],
+                   unsigned char *out, size_t out_size, size_t *bytes_consumed);
+int wl_read_graphics_chunk(const char *vgagraph_path, const wl_graphics_header *header,
+                           const wl_huffman_node nodes[WL_HUFFMAN_NODE_COUNT],
+                           size_t chunk_index, unsigned char *out, size_t out_size,
+                           size_t *bytes_read, size_t *compressed_size);
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written);
 int wl_rlew_expand(const uint16_t *src, size_t src_words, uint16_t rlew_tag,

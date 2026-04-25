@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-VSWAP sprite post-command metadata decoding is implemented and passing on headless Linux for WL6 and optional SOD. Next phase should start VGA Huffman smoke tests or decode wall-page metadata for the renderer path.
+VGAHEAD/VGADICT/VGAGRAPH Huffman smoke decoding is implemented and passing on headless Linux for WL6 and optional SOD. Next phase should interpret STRUCTPIC picture metadata, start a renderer-facing indexed-surface seam, or decode wall-page metadata.
 
 ## Latest Verified Milestone
 
@@ -20,6 +20,7 @@ VSWAP sprite post-command metadata decoding is implemented and passing on headle
 - `docs/research/map-semantics.md` records original source references and WL6 map 0 semantic-count assertions.
 - `docs/research/runtime-map-model.md` records the pure C runtime model seam, door-area connectivity descriptors, descriptor assertions, and verification output.
 - `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall/sprite shape metadata assertions, sprite post-command metadata assertions, range/count assertions, and verification output.
+- `docs/research/graphics-huffman.md` records VGAHEAD/VGADICT/VGAGRAPH parsing, pure C Huffman expansion, WL6/SOD graphics chunk smoke assertions, and verification output.
 
 ## Verified Findings
 
@@ -83,18 +84,20 @@ Use tests as the bridge from the original code to modern C:
 8. VSWAP chunk read smoke tests. **Done for WL6 and optional SOD.**
 9. VSWAP wall/sprite shape metadata decoding. **Initial representative WL6/SOD metadata done.**
 10. VSWAP sprite post-command metadata. **Done for representative WL6/SOD sprites.**
-11. `VGAHEAD`/`VGADICT`/`VGAGRAPH` Huffman smoke test or wall-page metadata decoding.
+11. `VGAHEAD`/`VGADICT`/`VGAGRAPH` Huffman smoke test. **Done for representative WL6/SOD chunks.**
+12. `STRUCTPIC` picture metadata interpretation, indexed-surface seam, or wall-page metadata decoding.
 
 ## Next Likely Move
 
-Start VGA graphics Huffman smoke tests or decode wall-page metadata.
+Interpret `STRUCTPIC` picture metadata, start a renderer-facing indexed-surface seam, or decode wall-page metadata.
 
 Recommended next commit:
 
-- start `VGAHEAD`/`VGADICT`/`VGAGRAPH` parsing and port `CAL_HuffExpand` for one graphics chunk smoke test;
-- or decode wall-page column/pixel metadata from raw VSWAP wall chunks for the renderer path.
+- interpret decoded `STRUCTPIC` as picture width/height table metadata and assert known dimensions;
+- or decode wall-page column/pixel metadata from raw VSWAP wall chunks for the raycaster path;
+- or start a pure indexed-surface buffer seam that can later feed SDL3 textures.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, VGA graphics Huffman chunk hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
 
 ## Blockers
 
@@ -448,5 +451,45 @@ Safety/legal checks:
 Next likely move:
 
 - Start VGAHEAD/VGAGRAPH/VGADICT Huffman smoke tests, or decode wall-page metadata from raw VSWAP wall chunks.
+
+Blockers: none.
+
+
+## Cycle 2026-04-24 22:53 CDT
+
+Action taken:
+
+- Added `VGAHEAD` 3-byte graphics-offset parsing with sparse sentinel support.
+- Added `VGADICT` 255-node Huffman dictionary parsing.
+- Ported the original LSB-first `CAL_HuffExpand` traversal into pure C as `wl_huff_expand`.
+- Added explicit-size `VGAGRAPH` chunk read/decode helper.
+- Added WL6 smoke assertions for chunks `0`, `1`, `87`, and `134`; added optional SOD assertions for chunks `0`, `1`, `3`, and `149`.
+- Added `docs/research/graphics-huffman.md` and updated `source/modern-c-sdl3/README.md`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/vga-huffman tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only decoded metadata/hash/count assertions are committed.
+
+Next likely move:
+
+- Interpret decoded `STRUCTPIC` picture metadata, add a renderer-facing indexed-surface seam, or decode VSWAP wall-page metadata.
 
 Blockers: none.
