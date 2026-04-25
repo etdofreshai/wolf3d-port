@@ -188,3 +188,8 @@ Chase movement now accumulates tic-budgeted distance against map-blocked directi
 ## Cycle update: chase fine-position rendering
 
 Chase tic movement now closes the loop from map-blocked direction choice to renderer-facing fine placement. The half-tile chase guard preserves tile state while emitting sub-tile scene coords.
+
+
+## Cycle update: live AI chase fine-position rendering
+
+Chase direction/tic semantics now run inside the live AI frame wrapper. The wrapper reports chase actor counts and keeps patrol and chase movement deterministic in the same headless frame.

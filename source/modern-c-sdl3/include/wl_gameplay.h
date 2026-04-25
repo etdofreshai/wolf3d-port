@@ -251,7 +251,9 @@ typedef struct wl_live_projectile_tick_result {
 typedef struct wl_live_actor_ai_tick_result {
     wl_live_tick_result live;
     wl_actor_patrols_tic_result patrols;
+    wl_actor_chases_tic_result chases;
     uint8_t patrols_stepped;
+    uint8_t chases_stepped;
 } wl_live_actor_ai_tick_result;
 
 typedef enum wl_live_actor_attack_kind {

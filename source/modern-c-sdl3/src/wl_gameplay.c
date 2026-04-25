@@ -1717,7 +1717,12 @@ int wl_step_live_actor_ai_tick(wl_player_gameplay_state *state,
     if (wl_step_patrol_actors_tics(model, patrol_speed, tics, &out->patrols) != 0) {
         return -1;
     }
+    if (wl_step_chase_actors_tics(model, motion->tile_x, motion->tile_y, 1,
+                                  patrol_speed, tics, &out->chases) != 0) {
+        return -1;
+    }
     out->patrols_stepped = out->patrols.tiles_stepped > 0 ? 1u : 0u;
+    out->chases_stepped = out->chases.tiles_stepped > 0 ? 1u : 0u;
     return 0;
 }
 

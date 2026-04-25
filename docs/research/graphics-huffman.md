@@ -384,3 +384,8 @@ Renderer-facing chase refs can now receive sub-tile actor coordinates before any
 ## Cycle update: chase fine-position rendering
 
 Headless presentation coverage now includes fine-position chase movement. The scene renderer projects the chase-stepped guard at sub-tile coordinates and verifies stable hash `0xa71311c2` before SDL3.
+
+
+## Cycle update: live AI chase fine-position rendering
+
+Headless presentation coverage now includes chase movement emitted by the live AI wrapper, proving chase fine coordinates survive the live tick/ref/render path before SDL3.

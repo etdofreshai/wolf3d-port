@@ -1264,6 +1264,35 @@ int wl_step_chase_actor_tics(wl_game_model *model, uint16_t actor_index,
     return 0;
 }
 
+int wl_step_chase_actors_tics(wl_game_model *model, uint16_t player_x,
+                              uint16_t player_y, int search_forward,
+                              uint32_t speed, int32_t tics,
+                              wl_actor_chases_tic_result *out) {
+    if (!model || !out || tics < 0 || player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        if (model->actors[i].mode != WL_ACTOR_CHASE) {
+            continue;
+        }
+        ++out->actors_considered;
+        wl_actor_chase_tic_result step;
+        if (wl_step_chase_actor_tics(model, (uint16_t)i, player_x, player_y,
+                                     search_forward, speed, tics, &step) != 0) {
+            return -1;
+        }
+        if (step.tiles_stepped > 0 || step.leftover_move > 0) {
+            ++out->actors_stepped;
+        }
+        if (step.blocked) {
+            ++out->actors_blocked;
+        }
+        out->tiles_stepped = (uint16_t)(out->tiles_stepped + step.tiles_stepped);
+    }
+    return 0;
+}
+
 int wl_step_patrol_actor(wl_game_model *model, uint16_t actor_index,
                          wl_actor_patrol_step_result *out) {
     if (!model || !out || actor_index >= model->actor_count) {

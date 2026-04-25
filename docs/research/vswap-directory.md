@@ -367,3 +367,8 @@ Chase fine-position movement changes actor placement while keeping existing VSWA
 ## Cycle update: chase fine-position rendering
 
 The chase fine-position render path validates guard walk sprite metadata `58/164` through local VSWAP decode and stable scene hash `0xa71311c2`; no decoded bytes are committed.
+
+
+## Cycle update: live AI chase fine-position rendering
+
+Live AI chase refs now consume the same VSWAP sprite-cache path as patrol refs. The guard remains source/chunk `58/164`; rendered hash `0xa71311c2` verifies placement without committing decoded bytes.

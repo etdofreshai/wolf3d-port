@@ -311,3 +311,8 @@ Chase movement now has a tic-budgeted fine-position seam. `wl_step_chase_actor_t
 ## Chase fine-position rendering
 
 Chase fine-position actor refs now feed the headless scene renderer. A half-tile chase guard keeps source/chunk `58/164`, emits fine world coordinates `0x58000/0x50000`, and renders with stable scene hash `0xa71311c2`.
+
+
+## Live AI chase fine-position rendering
+
+The live actor AI wrapper now advances chase actors as well as patrol actors. A half-tile chase guard passes through `wl_step_live_actor_ai_tick`, emits source/chunk `58/164` at `0x58000/0x50000`, and renders with stable hash `0xa71311c2`.

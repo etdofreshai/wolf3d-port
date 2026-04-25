@@ -4676,3 +4676,41 @@ Next likely move:
 - Add live AI wrapper support for chase actors or multi-frame chase render coverage.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 09:41 CDT
+
+Action taken:
+
+- Connected chase actor ticking into the live AI frame wrapper.
+- Added `wl_actor_chases_tic_result`, `wl_step_chase_actors_tics`, and live AI result fields for aggregate chase counts.
+- Extended `wl_step_live_actor_ai_tick` so a frame now runs live tick, patrol ticking, and chase ticking.
+- Updated the headless chase render case to flow through `wl_step_live_actor_ai_tick`; a half-tile chase guard emits source/chunk `58/164` at `0x58000/0x50000` and renders with stable hash `0xa71311c2`.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-ai-chase-fine-render tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Add multi-frame live AI chase rendering or combine chase movement with combat/attack orchestration.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

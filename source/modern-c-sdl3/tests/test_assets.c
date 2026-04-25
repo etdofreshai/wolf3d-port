@@ -4085,14 +4085,21 @@ static int check_wl6(const char *dir) {
     live_ai_render_model.actor_count = 1;
     live_ai_render_model.actors[0].kind = WL_ACTOR_GUARD;
     live_ai_render_model.actors[0].mode = WL_ACTOR_CHASE;
-    live_ai_render_model.actors[0].dir = WL_DIR_WEST;
+    live_ai_render_model.actors[0].dir = WL_DIR_EAST;
     live_ai_render_model.actors[0].tile_x = 5;
     live_ai_render_model.actors[0].tile_y = 5;
-    wl_actor_chase_tic_result chase_render_tic;
-    CHECK(wl_step_chase_actor_tics(&live_ai_render_model, 0, 8, 4, 1,
-                                   0x8000u, 1, &chase_render_tic) == 0);
-    CHECK(chase_render_tic.tiles_stepped == 0);
-    CHECK(chase_render_tic.leftover_move == 0x8000u);
+    CHECK(wl_step_live_actor_ai_tick(&live_ai_render_player,
+                                     &live_ai_render_model,
+                                     use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                     &live_ai_render_motion, 0, 0,
+                                     0x10000, 0, WL_DIR_EAST, 0, 0,
+                                     0x8000u, 1,
+                                     &live_ai_render_tick) == 0);
+    CHECK(live_ai_render_tick.patrols.actors_considered == 0);
+    CHECK(live_ai_render_tick.chases.actors_considered == 1);
+    CHECK(live_ai_render_tick.chases.actors_stepped == 1);
+    CHECK(live_ai_render_tick.chases.tiles_stepped == 0);
+    CHECK(live_ai_render_model.actors[0].patrol_remainder == 0x8000u);
     CHECK(wl_collect_scene_sprite_refs(&live_ai_render_model,
                                        dirinfo.header.sprite_start,
                                        scene_refs,
@@ -4969,6 +4976,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-chase-fine-render tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-chase-fine-render tests passed for %s\n", dir);
     return 0;
 }

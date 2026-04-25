@@ -443,3 +443,8 @@ Runtime actor AI now has a headless `SelectChaseDir`-style direction seam. `wl_s
 ## Cycle update: chase fine-position rendering
 
 Chase tic fine-position movement now reaches scene refs and the door-aware renderer. A half-tile chase guard remains on its tile, emits fine coordinates, and renders deterministically through the same path used by live AI patrol refs.
+
+
+## Cycle update: live AI chase fine-position rendering
+
+`wl_step_live_actor_ai_tick` now aggregates chase actors through `wl_step_chase_actors_tics` after the normal live tick and patrol pass. The live AI result reports chase counts while scene refs preserve fine-position chase coordinates.
