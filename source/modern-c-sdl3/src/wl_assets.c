@@ -995,6 +995,37 @@ int wl_cast_fixed_cardinal_wall_ray(const uint16_t *wall_plane, size_t wall_coun
                                      out);
 }
 
+uint16_t wl_project_wall_height(uint32_t forward_distance, uint16_t view_width,
+                                uint16_t view_height) {
+    const uint32_t tileglobal = 1u << 16;
+    const uint32_t mindist = 0x5800u;
+    const uint32_t focallength = 0x5700u;
+    const uint32_t viewglobal = 0x10000u;
+
+    if (view_width == 0 || view_height == 0) {
+        return 0;
+    }
+
+    uint32_t clamped_distance = forward_distance < mindist ? mindist : forward_distance;
+    uint32_t denominator = clamped_distance >> 8;
+    if (denominator == 0) {
+        denominator = 1;
+    }
+
+    uint32_t halfview = (uint32_t)view_width / 2u;
+    uint32_t scale = (uint32_t)(((uint64_t)halfview * (focallength + mindist)) /
+                               (viewglobal / 2u));
+    uint32_t heightnumerator = (uint32_t)(((uint64_t)tileglobal * scale) >> 6);
+    uint32_t projected = heightnumerator / denominator;
+    if (projected == 0) {
+        projected = 1;
+    }
+    if (projected > view_height) {
+        projected = view_height;
+    }
+    return (uint16_t)projected;
+}
+
 int wl_cast_fixed_wall_ray(const uint16_t *wall_plane, size_t wall_count,
                            uint32_t origin_x, uint32_t origin_y,
                            int32_t direction_x, int32_t direction_y,
@@ -1072,12 +1103,33 @@ int wl_cast_fixed_wall_ray(const uint16_t *wall_plane, size_t wall_count,
         }
         uint16_t texture_column = (uint16_t)((uint64_t)(hit_coord >> 10) &
                                              (WL_MAP_SIDE - 1u));
-        return wl_build_map_wall_hit(wall_plane, wall_count, (uint16_t)tile_x,
-                                     (uint16_t)tile_y, side, texture_column, x,
-                                     scaled_height, out);
+        if (wl_build_map_wall_hit(wall_plane, wall_count, (uint16_t)tile_x,
+                                  (uint16_t)tile_y, side, texture_column, x,
+                                  scaled_height, out) != 0) {
+            return -1;
+        }
+        out->distance = (hit_t > UINT32_MAX) ? UINT32_MAX : (uint32_t)hit_t;
+        return 0;
     }
 
     return -1;
+}
+
+int wl_cast_projected_wall_ray(const uint16_t *wall_plane, size_t wall_count,
+                               uint32_t origin_x, uint32_t origin_y,
+                               int32_t direction_x, int32_t direction_y,
+                               uint16_t x, uint16_t view_width,
+                               uint16_t view_height, wl_map_wall_hit *out) {
+    if (!out || view_width == 0 || view_height == 0 || x >= view_width) {
+        return -1;
+    }
+
+    if (wl_cast_fixed_wall_ray(wall_plane, wall_count, origin_x, origin_y,
+                               direction_x, direction_y, x, 1, out) != 0) {
+        return -1;
+    }
+    out->scaled_height = wl_project_wall_height(out->distance, view_width, view_height);
+    return out->scaled_height == 0 ? -1 : 0;
 }
 
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
