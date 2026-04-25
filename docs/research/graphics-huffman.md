@@ -334,3 +334,8 @@ The headless renderer now verifies sub-tile patrol placement emitted by live AI.
 ## Cycle update: patrol remainder accumulation
 
 Renderer-facing actor movement can now receive accumulated sub-tile patrol state across frames, giving the future SDL3 path smoother movement inputs without changing sprite assets.
+
+
+## Cycle update: live AI remainder rendering
+
+The renderer now verifies accumulated sub-tile patrol state across live AI frames. Fine-position and tile-centered guard placement produce distinct stable hashes before any SDL3 dependency is introduced.

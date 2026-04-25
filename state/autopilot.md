@@ -4305,3 +4305,40 @@ Next likely move:
 - Feed accumulated remainder through live AI multi-frame rendering, deepen chase/attack progression, or broaden live AI fine-position rendering across actor classes/maps.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 09:15 CDT
+
+Action taken:
+
+- Fed accumulated patrol remainder through multi-frame live AI rendering.
+- Extended the live AI render test to run two half-tile frames: first frame stores `patrol_remainder` and renders fine coordinates with hash `0xcf61b07b`; second frame consumes the accumulated full tile, clears the remainder, and renders the tile-centered guard with hash `0x6ee1f8bf`.
+- Verified guard source/chunk metadata remains `58/164` while renderer-facing placement changes across frames.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-ai-remainder-render tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Deepen chase/attack progression, broaden live AI fine-position rendering across actor classes/maps, or start a small SDL3 presentation boundary once SDL3 dev files are available.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

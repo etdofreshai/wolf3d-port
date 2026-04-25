@@ -393,3 +393,8 @@ The live actor AI frame wrapper now preserves fine-position patrol output all th
 ## Cycle update: patrol remainder accumulation
 
 `wl_actor_desc` now carries `patrol_remainder` so tic-budgeted patrol motion accumulates across frames. A half-tile update advances fine refs, a second half-tile update consumes the accumulated whole tile, and scene-ref fallback remains deterministic.
+
+
+## Cycle update: live AI remainder rendering
+
+Multi-frame patrol remainder is now covered at the live AI frame/render boundary. Two half-tile `wl_step_live_actor_ai_tick` calls first emit fine refs, then consume one full tile and clear `patrol_remainder`, proving accumulated movement reaches scene refs and rendering.

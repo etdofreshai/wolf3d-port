@@ -261,3 +261,8 @@ Live actor AI now drives sub-tile patrol placement into rendering. A half-tic pa
 ## Patrol remainder accumulation
 
 Patrol actors now retain sub-tile movement remainder across tic calls. Two half-tile budgets accumulate into a whole-tile step, then reset the renderer-facing fine position to the new tile center while keeping blocked movement deterministic.
+
+
+## Live AI remainder rendering
+
+Accumulated patrol remainder now survives through two live AI frames into rendering: the first half-tile frame renders fine coordinates with hash `0xcf61b07b`, the second half-tile frame consumes a full tile and renders the tile-centered guard with hash `0x6ee1f8bf`.

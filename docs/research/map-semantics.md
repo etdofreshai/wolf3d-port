@@ -138,3 +138,8 @@ Path/tic patrol semantics now pass through the full live AI presentation path at
 ## Cycle update: patrol remainder accumulation
 
 The patrol path/tic seam now models original-style distance accumulation across calls instead of treating each frame independently. Partial budgets persist until they form a whole tile step.
+
+
+## Cycle update: live AI remainder rendering
+
+Patrol path semantics now accumulate partial movement through multiple live AI frames, then render the resulting whole-tile step. This closes the loop from path/tic state to presentation-ready refs.
