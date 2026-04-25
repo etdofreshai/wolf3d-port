@@ -496,6 +496,10 @@ static void update_player_motion_tiles(wl_player_motion_state *motion) {
     motion->tile_y = (uint16_t)(motion->y >> 16);
 }
 
+static size_t gameplay_map_index(size_t x, size_t y) {
+    return y * WL_MAP_SIDE + x;
+}
+
 int wl_step_player_motion(wl_player_gameplay_state *state, wl_game_model *model,
                           wl_player_motion_state *motion,
                           int32_t xmove, int32_t ymove,
@@ -543,6 +547,122 @@ int wl_step_player_motion(wl_player_gameplay_state *state, wl_game_model *model,
     out->tile_y = motion->tile_y;
     out->picked_up = picked_up;
     out->static_index = static_index;
+    return 0;
+}
+
+static int use_target_for_facing(uint16_t tile_x, uint16_t tile_y, wl_direction facing,
+                                 uint16_t *out_x, uint16_t *out_y,
+                                 uint8_t *out_elevator_ok) {
+    if (!out_x || !out_y || !out_elevator_ok || tile_x >= WL_MAP_SIDE || tile_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+    *out_x = tile_x;
+    *out_y = tile_y;
+    *out_elevator_ok = 0;
+    switch (facing) {
+    case WL_DIR_EAST:
+        if (tile_x + 1 >= WL_MAP_SIDE) {
+            return -1;
+        }
+        *out_x = (uint16_t)(tile_x + 1u);
+        *out_elevator_ok = 1;
+        return 0;
+    case WL_DIR_NORTH:
+        if (tile_y == 0) {
+            return -1;
+        }
+        *out_y = (uint16_t)(tile_y - 1u);
+        return 0;
+    case WL_DIR_WEST:
+        if (tile_x == 0) {
+            return -1;
+        }
+        *out_x = (uint16_t)(tile_x - 1u);
+        *out_elevator_ok = 1;
+        return 0;
+    case WL_DIR_SOUTH:
+        if (tile_y + 1 >= WL_MAP_SIDE) {
+            return -1;
+        }
+        *out_y = (uint16_t)(tile_y + 1u);
+        return 0;
+    default:
+        return -1;
+    }
+}
+
+int wl_use_player_facing(wl_player_gameplay_state *state, wl_game_model *model,
+                         const uint16_t *wall_plane, const uint16_t *info_plane,
+                         size_t word_count, const wl_player_motion_state *motion,
+                         wl_direction facing, int button_held,
+                         wl_player_use_result *out) {
+    if (!state || !model || !wall_plane || !info_plane || !motion || !out ||
+        word_count != WL_MAP_PLANE_WORDS || motion->tile_x >= WL_MAP_SIDE ||
+        motion->tile_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->door_index = model->door_count;
+    out->pushwall_index = model->pushwall_count;
+    out->dir = facing;
+    if (use_target_for_facing(motion->tile_x, motion->tile_y, facing,
+                              &out->check_x, &out->check_y,
+                              &out->elevator_ok) != 0) {
+        return -1;
+    }
+
+    size_t target = gameplay_map_index(out->check_x, out->check_y);
+    if (info_plane[target] == WL_PUSHABLETILE) {
+        out->kind = WL_USE_PUSHWALL;
+        for (size_t i = 0; i < model->pushwall_count; ++i) {
+            if (model->pushwalls[i].x == out->check_x && model->pushwalls[i].y == out->check_y) {
+                out->pushwall_index = i;
+                break;
+            }
+        }
+        return 0;
+    }
+
+    uint16_t doornum = model->tilemap[target];
+    if (!button_held && doornum == WL_ELEVATORTILE && out->elevator_ok) {
+        out->kind = WL_USE_ELEVATOR;
+        model->tilemap[target] = (uint16_t)(model->tilemap[target] + 1u);
+        state->play_state = WL_PLAYER_PLAY_COMPLETED;
+        out->completed = 1;
+        out->secret_level = wall_plane[gameplay_map_index(motion->tile_x, motion->tile_y)] ==
+                            WL_ALTELEVATORTILE;
+        return 0;
+    }
+
+    if (!button_held && (doornum & 0x80u)) {
+        size_t door = (size_t)(doornum & (uint16_t)~0x80u);
+        if (door >= model->door_count) {
+            return -1;
+        }
+        out->kind = WL_USE_DOOR;
+        out->door_index = door;
+        uint8_t lock = model->doors[door].lock;
+        if (lock >= 1u && lock <= 4u && !(state->keys & (1u << (lock - 1u)))) {
+            out->locked = 1;
+            return 0;
+        }
+        switch (model->doors[door].action) {
+        case WL_DOOR_CLOSED:
+        case WL_DOOR_CLOSING:
+            model->doors[door].action = WL_DOOR_OPENING;
+            out->opened = 1;
+            break;
+        case WL_DOOR_OPEN:
+        case WL_DOOR_OPENING:
+            model->doors[door].action = WL_DOOR_CLOSING;
+            out->closed = 1;
+            break;
+        }
+        return 0;
+    }
+
+    out->kind = WL_USE_NOTHING;
     return 0;
 }
 

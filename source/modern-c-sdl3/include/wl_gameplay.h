@@ -94,6 +94,28 @@ typedef struct wl_player_step_result {
     size_t static_index;
 } wl_player_step_result;
 
+typedef enum wl_player_use_kind {
+    WL_USE_NOTHING = 0,
+    WL_USE_PUSHWALL = 1,
+    WL_USE_ELEVATOR = 2,
+    WL_USE_DOOR = 3,
+} wl_player_use_kind;
+
+typedef struct wl_player_use_result {
+    wl_player_use_kind kind;
+    uint16_t check_x;
+    uint16_t check_y;
+    wl_direction dir;
+    uint8_t elevator_ok;
+    uint8_t locked;
+    uint8_t opened;
+    uint8_t closed;
+    uint8_t completed;
+    uint8_t secret_level;
+    size_t door_index;
+    size_t pushwall_index;
+} wl_player_use_result;
+
 int wl_init_player_gameplay_state(wl_player_gameplay_state *state,
                                   int32_t health, int32_t lives,
                                   int32_t score, int32_t next_extra);
@@ -126,6 +148,11 @@ int wl_step_player_motion(wl_player_gameplay_state *state, wl_game_model *model,
                           int32_t xmove, int32_t ymove,
                           int32_t forward_x, int32_t forward_y,
                           wl_player_step_result *out);
+int wl_use_player_facing(wl_player_gameplay_state *state, wl_game_model *model,
+                         const uint16_t *wall_plane, const uint16_t *info_plane,
+                         size_t word_count, const wl_player_motion_state *motion,
+                         wl_direction facing, int button_held,
+                         wl_player_use_result *out);
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state);
 
 #ifdef __cplusplus

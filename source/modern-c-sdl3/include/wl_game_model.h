@@ -43,6 +43,13 @@ typedef enum wl_actor_mode {
     WL_ACTOR_GHOST_MODE,
 } wl_actor_mode;
 
+typedef enum wl_door_action {
+    WL_DOOR_OPEN = 0,
+    WL_DOOR_CLOSED = 1,
+    WL_DOOR_OPENING = 2,
+    WL_DOOR_CLOSING = 3,
+} wl_door_action;
+
 typedef struct wl_player_spawn {
     int present;
     uint16_t x;
@@ -58,6 +65,7 @@ typedef struct wl_door_desc {
     uint8_t lock;
     uint8_t area1;
     uint8_t area2;
+    wl_door_action action;
 } wl_door_desc;
 
 typedef struct wl_static_desc {
