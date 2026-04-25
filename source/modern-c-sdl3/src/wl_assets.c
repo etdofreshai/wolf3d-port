@@ -999,6 +999,79 @@ int wl_scale_wall_column_to_surface(const unsigned char *column, size_t column_s
     return 0;
 }
 
+int wl_render_scaled_sprite(const wl_indexed_surface *sprite, wl_indexed_surface *dst,
+                            int x_center, uint16_t scaled_height,
+                            unsigned char transparent_index,
+                            const uint16_t *wall_heights, size_t wall_height_count) {
+    if (!sprite || !dst || !sprite->pixels || !dst->pixels ||
+        sprite->format != WL_SURFACE_INDEXED8 || dst->format != WL_SURFACE_INDEXED8 ||
+        sprite->width == 0 || sprite->height == 0 || sprite->stride < sprite->width ||
+        dst->stride < dst->width || scaled_height == 0 ||
+        (wall_heights && wall_height_count < dst->width)) {
+        return -1;
+    }
+
+    int left = x_center - (int)scaled_height / 2;
+    int top = ((int)dst->height - (int)scaled_height) / 2;
+    uint32_t x_step = ((uint32_t)scaled_height << 16) / sprite->width;
+    uint32_t y_step = ((uint32_t)scaled_height << 16) / sprite->height;
+    uint32_t x_fix = 0;
+
+    for (uint16_t src_x = 0; src_x < sprite->width; ++src_x) {
+        int x_start = (int)(x_fix >> 16);
+        x_fix += x_step;
+        int x_end = (int)(x_fix >> 16);
+        if (x_end <= x_start) {
+            continue;
+        }
+
+        int dst_x0 = left + x_start;
+        int dst_x1 = left + x_end;
+        if (dst_x1 <= 0 || dst_x0 >= dst->width) {
+            continue;
+        }
+        if (dst_x0 < 0) {
+            dst_x0 = 0;
+        }
+        if (dst_x1 > dst->width) {
+            dst_x1 = dst->width;
+        }
+
+        uint32_t y_fix = 0;
+        for (uint16_t src_y = 0; src_y < sprite->height; ++src_y) {
+            unsigned char color = sprite->pixels[(size_t)src_y * sprite->stride + src_x];
+            int y_start = (int)(y_fix >> 16);
+            y_fix += y_step;
+            int y_end = (int)(y_fix >> 16);
+            if (color == transparent_index || y_end <= y_start) {
+                continue;
+            }
+
+            int dst_y0 = top + y_start;
+            int dst_y1 = top + y_end;
+            if (dst_y1 <= 0 || dst_y0 >= dst->height) {
+                continue;
+            }
+            if (dst_y0 < 0) {
+                dst_y0 = 0;
+            }
+            if (dst_y1 > dst->height) {
+                dst_y1 = dst->height;
+            }
+
+            for (int dst_x = dst_x0; dst_x < dst_x1; ++dst_x) {
+                if (wall_heights && wall_heights[dst_x] >= scaled_height) {
+                    continue;
+                }
+                for (int dst_y = dst_y0; dst_y < dst_y1; ++dst_y) {
+                    dst->pixels[(size_t)dst_y * dst->stride + (size_t)dst_x] = color;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
 int wl_render_wall_strip_viewport(const wl_wall_strip *strips, size_t strip_count,
                                   wl_indexed_surface *dst) {
     if (!strips || !dst || strip_count == 0) {

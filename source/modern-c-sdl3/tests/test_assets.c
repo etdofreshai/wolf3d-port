@@ -980,6 +980,27 @@ static int check_wl6(const char *dir) {
     CHECK(surface.pixels == indexed_buf);
     CHECK(count_byte_not_value(surface.pixels, surface.pixel_count, 0) == 614);
     CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0x918ed728);
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_scaled_sprite(&surface, &canvas, 40, 64, 0, NULL, 0) == 0);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0x3f753ac8);
+    uint16_t wall_heights[80];
+    for (size_t i = 0; i < 80; ++i) {
+        wall_heights[i] = 0;
+    }
+    for (size_t i = 36; i < 44; ++i) {
+        wall_heights[i] = 80;
+    }
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_render_scaled_sprite(&surface, &canvas, 40, 64, 0,
+                                  wall_heights, 80) == 0);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0xaa7c2838);
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_render_scaled_sprite(&surface, &canvas, -4, 96, 0, NULL, 0) == 0);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0x6ff0f5c8);
+    CHECK(wl_render_scaled_sprite(&surface, &canvas, 40, 0, 0, NULL, 0) == -1);
+    CHECK(wl_render_scaled_sprite(&surface, &canvas, 40, 64, 0, wall_heights, 79) == -1);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 107, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -1319,6 +1340,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/sprite-surface tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/scaled-sprite tests passed for %s\n", dir);
     return 0;
 }

@@ -225,6 +225,10 @@ int wl_sample_indexed_surface_column(const wl_indexed_surface *surface, uint16_t
 int wl_scale_wall_column_to_surface(const unsigned char *column, size_t column_size,
                                     wl_indexed_surface *dst, uint16_t x,
                                     uint16_t scaled_height);
+int wl_render_scaled_sprite(const wl_indexed_surface *sprite, wl_indexed_surface *dst,
+                            int x_center, uint16_t scaled_height,
+                            unsigned char transparent_index,
+                            const uint16_t *wall_heights, size_t wall_height_count);
 int wl_render_wall_strip_viewport(const wl_wall_strip *strips, size_t strip_count,
                                   wl_indexed_surface *dst);
 int wl_build_map_wall_hit(const uint16_t *wall_plane, size_t wall_count,

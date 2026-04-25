@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Sprite post streams now decode into transparent indexed surfaces on headless Linux for WL6. Next phase should add scaled sprite rendering, a small SDL3 presentation boundary, or additional palette-effect metadata.
+Decoded sprite surfaces now scale into transparent, optionally wall-occluded indexed viewports on headless Linux for WL6. Next phase should add world-space sprite projection/ordering, a small SDL3 presentation boundary, or additional palette-effect metadata.
 
 ## Latest Verified Milestone
 
@@ -19,7 +19,7 @@ Sprite post streams now decode into transparent indexed surfaces on headless Lin
 - `docs/research/map-decompression.md` records the Carmack/RLEW implementation seam, hash/count assertions, and verification output.
 - `docs/research/map-semantics.md` records original source references and WL6 map 0 semantic-count assertions.
 - `docs/research/runtime-map-model.md` records the pure C runtime model seam, door-area connectivity descriptors, descriptor assertions, and verification output.
-- `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall-page metadata/surface/column-sampler/scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view assertions, sprite shape metadata assertions, sprite post-command metadata/indexed-surface assertions, range/count assertions, and verification output.
+- `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall-page metadata/surface/column-sampler/scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view assertions, sprite shape metadata assertions, sprite post-command metadata/indexed-surface/scaled-render assertions, range/count assertions, and verification output.
 - `docs/research/graphics-huffman.md` records VGAHEAD/VGADICT/VGAGRAPH parsing, pure C Huffman expansion, STRUCTPIC picture-table metadata, planar-to-indexed surface conversion, renderer-facing indexed-surface descriptors, upload metadata/RGBA expansion, SDL-free indexed blitting, WL6/SOD graphics chunk smoke assertions, and verification output.
 
 ## Verified Findings
@@ -105,19 +105,20 @@ Use tests as the bridge from the original code to modern C:
 27. Tiny view render helper. **Done for representative WL6 player-origin camera rays.**
 28. Palette/texture-upload metadata. **Done for representative WL6 indexed surface.**
 29. Sprite indexed-surface decoding. **Done for representative WL6 sprites.**
-30. Scaled sprite rendering, SDL3 presentation seam, or palette-effect metadata.
+30. Scaled sprite rendering. **Done for representative WL6 sprites.**
+31. World-space sprite projection/ordering, SDL3 presentation seam, or palette-effect metadata.
 
 ## Next Likely Move
 
-Add scaled sprite rendering, a small SDL3 presentation seam, or palette-effect metadata.
+Add world-space sprite projection/ordering, a small SDL3 presentation seam, or palette-effect metadata.
 
 Recommended next commit:
 
-- add scaled sprite rendering using decoded sprite surfaces and wall-height occlusion metadata;
+- add world-space sprite projection/ordering using decoded sprite surfaces, camera rays, and wall-height occlusion metadata;
 - or add a small SDL3 presentation seam using `wl_texture_upload_descriptor`;
 - or expand renderer metadata for palette effects before presentation.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, scaled-sprite viewport hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
 
 ## Blockers
 
@@ -1195,5 +1196,44 @@ Safety/legal checks:
 Next likely move:
 
 - Add scaled sprite rendering using decoded sprite surfaces and existing wall-height/viewport metadata, or add a small SDL3 presentation seam once SDL3 is available.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+## Cycle 2026-04-24 23:54 CDT
+
+Action taken:
+
+- Added `wl_render_scaled_sprite`, a pure C transparent sprite compositor for caller-owned indexed viewports.
+- The scaler uses source-run distribution, centered screen placement, destination clipping, transparent-index skipping, and optional per-column wall-height occlusion (`wall_heights[x] >= scaled_height` skips the sprite column), matching the original `ScaleShape` visibility seam without DOS/VGA dependencies.
+- Extended WL6 sprite chunk `106` assertions with normal, wall-occluded, and left-clipped scaled viewport hashes: `0x3f753ac8`, `0xaa7c2838`, and `0x6ff0f5c8`, plus invalid-argument checks.
+- Updated `docs/research/vswap-directory.md` and `source/modern-c-sdl3/README.md`.
+- SDL3 remains unavailable via `pkg-config`, so this cycle continued deterministic renderer work that can feed SDL later.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/scaled-sprite tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash assertions are committed.
+
+Next likely move:
+
+- Add world-space sprite projection/ordering that feeds decoded/scaled sprite surfaces into the current camera wall-view seam, or add a small SDL3 presentation seam once SDL3 is available.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
