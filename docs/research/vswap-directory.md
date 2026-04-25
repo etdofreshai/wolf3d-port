@@ -362,3 +362,8 @@ Chase-stepped actor refs continue to select existing VSWAP walk sprite metadata 
 ## Cycle update: chase tic fine-position seam
 
 Chase fine-position movement changes actor placement while keeping existing VSWAP walk sprite metadata. Tests continue to assert metadata/hashes only, with decoded bytes local.
+
+
+## Cycle update: chase fine-position rendering
+
+The chase fine-position render path validates guard walk sprite metadata `58/164` through local VSWAP decode and stable scene hash `0xa71311c2`; no decoded bytes are committed.

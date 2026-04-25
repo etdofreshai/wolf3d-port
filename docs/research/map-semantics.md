@@ -183,3 +183,8 @@ Chase movement now consumes map blocking decisions and applies them to actor sta
 ## Cycle update: chase tic fine-position seam
 
 Chase movement now accumulates tic-budgeted distance against map-blocked direction choices. The first half-tile frame preserves the tile and advances fine coords; the second completes the selected tile step.
+
+
+## Cycle update: chase fine-position rendering
+
+Chase tic movement now closes the loop from map-blocked direction choice to renderer-facing fine placement. The half-tile chase guard preserves tile state while emitting sub-tile scene coords.

@@ -306,3 +306,8 @@ Chase direction selection now mutates a runtime actor through `wl_step_chase_act
 ## Chase tic fine-position seam
 
 Chase movement now has a tic-budgeted fine-position seam. `wl_step_chase_actor_tics` preserves partial movement, continues the same direction across remainder completion, consumes whole tiles, and exposes renderer-facing fine coordinates.
+
+
+## Chase fine-position rendering
+
+Chase fine-position actor refs now feed the headless scene renderer. A half-tile chase guard keeps source/chunk `58/164`, emits fine world coordinates `0x58000/0x50000`, and renders with stable scene hash `0xa71311c2`.

@@ -438,3 +438,8 @@ Runtime actor AI now has a headless `SelectChaseDir`-style direction seam. `wl_s
 ## Cycle update: chase tic fine-position seam
 
 `wl_step_chase_actor_tics` gives chase actors the same deterministic sub-tile movement bridge as patrol actors. Partial movement stores fine coordinates/remainder, and the next frame consumes the carried movement into a whole tile.
+
+
+## Cycle update: chase fine-position rendering
+
+Chase tic fine-position movement now reaches scene refs and the door-aware renderer. A half-tile chase guard remains on its tile, emits fine coordinates, and renders deterministically through the same path used by live AI patrol refs.
