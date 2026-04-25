@@ -419,3 +419,8 @@ The future presentation path now has deterministic metadata for a chase-moved ac
 ## Cycle update: live AI chase full-combat render
 
 Headless rendering now covers a chase-started full-combat frame with death and drop sprites visible together, stable hash `0x4a76f09a`, before SDL presentation.
+
+
+## Cycle update: live AI chase death-final render
+
+Headless rendering now covers the final corpse frame after a chase-started full-combat death tick. Final corpse plus drop render together with stable hash `0x8a2741bf`.

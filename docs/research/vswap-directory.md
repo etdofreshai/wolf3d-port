@@ -402,3 +402,8 @@ The chase full-combat bridge verifies death sprite source/chunk `91/197` from th
 ## Cycle update: live AI chase full-combat render
 
 The chase full-combat render path decodes only local VSWAP sprite chunks for verification and commits metadata/hash assertions: death source/chunk `91/197`, drop `28/134`, scene hash `0x4a76f09a`.
+
+
+## Cycle update: live AI chase death-final render
+
+The final chase death render verifies VSWAP metadata only: initial death `91/197`, final corpse `95/201`, drop `28/134`, and scene hash `0x8a2741bf`.

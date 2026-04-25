@@ -4936,3 +4936,40 @@ Next likely move:
 - Fold chase full-combat into a combined death-tick final-frame render, or broaden chase full-combat render coverage across actor classes.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 09:59 CDT
+
+Action taken:
+
+- Folded chase-started full combat into the combined death-tick final-frame render path.
+- Extended the live AI chase full-combat render case so the active death state advances through `wl_step_live_full_combat_death_tick`, applies the final corpse override, and re-collects scene refs.
+- Verified final corpse source/chunk `95/201`, persisted drop source/chunk `28/134`, sprite visibility, and stable scene hash `0x8a2741bf`.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-ai-chase-death-final-render tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Broaden chase full-combat/death-final render coverage across actor classes, or start an SDL3 presentation boundary when SDL3 dev files are available.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

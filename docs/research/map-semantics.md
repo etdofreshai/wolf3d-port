@@ -223,3 +223,8 @@ Chase-updated coordinates now propagate into combined combat/death semantics: th
 ## Cycle update: live AI chase full-combat render
 
 Combined chase/combat/death semantics now preserve moved actor coordinates through death ref construction and spawned drop collection, then into deterministic scene rendering.
+
+
+## Cycle update: live AI chase death-final render
+
+Chase-started combat/death semantics now preserve moved coordinates through final death ticking and scene collection: final corpse source `95` replaces the moving actor ref while the spawned drop persists.

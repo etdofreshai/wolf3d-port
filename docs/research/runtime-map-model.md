@@ -478,3 +478,8 @@ Live AI chase movement now feeds the full-combat seam. After accumulated chase m
 ## Cycle update: live AI chase full-combat render
 
 The chase full-combat result now feeds scene refs/rendering. The moved guard death ref and spawned drop ref render together, proving the runtime model carries chase-started combat output to presentation metadata.
+
+
+## Cycle update: live AI chase death-final render
+
+The live AI chase/full-combat path now flows through `wl_step_live_full_combat_death_tick`. The actor slot receives the final corpse override after death ticking, while the drop remains collectible scene state.

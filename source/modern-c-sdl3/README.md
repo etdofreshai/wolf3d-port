@@ -346,3 +346,8 @@ A chase-moved guard now feeds `wl_step_live_full_combat_tick` in one determinist
 ## Live AI chase full-combat render
 
 The chase full-combat seam now reaches the headless scene renderer: a chase-moved guard can shoot, die, spawn a drop, and render the death/drop refs together with stable scene hash `0x4a76f09a`.
+
+
+## Live AI chase death-final render
+
+Chase-started full combat now advances through the combined death-tick final-frame path. The moved guard death ref switches from `91/197` to final corpse `95/201`, keeps the spawned drop visible, and renders with stable hash `0x8a2741bf`.

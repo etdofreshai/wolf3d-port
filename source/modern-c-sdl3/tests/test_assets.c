@@ -4436,6 +4436,89 @@ static int check_wl6(const char *dir) {
     CHECK(sprites[1].source_index == 28);
     CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0x4a76f09a);
 
+    wl_actor_death_state chase_active_death = chase_full_combat.actor_death;
+    wl_live_full_combat_death_tick_result chase_final_death;
+    CHECK(wl_step_live_full_combat_death_tick(&chase_attack_player,
+                                              &chase_full_combat_model,
+                                              use_wall, use_info,
+                                              WL_MAP_PLANE_WORDS,
+                                              &live_ai_render_motion, 0, 0,
+                                              0x10000, 0, WL_DIR_EAST, 0, 0,
+                                              NULL, NULL, NULL, 0,
+                                              0, dirinfo.header.sprite_start,
+                                              WL_DIFFICULTY_HARD,
+                                              0, 0, 0, 0, 0, 0,
+                                              0, 0, 0, 0, 0, 45,
+                                              0, &chase_active_death,
+                                              &chase_final_death) == 0);
+    CHECK(chase_final_death.death_stepped == 1);
+    CHECK(chase_final_death.death.step.finished == 1);
+    CHECK(chase_final_death.death.final_frame_applied == 1);
+    CHECK(chase_final_death.death.death_ref.source_index == 95);
+    CHECK(chase_final_death.death.death_ref.vswap_chunk_index == 201);
+    CHECK(chase_full_combat_model.actors[0].scene_source_override == 1);
+    CHECK(chase_full_combat_model.actors[0].scene_source_index == 95);
+    CHECK(wl_collect_scene_sprite_refs(&chase_full_combat_model,
+                                       dirinfo.header.sprite_start,
+                                       scene_refs,
+                                       sizeof(scene_refs) / sizeof(scene_refs[0]),
+                                       &scene_ref_count) == 0);
+    CHECK(scene_ref_count == 2);
+    CHECK(scene_refs[0].kind == WL_SCENE_SPRITE_STATIC);
+    CHECK(scene_refs[1].kind == WL_SCENE_SPRITE_ACTOR);
+    CHECK(scene_refs[1].source_index == 95);
+    const uint16_t chase_final_scene_chunks[] = {
+        chase_final_death.death.death_ref.vswap_chunk_index,
+        scene_refs[0].vswap_chunk_index,
+    };
+    unsigned char chase_final_scene_pixels[WL_MAP_PLANE_WORDS * 2u];
+    wl_indexed_surface chase_final_scene_surfaces_storage[2];
+    CHECK(wl_decode_vswap_sprite_surface_cache(vswap_path, &sprite_dirinfo,
+                                               chase_final_scene_chunks, 2, 0,
+                                               chase_final_scene_pixels,
+                                               sizeof(chase_final_scene_pixels),
+                                               chase_final_scene_surfaces_storage) == 0);
+    const wl_indexed_surface *chase_final_scene_surfaces[] = {
+        &chase_final_scene_surfaces_storage[0],
+        &chase_final_scene_surfaces_storage[1],
+    };
+    const uint32_t chase_final_scene_x[] = {
+        chase_final_death.death.death_ref.world_x,
+        scene_refs[0].world_x,
+    };
+    const uint32_t chase_final_scene_y[] = {
+        chase_final_death.death.death_ref.world_y,
+        scene_refs[0].world_y,
+    };
+    const uint16_t chase_final_scene_ids[] = {
+        chase_final_death.death.death_ref.source_index,
+        scene_refs[0].source_index,
+    };
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_runtime_door_camera_scene_view(&chase_full_combat_model,
+                                                   dirinfo.header.sprite_start,
+                                                   live_ai_render_motion.x,
+                                                   live_ai_render_motion.y,
+                                                   0x10000, 0, 0, -0x8000,
+                                                   39, 1, 3,
+                                                   runtime_door_pages,
+                                                   runtime_door_page_sizes, 106,
+                                                   chase_final_scene_surfaces,
+                                                   chase_final_scene_x,
+                                                   chase_final_scene_y,
+                                                   chase_final_scene_ids,
+                                                   2, 0,
+                                                   &canvas, runtime_dirs_x,
+                                                   runtime_dirs_y, runtime_view_hits,
+                                                   runtime_view_strips, sprites,
+                                                   wall_heights) == 0);
+    CHECK(sprites[0].source_index == 95);
+    CHECK(sprites[0].visible == 1);
+    CHECK(sprites[1].source_index == 28);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0x8a2741bf);
+
     wl_game_model live_drop_scene_model;
     memset(&live_drop_scene_model, 0, sizeof(live_drop_scene_model));
     live_drop_scene_model.tilemap[7 + 4 * WL_MAP_SIDE] = 2;
@@ -5266,6 +5349,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-chase-full-combat-render tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-chase-death-final-render tests passed for %s\n", dir);
     return 0;
 }
