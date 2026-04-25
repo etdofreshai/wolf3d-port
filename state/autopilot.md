@@ -3831,3 +3831,32 @@ Next likely move:
 - Start the supervisor only after ET explicitly says to start; stale stop files will be cleared automatically.
 
 Blockers: none for headless work.
+
+
+## Cycle 2026-04-25 08:38 CDT Graceful Stop Cleanup
+
+Action taken:
+
+- Added cleanup of `state/STOP_AFTER_CURRENT_LOOP` after a graceful stop update is sent and the supervisor exits.
+- This leaves the repo ready for the next normal supervisor start without stale graceful-stop state.
+- Updated supervisor docs to mention graceful stop file cleanup.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_autopilot_supervisor.py
+scripts/wolf3d_autopilot_supervisor.py --help
+cd source/modern-c-sdl3 && make test
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Did not start the autopilot.
+
+Next likely move:
+
+- Start the supervisor only after ET explicitly says to start.
+
+Blockers: none for headless work.

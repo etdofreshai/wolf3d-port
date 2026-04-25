@@ -111,7 +111,7 @@ Immediate stop before another cycle starts:
 touch state/STOP_AUTOPILOT
 ```
 
-Graceful stop after the current loop finishes, including worker wait, push, completion update, and final stop update:
+Graceful stop after the current loop finishes, including worker wait, push, completion update, final stop update, and cleanup of `STOP_AFTER_CURRENT_LOOP`:
 
 ```bash
 touch state/STOP_AFTER_CURRENT_LOOP

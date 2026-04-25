@@ -607,6 +607,14 @@ def clear_stop_files() -> None:
             pass
 
 
+def cleanup_graceful_stop_file() -> None:
+    try:
+        STOP_AFTER_CYCLE_FILE.unlink()
+        log(f"cleared graceful stop file after exit: {STOP_AFTER_CYCLE_FILE}")
+    except FileNotFoundError:
+        pass
+
+
 def next_cycle_index() -> int:
     existing = []
     for path in LOG_DIR.glob("autopilot-cycle-*.jsonlog"):
@@ -688,6 +696,7 @@ def main() -> int:
             if STOP_AFTER_CYCLE_FILE.exists() and cycle_count > 0:
                 log(f"graceful stop file exists after completed cycle: {STOP_AFTER_CYCLE_FILE}; exiting")
                 send_stop_update(args, run_stats, help_text)
+                cleanup_graceful_stop_file()
                 break
             if args.max_cycles and cycle_count >= args.max_cycles:
                 log(f"max cycles reached: {args.max_cycles}; exiting")
@@ -737,6 +746,7 @@ def main() -> int:
             if STOP_AFTER_CYCLE_FILE.exists():
                 log(f"graceful stop requested; finished current cycle and will not start another: {STOP_AFTER_CYCLE_FILE}")
                 send_stop_update(args, run_stats, help_text)
+                cleanup_graceful_stop_file()
                 break
             if not stop_ref["stop"] and not STOP_FILE.exists():
                 time.sleep(max(0, args.cycle_delay))
