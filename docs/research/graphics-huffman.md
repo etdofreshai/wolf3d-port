@@ -409,3 +409,8 @@ Palette red-shift output is now verified for dog chase contact combat after live
 ## Cycle update: live AI shooter-class chase combat
 
 Palette red-shift combat output is now exercised after live AI chase movement for multiple shooter classes, broadening the future SDL upload seam beyond guard and dog cases.
+
+
+## Cycle update: live AI chase full-combat bridge
+
+The future presentation path now has deterministic metadata for a chase-moved actor entering full combat: red palette output plus renderer-facing death sprite ref are produced without SDL.

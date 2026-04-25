@@ -4313,6 +4313,66 @@ static int check_wl6(const char *dir) {
               shooter_chase_cases[shooter_case].expected_health);
     }
 
+    wl_game_model chase_full_combat_model;
+    memset(&chase_full_combat_model, 0, sizeof(chase_full_combat_model));
+    chase_full_combat_model.tilemap[7 + 4 * WL_MAP_SIDE] = 2;
+    chase_full_combat_model.actor_count = 1;
+    chase_full_combat_model.actors[0].kind = WL_ACTOR_GUARD;
+    chase_full_combat_model.actors[0].shootable = 1;
+    chase_full_combat_model.actors[0].mode = WL_ACTOR_CHASE;
+    chase_full_combat_model.actors[0].dir = WL_DIR_EAST;
+    chase_full_combat_model.actors[0].tile_x = 5;
+    chase_full_combat_model.actors[0].tile_y = 5;
+    CHECK(wl_step_live_actor_ai_tick(&live_ai_render_player,
+                                     &chase_full_combat_model,
+                                     use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                     &live_ai_render_motion, 0, 0,
+                                     0x10000, 0, WL_DIR_EAST, 0, 0,
+                                     0x8000u, 1,
+                                     &live_ai_render_tick) == 0);
+    CHECK(wl_step_live_actor_ai_tick(&live_ai_render_player,
+                                     &chase_full_combat_model,
+                                     use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                     &live_ai_render_motion, 0, 0,
+                                     0x10000, 0, WL_DIR_EAST, 0, 0,
+                                     0x8000u, 1,
+                                     &live_ai_render_tick) == 0);
+    CHECK(chase_full_combat_model.actors[0].tile_x == 5);
+    CHECK(chase_full_combat_model.actors[0].tile_y == 4);
+    wl_actor_combat_state chase_damage_actor;
+    CHECK(wl_init_actor_combat_state(&chase_full_combat_model.actors[0],
+                                     WL_DIFFICULTY_HARD,
+                                     &chase_damage_actor) == 0);
+    CHECK(wl_init_player_gameplay_state(&chase_attack_player, 100, 3, 0,
+                                        WL_EXTRA_POINTS) == 0);
+    wl_live_full_combat_tick_result chase_full_combat;
+    CHECK(wl_step_live_full_combat_tick(&chase_attack_player,
+                                        &chase_full_combat_model,
+                                        use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                        &live_ai_render_motion, 0, 0,
+                                        0x10000, 0, WL_DIR_EAST, 0, 0,
+                                        &chase_full_combat_model.actors[0],
+                                        NULL, &chase_damage_actor, 25,
+                                        0, dirinfo.header.sprite_start,
+                                        WL_DIFFICULTY_HARD,
+                                        1, 1, 1, 1, 0, 80,
+                                        0, 0, 0, 0, 0, 1,
+                                        &chase_full_combat) == 0);
+    CHECK(chase_full_combat.actor_attacked == 1);
+    CHECK(chase_full_combat.actor_attack_kind == WL_LIVE_ACTOR_ATTACK_SHOOT);
+    CHECK(chase_full_combat.shot.damaged == 1);
+    CHECK(chase_full_combat.shot.distance_tiles == 2);
+    CHECK(chase_full_combat.actor_damaged == 1);
+    CHECK(chase_full_combat.actor_damage.killed == 1);
+    CHECK(chase_full_combat.drop_spawned == 1);
+    CHECK(chase_full_combat.death_started == 1);
+    CHECK(chase_full_combat.death_ref_built == 1);
+    CHECK(chase_full_combat.actor_death_ref.source_index == 91);
+    CHECK(chase_full_combat.actor_death_ref.vswap_chunk_index == 197);
+    CHECK(chase_full_combat.actor_death_ref.world_x == 0x58000u);
+    CHECK(chase_full_combat.actor_death_ref.world_y == 0x48000u);
+    CHECK(chase_attack_player.health == 90);
+
     wl_game_model live_drop_scene_model;
     memset(&live_drop_scene_model, 0, sizeof(live_drop_scene_model));
     live_drop_scene_model.tilemap[7 + 4 * WL_MAP_SIDE] = 2;
@@ -5143,6 +5203,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-shooter-chase-combat tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-chase-full-combat tests passed for %s\n", dir);
     return 0;
 }

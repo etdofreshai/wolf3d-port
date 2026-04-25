@@ -4862,3 +4862,40 @@ Next likely move:
 - Combine live AI chase/attack with actor damage/drop/death orchestration in one frame seam, or add renderer-facing chase-combat scene coverage for additional actor classes.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 09:55 CDT
+
+Action taken:
+
+- Connected live AI chase movement into the existing full-combat damage/drop/death seam.
+- Added a deterministic guard case that completes two half-tile live AI chase frames, then runs `wl_step_live_full_combat_tick` using the moved actor as both attacker and damage target.
+- Verified the moved guard shoots the player from distance 2, takes lethal damage, spawns its drop, starts death state, and emits death ref source/chunk `91/197` at moved coordinates `0x58000/0x48000`.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-ai-chase-full-combat tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Fold the live AI chase/full-combat path into a combined death-tick frame, or render the chase-started death/drop refs through the scene renderer.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

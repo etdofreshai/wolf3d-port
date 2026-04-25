@@ -468,3 +468,8 @@ The live AI chase/combat bridge now covers contact attackers as well as shooters
 ## Cycle update: live AI shooter-class chase combat
 
 The live AI chase/combat bridge now covers the shooter class matrix. Officer, SS, mutant, and boss actors complete accumulated chase movement before feeding `wl_step_live_actor_tick`, including SS/boss distance scaling.
+
+
+## Cycle update: live AI chase full-combat bridge
+
+Live AI chase movement now feeds the full-combat seam. After accumulated chase movement completes, the moved guard participates in one frame that applies player shot damage, actor damage, drop spawning, and death-ref construction.

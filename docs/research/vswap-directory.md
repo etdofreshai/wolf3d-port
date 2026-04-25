@@ -392,3 +392,8 @@ The new dog chase-combat check remains metadata/state-only and does not commit d
 ## Cycle update: live AI shooter-class chase combat
 
 Shooter-class chase combat remains metadata/state-only and does not commit VSWAP bytes. The coverage complements existing renderer-facing class refs with combat behavior checks.
+
+
+## Cycle update: live AI chase full-combat bridge
+
+The chase full-combat bridge verifies death sprite source/chunk `91/197` from the moved guard while continuing to avoid committing decoded VSWAP bytes.

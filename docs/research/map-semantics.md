@@ -213,3 +213,8 @@ Chase direction/tic semantics now feed dog contact combat. The deterministic tes
 ## Cycle update: live AI shooter-class chase combat
 
 Chase-updated actor tiles now drive deterministic shooting across officer, SS, mutant, and boss classes. The assertions preserve distance and damage differences without requiring SDL.
+
+
+## Cycle update: live AI chase full-combat bridge
+
+Chase-updated coordinates now propagate into combined combat/death semantics: the moved guard shoots from its new tile while its own damage/death transition emits the expected death ref coordinates.

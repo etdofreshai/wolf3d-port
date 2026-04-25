@@ -336,3 +336,8 @@ Chase-combat coverage now includes a dog actor. Two half-tile live AI chase fram
 ## Live AI shooter-class chase combat
 
 Chase-combat coverage now includes officer, SS, mutant, and boss shooter classes. Each case completes two half-tile live AI chase frames, then verifies the moved actor can shoot with deterministic original-style distance scaling and damage.
+
+
+## Live AI chase full-combat bridge
+
+A chase-moved guard now feeds `wl_step_live_full_combat_tick` in one deterministic frame: the moved actor shoots the player while the same actor damage/death/drop path starts its death state and renderer-facing death ref.
