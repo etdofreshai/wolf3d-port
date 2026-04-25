@@ -1262,6 +1262,35 @@ static int check_wl6(const char *dir) {
     CHECK(chase_step.blocked == 1);
     path_model.actors[0].mode = WL_ACTOR_PATROL;
     CHECK(wl_step_chase_actor(&path_model, 0, 8, 4, 1, &chase_step) == -1);
+
+    memset(&path_model, 0, sizeof(path_model));
+    path_model.actor_count = 1;
+    path_model.actors[0].kind = WL_ACTOR_GUARD;
+    path_model.actors[0].mode = WL_ACTOR_CHASE;
+    path_model.actors[0].dir = WL_DIR_WEST;
+    path_model.actors[0].tile_x = 5;
+    path_model.actors[0].tile_y = 5;
+    wl_actor_chase_tic_result chase_tic;
+    CHECK(wl_step_chase_actor_tics(&path_model, 0, 8, 4, 1, 0x8000u, 1,
+                                   &chase_tic) == 0);
+    CHECK(chase_tic.tiles_stepped == 0);
+    CHECK(chase_tic.blocked == 0);
+    CHECK(chase_tic.dir == WL_DIR_NORTH);
+    CHECK(chase_tic.leftover_move == 0x8000u);
+    CHECK(path_model.actors[0].tile_x == 5);
+    CHECK(path_model.actors[0].tile_y == 5);
+    CHECK(path_model.actors[0].fine_x == 0x58000u);
+    CHECK(path_model.actors[0].fine_y == 0x50000u);
+    CHECK(wl_step_chase_actor_tics(&path_model, 0, 8, 4, 1, 0x8000u, 1,
+                                   &chase_tic) == 0);
+    CHECK(chase_tic.tiles_stepped == 1);
+    CHECK(chase_tic.leftover_move == 0);
+    CHECK(path_model.actors[0].tile_x == 5);
+    CHECK(path_model.actors[0].tile_y == 4);
+    CHECK(path_model.actors[0].fine_x == 0x58000u);
+    CHECK(path_model.actors[0].fine_y == 0x48000u);
+    CHECK(wl_step_chase_actor_tics(&path_model, 0, 8, 4, 1, 0x8000u, -1,
+                                   &chase_tic) == -1);
     memset(&path_model, 0, sizeof(path_model));
     path_model.path_marker_count = 1;
     path_model.path_markers[0].x = 5;
@@ -4882,6 +4911,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-chase-step tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-chase-tic-fine-position tests passed for %s\n", dir);
     return 0;
 }

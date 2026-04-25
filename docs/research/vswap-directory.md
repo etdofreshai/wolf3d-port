@@ -357,3 +357,8 @@ VSWAP sprite metadata remains unchanged while live actor AI gains a deterministi
 ## Cycle update: chase actor step seam
 
 Chase-stepped actor refs continue to select existing VSWAP walk sprite metadata (`58/164` for the guard test) while placement changes through runtime state rather than committed asset bytes.
+
+
+## Cycle update: chase tic fine-position seam
+
+Chase fine-position movement changes actor placement while keeping existing VSWAP walk sprite metadata. Tests continue to assert metadata/hashes only, with decoded bytes local.

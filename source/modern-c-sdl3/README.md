@@ -301,3 +301,8 @@ A deterministic `SelectChaseDir`-style helper now chooses direct, non-turnaround
 ## Chase actor step seam
 
 Chase direction selection now mutates a runtime actor through `wl_step_chase_actor`, updates tile and fine coordinates, rejects non-chase actors, and feeds renderer-facing scene refs with chase walk sprite metadata.
+
+
+## Chase tic fine-position seam
+
+Chase movement now has a tic-budgeted fine-position seam. `wl_step_chase_actor_tics` preserves partial movement, continues the same direction across remainder completion, consumes whole tiles, and exposes renderer-facing fine coordinates.

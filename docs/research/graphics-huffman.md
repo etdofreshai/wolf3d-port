@@ -374,3 +374,8 @@ Before adding more SDL presentation, actor AI advanced with a headless chase-dir
 ## Cycle update: chase actor step seam
 
 Renderer-facing refs now see a chase-stepped guard with walk sprite metadata and updated fine coordinates, preparing chase motion for the existing headless render/VSWAP cache path.
+
+
+## Cycle update: chase tic fine-position seam
+
+Renderer-facing chase refs can now receive sub-tile actor coordinates before any SDL3 dependency. This mirrors the patrol fine-position path and prepares chase rendering tests.

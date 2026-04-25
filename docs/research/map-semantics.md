@@ -178,3 +178,8 @@ Map blocking now participates in chase direction selection. The deterministic se
 ## Cycle update: chase actor step seam
 
 Chase movement now consumes map blocking decisions and applies them to actor state. Tests cover selected movement, fully blocked preservation, invalid mode rejection, and renderer-facing coordinates.
+
+
+## Cycle update: chase tic fine-position seam
+
+Chase movement now accumulates tic-budgeted distance against map-blocked direction choices. The first half-tile frame preserves the tile and advances fine coords; the second completes the selected tile step.

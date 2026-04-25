@@ -1160,6 +1160,110 @@ int wl_step_chase_actor(wl_game_model *model, uint16_t actor_index,
     return 0;
 }
 
+int wl_step_chase_actor_tics(wl_game_model *model, uint16_t actor_index,
+                             uint16_t player_x, uint16_t player_y,
+                             int search_forward, uint32_t speed,
+                             int32_t tics,
+                             wl_actor_chase_tic_result *out) {
+    if (!model || !out || actor_index >= model->actor_count || tics < 0) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    wl_actor_desc *actor = &model->actors[actor_index];
+    if (actor->mode != WL_ACTOR_CHASE || actor->tile_x >= WL_MAP_SIDE ||
+        actor->tile_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+    int continuing_move = actor->patrol_remainder > 0;
+    uint64_t move64 = (uint64_t)actor->patrol_remainder +
+        ((uint64_t)speed * (uint32_t)tics);
+    if (move64 > UINT32_MAX) {
+        move64 = UINT32_MAX;
+    }
+    uint32_t move = (uint32_t)move64;
+    out->requested_move = move;
+    out->dir = actor->dir;
+    out->tile_x = actor->tile_x;
+    out->tile_y = actor->tile_y;
+
+    wl_actor_chase_dir_result selected;
+    memset(&selected, 0, sizeof(selected));
+    if (actor->patrol_remainder > 0) {
+        selected.dir = WL_DIR_NONE;
+        selected.next_x = actor->tile_x;
+        selected.next_y = actor->tile_y;
+        chase_try_direction(model, actor->tile_x, actor->tile_y, actor->dir, &selected);
+    } else if (wl_select_chase_direction(model, actor->tile_x, actor->tile_y,
+                                         player_x, player_y, actor->dir,
+                                         search_forward, &selected) != 0) {
+        return -1;
+    }
+    out->dir = selected.dir;
+    if (!selected.selected) {
+        out->blocked = 1;
+        out->leftover_move = actor->patrol_remainder;
+        out->fine_x = actor->fine_x;
+        out->fine_y = actor->fine_y;
+        return 0;
+    }
+    actor->dir = selected.dir;
+    if (move < 0x10000u) {
+        int dx = 0;
+        int dy = 0;
+        if (path_step(selected.dir, &dx, &dy) != 0) {
+            return -1;
+        }
+        actor->patrol_remainder = move;
+        actor->fine_x = ((uint32_t)actor->tile_x << 16) + 0x8000u + (uint32_t)(dx * (int32_t)move);
+        actor->fine_y = ((uint32_t)actor->tile_y << 16) + 0x8000u + (uint32_t)(dy * (int32_t)move);
+        out->leftover_move = move;
+        out->fine_x = actor->fine_x;
+        out->fine_y = actor->fine_y;
+        return 0;
+    }
+
+    if (continuing_move && move >= 0x10000u) {
+        actor->tile_x = selected.next_x;
+        actor->tile_y = selected.next_y;
+        actor->fine_x = ((uint32_t)actor->tile_x << 16) + 0x8000u;
+        actor->fine_y = ((uint32_t)actor->tile_y << 16) + 0x8000u;
+        ++out->tiles_stepped;
+        move -= 0x10000u;
+        actor->patrol_remainder = 0;
+    }
+
+    wl_actor_chase_step_result step;
+    while (move >= 0x10000u) {
+        if (wl_step_chase_actor(model, actor_index, player_x, player_y,
+                                search_forward, &step) != 0) {
+            return -1;
+        }
+        if (!step.stepped) {
+            out->blocked = 1;
+            break;
+        }
+        ++out->tiles_stepped;
+        move -= 0x10000u;
+    }
+    actor->patrol_remainder = out->blocked ? 0u : move;
+    if (!out->blocked && move > 0) {
+        int dx = 0;
+        int dy = 0;
+        if (path_step(actor->dir, &dx, &dy) != 0) {
+            return -1;
+        }
+        actor->fine_x = ((uint32_t)actor->tile_x << 16) + 0x8000u + (uint32_t)(dx * (int32_t)move);
+        actor->fine_y = ((uint32_t)actor->tile_y << 16) + 0x8000u + (uint32_t)(dy * (int32_t)move);
+    }
+    out->leftover_move = actor->patrol_remainder;
+    out->tile_x = actor->tile_x;
+    out->tile_y = actor->tile_y;
+    out->fine_x = actor->fine_x;
+    out->fine_y = actor->fine_y;
+    out->dir = actor->dir;
+    return 0;
+}
+
 int wl_step_patrol_actor(wl_game_model *model, uint16_t actor_index,
                          wl_actor_patrol_step_result *out) {
     if (!model || !out || actor_index >= model->actor_count) {

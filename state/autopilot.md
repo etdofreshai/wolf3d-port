@@ -4602,3 +4602,40 @@ Next likely move:
 - Add tic-budget/fine-position chase movement or feed chase-stepped refs through live AI rendering.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 09:34 CDT
+
+Action taken:
+
+- Added tic-budgeted fine-position chase movement with `wl_step_chase_actor_tics`.
+- Reused the actor remainder field to preserve partial chase distance, continue the same direction across remainder completion, and consume a whole tile on the next frame.
+- Added headless tests for half-tile chase fine coordinates, second-frame tile completion, cleared remainder, and invalid negative tics.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-chase-tic-fine-position tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Feed chase fine-position refs through the live AI scene/render path.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

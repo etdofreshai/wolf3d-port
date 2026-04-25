@@ -433,3 +433,8 @@ Runtime actor AI now has a headless `SelectChaseDir`-style direction seam. `wl_s
 ## Cycle update: chase actor step seam
 
 `wl_step_chase_actor` connects `wl_select_chase_direction` to actor runtime state. Chase actors now update direction, tile position, fine coordinates, blocked state, and scene refs deterministically.
+
+
+## Cycle update: chase tic fine-position seam
+
+`wl_step_chase_actor_tics` gives chase actors the same deterministic sub-tile movement bridge as patrol actors. Partial movement stores fine coordinates/remainder, and the next frame consumes the carried movement into a whole tile.
