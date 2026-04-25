@@ -1,7 +1,7 @@
 # VSWAP Directory Notes
 
 Research/implementation cycle: 2026-04-24 22:41-23:00 CDT  
-Scope: VSWAP chunk-directory, bounded reads, wall-page metadata/surface conversion, wall texture-column sampling, fixed-height wall strip scaling, and metadata-only sprite shape parsing for WL6 and optional SOD, without committing proprietary chunk bytes.
+Scope: VSWAP chunk-directory, bounded reads, wall-page metadata/surface conversion, wall texture-column sampling, fixed-height wall strip scaling, tiny wall-strip viewport composition, and metadata-only sprite shape parsing for WL6 and optional SOD, without committing proprietary chunk bytes.
 
 ## Original reference
 
@@ -42,6 +42,7 @@ The parser:
 - converts raw column-major wall pages into caller-owned row-major indexed surfaces for renderer/raycaster seams;
 - samples wall texture columns using the original `texture` byte-offset model and cross-checks against row-major surfaces;
 - scales sampled 64-byte wall columns into caller-owned indexed surfaces with the original compiled-scaler source-pixel run model;
+- composes deterministic wall-strip viewport smoke tests without SDL or committed pixel bytes;
 - validates/counts sprite post-command streams without retaining pixel data;
 - does not copy or commit any proprietary chunk bytes.
 
@@ -64,7 +65,7 @@ The parser:
 - final chunk: index `662`, offset `1544192`, length `184`
 - read smoke hashes: chunk `0` `0x98d020a5`, chunk `106` `0xbf4fcd99`, chunk `542` `0xaee73350`, chunk `662` `0xfba68c74`
 - wall metadata for chunk `0`: `64x64`, `64` columns, colors `7..31`, `18` unique colors, row-major indexed hash `0x8fe4d8ff`, sampled column hashes `0xc77d483d`, `0x272b5483`, `0x2fbb79bb`, `0x19c55a4e`, scaled-strip canvas hashes `0xceb8a051`, `0xf25f51d9`
-- wall metadata for chunk `63`: colors `26..223`, `31` unique colors, row-major indexed hash `0x5b4d4c38`, sampled column hash `0x8a859220`, combined scaled-strip canvas hash `0x0b200118`
+- wall metadata for chunk `63`: colors `26..223`, `31` unique colors, row-major indexed hash `0x5b4d4c38`, sampled column hash `0x8a859220`, combined scaled-strip/viewport canvas hash `0x0b200118`
 - wall metadata for chunk `105`: colors `0..31`, `11` unique colors, row-major indexed hash `0x66874cf5`
 - sprite metadata for chunk `106`: `64x64`, left/right pixels `4..58`, `55` visible columns, first/last column offsets `800/1298`
 - sprite post metadata for chunk `106`: `66` posts, `55` column terminators, `1..2` posts/column, span range `2..40`, source-offset range `108..782`, total post span `1372`
@@ -87,7 +88,7 @@ When `game-files/base/m1/VSWAP.SOD` is present:
 - final chunk: index `665`, offset `1616384`, length `160`
 - read smoke hashes: chunk `0` `0x98d020a5`, chunk `134` `0xbf4fcd99`, chunk `555` `0xaee73350`, chunk `665` `0xbb53ed59`
 - wall metadata for chunk `0`: `64x64`, `64` columns, colors `7..31`, `18` unique colors, row-major indexed hash `0x8fe4d8ff`, sampled column hash `0x2fbb79bb`, scaled-strip canvas hash `0x78547277`
-- wall metadata for chunk `105`: colors `0..237`, `26` unique colors, row-major indexed hash `0x997d475d`, sampled column hashes `0xd61f9cbd`, `0x3e5f4efd`, combined scaled-strip canvas hash `0x60ddb236`
+- wall metadata for chunk `105`: colors `0..237`, `26` unique colors, row-major indexed hash `0x997d475d`, sampled column hashes `0xd61f9cbd`, `0x3e5f4efd`, combined scaled-strip/viewport canvas hash `0x60ddb236`
 - wall metadata for chunk `133`: colors `0..31`, `11` unique colors, row-major indexed hash `0x66874cf5`
 - sprite metadata for chunk `134`: `64x64`, left/right pixels `4..58`, `55` visible columns, first/last column offsets `800/1298`
 - sprite post metadata for chunk `134`: `66` posts, `55` column terminators, `1..2` posts/column, source-offset range `108..782`, total post span `1372`
@@ -109,7 +110,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/wall-scaler tests passed for game-files/base
+asset/decompression/semantics/model/vswap/wall-viewport tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
@@ -118,7 +119,7 @@ Added `wl_read_vswap_chunk`, a bounded read helper that validates chunk index, s
 
 Added `wl_decode_vswap_shape_metadata` for safe metadata-only interpretation of representative wall/sprite chunks. Wall chunks assert the canonical `64x64` raw page shape; sprite chunks assert `t_compshape`-style left/right bounds, packed column-offset table metadata, and post-command list counts/ranges.
 
-Added `wl_decode_wall_page_metadata`, `wl_decode_wall_page_to_indexed`, and `wl_decode_wall_page_surface` for raw VSWAP wall pages. These functions preserve the original column-major `PM_GetPage(wallpic) + texture` addressing model while providing row-major indexed surfaces for future SDL3 texture/raycaster seams. Added `wl_sample_wall_page_column` and `wl_sample_indexed_surface_column` so raycaster-oriented code can sample a canonical 64-byte texture column and verify it matches the row-major surface view. Added `wl_scale_wall_column_to_surface`, a pure C fixed-height wall strip scaler that mirrors the original `BuildCompScale` source-pixel run distribution while writing to linear indexed surfaces.
+Added `wl_decode_wall_page_metadata`, `wl_decode_wall_page_to_indexed`, and `wl_decode_wall_page_surface` for raw VSWAP wall pages. These functions preserve the original column-major `PM_GetPage(wallpic) + texture` addressing model while providing row-major indexed surfaces for future SDL3 texture/raycaster seams. Added `wl_sample_wall_page_column` and `wl_sample_indexed_surface_column` so raycaster-oriented code can sample a canonical 64-byte texture column and verify it matches the row-major surface view. Added `wl_scale_wall_column_to_surface`, a pure C fixed-height wall strip scaler that mirrors the original `BuildCompScale` source-pixel run distribution while writing to linear indexed surfaces. Added `wl_render_wall_strip_viewport`, a tiny SDL-free composition seam that renders an ordered set of wall-strip commands into a caller-owned indexed viewport.
 
 ## Cycle update: sprite post metadata
 
@@ -126,4 +127,4 @@ Extended sprite metadata decoding to walk each visible column's post-command str
 
 ## Next step
 
-Use the wall strip scaler in a tiny viewport/raycast smoke test, or add palette/texture-upload metadata before SDL3 presentation. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.
+Use the viewport seam with actual map/ray hit descriptors, or add palette/texture-upload metadata before SDL3 presentation. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.

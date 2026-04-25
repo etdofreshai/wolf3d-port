@@ -845,6 +845,27 @@ int wl_scale_wall_column_to_surface(const unsigned char *column, size_t column_s
     return 0;
 }
 
+int wl_render_wall_strip_viewport(const wl_wall_strip *strips, size_t strip_count,
+                                  wl_indexed_surface *dst) {
+    if (!strips || !dst || strip_count == 0) {
+        return -1;
+    }
+
+    unsigned char column[WL_MAP_SIDE];
+    for (size_t i = 0; i < strip_count; ++i) {
+        if (wl_sample_wall_page_column(strips[i].wall_page, strips[i].wall_page_size,
+                                       strips[i].texture_offset, column,
+                                       sizeof(column)) != 0) {
+            return -1;
+        }
+        if (wl_scale_wall_column_to_surface(column, sizeof(column), dst,
+                                            strips[i].x, strips[i].scaled_height) != 0) {
+            return -1;
+        }
+    }
+    return 0;
+}
+
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written) {
     const uint16_t near_tag = 0xa7;

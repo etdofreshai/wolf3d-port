@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Fixed-height wall strip scaling is implemented and passing on headless Linux for WL6 and optional SOD. Next phase should use it in a tiny viewport/raycast smoke test or add palette/texture-upload metadata.
+Tiny SDL-free wall-strip viewport composition is implemented and passing on headless Linux for WL6 and optional SOD. Next phase should feed it actual map/ray hit descriptors or add palette/texture-upload metadata.
 
 ## Latest Verified Milestone
 
@@ -19,7 +19,7 @@ Fixed-height wall strip scaling is implemented and passing on headless Linux for
 - `docs/research/map-decompression.md` records the Carmack/RLEW implementation seam, hash/count assertions, and verification output.
 - `docs/research/map-semantics.md` records original source references and WL6 map 0 semantic-count assertions.
 - `docs/research/runtime-map-model.md` records the pure C runtime model seam, door-area connectivity descriptors, descriptor assertions, and verification output.
-- `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall-page metadata/surface/column-sampler/scaler assertions, sprite shape metadata assertions, sprite post-command metadata assertions, range/count assertions, and verification output.
+- `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall-page metadata/surface/column-sampler/scaler/viewport assertions, sprite shape metadata assertions, sprite post-command metadata assertions, range/count assertions, and verification output.
 - `docs/research/graphics-huffman.md` records VGAHEAD/VGADICT/VGAGRAPH parsing, pure C Huffman expansion, STRUCTPIC picture-table metadata, planar-to-indexed surface conversion, renderer-facing indexed-surface descriptors, SDL-free indexed blitting, WL6/SOD graphics chunk smoke assertions, and verification output.
 
 ## Verified Findings
@@ -92,18 +92,19 @@ Use tests as the bridge from the original code to modern C:
 16. Wall-page metadata decoding and row-major indexed surface seam. **Done for representative WL6/SOD walls.**
 17. Raycaster texture-column sampler. **Done for representative WL6/SOD walls.**
 18. Fixed-height wall strip scaler. **Done for representative WL6/SOD walls.**
-19. Tiny viewport/raycast smoke test or palette/texture-upload metadata seam.
+19. Tiny wall-strip viewport smoke test. **Done for representative WL6/SOD walls.**
+20. Actual map/ray hit descriptors or palette/texture-upload metadata seam.
 
 ## Next Likely Move
 
-Build a tiny viewport/raycast smoke test or add palette/texture-upload metadata.
+Feed the viewport seam actual map/ray hit descriptors or add palette/texture-upload metadata.
 
 Recommended next commit:
 
-- use sampled/scaled wall strips in a tiny deterministic viewport/raycast smoke test;
+- feed sampled/scaled wall strips from actual map/ray hit descriptors;
 - or add palette/texture-upload metadata that can later connect `wl_indexed_surface` to SDL3 textures.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler canvas hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport canvas hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
 
 ## Blockers
 
@@ -764,5 +765,43 @@ Safety/legal checks:
 Next likely move:
 
 - Use the wall strip scaler in a tiny deterministic viewport/raycast smoke test, or add palette/texture-upload metadata before SDL3 presentation.
+
+Blockers: none.
+
+
+## Cycle 2026-04-24 23:19 CDT
+
+Action taken:
+
+- Added `wl_wall_strip` and `wl_render_wall_strip_viewport`, an SDL-free wall-strip viewport composition seam.
+- The viewport renderer consumes ordered wall strip commands, samples VSWAP wall texture columns, and scales them into caller-owned indexed surfaces.
+- Added representative WL6 and optional SOD viewport hash assertions plus empty-command validation.
+- Updated `docs/research/vswap-directory.md` and `source/modern-c-sdl3/README.md`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/wall-viewport tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash assertions are committed.
+
+Next likely move:
+
+- Feed the viewport seam actual map/ray hit descriptors, or add palette/texture-upload metadata before SDL3 presentation.
 
 Blockers: none.

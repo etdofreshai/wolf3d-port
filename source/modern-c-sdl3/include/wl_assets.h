@@ -112,6 +112,14 @@ typedef struct wl_wall_page_metadata {
     uint16_t unique_color_count;
 } wl_wall_page_metadata;
 
+typedef struct wl_wall_strip {
+    const unsigned char *wall_page;
+    size_t wall_page_size;
+    uint16_t texture_offset;
+    uint16_t x;
+    uint16_t scaled_height;
+} wl_wall_strip;
+
 typedef struct wl_vswap_shape_metadata {
     wl_vswap_chunk_kind kind;
     uint16_t width;
@@ -169,6 +177,8 @@ int wl_sample_indexed_surface_column(const wl_indexed_surface *surface, uint16_t
 int wl_scale_wall_column_to_surface(const unsigned char *column, size_t column_size,
                                     wl_indexed_surface *dst, uint16_t x,
                                     uint16_t scaled_height);
+int wl_render_wall_strip_viewport(const wl_wall_strip *strips, size_t strip_count,
+                                  wl_indexed_surface *dst);
 int wl_read_graphics_header(const char *path, wl_graphics_header *out);
 int wl_read_huffman_dictionary(const char *path, wl_huffman_node nodes[WL_HUFFMAN_NODE_COUNT]);
 int wl_huff_expand(const unsigned char *src, size_t src_len,

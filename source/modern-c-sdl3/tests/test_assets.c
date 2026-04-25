@@ -414,6 +414,8 @@ static int check_wl6(const char *dir) {
     CHECK(dirinfo.chunks[662].length == 184);
 
     unsigned char chunk_buf[4096];
+    unsigned char wall0_buf[4096];
+    unsigned char wall63_buf[4096];
     unsigned char column_buf[64];
     unsigned char surface_column_buf[64];
     size_t chunk_bytes = 0;
@@ -421,6 +423,7 @@ static int check_wl6(const char *dir) {
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 4096);
     CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x98d020a5);
+    memcpy(wall0_buf, chunk_buf, sizeof(wall0_buf));
     wl_vswap_shape_metadata shape;
     CHECK(wl_decode_vswap_shape_metadata(chunk_buf, chunk_bytes, dirinfo.chunks[0].kind,
                                          &shape) == 0);
@@ -485,6 +488,7 @@ static int check_wl6(const char *dir) {
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 4096);
     CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xa9a1ca8c);
+    memcpy(wall63_buf, chunk_buf, sizeof(wall63_buf));
     CHECK(wl_decode_wall_page_metadata(chunk_buf, chunk_bytes, &wallmeta) == 0);
     CHECK(wallmeta.min_color == 26);
     CHECK(wallmeta.max_color == 223);
@@ -501,6 +505,17 @@ static int check_wl6(const char *dir) {
     CHECK(wl_scale_wall_column_to_surface(column_buf, sizeof(column_buf), &canvas,
                                           13, 96) == 0);
     CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0xb200118);
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    const wl_wall_strip wl6_strips[] = {
+        { wall0_buf, sizeof(wall0_buf), 0x0000, 7, 64 },
+        { wall0_buf, sizeof(wall0_buf), 0x0fc0, 29, 160 },
+        { wall63_buf, sizeof(wall63_buf), 0x0800, 13, 96 },
+    };
+    CHECK(wl_render_wall_strip_viewport(wl6_strips, 3, &canvas) == 0);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0xb200118);
+    CHECK(wl_render_wall_strip_viewport(wl6_strips, 0, &canvas) == -1);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 105, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -730,6 +745,8 @@ static int check_optional_sod(const char *dir) {
     CHECK(dirinfo.chunks[665].length == 160);
 
     unsigned char chunk_buf[4096];
+    unsigned char wall0_buf[4096];
+    unsigned char wall105_buf[4096];
     unsigned char column_buf[64];
     unsigned char surface_column_buf[64];
     size_t chunk_bytes = 0;
@@ -737,6 +754,7 @@ static int check_optional_sod(const char *dir) {
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 4096);
     CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x98d020a5);
+    memcpy(wall0_buf, chunk_buf, sizeof(wall0_buf));
     wl_vswap_shape_metadata shape;
     CHECK(wl_decode_vswap_shape_metadata(chunk_buf, chunk_bytes, dirinfo.chunks[0].kind,
                                          &shape) == 0);
@@ -772,6 +790,7 @@ static int check_optional_sod(const char *dir) {
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 4096);
     CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xbbbf5c67);
+    memcpy(wall105_buf, chunk_buf, sizeof(wall105_buf));
     CHECK(wl_decode_wall_page_metadata(chunk_buf, chunk_bytes, &wallmeta) == 0);
     CHECK(wallmeta.min_color == 0);
     CHECK(wallmeta.max_color == 237);
@@ -794,6 +813,16 @@ static int check_optional_sod(const char *dir) {
                                      sizeof(column_buf)) == 0);
     CHECK(wl_scale_wall_column_to_surface(column_buf, sizeof(column_buf), &scaler,
                                           13, 96) == 0);
+    CHECK(fnv1a_bytes(scaler.pixels, scaler.pixel_count) == 0x60ddb236);
+    memset(scaler_pixels, 0x2a, sizeof(scaler_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, scaler_pixels, sizeof(scaler_pixels),
+                                  &scaler) == 0);
+    const wl_wall_strip sod_strips[] = {
+        { wall0_buf, sizeof(wall0_buf), 0x0800, 7, 64 },
+        { wall105_buf, sizeof(wall105_buf), 0x0fc0, 29, 160 },
+        { wall105_buf, sizeof(wall105_buf), 0x0000, 13, 96 },
+    };
+    CHECK(wl_render_wall_strip_viewport(sod_strips, 3, &scaler) == 0);
     CHECK(fnv1a_bytes(scaler.pixels, scaler.pixel_count) == 0x60ddb236);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 133, chunk_buf, sizeof(chunk_buf),
@@ -860,6 +889,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/wall-scaler tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/wall-viewport tests passed for %s\n", dir);
     return 0;
 }
