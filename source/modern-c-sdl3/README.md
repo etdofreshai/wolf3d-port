@@ -291,3 +291,8 @@ Live AI fine-position rendering now covers patrol mutants. Mutant refs use sourc
 ## Live AI boss fine-position rendering
 
 Live AI fine-position rendering now covers a boss patrol-style actor. Boss refs use Hans source/chunk `296/402`, sub-tile coordinates from the half-tile patrol budget, local VSWAP decode, and stable scene hash `0x731d6cb3`.
+
+
+## Chase direction selection seam
+
+A deterministic `SelectChaseDir`-style helper now chooses direct, non-turnaround chase directions toward the player, falls back through old/random-search directions, and reports blocked results without touching SDL or original source.

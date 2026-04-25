@@ -347,3 +347,8 @@ The live AI fine-position VSWAP path now validates mutant patrol sprite metadata
 ## Cycle update: live AI boss fine-position rendering
 
 The live AI fine-position VSWAP path now validates boss sprite metadata. Hans source/chunk `296/402` decodes locally and renders with hash `0x731d6cb3`; only metadata and hashes are committed.
+
+
+## Cycle update: chase direction selection seam
+
+VSWAP sprite metadata remains unchanged while live actor AI gains a deterministic chase-direction decision seam. This prepares chase movement to feed existing sprite-ref/render paths without committing decoded assets.

@@ -364,3 +364,8 @@ Headless presentation coverage now includes a fine-position patrol mutant. The s
 ## Cycle update: live AI boss fine-position rendering
 
 Headless presentation coverage now includes a fine-position boss actor. The scene renderer projects the Hans sprite from live AI refs and verifies stable hash `0x731d6cb3` before SDL3.
+
+
+## Cycle update: chase direction selection seam
+
+Before adding more SDL presentation, actor AI advanced with a headless chase-direction boundary. Future renderer refs can consume chase movement after this direction choice is tied into tile/fine actor stepping.

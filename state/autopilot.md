@@ -4527,3 +4527,40 @@ Next likely move:
 - Deepen chase/attack progression or broaden boss-class fine rendering across additional boss source tiles.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 09:28 CDT
+
+Action taken:
+
+- Added a deterministic `SelectChaseDir`-style actor AI direction seam.
+- Implemented `wl_select_chase_direction`, including player-axis preference, immediate-turnaround avoidance, current-direction fallback, explicit search-order fallback, turnaround fallback, and blocked reporting.
+- Added headless tests for vertical-priority chase, turnaround avoidance, blocked primary fallback, fully blocked state, and invalid input rejection.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-chase-direction tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Connect chase direction selection to actor tile/fine movement and then feed chase refs through live AI rendering.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

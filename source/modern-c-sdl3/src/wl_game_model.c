@@ -1,5 +1,6 @@
 #include "wl_game_model.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 static int in_range(uint16_t value, uint16_t first, uint16_t last) {
@@ -1010,6 +1011,114 @@ int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
     }
 
     *out_dir = selected;
+    return 0;
+}
+
+
+static wl_direction opposite_dir(wl_direction dir) {
+    switch (dir) {
+    case WL_DIR_NORTH: return WL_DIR_SOUTH;
+    case WL_DIR_EAST: return WL_DIR_WEST;
+    case WL_DIR_SOUTH: return WL_DIR_NORTH;
+    case WL_DIR_WEST: return WL_DIR_EAST;
+    case WL_DIR_NONE: return WL_DIR_NONE;
+    default: return WL_DIR_NONE;
+    }
+}
+
+static int chase_try_direction(const wl_game_model *model, uint16_t actor_x,
+                              uint16_t actor_y, wl_direction dir,
+                              wl_actor_chase_dir_result *out) {
+    int dx = 0;
+    int dy = 0;
+    if (path_step(dir, &dx, &dy) != 0 || dir == WL_DIR_NONE) {
+        return 0;
+    }
+    int next_x = (int)actor_x + dx;
+    int next_y = (int)actor_y + dy;
+    if (next_x < 0 || next_y < 0 || next_x >= WL_MAP_SIDE || next_y >= WL_MAP_SIDE) {
+        return 0;
+    }
+    if (model->tilemap[map_index((size_t)next_x, (size_t)next_y)] != 0) {
+        return 0;
+    }
+    out->selected = 1;
+    out->blocked = 0;
+    out->dir = dir;
+    out->next_x = (uint16_t)next_x;
+    out->next_y = (uint16_t)next_y;
+    return 1;
+}
+
+int wl_select_chase_direction(const wl_game_model *model, uint16_t actor_x,
+                              uint16_t actor_y, uint16_t player_x,
+                              uint16_t player_y, wl_direction current_dir,
+                              int search_forward,
+                              wl_actor_chase_dir_result *out) {
+    if (!model || !out || actor_x >= WL_MAP_SIDE || actor_y >= WL_MAP_SIDE ||
+        player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE || current_dir > WL_DIR_NONE) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->dir = WL_DIR_NONE;
+    out->next_x = actor_x;
+    out->next_y = actor_y;
+
+    wl_direction turnaround = opposite_dir(current_dir);
+    wl_direction primary = WL_DIR_NONE;
+    wl_direction secondary = WL_DIR_NONE;
+    int deltax = (int)player_x - (int)actor_x;
+    int deltay = (int)player_y - (int)actor_y;
+    if (deltax > 0) {
+        primary = WL_DIR_EAST;
+    } else if (deltax < 0) {
+        primary = WL_DIR_WEST;
+    }
+    if (deltay > 0) {
+        secondary = WL_DIR_SOUTH;
+    } else if (deltay < 0) {
+        secondary = WL_DIR_NORTH;
+    }
+    if (abs(deltay) > abs(deltax)) {
+        wl_direction tmp = primary;
+        primary = secondary;
+        secondary = tmp;
+    }
+    if (primary == turnaround) {
+        primary = WL_DIR_NONE;
+    }
+    if (secondary == turnaround) {
+        secondary = WL_DIR_NONE;
+    }
+
+    if (chase_try_direction(model, actor_x, actor_y, primary, out)) {
+        return 0;
+    }
+    if (chase_try_direction(model, actor_x, actor_y, secondary, out)) {
+        return 0;
+    }
+    if (current_dir != WL_DIR_NONE && chase_try_direction(model, actor_x, actor_y, current_dir, out)) {
+        return 0;
+    }
+
+    if (search_forward) {
+        for (wl_direction dir = WL_DIR_NORTH; dir <= WL_DIR_WEST; dir = (wl_direction)(dir + 1)) {
+            if (dir != turnaround && chase_try_direction(model, actor_x, actor_y, dir, out)) {
+                return 0;
+            }
+        }
+    } else {
+        for (int dir = WL_DIR_WEST; dir >= WL_DIR_NORTH; --dir) {
+            if ((wl_direction)dir != turnaround &&
+                chase_try_direction(model, actor_x, actor_y, (wl_direction)dir, out)) {
+                return 0;
+            }
+        }
+    }
+    if (turnaround != WL_DIR_NONE && chase_try_direction(model, actor_x, actor_y, turnaround, out)) {
+        return 0;
+    }
+    out->blocked = 1;
     return 0;
 }
 

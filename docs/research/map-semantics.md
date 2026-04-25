@@ -168,3 +168,8 @@ Patrol semantics now feed live AI fine-position rendering for mutants too. The s
 ## Cycle update: live AI boss fine-position rendering
 
 Live AI path/tic semantics now feed renderer-facing boss refs at sub-tile precision, preserving boss source-tile sprite selection while reusing the same deterministic half-tile movement contract.
+
+
+## Cycle update: chase direction selection seam
+
+Map blocking now participates in chase direction selection. The deterministic seam models the original preference ordering without random global state by taking an explicit search-order flag.

@@ -1197,6 +1197,43 @@ static int check_wl6(const char *dir) {
     CHECK(selected_path_dir == WL_DIR_WEST);
     CHECK(wl_select_path_direction(&path_model, WL_MAP_SIDE, 5, WL_DIR_WEST,
                                    &selected_path_dir) == -1);
+    wl_actor_chase_dir_result chase_dir;
+    memset(&path_model, 0, sizeof(path_model));
+    CHECK(wl_select_chase_direction(&path_model, 5, 5, 8, 4, WL_DIR_WEST, 1,
+                                    &chase_dir) == 0);
+    CHECK(chase_dir.selected == 1);
+    CHECK(chase_dir.blocked == 0);
+    CHECK(chase_dir.dir == WL_DIR_NORTH);
+    CHECK(chase_dir.next_x == 5);
+    CHECK(chase_dir.next_y == 4);
+    CHECK(wl_select_chase_direction(&path_model, 5, 5, 8, 4, WL_DIR_NORTH, 1,
+                                    &chase_dir) == 0);
+    CHECK(chase_dir.dir == WL_DIR_EAST);
+    CHECK(chase_dir.next_x == 6);
+    CHECK(chase_dir.next_y == 5);
+    path_model.tilemap[6 + 5 * WL_MAP_SIDE] = 1;
+    CHECK(wl_select_chase_direction(&path_model, 5, 5, 8, 5, WL_DIR_NORTH, 1,
+                                    &chase_dir) == 0);
+    CHECK(chase_dir.selected == 1);
+    CHECK(chase_dir.dir == WL_DIR_NORTH);
+    CHECK(chase_dir.next_x == 5);
+    CHECK(chase_dir.next_y == 4);
+    path_model.tilemap[5 + 4 * WL_MAP_SIDE] = 1;
+    path_model.tilemap[5 + 6 * WL_MAP_SIDE] = 1;
+    path_model.tilemap[4 + 5 * WL_MAP_SIDE] = 1;
+    CHECK(wl_select_chase_direction(&path_model, 5, 5, 8, 5, WL_DIR_NORTH, 1,
+                                    &chase_dir) == 0);
+    CHECK(chase_dir.selected == 0);
+    CHECK(chase_dir.blocked == 1);
+    CHECK(chase_dir.dir == WL_DIR_NONE);
+    CHECK(wl_select_chase_direction(&path_model, WL_MAP_SIDE, 5, 8, 5,
+                                    WL_DIR_NORTH, 1, &chase_dir) == -1);
+    memset(&path_model, 0, sizeof(path_model));
+    path_model.path_marker_count = 1;
+    path_model.path_markers[0].x = 5;
+    path_model.path_markers[0].y = 5;
+    path_model.path_markers[0].source_tile = WL_ICONARROWS + WL_DIR_WEST;
+    path_model.path_markers[0].dir = WL_DIR_WEST;
     wl_actor_patrol_step_result patrol_step;
     path_model.actor_count = 1;
     path_model.actors[0].kind = WL_ACTOR_GUARD;
@@ -4812,6 +4849,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-boss-fine-render tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-chase-direction tests passed for %s\n", dir);
     return 0;
 }
