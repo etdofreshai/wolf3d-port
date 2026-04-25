@@ -59,7 +59,7 @@ Preferred model for this worker: {model}. If runtime model switching is unavaila
 Rules:
 - Work only inside this worktree: {worktree}
 - Do not edit the main worktree at {REPO}.
-- Read docs/AUTOPILOT.md, state/autopilot.md, and relevant docs/research notes.
+- Read docs/AUTOPILOT.md, state/autopilot.md, state/parallel-wave-notes/ if present, and relevant docs/research notes.
 - Target headless Linux verification first.
 - Do not modify source/original/.
 - Do not commit proprietary game-files assets.
@@ -68,7 +68,7 @@ Rules:
 {review}
 - Choose one useful next porting step that minimizes likely merge conflicts with other parallel workers.
 - Run the best relevant verification, usually `cd source/modern-c-sdl3 && make test` and SDL3 targets when relevant.
-- Update state/autopilot.md and relevant docs.
+- Do not edit state/autopilot.md directly in parallel wave mode; it is merge-hot. Record review findings and progress in state/parallel-wave-notes/{wave_id}-{slug_model(model)}.md instead, and update relevant docs/code/tests as needed.
 - Commit useful changes locally on this worktree branch.
 - Final output: commit hash, files changed, verification, blockers, and any review findings.
 """.strip()

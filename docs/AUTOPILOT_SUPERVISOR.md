@@ -86,6 +86,7 @@ Behavior:
 - checks the same provider usage windows before selecting models
 - creates one worktree/branch per selected model
 - gives every worker the same cross-model review instructions before new work
+- tells workers to record parallel-wave notes under `state/parallel-wave-notes/` instead of editing merge-hot `state/autopilot.md`
 - runs workers concurrently with separate OpenClaw sessions
 - records worker JSON logs under ignored `logs/`
 - merges successful branches sequentially

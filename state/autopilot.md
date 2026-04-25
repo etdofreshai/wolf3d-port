@@ -5793,3 +5793,31 @@ Next likely move:
 
 Blockers: SDL3 is not installed in this isolated verification environment; core headless tests pass with the local asset path.
 
+
+
+## Cycle 2026-04-25 11:21 CDT Parallel Wave State Conflict Fix
+
+Action taken:
+
+- Observed the first parallel wave successfully merge/push the Z.ai branch but reject the Anthropic branch because both workers edited `state/autopilot.md`.
+- Updated the parallel wave worker prompt so parallel workers do not edit merge-hot `state/autopilot.md` directly.
+- Parallel workers now record review findings/progress under `state/parallel-wave-notes/<wave>-<model>.md` while still reading `state/autopilot.md` for context.
+- Updated supervisor docs with the parallel-wave notes convention.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_parallel_wave.py
+scripts/wolf3d_parallel_wave.py --help
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add proprietary game data.
+
+Next likely move:
+
+- Resume parallel waves; state-file merge conflicts should be less likely because per-worker notes are isolated.
+
+Blockers: other source/docs conflicts can still happen and should remain explicit merge failures.
