@@ -5777,6 +5777,7 @@ static int check_audio_wl6(const char *dir) {
     wl_pc_speaker_sound_metadata pc_meta;
     wl_imf_music_metadata imf_meta;
     wl_imf_music_command imf_command;
+    wl_imf_playback_window imf_window;
 
     CHECK(wl_join_path(audiohed_path, sizeof(audiohed_path), dir, "AUDIOHED.WL6") == 0);
     CHECK(wl_join_path(audiot_path, sizeof(audiot_path), dir, "AUDIOT.WL6") == 0);
@@ -5893,6 +5894,26 @@ static int check_audio_wl6(const char *dir) {
     CHECK(imf_command.value == 0);
     CHECK(imf_command.delay == 1);
     CHECK(wl_get_imf_music_command(chunk_buf, chunk_bytes, 1864, &imf_command) == -1);
+    CHECK(wl_describe_imf_playback_window(chunk_buf, chunk_bytes, 0, 189, &imf_window) == 0);
+    CHECK(imf_window.start_command == 0);
+    CHECK(imf_window.commands_available == 1864);
+    CHECK(imf_window.commands_in_window == 1);
+    CHECK(imf_window.next_command == 1);
+    CHECK(imf_window.elapsed_delay == 189);
+    CHECK(imf_window.completed == 0);
+    CHECK(wl_describe_imf_playback_window(chunk_buf, chunk_bytes, 1, 197, &imf_window) == 0);
+    CHECK(imf_window.commands_in_window == 1);
+    CHECK(imf_window.next_command == 2);
+    CHECK(imf_window.elapsed_delay == 8);
+    CHECK(wl_describe_imf_playback_window(chunk_buf, chunk_bytes, 0, 20485, &imf_window) == 0);
+    CHECK(imf_window.commands_in_window == 3);
+    CHECK(imf_window.next_command == 3);
+    CHECK(imf_window.elapsed_delay == 20485);
+    CHECK(wl_describe_imf_playback_window(chunk_buf, chunk_bytes, 1864, 1, &imf_window) == 0);
+    CHECK(imf_window.commands_available == 0);
+    CHECK(imf_window.commands_in_window == 0);
+    CHECK(imf_window.completed == 1);
+    CHECK(wl_describe_imf_playback_window(chunk_buf, chunk_bytes, 1865, 1, &imf_window) == -1);
 
     /* Boundary: last chunk */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 287, chunk_buf, sizeof(chunk_buf),
