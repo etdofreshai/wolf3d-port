@@ -5717,6 +5717,7 @@ static int check_audio_wl6(const char *dir) {
     unsigned char chunk_buf[65536];
     size_t chunk_bytes = 0;
     wl_audio_chunk_metadata audio_meta;
+    wl_imf_music_metadata imf_meta;
 
     CHECK(wl_join_path(audiohed_path, sizeof(audiohed_path), dir, "AUDIOHED.WL6") == 0);
     CHECK(wl_join_path(audiot_path, sizeof(audiot_path), dir, "AUDIOT.WL6") == 0);
@@ -5799,12 +5800,26 @@ static int check_audio_wl6(const char *dir) {
     CHECK(audio_meta.priority == 0);
     CHECK(audio_meta.payload_offset == 4);
     CHECK(audio_meta.payload_size == 7542);
+    CHECK(wl_describe_imf_music_chunk(chunk_buf, chunk_bytes, &imf_meta) == 0);
+    CHECK(imf_meta.declared_bytes == 7456);
+    CHECK(imf_meta.command_count == 1864);
+    CHECK(imf_meta.first_register == 0);
+    CHECK(imf_meta.first_value == 0);
+    CHECK(imf_meta.first_delay == 189);
+    CHECK(imf_meta.total_delay == 25697407);
+    CHECK(imf_meta.trailing_bytes == 86);
 
     /* Boundary: last chunk */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 287, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 20926);
     CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x65998666);
+    CHECK(wl_describe_imf_music_chunk(chunk_buf, chunk_bytes, &imf_meta) == 0);
+    CHECK(imf_meta.declared_bytes == 20836);
+    CHECK(imf_meta.command_count == 5209);
+    CHECK(imf_meta.first_delay == 189);
+    CHECK(imf_meta.total_delay == 71494600);
+    CHECK(imf_meta.trailing_bytes == 86);
 
     /* Out of range */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 288, chunk_buf, sizeof(chunk_buf),
