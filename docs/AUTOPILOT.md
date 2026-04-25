@@ -4,13 +4,13 @@ This project is intended to run as an adaptive long-running OpenClaw/TaskFlow-dr
 
 ## Owner Intent
 
-Port Wolfenstein 3D into modern, understandable implementations across multiple languages/runtimes, starting from the original id Software source and legally supplied local game data.
+Port Wolfenstein 3D to modern C using SDL3, starting from the original id Software source and legally supplied local game data.
 
 The owner wants to specify intent with minimal prompting. The autopilot should make reasonable technical decisions independently and keep moving toward the goal.
 
 ## Prime Directive
 
-Make the best next move toward a working, verified port. Do not wait for perfect instructions. Prefer useful progress over asking for clarification.
+Make the best next move toward a working, verified modern C + SDL3 port. Do not wait for perfect instructions. Prefer useful progress over asking for clarification. Run continuously until the owner explicitly stops the autopilot or a hard safety/legal/destructive blocker appears.
 
 ## Ask/Escalate Only When Necessary
 
@@ -58,15 +58,20 @@ Each autopilot cycle should:
 
 ## Preferred Porting Strategy
 
-Start with understanding and preserving behavior, then modernize in layers:
+Primary target: modern C using SDL3. Do not pursue C#, Rust, or other language ports unless the owner changes direction.
+
+Hard constraint: stay as close to the original source behavior and structure as practical. Prefer faithful behavior over idiomatic rewrites.
+
+Use tests as the bridge between original and modern code:
 
 1. Inventory original architecture and data formats.
-2. Build parsing/loading tests around real game data where legally local.
-3. Create a modern C baseline port if useful as an intermediate reference.
-4. Add SDL3 platform/input/audio/video boundaries.
-5. Add additional language ports once the behavior model is clear.
+2. Identify units that can be characterized with tests: data loading, map parsing, fixed-point/math helpers, state transitions, rendering preparation, input translation, audio/music behavior.
+3. Where practical, build tests that can validate both the original-derived behavior and the modern implementation.
+4. Keep `source/original/` untouched. Add any harnesses, extracted fixtures, or adapters outside the original submodule.
+5. Build the modern C + SDL3 implementation under `source/modern-c-sdl3/`.
+6. Add SDL3 platform/input/audio/video boundaries after core behavior is characterized.
 
-This strategy may change as discoveries are made. The autopilot is expected to adapt.
+This strategy may change as discoveries are made. The autopilot is expected to adapt, but the target remains modern C + SDL3 unless changed by the owner.
 
 ## TaskFlow Role
 

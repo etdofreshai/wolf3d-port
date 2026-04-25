@@ -4,7 +4,7 @@ Status: initialized
 
 ## Current Phase
 
-Project setup and automation design.
+Initial source inventory and test strategy for modern C + SDL3 port.
 
 ## Latest Verified Milestone
 
@@ -15,11 +15,11 @@ Project setup and automation design.
 
 ## Current Strategy
 
-Use an adaptive TaskFlow-backed loop: observe, evaluate, act, verify, record, continue. Avoid asking ET for routine decisions; make best guesses and document rationale.
+Use an adaptive TaskFlow-backed loop focused on a faithful modern C + SDL3 port. Use tests as the bridge between original behavior and modern implementation. Avoid asking ET for routine decisions; make best guesses and document rationale.
 
 ## Next Likely Move
 
-Define the first concrete technical milestone: inventory original source architecture and data files, then choose the first implementation target.
+Inventory original source architecture and data files, then design the first cross-implementation test harness strategy.
 
 ## Blockers
 
