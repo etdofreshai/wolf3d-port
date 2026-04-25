@@ -15,6 +15,7 @@ extern "C" {
 #define WL_MAX_ACTORS 150
 #define WL_MAX_PATH_MARKERS WL_MAP_PLANE_WORDS
 #define WL_MAX_PUSHWALLS WL_MAP_PLANE_WORDS
+#define WL_NUM_AREAS 37
 
 typedef enum wl_difficulty {
     WL_DIFFICULTY_BABY = 0,
@@ -55,6 +56,8 @@ typedef struct wl_door_desc {
     uint16_t source_tile;
     int vertical;
     uint8_t lock;
+    uint8_t area1;
+    uint8_t area2;
 } wl_door_desc;
 
 typedef struct wl_static_desc {
@@ -94,6 +97,9 @@ typedef struct wl_game_model {
 
     wl_door_desc doors[WL_MAX_DOORS];
     size_t door_count;
+    size_t door_area_connection_count;
+    size_t unique_door_area_connection_count;
+    uint8_t door_area_connections[WL_NUM_AREAS][WL_NUM_AREAS];
 
     wl_static_desc statics[WL_MAX_STATS];
     size_t static_count;

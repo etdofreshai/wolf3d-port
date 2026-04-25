@@ -34,7 +34,7 @@ The model currently captures:
 
 - `tilemap[64*64]` initialized like the original wall pass plus door center/side markers and ambush clearing.
 - player spawn descriptor.
-- door descriptors with orientation and lock.
+- door descriptors with orientation, lock, and adjacent area connectivity.
 - static descriptors with blocking/bonus/treasure flags.
 - pushwall/secret markers.
 - patrol path markers.
@@ -48,7 +48,8 @@ This is intentionally not a live game loop yet. It is a deterministic setup mode
 Easy difficulty model:
 
 - player: present at `(29,57)`, facing east.
-- doors: `22`; first door `(28,11)`, vertical lock `0`; lock `5` door at descriptor `17` from source tile `100`.
+- doors: `22`; first door `(28,11)`, vertical lock `0`, connects areas `36` and `35`; lock `5` door at descriptor `17` from source tile `100`, connects areas `33` and `0`.
+- door connectivity: `22` door links, `17` unique area-pairs; pair `35<->36` appears twice, pair `2<->2` appears four same-area doors (eight symmetric matrix increments), pair `0<->33` appears once.
 - statics: `121`; blocking `34`; bonus `48`; treasure total `23`.
 - path markers: `18`; first marker `(2,33)` from tile `96`.
 - pushwalls/secrets: `5`; first pushwall `(10,13)`.
@@ -81,6 +82,10 @@ cd ../.. && source/modern-c-sdl3/build/test_assets
 asset/decompression/semantics/model tests passed for game-files/base
 ```
 
+## Cycle update: door-area connectivity
+
+The door model now stores the original `DoorOpening`/`DoorClosing` area pair for each door. For vertical doors this is right/left; for horizontal doors this is up/down. Tests also populate a symmetric connectivity-count matrix representing what the original `areaconnect` matrix would receive as doors open.
+
 ## Next step
 
-Deepen the runtime model with door-area connectivity and/or move to VSWAP chunk descriptors. Door-area connectivity is the most direct continuation of `SetupGameLevel`, while VSWAP parsing starts the sprite/wall asset path needed for rendering.
+Move to full VSWAP chunk descriptors. That starts the sprite/wall asset path needed for rendering while keeping verification headless and deterministic.

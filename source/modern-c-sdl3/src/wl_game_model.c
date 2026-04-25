@@ -72,7 +72,8 @@ static int static_traits(uint16_t type, int *blocking, int *bonus, int *treasure
     return 0;
 }
 
-static int add_door(wl_game_model *out, size_t x, size_t y, uint16_t tile) {
+static int add_door(wl_game_model *out, const uint16_t *wall_plane,
+                    size_t x, size_t y, uint16_t tile) {
     if (out->door_count >= WL_MAX_DOORS) {
         return -1;
     }
@@ -85,18 +86,32 @@ static int add_door(wl_game_model *out, size_t x, size_t y, uint16_t tile) {
 
     out->tilemap[map_index(x, y)] = (uint16_t)(out->door_count | 0x80u);
     if (door->vertical) {
-        if (y == 0 || y + 1 >= WL_MAP_SIDE) {
+        if (x == 0 || x + 1 >= WL_MAP_SIDE || y == 0 || y + 1 >= WL_MAP_SIDE) {
             return -1;
         }
+        door->area1 = (uint8_t)(wall_plane[map_index(x + 1, y)] - WL_AREATILE);
+        door->area2 = (uint8_t)(wall_plane[map_index(x - 1, y)] - WL_AREATILE);
         out->tilemap[map_index(x, y - 1)] |= 0x40u;
         out->tilemap[map_index(x, y + 1)] |= 0x40u;
     } else {
-        if (x == 0 || x + 1 >= WL_MAP_SIDE) {
+        if (x == 0 || x + 1 >= WL_MAP_SIDE || y == 0 || y + 1 >= WL_MAP_SIDE) {
             return -1;
         }
+        door->area1 = (uint8_t)(wall_plane[map_index(x, y - 1)] - WL_AREATILE);
+        door->area2 = (uint8_t)(wall_plane[map_index(x, y + 1)] - WL_AREATILE);
         out->tilemap[map_index(x - 1, y)] |= 0x40u;
         out->tilemap[map_index(x + 1, y)] |= 0x40u;
     }
+    if (door->area1 >= WL_NUM_AREAS || door->area2 >= WL_NUM_AREAS) {
+        return -1;
+    }
+    if (!out->door_area_connections[door->area1][door->area2] &&
+        !out->door_area_connections[door->area2][door->area1]) {
+        ++out->unique_door_area_connection_count;
+    }
+    ++out->door_area_connections[door->area1][door->area2];
+    ++out->door_area_connections[door->area2][door->area1];
+    ++out->door_area_connection_count;
     ++out->door_count;
     return 0;
 }
@@ -278,7 +293,7 @@ int wl_build_game_model(const uint16_t *wall_plane, const uint16_t *info_plane,
     for (size_t y = 0; y < WL_MAP_SIDE; ++y) {
         for (size_t x = 0; x < WL_MAP_SIDE; ++x) {
             uint16_t tile = wall_plane[map_index(x, y)];
-            if (in_range(tile, 90, 101) && add_door(out, x, y, tile) != 0) {
+            if (in_range(tile, 90, 101) && add_door(out, wall_plane, x, y, tile) != 0) {
                 return -1;
             }
         }
