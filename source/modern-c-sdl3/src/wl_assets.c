@@ -2171,3 +2171,44 @@ int wl_read_audio_chunk(const char *audiot_path,
     *bytes_read = chunk_size;
     return 0;
 }
+
+int wl_describe_audio_chunk(size_t chunk_index,
+                            const unsigned char *chunk, size_t chunk_size,
+                            wl_audio_chunk_metadata *out) {
+    if (!out || (chunk_size > 0 && !chunk)) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->raw_size = chunk_size;
+    if (chunk_index < 87) {
+        out->kind = WL_AUDIO_CHUNK_PC_SPEAKER;
+    } else if (chunk_index < 174) {
+        out->kind = WL_AUDIO_CHUNK_ADLIB;
+    } else if (chunk_index < 261) {
+        out->kind = WL_AUDIO_CHUNK_DIGITAL;
+    } else {
+        out->kind = WL_AUDIO_CHUNK_MUSIC;
+    }
+    if (chunk_size == 0) {
+        out->is_empty = 1;
+        return 0;
+    }
+
+    if (chunk_size < sizeof(uint32_t)) {
+        return -1;
+    }
+    out->declared_length = read_le32(chunk);
+    out->payload_offset = sizeof(uint32_t);
+    if (out->kind == WL_AUDIO_CHUNK_PC_SPEAKER || out->kind == WL_AUDIO_CHUNK_ADLIB) {
+        if (chunk_size < sizeof(uint32_t) + sizeof(uint16_t)) {
+            return -1;
+        }
+        out->priority = read_le16(chunk + sizeof(uint32_t));
+        out->payload_offset += sizeof(uint16_t);
+    }
+    if (out->payload_offset > chunk_size) {
+        return -1;
+    }
+    out->payload_size = chunk_size - out->payload_offset;
+    return 0;
+}

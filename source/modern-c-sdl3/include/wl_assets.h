@@ -460,12 +460,32 @@ typedef struct wl_audio_header {
     size_t file_size;
 } wl_audio_header;
 
+typedef enum wl_audio_chunk_kind {
+    WL_AUDIO_CHUNK_PC_SPEAKER = 1,
+    WL_AUDIO_CHUNK_ADLIB = 2,
+    WL_AUDIO_CHUNK_DIGITAL = 3,
+    WL_AUDIO_CHUNK_MUSIC = 4,
+} wl_audio_chunk_kind;
+
+typedef struct wl_audio_chunk_metadata {
+    wl_audio_chunk_kind kind;
+    uint8_t is_empty;
+    size_t raw_size;
+    uint32_t declared_length;
+    uint16_t priority;
+    size_t payload_offset;
+    size_t payload_size;
+} wl_audio_chunk_metadata;
+
 int wl_read_audio_header(const char *path, wl_audio_header *out);
 int wl_read_audio_chunk(const char *audiot_path,
                         const wl_audio_header *header,
                         size_t chunk_index,
                         unsigned char *out, size_t out_size,
                         size_t *bytes_read);
+int wl_describe_audio_chunk(size_t chunk_index,
+                            const unsigned char *chunk, size_t chunk_size,
+                            wl_audio_chunk_metadata *out);
 
 #ifdef __cplusplus
 }
