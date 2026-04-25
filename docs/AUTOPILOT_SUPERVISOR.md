@@ -94,13 +94,25 @@ This is deliberately simple: near the start of each long or short window, each p
 
 ## Stop
 
-Create this file:
+Immediate stop before another cycle starts:
 
 ```bash
 touch state/STOP_AUTOPILOT
 ```
 
-Or kill the PID in:
+Graceful stop after the current loop finishes, including worker wait, push, and chat update:
+
+```bash
+touch state/STOP_AFTER_CURRENT_LOOP
+```
+
+Or use the supervisor helper command from the repo:
+
+```bash
+scripts/wolf3d_autopilot_supervisor.py --stop-after-current-loop
+```
+
+If needed, kill the PID in:
 
 ```bash
 cat state/autopilot-supervisor.pid

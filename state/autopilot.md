@@ -3710,3 +3710,33 @@ Next likely move:
 - Continue headless port work with both short-window and long-window provider budgeting enabled.
 
 Blockers: none for headless work.
+
+
+## Cycle 2026-04-25 08:29 CDT Graceful Stop
+
+Action taken:
+
+- Added a graceful stop signal for the autopilot supervisor: `state/STOP_AFTER_CURRENT_LOOP`.
+- When present, the supervisor finishes the current loop, waits for project workers, pushes if configured, sends the completion update, and exits without starting another loop.
+- Added `scripts/wolf3d_autopilot_supervisor.py --stop-after-current-loop` as a helper command that creates the graceful stop file without starting a cycle.
+- Kept `state/STOP_AUTOPILOT` as the immediate stop-before-next-cycle signal.
+- Updated docs and gitignore for the new runtime stop file.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_autopilot_supervisor.py
+scripts/wolf3d_autopilot_supervisor.py --help
+cd source/modern-c-sdl3 && make test
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+
+Next likely move:
+
+- Use `--stop-after-current-loop` when ET wants the autopilot to drain gracefully rather than cancelling current work.
+
+Blockers: none for headless work.

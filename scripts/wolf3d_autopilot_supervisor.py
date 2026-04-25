@@ -25,6 +25,7 @@ REPO = Path(__file__).resolve().parents[1]
 LOG_DIR = REPO / "logs"
 STATE_DIR = REPO / "state"
 STOP_FILE = STATE_DIR / "STOP_AUTOPILOT"
+STOP_AFTER_CYCLE_FILE = STATE_DIR / "STOP_AFTER_CURRENT_LOOP"
 LOCK_FILE = STATE_DIR / "autopilot-supervisor.pid"
 MODEL_STATE_FILE = STATE_DIR / "autopilot-supervisor-model-state.json"
 
@@ -530,9 +531,16 @@ def main() -> int:
     ap.add_argument("--completion-summary", action=argparse.BooleanOptionalAction, default=True, help="deliver a chat summary after each completed supervisor cycle")
     ap.add_argument("--summary-channel", default="telegram", help="OpenClaw delivery channel for summaries")
     ap.add_argument("--summary-target", default="telegram:-5268853419", help="OpenClaw delivery target for summaries")
+    ap.add_argument("--stop-after-current-loop", action="store_true", help="create the graceful stop file and exit without starting a cycle")
     args = ap.parse_args()
     args.usage_provider_windows = parse_provider_windows(args.usage_provider_windows)
     args.usage_extra_windows = parse_csv(args.usage_extra_windows)
+
+    if args.stop_after_current_loop:
+        STATE_DIR.mkdir(exist_ok=True)
+        STOP_AFTER_CYCLE_FILE.write_text(now() + "\n", encoding="utf-8")
+        log(f"created graceful stop file: {STOP_AFTER_CYCLE_FILE}")
+        return 0
 
     write_pid()
     stop_ref = {"stop": False}
@@ -555,6 +563,9 @@ def main() -> int:
         while not stop_ref["stop"]:
             if STOP_FILE.exists():
                 log(f"stop file exists: {STOP_FILE}; exiting")
+                break
+            if STOP_AFTER_CYCLE_FILE.exists() and cycle_count > 0:
+                log(f"graceful stop file exists after completed cycle: {STOP_AFTER_CYCLE_FILE}; exiting")
                 break
             if args.max_cycles and cycle_count >= args.max_cycles:
                 log(f"max cycles reached: {args.max_cycles}; exiting")
@@ -599,6 +610,9 @@ def main() -> int:
                 git_push_current_branch()
             if args.completion_summary:
                 send_summary(args.summary_channel, args.summary_target, thinking=args.summary_thinking, timeout=180, help_text=help_text)
+            if STOP_AFTER_CYCLE_FILE.exists():
+                log(f"graceful stop requested; finished current cycle and will not start another: {STOP_AFTER_CYCLE_FILE}")
+                break
             if not stop_ref["stop"] and not STOP_FILE.exists():
                 time.sleep(max(0, args.cycle_delay))
         return 0
