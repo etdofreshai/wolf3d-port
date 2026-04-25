@@ -619,6 +619,46 @@ int wl_expand_indexed_surface_to_rgba(const wl_indexed_surface *surface,
     return 0;
 }
 
+
+static uint32_t wl_fnv1a_local(const unsigned char *bytes, size_t size) {
+    uint32_t hash = 2166136261u;
+    for (size_t i = 0; i < size; ++i) {
+        hash ^= bytes[i];
+        hash *= 16777619u;
+    }
+    return hash;
+}
+
+int wl_describe_present_frame(const wl_indexed_surface *surface,
+                              const wl_palette_shift_result *shift,
+                              const unsigned char *base_palette,
+                              const unsigned char *red_palettes,
+                              size_t red_palette_count,
+                              const unsigned char *white_palettes,
+                              size_t white_palette_count,
+                              size_t palette_size,
+                              uint8_t palette_component_bits,
+                              wl_present_frame_descriptor *out) {
+    if (!surface || !shift || !out || palette_size < 256u * 3u) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    if (wl_describe_palette_shifted_texture_upload(surface, shift, base_palette,
+                                                   red_palettes, red_palette_count,
+                                                   white_palettes, white_palette_count,
+                                                   palette_size, palette_component_bits,
+                                                   &out->texture) != 0) {
+        return -1;
+    }
+    out->viewport_width = surface->width;
+    out->viewport_height = surface->height;
+    out->pixel_hash = wl_fnv1a_local(out->texture.pixels, out->texture.pixel_bytes);
+    out->palette_hash = wl_fnv1a_local(out->texture.palette, palette_size);
+    out->palette_shift_kind = (uint8_t)shift->kind;
+    out->palette_shift_index = shift->shift_index;
+    return 0;
+}
+
 int wl_decode_planar_picture_to_indexed(const unsigned char *planar, size_t planar_size,
                                         uint16_t width, uint16_t height,
                                         unsigned char *indexed, size_t indexed_size) {

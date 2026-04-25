@@ -119,6 +119,16 @@ typedef struct wl_texture_upload_descriptor {
     uint8_t palette_component_bits;
 } wl_texture_upload_descriptor;
 
+typedef struct wl_present_frame_descriptor {
+    wl_texture_upload_descriptor texture;
+    uint16_t viewport_width;
+    uint16_t viewport_height;
+    uint32_t pixel_hash;
+    uint32_t palette_hash;
+    uint8_t palette_shift_kind;
+    uint8_t palette_shift_index;
+} wl_present_frame_descriptor;
+
 enum {
     WL_NUM_RED_SHIFTS = 6,
     WL_RED_SHIFT_STEPS = 8,
@@ -415,6 +425,16 @@ int wl_expand_indexed_surface_to_rgba(const wl_indexed_surface *surface,
                                       uint8_t palette_component_bits,
                                       unsigned char *rgba, size_t rgba_size,
                                       wl_texture_upload_descriptor *out);
+int wl_describe_present_frame(const wl_indexed_surface *surface,
+                              const wl_palette_shift_result *shift,
+                              const unsigned char *base_palette,
+                              const unsigned char *red_palettes,
+                              size_t red_palette_count,
+                              const unsigned char *white_palettes,
+                              size_t white_palette_count,
+                              size_t palette_size,
+                              uint8_t palette_component_bits,
+                              wl_present_frame_descriptor *out);
 int wl_decode_planar_picture_to_indexed(const unsigned char *planar, size_t planar_size,
                                         uint16_t width, uint16_t height,
                                         unsigned char *indexed, size_t indexed_size);

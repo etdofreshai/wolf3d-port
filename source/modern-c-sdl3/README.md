@@ -371,3 +371,8 @@ Chase-started death-final rendering now includes officer, SS, mutant, and boss f
 ## Dog chase death-final render
 
 Chase-started death-final rendering now covers dogs as a no-drop contact enemy. The dog completes live AI chase movement, dies through full-combat/death ticking, and renders final corpse `134/240` with stable hash `0x92ff40dd`.
+
+
+## Headless presentation frame descriptor
+
+Added an SDL-free presentation descriptor that wraps a rendered indexed frame with upload metadata, viewport size, pixel hash, palette hash, and palette-shift metadata. This gives a small deterministic boundary for a future SDL3 texture upload without requiring SDL3 dev files.

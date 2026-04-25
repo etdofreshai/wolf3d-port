@@ -503,3 +503,8 @@ The class-broadened chase death-final metadata now reaches the headless scene re
 ## Cycle update: dog chase death-final render
 
 The chase full-combat/death-final render seam now covers dog actors separately from shooter/drop classes. The dog final corpse override renders without a spawned drop.
+
+
+## Cycle update: headless presentation frame descriptor
+
+A rendered live-AI dog chase death frame now feeds `wl_describe_present_frame`, producing deterministic upload/viewport/hash metadata for a future SDL3 presentation layer.

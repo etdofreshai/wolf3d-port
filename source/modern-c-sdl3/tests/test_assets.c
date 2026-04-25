@@ -4650,6 +4650,31 @@ static int check_wl6(const char *dir) {
     CHECK(sprites[0].source_index == 134);
     CHECK(sprites[0].visible == 1);
     CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0x92ff40dd);
+    wl_palette_shift_result present_shift;
+    memset(&present_shift, 0, sizeof(present_shift));
+    present_shift.kind = WL_PALETTE_SHIFT_NONE;
+    wl_present_frame_descriptor present_frame;
+    CHECK(wl_describe_present_frame(&canvas, &present_shift,
+                                    upload_palette,
+                                    red_shift_palettes, WL_NUM_RED_SHIFTS,
+                                    white_shift_palettes, WL_NUM_WHITE_SHIFTS,
+                                    sizeof(upload_palette), 6,
+                                    &present_frame) == 0);
+    CHECK(present_frame.texture.format == WL_TEXTURE_UPLOAD_INDEXED8_RGB_PALETTE);
+    CHECK(present_frame.viewport_width == 80);
+    CHECK(present_frame.viewport_height == 128);
+    CHECK(present_frame.pixel_hash == 0x92ff40dd);
+    CHECK(present_frame.palette_hash ==
+          fnv1a_bytes(upload_palette, sizeof(upload_palette)));
+    CHECK(present_frame.palette_shift_kind == WL_PALETTE_SHIFT_NONE);
+    CHECK(present_frame.texture.pixels == canvas.pixels);
+    CHECK(present_frame.texture.palette == upload_palette);
+    CHECK(wl_describe_present_frame(NULL, &present_shift,
+                                    upload_palette,
+                                    red_shift_palettes, WL_NUM_RED_SHIFTS,
+                                    white_shift_palettes, WL_NUM_WHITE_SHIFTS,
+                                    sizeof(upload_palette), 6,
+                                    &present_frame) == -1);
 
     for (size_t death_case = 0;
          death_case < sizeof(chase_death_classes) / sizeof(chase_death_classes[0]);
@@ -5619,6 +5644,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-dog-chase-death-render tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-present-frame-descriptor tests passed for %s\n", dir);
     return 0;
 }

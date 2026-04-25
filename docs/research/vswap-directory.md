@@ -427,3 +427,8 @@ The class death render checks decode local VSWAP chunks only for verification: o
 ## Cycle update: dog chase death-final render
 
 The dog chase final render verifies VSWAP metadata/hash only: final corpse source/chunk `134/240`, no committed decoded bytes, scene hash `0x92ff40dd`.
+
+
+## Cycle update: headless presentation frame descriptor
+
+VSWAP-backed render output now crosses a presentation descriptor seam: decoded local verification data remains hash-only while future SDL3 can consume texture upload metadata.

@@ -5121,3 +5121,40 @@ Next likely move:
 - Start a small SDL3 presentation boundary when SDL3 dev files are available, or continue broadening headless live-AI/combat render seams.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 10:14 CDT
+
+Action taken:
+
+- Added a small SDL-free presentation boundary for future SDL3 texture upload work.
+- Introduced `wl_present_frame_descriptor` and `wl_describe_present_frame`, wrapping an indexed rendered frame with texture upload metadata, viewport size, pixel hash, palette hash, and palette-shift metadata.
+- Verified the live AI dog chase death-final render feeds the descriptor: viewport `80x128`, pixel hash `0x92ff40dd`, base palette hash, no palette shift, and upload pointers suitable for a later SDL3 layer.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-present-frame-descriptor tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Add a dummy/offscreen SDL3 smoke layer when SDL3 dev files are available, or keep building SDL-free presentation descriptors for palette-shifted live combat frames.
+
+Blockers: SDL3 presentation still cannot be verified here because SDL3 development files are unavailable via `pkg-config`; headless work is unblocked.

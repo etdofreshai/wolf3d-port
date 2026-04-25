@@ -248,3 +248,8 @@ Chase-started class deaths now have deterministic rendered terminal states, prov
 ## Cycle update: dog chase death-final render
 
 Chase-started dog death semantics now preserve moved coordinates through final death ticking and scene collection while correctly producing no drop.
+
+
+## Cycle update: headless presentation frame descriptor
+
+Runtime scene semantics now reach an SDL-free presentation boundary: the dog chase death render becomes a presentable frame descriptor with viewport and palette state.
