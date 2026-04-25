@@ -327,3 +327,8 @@ The VSWAP sprite path now sees accumulated live-AI patrol placement across frame
 ## Cycle update: live AI dog fine-position rendering
 
 The live AI fine-position VSWAP path now validates dog patrol sprite metadata. Source/chunk `99/205` decodes locally and renders with hash `0x08ab64f0`; no decoded sprite bytes are committed.
+
+
+## Cycle update: live AI officer fine-position rendering
+
+The live AI fine-position VSWAP path now validates officer patrol sprite metadata. Source/chunk `246/352` decodes locally and renders with hash `0xa6544334`; only metadata and hashes are committed.

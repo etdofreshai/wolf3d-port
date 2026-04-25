@@ -403,3 +403,8 @@ Multi-frame patrol remainder is now covered at the live AI frame/render boundary
 ## Cycle update: live AI dog fine-position rendering
 
 Live AI fine-position refs now cover dog patrol actors as well as guards. The dog remains on its tile with a half-tile budget, emits source/chunk `99/205` at fine world coordinates, and renders through the same door-aware scene path.
+
+
+## Cycle update: live AI officer fine-position rendering
+
+Live AI fine-position refs now cover officer patrol actors in addition to guards/dogs. A half-tile officer patrol emits source/chunk `246/352` at fine world coordinates and renders through the door-aware scene path.

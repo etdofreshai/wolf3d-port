@@ -344,3 +344,8 @@ The renderer now verifies accumulated sub-tile patrol state across live AI frame
 ## Cycle update: live AI dog fine-position rendering
 
 Headless presentation coverage now includes a fine-position patrol dog. The scene renderer projects the dog sprite from live AI refs and verifies stable hash `0x08ab64f0` before SDL3.
+
+
+## Cycle update: live AI officer fine-position rendering
+
+Headless presentation coverage now includes a fine-position patrol officer. The scene renderer projects the officer sprite from live AI refs and verifies stable hash `0xa6544334` before SDL3.

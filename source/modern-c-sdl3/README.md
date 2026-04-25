@@ -271,3 +271,8 @@ Accumulated patrol remainder now survives through two live AI frames into render
 ## Live AI dog fine-position rendering
 
 Live AI fine-position rendering now covers a second patrol actor class. A patrol dog uses source/chunk `99/205`, sub-tile world coordinates, local VSWAP decode, and a stable door-aware scene hash `0x08ab64f0`.
+
+
+## Live AI officer fine-position rendering
+
+Live AI fine-position rendering now covers patrol officers. Officer refs use source/chunk `246/352`, sub-tile coordinates from the half-tile patrol budget, local VSWAP decode, and stable scene hash `0xa6544334`.

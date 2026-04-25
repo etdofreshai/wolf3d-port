@@ -148,3 +148,8 @@ Patrol path semantics now accumulate partial movement through multiple live AI f
 ## Cycle update: live AI dog fine-position rendering
 
 Patrol semantics now feed live AI fine-position rendering for a second actor class. Dog patrol starts retain the same path/tic contract while selecting dog sprite metadata.
+
+
+## Cycle update: live AI officer fine-position rendering
+
+Patrol semantics now feed live AI fine-position rendering for officers too. The same path/tic contract selects officer walk sprite metadata while preserving sub-tile placement.
