@@ -518,6 +518,15 @@ typedef struct wl_imf_playback_window {
     uint8_t completed;
 } wl_imf_playback_window;
 
+typedef struct wl_imf_playback_position {
+    uint32_t tick_position;
+    size_t command_index;
+    uint16_t command_delay;
+    uint16_t delay_elapsed;
+    uint16_t delay_remaining;
+    uint8_t completed;
+} wl_imf_playback_position;
+
 int wl_read_audio_header(const char *path, wl_audio_header *out);
 int wl_read_audio_chunk(const char *audiot_path,
                         const wl_audio_header *header,
@@ -536,6 +545,9 @@ int wl_get_imf_music_command(const unsigned char *chunk, size_t chunk_size,
 int wl_describe_imf_playback_window(const unsigned char *chunk, size_t chunk_size,
                                     size_t start_command, uint32_t tick_budget,
                                     wl_imf_playback_window *out);
+int wl_describe_imf_playback_position(const unsigned char *chunk, size_t chunk_size,
+                                      uint32_t tick_position,
+                                      wl_imf_playback_position *out);
 
 #ifdef __cplusplus
 }

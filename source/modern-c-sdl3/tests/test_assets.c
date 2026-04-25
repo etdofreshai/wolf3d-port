@@ -5778,6 +5778,7 @@ static int check_audio_wl6(const char *dir) {
     wl_imf_music_metadata imf_meta;
     wl_imf_music_command imf_command;
     wl_imf_playback_window imf_window;
+    wl_imf_playback_position imf_position;
 
     CHECK(wl_join_path(audiohed_path, sizeof(audiohed_path), dir, "AUDIOHED.WL6") == 0);
     CHECK(wl_join_path(audiot_path, sizeof(audiot_path), dir, "AUDIOT.WL6") == 0);
@@ -5914,6 +5915,31 @@ static int check_audio_wl6(const char *dir) {
     CHECK(imf_window.commands_in_window == 0);
     CHECK(imf_window.completed == 1);
     CHECK(wl_describe_imf_playback_window(chunk_buf, chunk_bytes, 1865, 1, &imf_window) == -1);
+    CHECK(wl_describe_imf_playback_position(chunk_buf, chunk_bytes, 0, &imf_position) == 0);
+    CHECK(imf_position.command_index == 0);
+    CHECK(imf_position.command_delay == 189);
+    CHECK(imf_position.delay_elapsed == 0);
+    CHECK(imf_position.delay_remaining == 189);
+    CHECK(imf_position.completed == 0);
+    CHECK(wl_describe_imf_playback_position(chunk_buf, chunk_bytes, 188, &imf_position) == 0);
+    CHECK(imf_position.command_index == 0);
+    CHECK(imf_position.delay_elapsed == 188);
+    CHECK(imf_position.delay_remaining == 1);
+    CHECK(wl_describe_imf_playback_position(chunk_buf, chunk_bytes, 189, &imf_position) == 0);
+    CHECK(imf_position.command_index == 1);
+    CHECK(imf_position.command_delay == 8);
+    CHECK(imf_position.delay_elapsed == 0);
+    CHECK(imf_position.delay_remaining == 8);
+    CHECK(wl_describe_imf_playback_position(chunk_buf, chunk_bytes, 196, &imf_position) == 0);
+    CHECK(imf_position.command_index == 1);
+    CHECK(imf_position.delay_elapsed == 7);
+    CHECK(imf_position.delay_remaining == 1);
+    CHECK(wl_describe_imf_playback_position(chunk_buf, chunk_bytes, 20485, &imf_position) == 0);
+    CHECK(imf_position.command_index == 3);
+    CHECK(imf_position.completed == 0);
+    CHECK(wl_describe_imf_playback_position(chunk_buf, chunk_bytes, imf_meta.total_delay, &imf_position) == 0);
+    CHECK(imf_position.command_index == 1864);
+    CHECK(imf_position.completed == 1);
 
     /* Boundary: last chunk */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 287, chunk_buf, sizeof(chunk_buf),
