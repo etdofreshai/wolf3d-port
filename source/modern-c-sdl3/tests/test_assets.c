@@ -5850,6 +5850,11 @@ static int check_audio_wl6(const char *dir) {
     CHECK(imf_meta.first_register == 0);
     CHECK(imf_meta.first_value == 0);
     CHECK(imf_meta.first_delay == 189);
+    CHECK(imf_meta.last_register == 0);
+    CHECK(imf_meta.last_value == 0);
+    CHECK(imf_meta.last_delay == 1);
+    CHECK(imf_meta.max_delay == 64098);
+    CHECK(imf_meta.zero_delay_count == 0);
     CHECK(imf_meta.total_delay == 25697407);
     CHECK(imf_meta.trailing_bytes == 86);
 
@@ -5862,6 +5867,11 @@ static int check_audio_wl6(const char *dir) {
     CHECK(imf_meta.declared_bytes == 20836);
     CHECK(imf_meta.command_count == 5209);
     CHECK(imf_meta.first_delay == 189);
+    CHECK(imf_meta.last_register == 0);
+    CHECK(imf_meta.last_value == 0);
+    CHECK(imf_meta.last_delay == 1);
+    CHECK(imf_meta.max_delay == 65429);
+    CHECK(imf_meta.zero_delay_count == 0);
     CHECK(imf_meta.total_delay == 71494600);
     CHECK(imf_meta.trailing_bytes == 86);
 

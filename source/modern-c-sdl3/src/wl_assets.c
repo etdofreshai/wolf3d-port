@@ -2269,8 +2269,20 @@ int wl_describe_imf_music_chunk(const unsigned char *chunk, size_t chunk_size,
         out->first_value = payload[1];
         out->first_delay = read_le16(payload + 2);
         for (size_t i = 0; i < out->command_count; ++i) {
-            total_delay += read_le16(payload + (i * 4u) + 2u);
+            const unsigned char *cmd = payload + (i * 4u);
+            uint16_t delay = read_le16(cmd + 2u);
+            total_delay += delay;
+            if (delay == 0) {
+                ++out->zero_delay_count;
+            }
+            if (delay > out->max_delay) {
+                out->max_delay = delay;
+            }
         }
+        const unsigned char *last = payload + ((out->command_count - 1u) * 4u);
+        out->last_register = last[0];
+        out->last_value = last[1];
+        out->last_delay = read_le16(last + 2u);
         if (total_delay > UINT32_MAX) {
             return -1;
         }
