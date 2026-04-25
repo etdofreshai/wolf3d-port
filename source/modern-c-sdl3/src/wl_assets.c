@@ -278,6 +278,47 @@ int wl_read_graphics_chunk(const char *vgagraph_path, const wl_graphics_header *
     return 0;
 }
 
+
+int wl_decode_picture_table(const unsigned char *chunk, size_t chunk_size,
+                            wl_picture_table_metadata *out) {
+    if (!chunk || !out || chunk_size == 0 || (chunk_size % 4) != 0) {
+        return -1;
+    }
+
+    size_t count = chunk_size / 4;
+    if (count > WL_GRAPHICS_MAX_CHUNKS) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->picture_count = count;
+    out->min_width = UINT16_MAX;
+    out->min_height = UINT16_MAX;
+    for (size_t i = 0; i < count; ++i) {
+        uint16_t width = read_le16(chunk + i * 4);
+        uint16_t height = read_le16(chunk + i * 4 + 2);
+        if (width == 0 || height == 0) {
+            return -1;
+        }
+        out->pictures[i].width = width;
+        out->pictures[i].height = height;
+        if (width < out->min_width) {
+            out->min_width = width;
+        }
+        if (width > out->max_width) {
+            out->max_width = width;
+        }
+        if (height < out->min_height) {
+            out->min_height = height;
+        }
+        if (height > out->max_height) {
+            out->max_height = height;
+        }
+        out->total_pixels += (uint32_t)width * (uint32_t)height;
+    }
+    return 0;
+}
+
 int wl_read_vswap_header(const char *path, wl_vswap_header *out) {
     if (!path || !out) {
         return -1;

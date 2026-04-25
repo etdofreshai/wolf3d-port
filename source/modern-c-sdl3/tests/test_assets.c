@@ -289,6 +289,26 @@ static int check_wl6(const char *dir) {
     CHECK(compressed_bytes == 354);
     CHECK(graphics_bytes == 528);
     CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0x0a6f459a);
+    wl_picture_table_metadata pictures;
+    CHECK(wl_decode_picture_table(graphics_buf, graphics_bytes, &pictures) == 0);
+    CHECK(pictures.picture_count == 132);
+    CHECK(pictures.min_width == 8);
+    CHECK(pictures.max_width == 320);
+    CHECK(pictures.min_height == 8);
+    CHECK(pictures.max_height == 200);
+    CHECK(pictures.total_pixels == 342464);
+    CHECK(pictures.pictures[0].width == 96);
+    CHECK(pictures.pictures[0].height == 88);
+    CHECK(pictures.pictures[3].width == 320);
+    CHECK(pictures.pictures[3].height == 8);
+    CHECK(pictures.pictures[84].width == 320);
+    CHECK(pictures.pictures[84].height == 200);
+    CHECK(pictures.pictures[86].width == 320);
+    CHECK(pictures.pictures[86].height == 200);
+    CHECK(pictures.pictures[87].width == 224);
+    CHECK(pictures.pictures[87].height == 56);
+    CHECK(pictures.pictures[131].width == 224);
+    CHECK(pictures.pictures[131].height == 48);
     CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 1, graphics_buf,
                                  sizeof(graphics_buf), &graphics_bytes,
                                  &compressed_bytes) == 0);
@@ -472,6 +492,24 @@ static int check_optional_sod(const char *dir) {
     CHECK(compressed_bytes == 383);
     CHECK(graphics_bytes == 588);
     CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0x43f617ea);
+    wl_picture_table_metadata pictures;
+    CHECK(wl_decode_picture_table(graphics_buf, graphics_bytes, &pictures) == 0);
+    CHECK(pictures.picture_count == 147);
+    CHECK(pictures.min_width == 8);
+    CHECK(pictures.max_width == 320);
+    CHECK(pictures.min_height == 8);
+    CHECK(pictures.max_height == 200);
+    CHECK(pictures.total_pixels == 1105792);
+    CHECK(pictures.pictures[0].width == 320);
+    CHECK(pictures.pictures[0].height == 200);
+    CHECK(pictures.pictures[1].width == 104);
+    CHECK(pictures.pictures[1].height == 16);
+    CHECK(pictures.pictures[84].width == 320);
+    CHECK(pictures.pictures[84].height == 200);
+    CHECK(pictures.pictures[90].width == 320);
+    CHECK(pictures.pictures[90].height == 80);
+    CHECK(pictures.pictures[91].width == 320);
+    CHECK(pictures.pictures[91].height == 120);
     CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 1, graphics_buf,
                                  sizeof(graphics_buf), &graphics_bytes,
                                  &compressed_bytes) == 0);
@@ -582,6 +620,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/vga-huffman tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/vga-pictable tests passed for %s\n", dir);
     return 0;
 }

@@ -74,6 +74,21 @@ typedef struct wl_graphics_header {
     size_t file_size;
 } wl_graphics_header;
 
+typedef struct wl_picture_size {
+    uint16_t width;
+    uint16_t height;
+} wl_picture_size;
+
+typedef struct wl_picture_table_metadata {
+    size_t picture_count;
+    uint16_t min_width;
+    uint16_t max_width;
+    uint16_t min_height;
+    uint16_t max_height;
+    uint32_t total_pixels;
+    wl_picture_size pictures[WL_GRAPHICS_MAX_CHUNKS];
+} wl_picture_table_metadata;
+
 typedef struct wl_vswap_shape_metadata {
     wl_vswap_chunk_kind kind;
     uint16_t width;
@@ -125,6 +140,8 @@ int wl_read_graphics_chunk(const char *vgagraph_path, const wl_graphics_header *
                            const wl_huffman_node nodes[WL_HUFFMAN_NODE_COUNT],
                            size_t chunk_index, unsigned char *out, size_t out_size,
                            size_t *bytes_read, size_t *compressed_size);
+int wl_decode_picture_table(const unsigned char *chunk, size_t chunk_size,
+                            wl_picture_table_metadata *out);
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written);
 int wl_rlew_expand(const uint16_t *src, size_t src_words, uint16_t rlew_tag,

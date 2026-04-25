@@ -1,7 +1,7 @@
 # Graphics Huffman Notes
 
 Research/implementation cycle: 2026-04-24 22:53-23:15 CDT  
-Scope: `VGAHEAD`/`VGADICT`/`VGAGRAPH` header parsing and Huffman smoke decoding for WL6 and optional SOD, without committing proprietary graphics bytes.
+Scope: `VGAHEAD`/`VGADICT`/`VGAGRAPH` header parsing, Huffman smoke decoding, and `STRUCTPIC` picture-table metadata for WL6 and optional SOD, without committing proprietary graphics bytes.
 
 ## Original reference
 
@@ -14,6 +14,10 @@ Original source reference, inspected but not modified:
   - loads `VGADICT.*` as 255 Huffman nodes.
   - loads `(NUMCHUNKS + 1)` 3-byte entries from `VGAHEAD.*`.
   - decodes `STRUCTPIC` into the picture table during setup.
+- `source/original/WOLFSRC/ID_VH.H`
+  - defines `pictabletype` as two 16-bit `int` fields: `width,height`.
+- `source/original/WOLFSRC/ID_VH.C::VWB_DrawPic` / `LatchDrawPic`
+  - index `pictable[picnum - STARTPICS]` for picture dimensions before drawing.
 - `source/original/WOLFSRC/ID_CA.C::CAL_HuffExpand`
   - uses node 254 as the Huffman head node.
   - consumes bits least-significant-bit first from each compressed byte.
@@ -35,6 +39,9 @@ Added graphics APIs/types to `wl_assets`:
 - `wl_read_huffman_dictionary(...)`
 - `wl_huff_expand(...)`
 - `wl_read_graphics_chunk(...)`
+- `wl_picture_size`
+- `wl_picture_table_metadata`
+- `wl_decode_picture_table(...)`
 
 The implementation:
 
@@ -42,7 +49,8 @@ The implementation:
 - parses the 255-node `VGADICT` Huffman table;
 - ports the original LSB-first Huffman traversal as a pure C function;
 - reads explicit-size `VGAGRAPH` chunks and decodes them into caller-provided buffers;
-- records only sizes/counts/hashes in tests and docs, not graphics bytes.
+- decodes `STRUCTPIC` as width/height metadata for picture chunks;
+- records only sizes/counts/hashes/dimensions in tests and docs, not graphics bytes.
 
 ## WL6 committed assertions
 
@@ -52,6 +60,8 @@ The implementation:
 - `VGAHEAD.WL6` size: `450`
 - first offsets: `0`, `354`, chunk 3 offset `9570`, final sentinel `275774`
 - decoded chunk `0` (`STRUCTPIC`): compressed `354`, expanded `528`, FNV-1a `0x0a6f459a`
+- `STRUCTPIC` picture table: `132` entries, width range `8..320`, height range `8..200`, total declared pixels `342464`
+- representative WL6 dimensions: entry `0` `96x88`, entry `3` `320x8`, entry `84` `320x200`, entry `86` `320x200`, entry `87` `224x56`, entry `131` `224x48`
 - decoded chunk `1` (`STARTFONT`): compressed `3467`, expanded `8300`, FNV-1a `0xdb48ce2b`
 - decoded chunk `87` (`TITLEPIC`): compressed `45948`, expanded `64000`, FNV-1a `0x01643ebc`
 - decoded chunk `134` (`GETPSYCHEDPIC`): compressed `5127`, expanded `10752`, FNV-1a `0xeb393cc0`
@@ -64,6 +74,8 @@ When `game-files/base/m1` is present:
 - `VGAHEAD.SOD` size: `510`
 - first offsets: `0`, `383`, final sentinel `947979`
 - decoded chunk `0` (`STRUCTPIC`): compressed `383`, expanded `588`, FNV-1a `0x43f617ea`
+- `STRUCTPIC` picture table: `147` entries, width range `8..320`, height range `8..200`, total declared pixels `1105792`
+- representative SOD dimensions: entry `0` `320x200`, entry `1` `104x16`, entry `84` `320x200`, entry `90` `320x80`, entry `91` `320x120`
 - decoded chunk `1` (`STARTFONT`): compressed `4448`, expanded `8300`, FNV-1a `0xdb48ce2b`
 - decoded chunk `3`: compressed `42248`, expanded `64000`, FNV-1a `0x3a6afac3`
 - decoded chunk `149`: compressed `6243`, expanded `10752`, FNV-1a `0xeb393cc0`
@@ -84,9 +96,13 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/vga-huffman tests passed for game-files/base
+asset/decompression/semantics/model/vswap/vga-pictable tests passed for game-files/base
 ```
+
+## Cycle update: STRUCTPIC metadata
+
+Added `wl_decode_picture_table` to interpret decoded `STRUCTPIC` chunks as original `pictabletype` width/height pairs. Tests now assert picture counts, dimension ranges, total declared pixels, and representative WL6/SOD dimensions. This creates a clean metadata bridge from decoded graphics chunks toward a renderer-facing indexed-surface seam.
 
 ## Next step
 
-Use decoded graphics metadata to interpret `STRUCTPIC` picture dimensions and start a renderer-facing indexed-surface seam, or decode raw VSWAP wall page metadata for the raycaster path. Keep headless tests comparing metadata/hashes before adding SDL3 presentation.
+Start a renderer-facing indexed-surface seam for decoded picture chunks, or decode raw VSWAP wall page metadata for the raycaster path. Keep headless tests comparing metadata/hashes before adding SDL3 presentation.
