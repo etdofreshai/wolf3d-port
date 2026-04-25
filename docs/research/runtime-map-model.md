@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-door-scene tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-pushwall-render tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -183,3 +183,8 @@ Added `wl_render_runtime_door_camera_wall_view`, which feeds camera-generated ra
 ## Cycle update: door-aware runtime scene rendering
 
 Added `wl_render_runtime_door_camera_scene_view`, which extends live door-aware camera wall rendering into wall+sprite composition. The helper reuses runtime door-aware wall hits to populate the occlusion-height buffer, projects/sorts sprite surfaces, and composites transparent sprites against live wall/door state. Tests place a sprite behind a locked opening door and assert distinct closed/open canvas hashes (`0x01053e89` and `0xa06c2183`), proving live door descriptors now affect both wall rendering and sprite occlusion in the combined scene path.
+
+
+## Cycle update: pushwall render descriptors
+
+Added `wl_build_pushwall_wall_hit`, a renderer-facing descriptor seam for moving pushwalls. The helper preserves the source wall id from the low six bits of the original `0xc0` moving marker, selects horizontal/vertical wall pages, and mirrors `WL_DRAW.C::HitHorizPWall` / `HitVertPWall` texture-column flipping based on ray step direction. `wl_cast_runtime_fixed_wall_ray` now routes moving pushwall markers through this seam. Tests assert horizontal and vertical pushwall page/texture descriptors, invalid inputs, and the runtime ray path still emits the expected moving-wall page/texture metadata.

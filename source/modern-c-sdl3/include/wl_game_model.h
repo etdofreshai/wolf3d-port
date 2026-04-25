@@ -180,6 +180,10 @@ int wl_render_runtime_camera_wall_view(const wl_game_model *model, uint16_t door
 int wl_build_door_wall_hit(const wl_door_desc *door, uint16_t vswap_sprite_start,
                            uint32_t intercept, uint16_t x, uint16_t scaled_height,
                            wl_map_wall_hit *out);
+int wl_build_pushwall_wall_hit(uint16_t tile, wl_wall_side side,
+                               uint32_t intercept, uint16_t pwall_pos,
+                               int step_sign, uint16_t x, uint16_t scaled_height,
+                               wl_map_wall_hit *out);
 int wl_cast_runtime_fixed_wall_ray(const wl_game_model *model,
                                    uint16_t vswap_sprite_start,
                                    uint32_t origin_x, uint32_t origin_y,

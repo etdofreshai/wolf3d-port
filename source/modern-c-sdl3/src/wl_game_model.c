@@ -595,6 +595,35 @@ int wl_build_door_wall_hit(const wl_door_desc *door, uint16_t vswap_sprite_start
     return 0;
 }
 
+int wl_build_pushwall_wall_hit(uint16_t tile, wl_wall_side side,
+                               uint32_t intercept, uint16_t pwall_pos,
+                               int step_sign, uint16_t x, uint16_t scaled_height,
+                               wl_map_wall_hit *out) {
+    if (!out || tile == 0 || tile >= 64u || pwall_pos >= WL_MAP_SIDE ||
+        scaled_height == 0 ||
+        (side != WL_WALL_SIDE_HORIZONTAL && side != WL_WALL_SIDE_VERTICAL) ||
+        (step_sign != -1 && step_sign != 1)) {
+        return -1;
+    }
+
+    uint16_t texture = (uint16_t)((intercept >> 4) & 0xfc0u);
+    if ((side == WL_WALL_SIDE_HORIZONTAL && step_sign != -1) ||
+        (side == WL_WALL_SIDE_VERTICAL && step_sign == -1)) {
+        texture = (uint16_t)(0xfc0u - texture);
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->source_tile = tile;
+    out->side = side;
+    out->wall_page_index = (uint16_t)((tile - 1u) * 2u +
+                                      (side == WL_WALL_SIDE_VERTICAL ? 1u : 0u));
+    out->texture_offset = texture;
+    out->x = x;
+    out->scaled_height = scaled_height;
+    (void)pwall_pos;
+    return 0;
+}
+
 int wl_cast_runtime_fixed_wall_ray(const wl_game_model *model,
                                    uint16_t vswap_sprite_start,
                                    uint32_t origin_x, uint32_t origin_y,
@@ -674,6 +703,16 @@ int wl_cast_runtime_fixed_wall_ray(const wl_game_model *model,
 
         if ((tile & 0xc0u) == 0xc0u) {
             tile = (uint16_t)(tile & 63u);
+            uint16_t pwall_pos = model->pushwall_motion.active ? model->pushwall_motion.pos : 0;
+            int step_sign = (side == WL_WALL_SIDE_VERTICAL) ? step_x : step_y;
+            if (wl_build_pushwall_wall_hit(tile, side, (uint32_t)hit_coord, pwall_pos,
+                                           step_sign, x, scaled_height, out) != 0) {
+                return -1;
+            }
+            out->tile_x = (uint16_t)tile_x;
+            out->tile_y = (uint16_t)tile_y;
+            out->distance = (hit_t > UINT32_MAX) ? UINT32_MAX : (uint32_t)hit_t;
+            return 0;
         } else if (tile & 0x80u) {
             uint16_t door_index = (uint16_t)(tile & 0x7fu);
             if (door_index >= model->door_count ||

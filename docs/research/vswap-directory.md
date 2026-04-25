@@ -126,7 +126,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-door-scene tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-pushwall-render tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
@@ -197,3 +197,8 @@ Runtime door-aware ray hits now drive a complete headless camera wall render pat
 ## Cycle update: door-aware runtime scene rendering
 
 The live runtime renderer now has a combined wall+sprite scene entry point. `wl_render_runtime_door_camera_scene_view` renders door-aware wall strips, records live occlusion heights, then projects and composites sprite surfaces. The test keeps all decoded VSWAP pixels local and commits only the resulting closed/open scene hashes for a doorway sprite case.
+
+
+## Cycle update: pushwall render descriptors
+
+Moving pushwall tiles now have a dedicated wall-hit descriptor path. `wl_build_pushwall_wall_hit` maps the original moving tile marker into wall page indices and original-style texture-column orientation, and the live runtime DDA ray helper uses it for `0xc0` tilemap entries. This keeps pushwall rendering deterministic and SDL-free while committing only page/texture metadata assertions.

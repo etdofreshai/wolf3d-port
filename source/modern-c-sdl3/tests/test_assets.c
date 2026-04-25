@@ -1496,6 +1496,34 @@ static int check_wl6(const char *dir) {
     CHECK(door_hit.wall_page_index == 73);
     CHECK(door_hit.texture_offset == 0x0800);
 
+    wl_map_wall_hit pwall_hit;
+    CHECK(wl_build_pushwall_wall_hit(37, WL_WALL_SIDE_HORIZONTAL,
+                                     (4u << 16) + 0x8000u, 16, -1, 34, 128,
+                                     &pwall_hit) == 0);
+    CHECK(pwall_hit.wall_page_index == 72);
+    CHECK(pwall_hit.texture_offset == 0x0800);
+    CHECK(wl_build_pushwall_wall_hit(37, WL_WALL_SIDE_HORIZONTAL,
+                                     (4u << 16) + 0x8000u, 16, 1, 35, 128,
+                                     &pwall_hit) == 0);
+    CHECK(pwall_hit.wall_page_index == 72);
+    CHECK(pwall_hit.texture_offset == 0x07c0);
+    CHECK(wl_build_pushwall_wall_hit(37, WL_WALL_SIDE_VERTICAL,
+                                     (4u << 16) + 0x8000u, 16, -1, 36, 128,
+                                     &pwall_hit) == 0);
+    CHECK(pwall_hit.wall_page_index == 73);
+    CHECK(pwall_hit.texture_offset == 0x07c0);
+    CHECK(wl_build_pushwall_wall_hit(37, WL_WALL_SIDE_VERTICAL,
+                                     (4u << 16) + 0x8000u, 16, 1, 37, 128,
+                                     &pwall_hit) == 0);
+    CHECK(pwall_hit.wall_page_index == 73);
+    CHECK(pwall_hit.texture_offset == 0x0800);
+    CHECK(wl_build_pushwall_wall_hit(0, WL_WALL_SIDE_VERTICAL,
+                                     (4u << 16) + 0x8000u, 16, 1, 37, 128,
+                                     &pwall_hit) == -1);
+    CHECK(wl_build_pushwall_wall_hit(37, WL_WALL_SIDE_VERTICAL,
+                                     (4u << 16) + 0x8000u, 64, 1, 37, 128,
+                                     &pwall_hit) == -1);
+
     const unsigned char *runtime_door_pages[106] = { 0 };
     size_t runtime_door_page_sizes[106] = { 0 };
     int32_t runtime_dirs_x[3];
@@ -2604,6 +2632,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-door-scene tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-pushwall-render tests passed for %s\n", dir);
     return 0;
 }
