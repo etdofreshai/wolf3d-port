@@ -3934,3 +3934,40 @@ Next likely move:
 - Connect patrol stepping to renderer-facing actor refs/scenes, add tic-distance style patrol movement, or broaden actor AI chase/attack progression.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 08:46 CDT
+
+Action taken:
+
+- Connected patrol actor stepping to renderer-facing scene refs.
+- Extended headless tests so `wl_step_patrol_actor` updates a patrol guard slot, then `wl_collect_scene_sprite_refs` reports the moved actor's source/VSWAP metadata and world-center coordinates.
+- Verified the patrol guard keeps source/chunk `58/164` while moving from tile `(5,5)` to `(4,5)` and `(3,5)`, and that a blocked step preserves the previous renderer-facing position.
+- Updated README, runtime/VSWAP/graphics research notes, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-patrol-actor-scene-ref tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/state assertions are committed.
+
+Next likely move:
+
+- Render patrol-stepped actor refs through the headless scene path, add tic-distance style patrol movement, or broaden actor AI chase/attack progression.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

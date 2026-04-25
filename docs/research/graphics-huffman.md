@@ -294,3 +294,8 @@ The final corpse frame emitted by combined full-combat/death ticking now reaches
 ## Cycle update: broadened actor death final refs
 
 The persistent corpse-frame presentation bridge now covers more actor classes. Finalized officer, SS, dog, mutant, and boss death states flow through ordinary scene-ref collection with verified source/VSWAP metadata, preparing the SDL3 renderer path for non-guard corpse sprites.
+
+
+## Cycle update: patrol actor scene refs
+
+The actor movement seam now has presentation-input coverage before SDL3. Patrol stepping updates the runtime actor tile, then scene-ref collection reports deterministic guard sprite metadata and world-center coordinates for future wall+sprite composition.

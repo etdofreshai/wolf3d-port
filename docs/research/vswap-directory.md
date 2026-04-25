@@ -282,3 +282,8 @@ Full-combat/death-tick output now consumes final death-frame VSWAP data in the s
 ## Cycle update: broadened actor death final refs
 
 Final death-frame VSWAP metadata is now asserted for more enemy classes through runtime scene refs: officer source/chunk `284/390`, SS `183/289`, dog `134/240`, mutant `233/339`, and boss `303/409`. Verification remains metadata-only; decoded sprite bytes stay local.
+
+
+## Cycle update: patrol actor scene refs
+
+Patrol stepping now verifies renderer-facing VSWAP metadata remains stable while actor world coordinates change. The patrol guard ref keeps source/chunk `58/164` through `wl_collect_scene_sprite_refs`, proving movement can update scene placement without reclassifying the sprite asset.

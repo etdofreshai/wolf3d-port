@@ -1213,16 +1213,37 @@ static int check_wl6(const char *dir) {
     CHECK(path_model.actors[0].dir == WL_DIR_WEST);
     CHECK(path_model.actors[0].tile_x == 4);
     CHECK(path_model.actors[0].tile_y == 5);
+    wl_scene_sprite_ref patrol_refs[1];
+    size_t patrol_ref_count = 0;
+    CHECK(wl_collect_scene_sprite_refs(&path_model, 106, patrol_refs, 1,
+                                       &patrol_ref_count) == 0);
+    CHECK(patrol_ref_count == 1);
+    CHECK(patrol_refs[0].kind == WL_SCENE_SPRITE_ACTOR);
+    CHECK(patrol_refs[0].model_index == 0);
+    CHECK(patrol_refs[0].source_index == 58);
+    CHECK(patrol_refs[0].vswap_chunk_index == 164);
+    CHECK(patrol_refs[0].world_x == 0x48000u);
+    CHECK(patrol_refs[0].world_y == 0x58000u);
     CHECK(wl_step_patrol_actor(&path_model, 0, &patrol_step) == 0);
     CHECK(patrol_step.stepped == 1);
     CHECK(patrol_step.dir == WL_DIR_WEST);
     CHECK(patrol_step.tile_x == 3);
+    CHECK(wl_collect_scene_sprite_refs(&path_model, 106, patrol_refs, 1,
+                                       &patrol_ref_count) == 0);
+    CHECK(patrol_ref_count == 1);
+    CHECK(patrol_refs[0].world_x == 0x38000u);
+    CHECK(patrol_refs[0].world_y == 0x58000u);
     path_model.tilemap[2 + 5 * WL_MAP_SIDE] = 1;
     CHECK(wl_step_patrol_actor(&path_model, 0, &patrol_step) == 0);
     CHECK(patrol_step.stepped == 0);
     CHECK(patrol_step.blocked == 1);
     CHECK(patrol_step.dir == WL_DIR_NONE);
     CHECK(path_model.actors[0].tile_x == 3);
+    CHECK(wl_collect_scene_sprite_refs(&path_model, 106, patrol_refs, 1,
+                                       &patrol_ref_count) == 0);
+    CHECK(patrol_ref_count == 1);
+    CHECK(patrol_refs[0].world_x == 0x38000u);
+    CHECK(patrol_refs[0].world_y == 0x58000u);
     path_model.actors[0].mode = WL_ACTOR_STAND;
     CHECK(wl_step_patrol_actor(&path_model, 0, &patrol_step) == -1);
     CHECK(wl_step_patrol_actor(&path_model, 1, &patrol_step) == -1);
@@ -4188,6 +4209,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-patrol-actor-step tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-patrol-actor-scene-ref tests passed for %s\n", dir);
     return 0;
 }

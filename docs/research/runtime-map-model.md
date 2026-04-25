@@ -343,3 +343,8 @@ Added the first deterministic patrol-path selection helper. `wl_select_path_dire
 ## Cycle update: patrol actor step seam
 
 The patrol path-direction seam now mutates runtime actor descriptors through `wl_step_patrol_actor`. A patrol actor consumes marker-selected/current direction, advances one tile on clear paths, preserves position on blocked paths, and reports deterministic step/block metadata for future `T_Path` tic-distance integration.
+
+
+## Cycle update: patrol actor scene refs
+
+Patrol actor movement now reaches the normal runtime scene-ref collection path. After `wl_step_patrol_actor` mutates a patrol actor slot, `wl_collect_scene_sprite_refs` emits the updated world-center coordinates while preserving the patrol guard sprite source/VSWAP metadata; blocked steps preserve the previous renderer-facing position.

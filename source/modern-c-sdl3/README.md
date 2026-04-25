@@ -211,3 +211,8 @@ Final corpse-frame actor refs now have coverage beyond the guard path. Headless 
 ## Patrol actor step seam
 
 `wl_step_patrol_actor` now applies the path-direction selection seam to a runtime actor slot: patrol actors update direction and move one tile when the selected path is clear, report blocked state without mutation when the next tile is solid/out of bounds, and reject non-patrol or invalid actor slots. This remains a discrete headless bridge before full original `T_Path` tic-distance movement.
+
+
+## Patrol actor scene refs
+
+Patrol stepping now feeds renderer-facing actor refs. Headless tests step a patrol actor through marker-selected movement, collect `wl_scene_sprite_ref` output after movement and after a blocked step, and verify the patrol guard source/chunk plus world-center coordinates update or persist deterministically.
