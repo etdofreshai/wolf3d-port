@@ -5047,3 +5047,40 @@ Next likely move:
 - Add rendered chase death-final scene hashes for the additional actor classes, or start an SDL3 presentation boundary when SDL3 dev files are available.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 10:06 CDT
+
+Action taken:
+
+- Rendered chase-started death-final scenes for additional actor classes.
+- Extended the officer, SS, mutant, and boss chase/full-combat/death-final cases so their final corpse refs and spawned drops are decoded from local VSWAP data and rendered through the headless scene renderer.
+- Verified stable final corpse/drop scene hashes: officer `0x9b24b352`, SS `0x5b093720`, mutant `0xbfccde1b`, boss `0xc6d3eb4d`.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-ai-chase-death-class-render tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Start a small SDL3 presentation boundary when SDL3 dev files are available, or continue broadening headless live-AI/combat render seams.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

@@ -434,3 +434,8 @@ Headless rendering now verifies the chase-started death animation transition by 
 ## Cycle update: shooter-class chase death-final metadata
 
 Renderer-facing metadata now verifies final corpse source/chunk overrides for chase-started officer, SS, mutant, and boss deaths before broadening rendered hashes.
+
+
+## Cycle update: shooter-class chase death-final render hashes
+
+Headless rendering now pins final corpse/drop hashes for chase-started officer (`0x9b24b352`), SS (`0x5b093720`), mutant (`0xbfccde1b`), and boss (`0xc6d3eb4d`) deaths.

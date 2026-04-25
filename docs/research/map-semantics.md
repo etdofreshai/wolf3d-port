@@ -238,3 +238,8 @@ Chase-started combat now has deterministic multi-frame render semantics: initial
 ## Cycle update: shooter-class chase death-final metadata
 
 Chase-started combat/death semantics now cover multiple shooter actor kinds, preserving moved coordinates through lethal damage and final corpse override selection.
+
+
+## Cycle update: shooter-class chase death-final render hashes
+
+Chase-started class deaths now have deterministic rendered terminal states, proving final corpse override and drop persistence across officer, SS, mutant, and boss semantics.

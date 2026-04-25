@@ -4529,17 +4529,19 @@ static int check_wl6(const char *dir) {
         wl_actor_kind kind;
         uint16_t final_source;
         uint16_t final_chunk;
+        uint32_t final_scene_hash;
     } chase_death_classes[] = {
-        { WL_ACTOR_OFFICER, 284, 390 },
-        { WL_ACTOR_SS, 183, 289 },
-        { WL_ACTOR_MUTANT, 233, 339 },
-        { WL_ACTOR_BOSS, 303, 409 },
+        { WL_ACTOR_OFFICER, 284, 390, 0x9b24b352u },
+        { WL_ACTOR_SS, 183, 289, 0x5b093720u },
+        { WL_ACTOR_MUTANT, 233, 339, 0xbfccde1bu },
+        { WL_ACTOR_BOSS, 303, 409, 0xc6d3eb4du },
     };
     for (size_t death_case = 0;
          death_case < sizeof(chase_death_classes) / sizeof(chase_death_classes[0]);
          ++death_case) {
         wl_game_model chase_class_model;
         memset(&chase_class_model, 0, sizeof(chase_class_model));
+        chase_class_model.tilemap[7 + 4 * WL_MAP_SIDE] = 2;
         chase_class_model.actor_count = 1;
         chase_class_model.actors[0].kind = chase_death_classes[death_case].kind;
         chase_class_model.actors[0].shootable =
@@ -4607,6 +4609,69 @@ static int check_wl6(const char *dir) {
         CHECK(chase_class_model.actors[0].scene_source_override == 1);
         CHECK(chase_class_model.actors[0].scene_source_index ==
               chase_death_classes[death_case].final_source);
+        CHECK(wl_collect_scene_sprite_refs(&chase_class_model,
+                                           dirinfo.header.sprite_start,
+                                           scene_refs,
+                                           sizeof(scene_refs) / sizeof(scene_refs[0]),
+                                           &scene_ref_count) == 0);
+        CHECK(scene_ref_count == 2);
+        CHECK(scene_refs[0].kind == WL_SCENE_SPRITE_STATIC);
+        CHECK(scene_refs[1].kind == WL_SCENE_SPRITE_ACTOR);
+        CHECK(scene_refs[1].source_index ==
+              chase_death_classes[death_case].final_source);
+        const uint16_t chase_class_scene_chunks[] = {
+            chase_class_final.death.death_ref.vswap_chunk_index,
+            scene_refs[0].vswap_chunk_index,
+        };
+        unsigned char chase_class_scene_pixels[WL_MAP_PLANE_WORDS * 2u];
+        wl_indexed_surface chase_class_scene_surfaces_storage[2];
+        CHECK(wl_decode_vswap_sprite_surface_cache(vswap_path, &sprite_dirinfo,
+                                                   chase_class_scene_chunks, 2, 0,
+                                                   chase_class_scene_pixels,
+                                                   sizeof(chase_class_scene_pixels),
+                                                   chase_class_scene_surfaces_storage) == 0);
+        const wl_indexed_surface *chase_class_scene_surfaces[] = {
+            &chase_class_scene_surfaces_storage[0],
+            &chase_class_scene_surfaces_storage[1],
+        };
+        const uint32_t chase_class_scene_x[] = {
+            chase_class_final.death.death_ref.world_x,
+            scene_refs[0].world_x,
+        };
+        const uint32_t chase_class_scene_y[] = {
+            chase_class_final.death.death_ref.world_y,
+            scene_refs[0].world_y,
+        };
+        const uint16_t chase_class_scene_ids[] = {
+            chase_class_final.death.death_ref.source_index,
+            scene_refs[0].source_index,
+        };
+        memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+        CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels,
+                                      sizeof(canvas_pixels), &canvas) == 0);
+        CHECK(wl_render_runtime_door_camera_scene_view(&chase_class_model,
+                                                       dirinfo.header.sprite_start,
+                                                       live_ai_render_motion.x,
+                                                       live_ai_render_motion.y,
+                                                       0x10000, 0, 0, -0x8000,
+                                                       39, 1, 3,
+                                                       runtime_door_pages,
+                                                       runtime_door_page_sizes, 106,
+                                                       chase_class_scene_surfaces,
+                                                       chase_class_scene_x,
+                                                       chase_class_scene_y,
+                                                       chase_class_scene_ids,
+                                                       2, 0,
+                                                       &canvas, runtime_dirs_x,
+                                                       runtime_dirs_y,
+                                                       runtime_view_hits,
+                                                       runtime_view_strips,
+                                                       sprites, wall_heights) == 0);
+        CHECK(sprites[0].source_index ==
+              chase_death_classes[death_case].final_source);
+        CHECK(sprites[0].visible == 1);
+        CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) ==
+              chase_death_classes[death_case].final_scene_hash);
     }
 
     wl_game_model live_drop_scene_model;
@@ -5439,6 +5504,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-chase-death-class-metadata tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-chase-death-class-render tests passed for %s\n", dir);
     return 0;
 }

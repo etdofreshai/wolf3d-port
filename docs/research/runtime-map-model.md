@@ -493,3 +493,8 @@ The chase death render case now records both initial-death and final-corpse scen
 ## Cycle update: shooter-class chase death-final metadata
 
 The chase full-combat/death-final seam now covers officer, SS, mutant, and boss classes. Each case validates final corpse scene-source override after chase movement and full-combat death ticking.
+
+
+## Cycle update: shooter-class chase death-final render hashes
+
+The class-broadened chase death-final metadata now reaches the headless scene renderer. Officer, SS, mutant, and boss cases each render final corpse plus drop after live AI chase movement and death ticking.

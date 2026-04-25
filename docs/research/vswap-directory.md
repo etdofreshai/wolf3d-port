@@ -417,3 +417,8 @@ The VSWAP-backed chase death transition now asserts both sprite phases: initial 
 ## Cycle update: shooter-class chase death-final metadata
 
 Chase death-final metadata now asserts final corpse chunks for officer `284/390`, SS `183/289`, mutant `233/339`, and boss `303/409` without committing decoded VSWAP bytes.
+
+
+## Cycle update: shooter-class chase death-final render hashes
+
+The class death render checks decode local VSWAP chunks only for verification: officer `284/390`, SS `183/289`, mutant `233/339`, boss `303/409`, plus their drops, with hash-only assertions.

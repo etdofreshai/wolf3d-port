@@ -361,3 +361,8 @@ The chase-started death render now explicitly verifies the rendered transition f
 ## Shooter-class chase death-final metadata
 
 Chase-started full-combat/death-final coverage now extends from guards to officer, SS, mutant, and boss shooter classes. Each class completes chase movement, takes lethal damage, advances death ticking, and verifies the expected final corpse source/chunk override.
+
+
+## Shooter-class chase death-final render hashes
+
+Chase-started death-final rendering now includes officer, SS, mutant, and boss final corpse/drop scenes with stable hashes: officer `0x9b24b352`, SS `0x5b093720`, mutant `0xbfccde1b`, boss `0xc6d3eb4d`.
