@@ -910,6 +910,58 @@ int wl_wall_hit_to_strip(const wl_map_wall_hit *hit, const unsigned char *wall_p
     return 0;
 }
 
+int wl_cast_cardinal_wall_ray(const uint16_t *wall_plane, size_t wall_count,
+                              uint16_t start_tile_x, uint16_t start_tile_y,
+                              wl_cardinal_ray_direction direction,
+                              uint16_t texture_column, uint16_t x,
+                              uint16_t scaled_height, wl_map_wall_hit *out) {
+    if (!wall_plane || !out || wall_count < WL_MAP_PLANE_WORDS ||
+        start_tile_x >= WL_MAP_SIDE || start_tile_y >= WL_MAP_SIDE ||
+        texture_column >= WL_MAP_SIDE || scaled_height == 0) {
+        return -1;
+    }
+
+    int dx = 0;
+    int dy = 0;
+    wl_wall_side side = WL_WALL_SIDE_HORIZONTAL;
+    switch (direction) {
+    case WL_RAY_NORTH:
+        dy = -1;
+        side = WL_WALL_SIDE_HORIZONTAL;
+        break;
+    case WL_RAY_EAST:
+        dx = 1;
+        side = WL_WALL_SIDE_VERTICAL;
+        break;
+    case WL_RAY_SOUTH:
+        dy = 1;
+        side = WL_WALL_SIDE_HORIZONTAL;
+        break;
+    case WL_RAY_WEST:
+        dx = -1;
+        side = WL_WALL_SIDE_VERTICAL;
+        break;
+    default:
+        return -1;
+    }
+
+    int tx = start_tile_x;
+    int ty = start_tile_y;
+    while (1) {
+        tx += dx;
+        ty += dy;
+        if (tx < 0 || ty < 0 || tx >= WL_MAP_SIDE || ty >= WL_MAP_SIDE) {
+            return -1;
+        }
+        uint16_t tile = wall_plane[(size_t)ty * WL_MAP_SIDE + (size_t)tx];
+        if (tile == 0 || tile >= 64) {
+            continue;
+        }
+        return wl_build_map_wall_hit(wall_plane, wall_count, (uint16_t)tx, (uint16_t)ty,
+                                     side, texture_column, x, scaled_height, out);
+    }
+}
+
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written) {
     const uint16_t near_tag = 0xa7;

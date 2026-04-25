@@ -117,6 +117,13 @@ typedef enum wl_wall_side {
     WL_WALL_SIDE_VERTICAL = 1,
 } wl_wall_side;
 
+typedef enum wl_cardinal_ray_direction {
+    WL_RAY_NORTH = 0,
+    WL_RAY_EAST = 1,
+    WL_RAY_SOUTH = 2,
+    WL_RAY_WEST = 3,
+} wl_cardinal_ray_direction;
+
 typedef struct wl_wall_strip {
     const unsigned char *wall_page;
     size_t wall_page_size;
@@ -201,6 +208,11 @@ int wl_build_map_wall_hit(const uint16_t *wall_plane, size_t wall_count,
                           uint16_t scaled_height, wl_map_wall_hit *out);
 int wl_wall_hit_to_strip(const wl_map_wall_hit *hit, const unsigned char *wall_page,
                          size_t wall_page_size, wl_wall_strip *out);
+int wl_cast_cardinal_wall_ray(const uint16_t *wall_plane, size_t wall_count,
+                              uint16_t start_tile_x, uint16_t start_tile_y,
+                              wl_cardinal_ray_direction direction,
+                              uint16_t texture_column, uint16_t x,
+                              uint16_t scaled_height, wl_map_wall_hit *out);
 int wl_read_graphics_header(const char *path, wl_graphics_header *out);
 int wl_read_huffman_dictionary(const char *path, wl_huffman_node nodes[WL_HUFFMAN_NODE_COUNT]);
 int wl_huff_expand(const unsigned char *src, size_t src_len,

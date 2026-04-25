@@ -417,6 +417,8 @@ static int check_wl6(const char *dir) {
     unsigned char wall0_buf[4096];
     unsigned char wall9_buf[4096];
     unsigned char wall14_buf[4096];
+    unsigned char wall16_buf[4096];
+    unsigned char wall17_buf[4096];
     unsigned char wall63_buf[4096];
     unsigned char column_buf[64];
     unsigned char surface_column_buf[64];
@@ -525,7 +527,13 @@ static int check_wl6(const char *dir) {
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 14, wall14_buf, sizeof(wall14_buf),
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 4096);
-    wl_map_wall_hit hits[3];
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 16, wall16_buf, sizeof(wall16_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 4096);
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 17, wall17_buf, sizeof(wall17_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 4096);
+    wl_map_wall_hit hits[4];
     CHECK(wl_build_map_wall_hit(wall_plane, WL_MAP_PLANE_WORDS, 0, 0,
                                 WL_WALL_SIDE_HORIZONTAL, 0, 7, 64,
                                 &hits[0]) == 0);
@@ -557,6 +565,38 @@ static int check_wl6(const char *dir) {
     CHECK(wl_build_map_wall_hit(wall_plane, WL_MAP_PLANE_WORDS, 29, 57,
                                 WL_WALL_SIDE_HORIZONTAL, 0, 0, 64,
                                 &hits[0]) == -1);
+    CHECK(wl_cast_cardinal_wall_ray(wall_plane, WL_MAP_PLANE_WORDS, 29, 57,
+                                    WL_RAY_EAST, 32, 5, 96, &hits[0]) == 0);
+    CHECK(hits[0].tile_x == 41);
+    CHECK(hits[0].tile_y == 57);
+    CHECK(hits[0].source_tile == 9);
+    CHECK(hits[0].wall_page_index == 17);
+    CHECK(hits[0].texture_offset == 0x0800);
+    CHECK(wl_cast_cardinal_wall_ray(wall_plane, WL_MAP_PLANE_WORDS, 29, 57,
+                                    WL_RAY_WEST, 32, 15, 96, &hits[1]) == 0);
+    CHECK(hits[1].tile_x == 27);
+    CHECK(hits[1].tile_y == 57);
+    CHECK(hits[1].wall_page_index == 17);
+    CHECK(wl_cast_cardinal_wall_ray(wall_plane, WL_MAP_PLANE_WORDS, 29, 57,
+                                    WL_RAY_NORTH, 32, 25, 96, &hits[2]) == 0);
+    CHECK(hits[2].tile_x == 29);
+    CHECK(hits[2].tile_y == 55);
+    CHECK(hits[2].wall_page_index == 16);
+    CHECK(wl_cast_cardinal_wall_ray(wall_plane, WL_MAP_PLANE_WORDS, 29, 57,
+                                    WL_RAY_SOUTH, 32, 35, 96, &hits[3]) == 0);
+    CHECK(hits[3].tile_x == 29);
+    CHECK(hits[3].tile_y == 59);
+    CHECK(hits[3].wall_page_index == 16);
+    const unsigned char *ray_pages[] = { wall17_buf, wall17_buf, wall16_buf, wall16_buf };
+    wl_wall_strip ray_strips[4];
+    for (size_t i = 0; i < 4; ++i) {
+        CHECK(wl_wall_hit_to_strip(&hits[i], ray_pages[i], 4096, &ray_strips[i]) == 0);
+    }
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_wall_strip_viewport(ray_strips, 4, &canvas) == 0);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0xa4c9e6e1);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 105, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -930,6 +970,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/map-hit tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/cardinal-ray tests passed for %s\n", dir);
     return 0;
 }

@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Map-derived wall-hit descriptors now feed the SDL-free viewport seam on headless Linux for WL6. Next phase should add a first DDA/raycast stepping helper or palette/texture-upload metadata.
+Cardinal map ray stepping now emits wall-hit descriptors into the SDL-free viewport seam on headless Linux for WL6. Next phase should generalize toward fixed-point DDA/raycast columns or add palette/texture-upload metadata.
 
 ## Latest Verified Milestone
 
@@ -19,7 +19,7 @@ Map-derived wall-hit descriptors now feed the SDL-free viewport seam on headless
 - `docs/research/map-decompression.md` records the Carmack/RLEW implementation seam, hash/count assertions, and verification output.
 - `docs/research/map-semantics.md` records original source references and WL6 map 0 semantic-count assertions.
 - `docs/research/runtime-map-model.md` records the pure C runtime model seam, door-area connectivity descriptors, descriptor assertions, and verification output.
-- `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall-page metadata/surface/column-sampler/scaler/viewport/map-hit assertions, sprite shape metadata assertions, sprite post-command metadata assertions, range/count assertions, and verification output.
+- `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall-page metadata/surface/column-sampler/scaler/viewport/map-hit/cardinal-ray assertions, sprite shape metadata assertions, sprite post-command metadata assertions, range/count assertions, and verification output.
 - `docs/research/graphics-huffman.md` records VGAHEAD/VGADICT/VGAGRAPH parsing, pure C Huffman expansion, STRUCTPIC picture-table metadata, planar-to-indexed surface conversion, renderer-facing indexed-surface descriptors, SDL-free indexed blitting, WL6/SOD graphics chunk smoke assertions, and verification output.
 
 ## Verified Findings
@@ -94,18 +94,19 @@ Use tests as the bridge from the original code to modern C:
 18. Fixed-height wall strip scaler. **Done for representative WL6/SOD walls.**
 19. Tiny wall-strip viewport smoke test. **Done for representative WL6/SOD walls.**
 20. Map-derived wall-hit descriptors feeding viewport seam. **Done for representative WL6 map tiles.**
-21. First DDA/raycast stepping helper or palette/texture-upload metadata seam.
+21. Cardinal map ray stepping helper. **Done for WL6 map 0 player-cardinal rays.**
+22. Fixed-point DDA/raycast columns or palette/texture-upload metadata seam.
 
 ## Next Likely Move
 
-Add a first DDA/raycast stepping helper or palette/texture-upload metadata.
+Generalize toward fixed-point DDA/raycast columns or add palette/texture-upload metadata.
 
 Recommended next commit:
 
-- add a first DDA/raycast stepping helper that emits `wl_map_wall_hit` descriptors;
+- generalize cardinal stepping toward fixed-point DDA/raycast columns;
 - or add palette/texture-upload metadata that can later connect `wl_indexed_surface` to SDL3 textures.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit canvas hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal-ray canvas hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
 
 ## Blockers
 
@@ -842,5 +843,43 @@ Safety/legal checks:
 Next likely move:
 
 - Add a first DDA/raycast stepping helper that emits `wl_map_wall_hit` descriptors, or add palette/texture-upload metadata before SDL3 presentation.
+
+Blockers: none.
+
+
+## Cycle 2026-04-24 23:25 CDT
+
+Action taken:
+
+- Added `wl_cardinal_ray_direction` and `wl_cast_cardinal_wall_ray`.
+- The helper walks decoded map-plane tiles north/east/south/west from a starting tile, finds the first solid wall tile, and emits a `wl_map_wall_hit` descriptor.
+- Added WL6 map 0 player-cardinal ray assertions and rendered their resulting viewport strips through the existing SDL-free path.
+- Updated `docs/research/vswap-directory.md` and `source/modern-c-sdl3/README.md`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/cardinal-ray tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash assertions are committed.
+
+Next likely move:
+
+- Generalize toward fixed-point DDA/raycast columns, or add palette/texture-upload metadata before SDL3 presentation.
 
 Blockers: none.
