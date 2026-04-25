@@ -398,3 +398,8 @@ The live actor AI frame wrapper now preserves fine-position patrol output all th
 ## Cycle update: live AI remainder rendering
 
 Multi-frame patrol remainder is now covered at the live AI frame/render boundary. Two half-tile `wl_step_live_actor_ai_tick` calls first emit fine refs, then consume one full tile and clear `patrol_remainder`, proving accumulated movement reaches scene refs and rendering.
+
+
+## Cycle update: live AI dog fine-position rendering
+
+Live AI fine-position refs now cover dog patrol actors as well as guards. The dog remains on its tile with a half-tile budget, emits source/chunk `99/205` at fine world coordinates, and renders through the same door-aware scene path.

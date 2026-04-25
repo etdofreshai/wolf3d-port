@@ -322,3 +322,8 @@ Patrol sprite metadata remains stable while accumulated sub-tile motion changes 
 ## Cycle update: live AI remainder rendering
 
 The VSWAP sprite path now sees accumulated live-AI patrol placement across frames. The guard remains source/chunk `58/164`; only the world coordinates and rendered hashes change (`0xcf61b07b` then `0x6ee1f8bf`).
+
+
+## Cycle update: live AI dog fine-position rendering
+
+The live AI fine-position VSWAP path now validates dog patrol sprite metadata. Source/chunk `99/205` decodes locally and renders with hash `0x08ab64f0`; no decoded sprite bytes are committed.

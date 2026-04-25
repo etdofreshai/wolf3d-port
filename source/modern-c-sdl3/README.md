@@ -266,3 +266,8 @@ Patrol actors now retain sub-tile movement remainder across tic calls. Two half-
 ## Live AI remainder rendering
 
 Accumulated patrol remainder now survives through two live AI frames into rendering: the first half-tile frame renders fine coordinates with hash `0xcf61b07b`, the second half-tile frame consumes a full tile and renders the tile-centered guard with hash `0x6ee1f8bf`.
+
+
+## Live AI dog fine-position rendering
+
+Live AI fine-position rendering now covers a second patrol actor class. A patrol dog uses source/chunk `99/205`, sub-tile world coordinates, local VSWAP decode, and a stable door-aware scene hash `0x08ab64f0`.

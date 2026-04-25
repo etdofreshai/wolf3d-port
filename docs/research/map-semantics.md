@@ -143,3 +143,8 @@ The patrol path/tic seam now models original-style distance accumulation across 
 ## Cycle update: live AI remainder rendering
 
 Patrol path semantics now accumulate partial movement through multiple live AI frames, then render the resulting whole-tile step. This closes the loop from path/tic state to presentation-ready refs.
+
+
+## Cycle update: live AI dog fine-position rendering
+
+Patrol semantics now feed live AI fine-position rendering for a second actor class. Dog patrol starts retain the same path/tic contract while selecting dog sprite metadata.

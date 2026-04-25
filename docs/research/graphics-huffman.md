@@ -339,3 +339,8 @@ Renderer-facing actor movement can now receive accumulated sub-tile patrol state
 ## Cycle update: live AI remainder rendering
 
 The renderer now verifies accumulated sub-tile patrol state across live AI frames. Fine-position and tile-centered guard placement produce distinct stable hashes before any SDL3 dependency is introduced.
+
+
+## Cycle update: live AI dog fine-position rendering
+
+Headless presentation coverage now includes a fine-position patrol dog. The scene renderer projects the dog sprite from live AI refs and verifies stable hash `0x08ab64f0` before SDL3.
