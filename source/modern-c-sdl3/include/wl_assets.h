@@ -89,6 +89,19 @@ typedef struct wl_picture_table_metadata {
     wl_picture_size pictures[WL_GRAPHICS_MAX_CHUNKS];
 } wl_picture_table_metadata;
 
+typedef enum wl_surface_format {
+    WL_SURFACE_INDEXED8 = 1,
+} wl_surface_format;
+
+typedef struct wl_indexed_surface {
+    wl_surface_format format;
+    uint16_t width;
+    uint16_t height;
+    uint16_t stride;
+    size_t pixel_count;
+    unsigned char *pixels;
+} wl_indexed_surface;
+
 typedef struct wl_vswap_shape_metadata {
     wl_vswap_chunk_kind kind;
     uint16_t width;
@@ -142,9 +155,16 @@ int wl_read_graphics_chunk(const char *vgagraph_path, const wl_graphics_header *
                            size_t *bytes_read, size_t *compressed_size);
 int wl_decode_picture_table(const unsigned char *chunk, size_t chunk_size,
                             wl_picture_table_metadata *out);
+int wl_wrap_indexed_surface(uint16_t width, uint16_t height,
+                            unsigned char *pixels, size_t pixel_size,
+                            wl_indexed_surface *out);
 int wl_decode_planar_picture_to_indexed(const unsigned char *planar, size_t planar_size,
                                         uint16_t width, uint16_t height,
                                         unsigned char *indexed, size_t indexed_size);
+int wl_decode_planar_picture_surface(const unsigned char *planar, size_t planar_size,
+                                     uint16_t width, uint16_t height,
+                                     unsigned char *pixels, size_t pixel_size,
+                                     wl_indexed_surface *out);
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written);
 int wl_rlew_expand(const uint16_t *src, size_t src_words, uint16_t rlew_tag,

@@ -44,7 +44,11 @@ Added graphics APIs/types to `wl_assets`:
 - `wl_picture_size`
 - `wl_picture_table_metadata`
 - `wl_decode_picture_table(...)`
+- `wl_surface_format`
+- `wl_indexed_surface`
+- `wl_wrap_indexed_surface(...)`
 - `wl_decode_planar_picture_to_indexed(...)`
+- `wl_decode_planar_picture_surface(...)`
 
 The implementation:
 
@@ -53,6 +57,7 @@ The implementation:
 - ports the original LSB-first Huffman traversal as a pure C function;
 - reads explicit-size `VGAGRAPH` chunks and decodes them into caller-provided buffers;
 - decodes `STRUCTPIC` as width/height metadata for picture chunks;
+- wraps decoded indexed pixels in a renderer-facing `wl_indexed_surface` descriptor with format, width, height, stride, pixel count, and pixel pointer;
 - converts decoded planar picture chunks into linear 8-bit indexed surfaces suitable for a future SDL3 texture/upload boundary;
 - records only sizes/counts/hashes/dimensions in tests and docs, not graphics bytes.
 
@@ -102,7 +107,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/vga-surface tests passed for game-files/base
+asset/decompression/semantics/model/vswap/vga-surface-layer tests passed for game-files/base
 ```
 
 ## Cycle update: STRUCTPIC metadata
@@ -113,6 +118,10 @@ Added `wl_decode_picture_table` to interpret decoded `STRUCTPIC` chunks as origi
 
 Added `wl_decode_planar_picture_to_indexed`, a pure C conversion from the original VGA planar chunk layout into a linear 8-bit indexed surface. Tests assert stable hashes for representative WL6 and optional SOD surfaces while keeping all pixel bytes local and uncommitted.
 
+## Cycle update: surface descriptor layer
+
+Added `wl_indexed_surface` and `wl_decode_planar_picture_surface`, wrapping decoded indexed pixels with the metadata a future SDL3 upload path will need: indexed-8 format, width, height, stride, pixel count, and pixel pointer. Tests assert representative WL6/SOD surface descriptors plus stable surface hashes.
+
 ## Next step
 
-Add a small renderer-facing surface metadata/type layer that can later feed SDL3 textures, or decode raw VSWAP wall page metadata for the raycaster path. Keep headless tests comparing metadata/hashes before adding SDL3 presentation.
+Decode raw VSWAP wall page metadata for the raycaster path, or add a tiny SDL-free blit/composite smoke test that consumes `wl_indexed_surface`. Keep headless tests comparing metadata/hashes before adding SDL3 presentation.

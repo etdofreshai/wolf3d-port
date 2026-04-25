@@ -320,6 +320,27 @@ int wl_decode_picture_table(const unsigned char *chunk, size_t chunk_size,
 }
 
 
+int wl_wrap_indexed_surface(uint16_t width, uint16_t height,
+                            unsigned char *pixels, size_t pixel_size,
+                            wl_indexed_surface *out) {
+    if (!pixels || !out || width == 0 || height == 0) {
+        return -1;
+    }
+    size_t count = (size_t)width * (size_t)height;
+    if (pixel_size < count) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->format = WL_SURFACE_INDEXED8;
+    out->width = width;
+    out->height = height;
+    out->stride = width;
+    out->pixel_count = count;
+    out->pixels = pixels;
+    return 0;
+}
+
 int wl_decode_planar_picture_to_indexed(const unsigned char *planar, size_t planar_size,
                                         uint16_t width, uint16_t height,
                                         unsigned char *indexed, size_t indexed_size) {
@@ -345,6 +366,17 @@ int wl_decode_planar_picture_to_indexed(const unsigned char *planar, size_t plan
         }
     }
     return 0;
+}
+
+int wl_decode_planar_picture_surface(const unsigned char *planar, size_t planar_size,
+                                     uint16_t width, uint16_t height,
+                                     unsigned char *pixels, size_t pixel_size,
+                                     wl_indexed_surface *out) {
+    if (wl_decode_planar_picture_to_indexed(planar, planar_size, width, height,
+                                            pixels, pixel_size) != 0) {
+        return -1;
+    }
+    return wl_wrap_indexed_surface(width, height, pixels, pixel_size, out);
 }
 
 int wl_read_vswap_header(const char *path, wl_vswap_header *out) {
