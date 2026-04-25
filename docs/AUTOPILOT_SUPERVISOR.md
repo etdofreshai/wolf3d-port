@@ -45,6 +45,7 @@ scripts/wolf3d_autopilot_supervisor.py --completion-summary
 scripts/wolf3d_autopilot_supervisor.py --no-completion-summary
 scripts/wolf3d_autopilot_supervisor.py --start-update
 scripts/wolf3d_autopilot_supervisor.py --stop-update
+scripts/wolf3d_autopilot_supervisor.py --clear-stop-files-on-start
 scripts/wolf3d_autopilot_supervisor.py --summary-interval 300  # optional periodic summaries while waiting
 ```
 
@@ -56,6 +57,7 @@ Defaults are intentionally conservative:
 - model preference rotation: `openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1`
 - provider usage-window override: `zai:Monthly`, while other providers default to `Week`
 - extra short-window guard: `5h` must also be inside budget when the provider reports it
+- clear stop files on start: on; removes stale `STOP_AUTOPILOT` and `STOP_AFTER_CURRENT_LOOP` when launching a fresh supervisor
 - start update: on; sends Telegram a short debug line when the supervisor starts
 - graceful stop update: on; reports loops run, elapsed time, models used, and last commit
 - usage skip updates: on; report skipped models to Telegram with used vs allowed percentages
@@ -100,6 +102,8 @@ scripts/wolf3d_autopilot_supervisor.py --no-usage-guard
 This is deliberately simple: near the start of each long or short window, each provider spends slowly; near the end, each provider can use the full 100%. If Codex is over budget but Anthropic or Z.ai is still under budget on both long and short windows, the supervisor should continue on the available provider instead of pausing the whole autopilot.
 
 ## Stop
+
+By default, launching a fresh supervisor clears stale stop files first. Disable that with `--no-clear-stop-files-on-start` if you intentionally want existing stop files to remain.
 
 Immediate stop before another cycle starts:
 

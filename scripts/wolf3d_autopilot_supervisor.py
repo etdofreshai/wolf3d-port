@@ -598,6 +598,15 @@ def cleanup_pid() -> None:
         pass
 
 
+def clear_stop_files() -> None:
+    for path in (STOP_FILE, STOP_AFTER_CYCLE_FILE):
+        try:
+            path.unlink()
+            log(f"cleared stale stop file: {path}")
+        except FileNotFoundError:
+            pass
+
+
 def next_cycle_index() -> int:
     existing = []
     for path in LOG_DIR.glob("autopilot-cycle-*.jsonlog"):
@@ -637,6 +646,7 @@ def main() -> int:
     ap.add_argument("--completion-summary", action=argparse.BooleanOptionalAction, default=True, help="deliver a chat summary after each completed supervisor cycle")
     ap.add_argument("--summary-channel", default="telegram", help="OpenClaw delivery channel for summaries")
     ap.add_argument("--summary-target", default="telegram:-5268853419", help="OpenClaw delivery target for summaries")
+    ap.add_argument("--clear-stop-files-on-start", action=argparse.BooleanOptionalAction, default=True, help="remove STOP_AUTOPILOT and STOP_AFTER_CURRENT_LOOP before starting")
     ap.add_argument("--stop-after-current-loop", action="store_true", help="create the graceful stop file and exit without starting a cycle")
     args = ap.parse_args()
     args.usage_provider_windows = parse_provider_windows(args.usage_provider_windows)
@@ -647,6 +657,9 @@ def main() -> int:
         STOP_AFTER_CYCLE_FILE.write_text(now() + "\n", encoding="utf-8")
         log(f"created graceful stop file: {STOP_AFTER_CYCLE_FILE}")
         return 0
+
+    if args.clear_stop_files_on_start:
+        clear_stop_files()
 
     write_pid()
     stop_ref = {"stop": False}

@@ -3801,3 +3801,33 @@ Next likely move:
 - Remove `state/STOP_AUTOPILOT` and start the supervisor only after ET explicitly says to start.
 
 Blockers: none for headless work.
+
+
+## Cycle 2026-04-25 08:38 CDT Clear Stop Files on Start
+
+Action taken:
+
+- Added startup cleanup for stale stop files so a fresh supervisor launch removes `state/STOP_AUTOPILOT` and `state/STOP_AFTER_CURRENT_LOOP` by default.
+- Added `--clear-stop-files-on-start` / `--no-clear-stop-files-on-start`, defaulting to clear on start.
+- The helper mode `--stop-after-current-loop` still only creates the graceful stop file and exits; it does not clear stop files.
+- Updated supervisor docs with the new default and opt-out.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_autopilot_supervisor.py
+scripts/wolf3d_autopilot_supervisor.py --help
+cd source/modern-c-sdl3 && make test
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Did not start the autopilot.
+
+Next likely move:
+
+- Start the supervisor only after ET explicitly says to start; stale stop files will be cleared automatically.
+
+Blockers: none for headless work.
