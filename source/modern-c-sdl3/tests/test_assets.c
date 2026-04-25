@@ -273,6 +273,7 @@ static int check_wl6(const char *dir) {
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
+    unsigned char indexed_buf[65536];
     size_t graphics_bytes = 0;
     size_t compressed_bytes = 0;
     CHECK(wl_read_graphics_header(vgahead_path, &gh) == 0);
@@ -315,18 +316,39 @@ static int check_wl6(const char *dir) {
     CHECK(compressed_bytes == 3467);
     CHECK(graphics_bytes == 8300);
     CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0xdb48ce2b);
+    CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 3, graphics_buf,
+                                 sizeof(graphics_buf), &graphics_bytes,
+                                 &compressed_bytes) == 0);
+    CHECK(compressed_bytes == 8057);
+    CHECK(graphics_bytes == 8448);
+    CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0x5c152b5c);
+    CHECK(wl_decode_planar_picture_to_indexed(graphics_buf, graphics_bytes,
+                                              pictures.pictures[0].width,
+                                              pictures.pictures[0].height,
+                                              indexed_buf, sizeof(indexed_buf)) == 0);
+    CHECK(fnv1a_bytes(indexed_buf, graphics_bytes) == 0xa9c1ea92);
     CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 87, graphics_buf,
                                  sizeof(graphics_buf), &graphics_bytes,
                                  &compressed_bytes) == 0);
     CHECK(compressed_bytes == 45948);
     CHECK(graphics_bytes == 64000);
     CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0x01643ebc);
+    CHECK(wl_decode_planar_picture_to_indexed(graphics_buf, graphics_bytes,
+                                              pictures.pictures[84].width,
+                                              pictures.pictures[84].height,
+                                              indexed_buf, sizeof(indexed_buf)) == 0);
+    CHECK(fnv1a_bytes(indexed_buf, graphics_bytes) == 0x4b172b02);
     CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 134, graphics_buf,
                                  sizeof(graphics_buf), &graphics_bytes,
                                  &compressed_bytes) == 0);
     CHECK(compressed_bytes == 5127);
     CHECK(graphics_bytes == 10752);
     CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0xeb393cc0);
+    CHECK(wl_decode_planar_picture_to_indexed(graphics_buf, graphics_bytes,
+                                              pictures.pictures[131].width,
+                                              pictures.pictures[131].height,
+                                              indexed_buf, sizeof(indexed_buf)) == 0);
+    CHECK(fnv1a_bytes(indexed_buf, graphics_bytes) == 0x46e4bd08);
 
     wl_vswap_header vs;
     CHECK(wl_read_vswap_header(vswap_path, &vs) == 0);
@@ -477,6 +499,7 @@ static int check_optional_sod(const char *dir) {
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
+    unsigned char indexed_buf[65536];
     size_t graphics_bytes = 0;
     size_t compressed_bytes = 0;
     CHECK(wl_read_graphics_header(vgahead_path, &gh) == 0);
@@ -522,12 +545,33 @@ static int check_optional_sod(const char *dir) {
     CHECK(compressed_bytes == 42248);
     CHECK(graphics_bytes == 64000);
     CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0x3a6afac3);
+    CHECK(wl_decode_planar_picture_to_indexed(graphics_buf, graphics_bytes,
+                                              pictures.pictures[0].width,
+                                              pictures.pictures[0].height,
+                                              indexed_buf, sizeof(indexed_buf)) == 0);
+    CHECK(fnv1a_bytes(indexed_buf, graphics_bytes) == 0x5e85d9c1);
+    CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 90, graphics_buf,
+                                 sizeof(graphics_buf), &graphics_bytes,
+                                 &compressed_bytes) == 0);
+    CHECK(compressed_bytes == 10561);
+    CHECK(graphics_bytes == 12800);
+    CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0xa5d5a6f7);
+    CHECK(wl_decode_planar_picture_to_indexed(graphics_buf, graphics_bytes,
+                                              pictures.pictures[87].width,
+                                              pictures.pictures[87].height,
+                                              indexed_buf, sizeof(indexed_buf)) == 0);
+    CHECK(fnv1a_bytes(indexed_buf, graphics_bytes) == 0xff61711d);
     CHECK(wl_read_graphics_chunk(vgagraph_path, &gh, huff, 149, graphics_buf,
                                  sizeof(graphics_buf), &graphics_bytes,
                                  &compressed_bytes) == 0);
     CHECK(compressed_bytes == 6243);
     CHECK(graphics_bytes == 10752);
     CHECK(fnv1a_bytes(graphics_buf, graphics_bytes) == 0xeb393cc0);
+    CHECK(wl_decode_planar_picture_to_indexed(graphics_buf, graphics_bytes,
+                                              pictures.pictures[146].width,
+                                              pictures.pictures[146].height,
+                                              indexed_buf, sizeof(indexed_buf)) == 0);
+    CHECK(fnv1a_bytes(indexed_buf, graphics_bytes) == 0x46e4bd08);
 
     wl_vswap_header vs;
     CHECK(wl_read_vswap_header(vswap_path, &vs) == 0);
@@ -620,6 +664,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/vga-pictable tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/vga-surface tests passed for %s\n", dir);
     return 0;
 }

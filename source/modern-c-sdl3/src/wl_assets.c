@@ -319,6 +319,34 @@ int wl_decode_picture_table(const unsigned char *chunk, size_t chunk_size,
     return 0;
 }
 
+
+int wl_decode_planar_picture_to_indexed(const unsigned char *planar, size_t planar_size,
+                                        uint16_t width, uint16_t height,
+                                        unsigned char *indexed, size_t indexed_size) {
+    if (!planar || !indexed || width == 0 || height == 0 || (width % 4) != 0) {
+        return -1;
+    }
+
+    size_t pixels = (size_t)width * (size_t)height;
+    if (indexed_size < pixels || planar_size != pixels) {
+        return -1;
+    }
+
+    size_t bytes_per_row_plane = (size_t)width / 4;
+    size_t plane_size = bytes_per_row_plane * (size_t)height;
+    for (size_t plane = 0; plane < 4; ++plane) {
+        const unsigned char *plane_base = planar + plane * plane_size;
+        for (size_t y = 0; y < height; ++y) {
+            const unsigned char *src_row = plane_base + y * bytes_per_row_plane;
+            unsigned char *dst_row = indexed + y * (size_t)width;
+            for (size_t x = 0; x < bytes_per_row_plane; ++x) {
+                dst_row[x * 4 + plane] = src_row[x];
+            }
+        }
+    }
+    return 0;
+}
+
 int wl_read_vswap_header(const char *path, wl_vswap_header *out) {
     if (!path || !out) {
         return -1;

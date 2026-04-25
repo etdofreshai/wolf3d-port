@@ -142,6 +142,9 @@ int wl_read_graphics_chunk(const char *vgagraph_path, const wl_graphics_header *
                            size_t *bytes_read, size_t *compressed_size);
 int wl_decode_picture_table(const unsigned char *chunk, size_t chunk_size,
                             wl_picture_table_metadata *out);
+int wl_decode_planar_picture_to_indexed(const unsigned char *planar, size_t planar_size,
+                                        uint16_t width, uint16_t height,
+                                        unsigned char *indexed, size_t indexed_size);
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written);
 int wl_rlew_expand(const uint16_t *src, size_t src_words, uint16_t rlew_tag,

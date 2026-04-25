@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-STRUCTPIC picture-table metadata decoding is implemented and passing on headless Linux for WL6 and optional SOD. Next phase should start a renderer-facing indexed-surface seam or decode wall-page metadata.
+Planar-to-indexed picture surface conversion is implemented and passing on headless Linux for WL6 and optional SOD. Next phase should add a small renderer-facing surface layer or decode wall-page metadata.
 
 ## Latest Verified Milestone
 
@@ -20,7 +20,7 @@ STRUCTPIC picture-table metadata decoding is implemented and passing on headless
 - `docs/research/map-semantics.md` records original source references and WL6 map 0 semantic-count assertions.
 - `docs/research/runtime-map-model.md` records the pure C runtime model seam, door-area connectivity descriptors, descriptor assertions, and verification output.
 - `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall/sprite shape metadata assertions, sprite post-command metadata assertions, range/count assertions, and verification output.
-- `docs/research/graphics-huffman.md` records VGAHEAD/VGADICT/VGAGRAPH parsing, pure C Huffman expansion, STRUCTPIC picture-table metadata, WL6/SOD graphics chunk smoke assertions, and verification output.
+- `docs/research/graphics-huffman.md` records VGAHEAD/VGADICT/VGAGRAPH parsing, pure C Huffman expansion, STRUCTPIC picture-table metadata, planar-to-indexed surface conversion, WL6/SOD graphics chunk smoke assertions, and verification output.
 
 ## Verified Findings
 
@@ -86,18 +86,19 @@ Use tests as the bridge from the original code to modern C:
 10. VSWAP sprite post-command metadata. **Done for representative WL6/SOD sprites.**
 11. `VGAHEAD`/`VGADICT`/`VGAGRAPH` Huffman smoke test. **Done for representative WL6/SOD chunks.**
 12. `STRUCTPIC` picture metadata interpretation. **Done for WL6/SOD.**
-13. Renderer-facing indexed-surface seam or wall-page metadata decoding.
+13. Renderer-facing indexed-surface seam. **Initial planar-to-indexed conversion done for WL6/SOD.**
+14. Surface metadata/type layer or wall-page metadata decoding.
 
 ## Next Likely Move
 
-Start a renderer-facing indexed-surface seam or decode wall-page metadata.
+Add a small renderer-facing surface metadata/type layer or decode wall-page metadata.
 
 Recommended next commit:
 
-- start a pure indexed-surface buffer seam for decoded picture chunks that can later feed SDL3 textures;
+- add a small surface metadata/type layer for decoded indexed pictures that can later feed SDL3 textures;
 - or decode wall-page column/pixel metadata from raw VSWAP wall chunks for the raycaster path.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
 
 ## Blockers
 
@@ -530,5 +531,44 @@ Safety/legal checks:
 Next likely move:
 
 - Start a renderer-facing indexed-surface seam for decoded pictures, or decode VSWAP wall-page metadata.
+
+Blockers: none.
+
+
+## Cycle 2026-04-24 22:59 CDT
+
+Action taken:
+
+- Added `wl_decode_planar_picture_to_indexed`.
+- Converts original VGA planar picture chunks into linear 8-bit indexed surfaces suitable for a future SDL3 texture/upload boundary.
+- Added WL6 indexed-surface hash assertions for representative picture chunks `3`, `87`, and `134`.
+- Added optional SOD indexed-surface hash assertions for chunks `3`, `90`, and `149`.
+- Updated `docs/research/graphics-huffman.md` and `source/modern-c-sdl3/README.md`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/vga-surface tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only decoded metadata/hash/count/dimension assertions are committed.
+
+Next likely move:
+
+- Add a small surface metadata/type layer for decoded indexed pictures, or decode VSWAP wall-page metadata.
 
 Blockers: none.
