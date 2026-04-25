@@ -1187,6 +1187,48 @@ int wl_cast_projected_wall_ray_batch(const uint16_t *wall_plane, size_t wall_cou
     return 0;
 }
 
+int wl_render_camera_wall_view(const uint16_t *wall_plane, size_t wall_count,
+                               uint32_t origin_x, uint32_t origin_y,
+                               int32_t forward_x, int32_t forward_y,
+                               int32_t plane_x, int32_t plane_y,
+                               uint16_t first_x, uint16_t x_step, size_t ray_count,
+                               const unsigned char *const *wall_pages,
+                               const size_t *wall_page_sizes, size_t wall_page_count,
+                               wl_indexed_surface *dst, int32_t *directions_x,
+                               int32_t *directions_y, wl_map_wall_hit *hits,
+                               wl_wall_strip *strips) {
+    if (!wall_pages || !wall_page_sizes || !dst || !directions_x || !directions_y ||
+        !hits || !strips || ray_count == 0) {
+        return -1;
+    }
+
+    if (wl_build_camera_ray_directions(forward_x, forward_y, plane_x, plane_y,
+                                       dst->width, first_x, x_step, ray_count,
+                                       directions_x, directions_y) != 0) {
+        return -1;
+    }
+
+    if (wl_cast_projected_wall_ray_batch(wall_plane, wall_count, origin_x, origin_y,
+                                         directions_x, directions_y, ray_count,
+                                         first_x, x_step, dst->width, dst->height,
+                                         hits) != 0) {
+        return -1;
+    }
+
+    for (size_t i = 0; i < ray_count; ++i) {
+        uint16_t page = hits[i].wall_page_index;
+        if (page >= wall_page_count || !wall_pages[page] || wall_page_sizes[page] == 0) {
+            return -1;
+        }
+        if (wl_wall_hit_to_strip(&hits[i], wall_pages[page], wall_page_sizes[page],
+                                 &strips[i]) != 0) {
+            return -1;
+        }
+    }
+
+    return wl_render_wall_strip_viewport(strips, ray_count, dst);
+}
+
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written) {
     const uint16_t near_tag = 0xa7;

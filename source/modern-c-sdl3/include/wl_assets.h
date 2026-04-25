@@ -243,6 +243,16 @@ int wl_cast_projected_wall_ray_batch(const uint16_t *wall_plane, size_t wall_cou
                                      size_t ray_count, uint16_t first_x,
                                      uint16_t x_step, uint16_t view_width,
                                      uint16_t view_height, wl_map_wall_hit *out);
+int wl_render_camera_wall_view(const uint16_t *wall_plane, size_t wall_count,
+                               uint32_t origin_x, uint32_t origin_y,
+                               int32_t forward_x, int32_t forward_y,
+                               int32_t plane_x, int32_t plane_y,
+                               uint16_t first_x, uint16_t x_step, size_t ray_count,
+                               const unsigned char *const *wall_pages,
+                               const size_t *wall_page_sizes, size_t wall_page_count,
+                               wl_indexed_surface *dst, int32_t *directions_x,
+                               int32_t *directions_y, wl_map_wall_hit *hits,
+                               wl_wall_strip *strips);
 int wl_read_graphics_header(const char *path, wl_graphics_header *out);
 int wl_read_huffman_dictionary(const char *path, wl_huffman_node nodes[WL_HUFFMAN_NODE_COUNT]);
 int wl_huff_expand(const unsigned char *src, size_t src_len,
