@@ -354,6 +354,13 @@ int wl_build_game_model(const uint16_t *wall_plane, const uint16_t *info_plane,
                     return -1;
                 }
                 ++out->secret_total;
+            } else if (tile == WL_EXITTILE) {
+                /*
+                 * Some boss maps place the original exit trigger on the info plane
+                 * instead of as a wall-plane special. It is not an actor/static and
+                 * should not remain as an unknown info tile in the runtime model.
+                 */
+                continue;
             } else if (tile == 124) {
                 if (add_actor(out, x, y, tile, WL_ACTOR_DEAD_GUARD, WL_ACTOR_INERT,
                               WL_DIR_NONE, 0, 0) != 0) {

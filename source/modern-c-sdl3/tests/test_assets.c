@@ -1938,6 +1938,8 @@ static int check_wl6(const char *dir) {
     } model_maps[] = {
         { 1, "Wolf1 Map2", 16, 61, WL_DIR_NORTH, 47, 344, 40, 40, 62, 4, 52,
           384, 0xab87ed41, 29, 0, 5, 6, 0, 0, 0 },
+        { 8, "Wolf1 Boss", 34, 58, WL_DIR_NORTH, 3, 57, 1, 1, 1, 2, 0,
+          58, 0x950314e6, 0, 0, 0, 0, 0, 1, 0 },
         { 10, "Wolf2 Map1", 7, 45, WL_DIR_EAST, 16, 173, 8, 8, 17, 4, 0,
           181, 0x89b8f3c0, 0, 0, 0, 0, 8, 0, 0 },
         { 18, "Wolf2 Boss", 31, 62, WL_DIR_NORTH, 2, 165, 3, 3, 1, 6, 0,
@@ -1950,6 +1952,8 @@ static int check_wl6(const char *dir) {
           134, 0xe03fdb45, 17, 2, 1, 0, 0, 0, 4 },
         { 38, "Wolf4 Boss", 10, 1, WL_DIR_SOUTH, 9, 130, 9, 9, 1, 1, 0,
           139, 0x7a3bd88c, 1, 7, 0, 0, 0, 1, 0 },
+        { 48, "Wolf5 Boss", 32, 21, WL_DIR_SOUTH, 15, 193, 9, 9, 50, 2, 0,
+          202, 0x05f9df63, 0, 4, 4, 0, 0, 1, 0 },
         { 58, "Wolf6 Boss", 32, 61, WL_DIR_NORTH, 9, 200, 41, 41, 48, 5, 24,
           241, 0x2b8bf08d, 14, 12, 14, 0, 0, 1, 0 },
         { 59, "Wolf6 Secret", 34, 32, WL_DIR_EAST, 29, 386, 37, 37, 35, 17, 8,

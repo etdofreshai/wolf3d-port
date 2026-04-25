@@ -153,6 +153,8 @@ int wl_classify_map_semantics(const uint16_t *wall_plane, const uint16_t *info_p
             ++out->path_markers;
         } else if (tile == WL_PUSHABLETILE) {
             ++out->pushwall_markers;
+        } else if (tile == WL_EXITTILE) {
+            ++out->exit_tiles;
         } else if (in_range(tile, 108, 115)) {
             ++out->guard_easy_starts;
         } else if (in_range(tile, 144, 151)) {
