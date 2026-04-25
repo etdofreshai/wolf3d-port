@@ -1496,6 +1496,54 @@ static int check_wl6(const char *dir) {
     CHECK(door_hit.wall_page_index == 73);
     CHECK(door_hit.texture_offset == 0x0800);
 
+    const unsigned char *runtime_door_pages[106] = { 0 };
+    size_t runtime_door_page_sizes[106] = { 0 };
+    int32_t runtime_dirs_x[3];
+    int32_t runtime_dirs_y[3];
+    wl_map_wall_hit runtime_view_hits[3];
+    wl_wall_strip runtime_view_strips[3];
+    runtime_door_pages[3] = wall3_buf;
+    runtime_door_page_sizes[3] = sizeof(wall3_buf);
+    runtime_door_pages[105] = door105_buf;
+    runtime_door_page_sizes[105] = sizeof(door105_buf);
+    ray_model.tilemap[4 + 4 * WL_MAP_SIDE] = 0x80u;
+    ray_model.tilemap[5 + 4 * WL_MAP_SIDE] = 0;
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_runtime_door_camera_wall_view(&ray_model,
+                                                  dirinfo.header.sprite_start,
+                                                  (3u << 16) + 0x8000u,
+                                                  (4u << 16) + 0x8000u,
+                                                  0x10000, 0, 0, -0x8000, 39, 1, 3,
+                                                  runtime_door_pages,
+                                                  runtime_door_page_sizes, 106,
+                                                  &canvas, runtime_dirs_x, runtime_dirs_y,
+                                                  runtime_view_hits,
+                                                  runtime_view_strips) == 0);
+    CHECK(runtime_view_hits[0].tile_x == 4);
+    CHECK(runtime_view_hits[0].wall_page_index == 105);
+    uint32_t closed_door_view_hash = fnv1a_bytes(canvas.pixels, canvas.pixel_count);
+    ray_model.tilemap[4 + 4 * WL_MAP_SIDE] = 0;
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_runtime_door_camera_wall_view(&ray_model,
+                                                  dirinfo.header.sprite_start,
+                                                  (3u << 16) + 0x8000u,
+                                                  (4u << 16) + 0x8000u,
+                                                  0x10000, 0, 0, -0x8000, 39, 1, 3,
+                                                  runtime_door_pages,
+                                                  runtime_door_page_sizes, 106,
+                                                  &canvas, runtime_dirs_x, runtime_dirs_y,
+                                                  runtime_view_hits,
+                                                  runtime_view_strips) == 0);
+    CHECK(runtime_view_hits[0].tile_x == 6);
+    CHECK(runtime_view_hits[0].wall_page_index == 3);
+    uint32_t open_door_view_hash = fnv1a_bytes(canvas.pixels, canvas.pixel_count);
+    CHECK(closed_door_view_hash == 0x9102177d);
+    CHECK(open_door_view_hash == 0x32a9148e);
+
     CHECK(wl_cast_cardinal_wall_ray(wall_plane, WL_MAP_PLANE_WORDS, 29, 57,
                                     WL_RAY_EAST, 32, 5, 96, &hits[0]) == 0);
     CHECK(hits[0].tile_x == 41);
@@ -2508,6 +2556,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-door-ray tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-door-render tests passed for %s\n", dir);
     return 0;
 }

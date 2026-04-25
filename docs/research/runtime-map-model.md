@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-door-ray tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-door-render tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -173,3 +173,8 @@ Added `wl_build_door_wall_hit`, a renderer-facing descriptor seam for original-s
 ## Cycle update: runtime door-aware ray hits
 
 Added `wl_cast_runtime_fixed_wall_ray`, a live-model DDA seam that reads `wl_game_model::tilemap` instead of immutable wall planes. It skips empty floor and door-side markers, preserves moving pushwall wall ids, and resolves door-center markers through the runtime `wl_door_desc` array so door hits emit the same page/texture metadata as `wl_build_door_wall_hit` with `doorposition` applied. Tests assert a locked opening door hit (`page 105`, texture `0x0400`, distance `0x8000`), the same ray after the door is cleared continuing to a later wall (`page 3`, distance `0x28000`), and a moving pushwall marker producing wall page `73`.
+
+
+## Cycle update: door-aware runtime camera rendering
+
+Added `wl_render_runtime_door_camera_wall_view`, which feeds camera-generated rays through `wl_cast_runtime_fixed_wall_ray` instead of the immutable wall-plane renderer. It projects heights from live hit distances, selects caller-supplied VSWAP wall/door pages by the emitted page index, and renders strips into the existing indexed viewport. The headless test now proves the camera renderer observes door descriptors, not just placeholder solid tiles: a locked opening door view hashes to `0x9102177d`, while clearing that door lets the same rays continue to the later wall and hashes to `0x32a9148e`.
