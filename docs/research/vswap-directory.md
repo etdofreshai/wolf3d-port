@@ -126,7 +126,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/live-solid-ray tests passed for game-files/base
+asset/decompression/semantics/model/vswap/live-runtime-render tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
@@ -172,3 +172,8 @@ Ghost runtime actors now flow through `wl_collect_scene_sprite_refs` with origin
 ## Cycle update: live solid-plane raycast bridge
 
 Runtime tilemap changes from door and pushwall seams can now feed the existing raycaster through `wl_build_runtime_solid_plane`. Headless tests assert that closed doors and moving pushwalls alter cardinal ray hits before a full animated door/pushwall renderer exists. Door centers currently use a caller-selected placeholder wall tile for solid-ray coverage; textured door rendering remains a later presentation/raycast specialization.
+
+
+## Cycle update: live runtime wall rendering
+
+The runtime solid-plane bridge now has a direct wall-view render wrapper, `wl_render_runtime_camera_wall_view`. It reuses existing decoded VSWAP wall-page buffers and asserts deterministic canvas hashes for closed-door versus open-door live tilemap state. Door centers still use a placeholder solid wall tile until textured/animated door rendering is specialized, but the renderer path now observes live runtime collision state instead of only immutable map wall planes.

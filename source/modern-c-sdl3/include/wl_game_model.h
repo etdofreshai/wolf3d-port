@@ -163,6 +163,20 @@ int wl_build_game_model(const uint16_t *wall_plane, const uint16_t *info_plane,
                         wl_game_model *out);
 int wl_build_runtime_solid_plane(const wl_game_model *model, uint16_t door_tile,
                                  uint16_t *out);
+int wl_render_runtime_camera_wall_view(const wl_game_model *model, uint16_t door_tile,
+                                       uint32_t origin_x, uint32_t origin_y,
+                                       int32_t forward_x, int32_t forward_y,
+                                       int32_t plane_x, int32_t plane_y,
+                                       uint16_t first_x, uint16_t x_step,
+                                       size_t ray_count,
+                                       const unsigned char *const *wall_pages,
+                                       const size_t *wall_page_sizes,
+                                       size_t wall_page_count,
+                                       wl_indexed_surface *dst,
+                                       int32_t *directions_x,
+                                       int32_t *directions_y,
+                                       wl_map_wall_hit *hits,
+                                       wl_wall_strip *strips);
 int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_sprite_start,
                                  wl_scene_sprite_ref *refs, size_t max_refs,
                                  size_t *out_count);

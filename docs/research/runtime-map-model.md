@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/live-solid-ray tests passed for game-files/base
+asset/decompression/semantics/model/vswap/live-runtime-render tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -158,3 +158,8 @@ Added runtime pushwall motion state plus `wl_start_pushwall` and `wl_step_pushwa
 ## Cycle update: live solid-plane raycast bridge
 
 Added `wl_build_runtime_solid_plane`, a renderer/raycast-facing bridge from mutable runtime `tilemap` state to the existing wall-ray helpers. The bridge converts clear floor and door-side markers to empty space, keeps normal wall tiles as-is, maps closed door centers to a caller-selected placeholder wall tile until door rendering exists, and preserves moving pushwall wall ids from the low six bits of the original `0xc0` moving marker. Tests now prove live door state affects ray hits: a closed door blocks an east ray, clearing that door lets the ray continue to a later wall, and a moving pushwall marker becomes the first ray hit with its original wall id.
+
+
+## Cycle update: live runtime wall rendering
+
+Added `wl_render_runtime_camera_wall_view`, a headless renderer-facing wrapper that builds the runtime solid plane from `wl_game_model::tilemap` and feeds it into the existing camera wall-view renderer. The committed test uses a tiny synthetic live model to prove render-visible state changes: a closed door center blocks three camera rays and hashes to `0x62d02b0d`; clearing the same door makes those rays continue to a later wall and hashes to `0x32a9148e`. This keeps door/pushwall animation state on the path toward SDL3 presentation without introducing SDL yet.

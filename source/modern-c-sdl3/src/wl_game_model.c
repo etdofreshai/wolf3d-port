@@ -541,6 +541,31 @@ int wl_build_runtime_solid_plane(const wl_game_model *model, uint16_t door_tile,
     return 0;
 }
 
+int wl_render_runtime_camera_wall_view(const wl_game_model *model, uint16_t door_tile,
+                                       uint32_t origin_x, uint32_t origin_y,
+                                       int32_t forward_x, int32_t forward_y,
+                                       int32_t plane_x, int32_t plane_y,
+                                       uint16_t first_x, uint16_t x_step,
+                                       size_t ray_count,
+                                       const unsigned char *const *wall_pages,
+                                       const size_t *wall_page_sizes,
+                                       size_t wall_page_count,
+                                       wl_indexed_surface *dst,
+                                       int32_t *directions_x,
+                                       int32_t *directions_y,
+                                       wl_map_wall_hit *hits,
+                                       wl_wall_strip *strips) {
+    uint16_t runtime_plane[WL_MAP_PLANE_WORDS];
+    if (wl_build_runtime_solid_plane(model, door_tile, runtime_plane) != 0) {
+        return -1;
+    }
+    return wl_render_camera_wall_view(runtime_plane, WL_MAP_PLANE_WORDS,
+                                      origin_x, origin_y, forward_x, forward_y,
+                                      plane_x, plane_y, first_x, x_step, ray_count,
+                                      wall_pages, wall_page_sizes, wall_page_count,
+                                      dst, directions_x, directions_y, hits, strips);
+}
+
 int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_sprite_start,
                                  wl_scene_sprite_ref *refs, size_t max_refs,
                                  size_t *out_count) {

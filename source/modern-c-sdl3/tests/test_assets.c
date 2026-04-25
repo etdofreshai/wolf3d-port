@@ -1252,6 +1252,8 @@ static int check_wl6(const char *dir) {
 
     unsigned char chunk_buf[4096];
     unsigned char wall0_buf[4096];
+    unsigned char wall1_buf[4096];
+    unsigned char wall3_buf[4096];
     unsigned char wall9_buf[4096];
     unsigned char wall14_buf[4096];
     unsigned char wall15_buf[4096];
@@ -1325,6 +1327,13 @@ static int check_wl6(const char *dir) {
                                      sizeof(column_buf)) == -1);
     CHECK(wl_sample_indexed_surface_column(&surface, 64, surface_column_buf,
                                            sizeof(surface_column_buf)) == -1);
+
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 1, wall1_buf, sizeof(wall1_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 4096);
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 3, wall3_buf, sizeof(wall3_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 4096);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 63, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -1711,6 +1720,49 @@ static int check_wl6(const char *dir) {
     CHECK(view_hits[4].wall_page_index == 14);
     CHECK(view_hits[4].scaled_height == 29);
     CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0xfad71929);
+
+    wl_game_model render_model;
+    memset(&render_model, 0, sizeof(render_model));
+    render_model.tilemap[4 + 4 * WL_MAP_SIDE] = 0x80u;
+    render_model.tilemap[6 + 4 * WL_MAP_SIDE] = 2;
+    const unsigned char *runtime_pages[4] = { 0 };
+    size_t runtime_page_sizes[4] = { 0 };
+    runtime_pages[1] = wall1_buf;
+    runtime_page_sizes[1] = sizeof(wall1_buf);
+    runtime_pages[3] = wall3_buf;
+    runtime_page_sizes[3] = sizeof(wall3_buf);
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_runtime_camera_wall_view(&render_model, 1,
+                                             (3u << 16) + 0x8000u,
+                                             (4u << 16) + 0x8000u,
+                                             0x10000, 0, 0, -0x8000, 39, 1, 3,
+                                             runtime_pages, runtime_page_sizes, 4,
+                                             &canvas, camera_dirs_x, camera_dirs_y,
+                                             view_hits, view_strips) == 0);
+    CHECK(view_hits[0].tile_x == 4);
+    CHECK(view_hits[0].source_tile == 1);
+    CHECK(view_hits[1].wall_page_index == 1);
+    uint32_t closed_runtime_hash = fnv1a_bytes(canvas.pixels, canvas.pixel_count);
+    render_model.tilemap[4 + 4 * WL_MAP_SIDE] = 0;
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_runtime_camera_wall_view(&render_model, 1,
+                                             (3u << 16) + 0x8000u,
+                                             (4u << 16) + 0x8000u,
+                                             0x10000, 0, 0, -0x8000, 39, 1, 3,
+                                             runtime_pages, runtime_page_sizes, 4,
+                                             &canvas, camera_dirs_x, camera_dirs_y,
+                                             view_hits, view_strips) == 0);
+    CHECK(view_hits[0].tile_x == 6);
+    CHECK(view_hits[0].source_tile == 2);
+    CHECK(view_hits[1].wall_page_index == 3);
+    uint32_t open_runtime_hash = fnv1a_bytes(canvas.pixels, canvas.pixel_count);
+    CHECK(closed_runtime_hash == 0x62d02b0d);
+    CHECK(open_runtime_hash == 0x32a9148e);
+
     view_pages[15] = NULL;
     CHECK(wl_render_camera_wall_view(wall_plane, WL_MAP_PLANE_WORDS, player_x,
                                      player_y, 0x10000, 0, 0, -0x8000, 30, 1, 5,
@@ -2375,6 +2427,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/live-solid-ray tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/live-runtime-render tests passed for %s\n", dir);
     return 0;
 }
