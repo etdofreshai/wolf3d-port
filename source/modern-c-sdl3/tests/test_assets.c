@@ -1311,6 +1311,52 @@ static int check_wl6(const char *dir) {
     CHECK(path_model.actors[2].tile_x == 20);
     CHECK(wl_step_patrol_actors_tics(&path_model, 0x10000u, -1,
                                      &patrols_tics) == -1);
+
+    wl_game_model live_ai_model;
+    memset(&live_ai_model, 0, sizeof(live_ai_model));
+    live_ai_model.actor_count = 2;
+    live_ai_model.actors[0].kind = WL_ACTOR_GUARD;
+    live_ai_model.actors[0].mode = WL_ACTOR_PATROL;
+    live_ai_model.actors[0].dir = WL_DIR_EAST;
+    live_ai_model.actors[0].tile_x = 5;
+    live_ai_model.actors[0].tile_y = 5;
+    live_ai_model.actors[1].kind = WL_ACTOR_GUARD;
+    live_ai_model.actors[1].mode = WL_ACTOR_STAND;
+    live_ai_model.actors[1].dir = WL_DIR_WEST;
+    live_ai_model.actors[1].tile_x = 8;
+    live_ai_model.actors[1].tile_y = 8;
+    wl_player_gameplay_state live_ai_player;
+    wl_player_motion_state live_ai_motion = {0x38000u, 0x38000u, 3, 3};
+    wl_live_actor_ai_tick_result live_ai;
+    uint16_t empty_plane[WL_MAP_PLANE_WORDS] = { 0 };
+    CHECK(wl_init_player_gameplay_state(&live_ai_player, 100, 3, 0,
+                                        WL_EXTRA_POINTS) == 0);
+    CHECK(wl_step_live_actor_ai_tick(&live_ai_player, &live_ai_model,
+                                     empty_plane, empty_plane,
+                                     WL_MAP_PLANE_WORDS, &live_ai_motion,
+                                     0, 0, 0x10000, 0, WL_DIR_EAST,
+                                     0, 0, 0x10000u, 1, &live_ai) == 0);
+    CHECK(live_ai.live.palette.kind == WL_PALETTE_SHIFT_NONE);
+    CHECK(live_ai.patrols_stepped == 1);
+    CHECK(live_ai.patrols.actors_considered == 1);
+    CHECK(live_ai.patrols.actors_stepped == 1);
+    CHECK(live_ai.patrols.tiles_stepped == 1);
+    CHECK(live_ai_model.actors[0].tile_x == 6);
+    CHECK(live_ai_model.actors[1].tile_x == 8);
+    live_ai_model.tilemap[7 + 5 * WL_MAP_SIDE] = 1;
+    CHECK(wl_step_live_actor_ai_tick(&live_ai_player, &live_ai_model,
+                                     empty_plane, empty_plane,
+                                     WL_MAP_PLANE_WORDS, &live_ai_motion,
+                                     0, 0, 0x10000, 0, WL_DIR_EAST,
+                                     0, 0, 0x10000u, 1, &live_ai) == 0);
+    CHECK(live_ai.patrols_stepped == 0);
+    CHECK(live_ai.patrols.actors_blocked == 1);
+    CHECK(live_ai_model.actors[0].tile_x == 6);
+    CHECK(wl_step_live_actor_ai_tick(&live_ai_player, &live_ai_model,
+                                     empty_plane, empty_plane,
+                                     WL_MAP_PLANE_WORDS, &live_ai_motion,
+                                     0, 0, 0x10000, 0, WL_DIR_EAST,
+                                     0, 0, 0x10000u, -1, &live_ai) == -1);
     CHECK(model.pushwall_count == 5);
     CHECK(model.secret_total == 5);
     CHECK(model.pushwalls[0].x == 10);
@@ -4308,6 +4354,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-patrol-actors-tick tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-actor-ai-patrol tests passed for %s\n", dir);
     return 0;
 }

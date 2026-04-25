@@ -231,3 +231,8 @@ Patrol actor scene-ref metadata now reaches the headless wall+sprite scene rende
 ## Patrol actors batch tick
 
 `wl_step_patrol_actors_tics` now applies the tic-budgeted patrol seam across all `WL_ACTOR_PATROL` runtime actors while skipping stand/inert actors. The aggregate result reports considered, stepped, blocked, and total tile-step counts for a future broader live actor AI tick.
+
+
+## Live actor AI patrol tick
+
+`wl_step_live_actor_ai_tick` now folds patrol actor ticking into the same headless live-frame boundary used for player motion/use/doors/pushwalls/palette. It returns normal live tick output plus aggregate patrol AI movement metadata, giving future SDL3 presentation one frame result for environmental and patrol actor updates.

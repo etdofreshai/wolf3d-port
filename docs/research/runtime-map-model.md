@@ -363,3 +363,8 @@ Added a tile-granular `T_Path`-style budget loop. `wl_step_patrol_actor_tics` co
 ## Cycle update: patrol actors batch tick
 
 Added a small multi-actor patrol tick seam. `wl_step_patrol_actors_tics` scans the runtime actor list, applies the tic-budgeted patrol step only to patrol-mode actors, skips standing actors, and reports aggregate considered/stepped/blocked/tile counts for future live AI orchestration.
+
+
+## Cycle update: live actor AI patrol tick
+
+Patrol actor ticking now has a broader live-frame wrapper. `wl_step_live_actor_ai_tick` runs the existing live tick sequence, then applies aggregate patrol movement and returns both live environment/palette output and patrol AI counts, keeping actor AI mutation ready for renderer-facing collection.

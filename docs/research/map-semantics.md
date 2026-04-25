@@ -108,3 +108,8 @@ Patrol path metadata now participates in a tic-budgeted actor movement seam. The
 ## Cycle update: patrol actors batch tick
 
 Patrol actor metadata now feeds a batch runtime AI tick. Headless tests verify one patrol actor moves, one blocked patrol actor stays put, and a standing actor is skipped while aggregate step/block counts remain deterministic.
+
+
+## Cycle update: live actor AI patrol tick
+
+Runtime patrol metadata now participates in a live frame boundary, not only isolated helpers. The headless test verifies a patrol actor moves after the live tick, standing actors are skipped, blocked patrols report aggregate blocked state, and negative tics are rejected.

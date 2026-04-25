@@ -304,3 +304,8 @@ The actor movement seam now has presentation-input coverage before SDL3. Patrol 
 ## Cycle update: patrol actor scene render
 
 The patrol actor movement/ref seam now reaches indexed scene composition before SDL3. A patrol guard ref is projected through the runtime door-aware scene renderer with stable source/visibility/hash assertions, keeping presentation verification headless.
+
+
+## Cycle update: live actor AI patrol tick
+
+The actor AI movement seam now returns from a presentation-facing live frame result. Patrol movement can be advanced alongside palette/environment tick output before later scene-ref collection and SDL3 upload.

@@ -1691,6 +1691,36 @@ int wl_step_live_tick(wl_player_gameplay_state *state, wl_game_model *model,
     return 0;
 }
 
+int wl_step_live_actor_ai_tick(wl_player_gameplay_state *state,
+                               wl_game_model *model,
+                               const uint16_t *wall_plane,
+                               const uint16_t *info_plane,
+                               size_t word_count,
+                               wl_player_motion_state *motion,
+                               int32_t xmove, int32_t ymove,
+                               int32_t forward_x, int32_t forward_y,
+                               wl_direction facing, int use_button,
+                               int button_held,
+                               uint32_t patrol_speed,
+                               int32_t tics,
+                               wl_live_actor_ai_tick_result *out) {
+    if (!state || !model || !wall_plane || !info_plane || !motion || !out ||
+        tics < 0) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    if (wl_step_live_tick(state, model, wall_plane, info_plane, word_count,
+                          motion, xmove, ymove, forward_x, forward_y, facing,
+                          use_button, button_held, tics, &out->live) != 0) {
+        return -1;
+    }
+    if (wl_step_patrol_actors_tics(model, patrol_speed, tics, &out->patrols) != 0) {
+        return -1;
+    }
+    out->patrols_stepped = out->patrols.tiles_stepped > 0 ? 1u : 0u;
+    return 0;
+}
+
 int wl_step_live_projectile_tick(wl_player_gameplay_state *state,
                                  wl_game_model *model,
                                  const uint16_t *wall_plane,
