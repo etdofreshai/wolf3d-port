@@ -30,7 +30,8 @@ Useful options:
 ```bash
 scripts/wolf3d_autopilot_supervisor.py --max-cycles 1
 scripts/wolf3d_autopilot_supervisor.py --thinking low --summary-thinking low
-scripts/wolf3d_autopilot_supervisor.py --models 'openai-codex/gpt-5.5,anthropic/claude-opus-4.7'
+scripts/wolf3d_autopilot_supervisor.py --models 'openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1'
+scripts/wolf3d_autopilot_supervisor.py --usage-provider-windows 'zai:Monthly,openai-codex:Week'
 scripts/wolf3d_autopilot_supervisor.py --no-fast-mode
 scripts/wolf3d_autopilot_supervisor.py --worker-poll 30 --max-worker-wait 7200
 scripts/wolf3d_autopilot_supervisor.py --completion-summary
@@ -43,19 +44,22 @@ Defaults are intentionally conservative:
 - cycle thinking: `low`
 - summary thinking: `low`
 - fast mode: off
-- model preference rotation: `openai-codex/gpt-5.5,anthropic/claude-opus-4.7`
+- model preference rotation: `openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1`
+- provider usage-window override: `zai:Monthly`, while other providers default to `Week`
 - usage guard: on; skip over-budget providers and pause only if all configured providers are over budget
 
 Current OpenClaw CLI builds may not expose a direct `openclaw agent --model` flag. The supervisor still rotates the model preference and injects it into the cycle prompt; if a future CLI exposes `--model`, the supervisor will pass it automatically.
 
 ## Usage budget guard
 
-The supervisor checks `openclaw status --usage --json` before each cycle. It infers each model's provider from the prefix before `/` in `--models` (`openai-codex/gpt-5.5` → `openai-codex`, `anthropic/claude-opus-4.7` → `anthropic`) and compares that provider's `usedPercent` to a linear weekly budget curve.
+The supervisor checks `openclaw status --usage --json` before each cycle. It infers each model's provider from the prefix before `/` in `--models` (`openai-codex/gpt-5.5` → `openai-codex`, `anthropic/claude-opus-4.7` → `anthropic`, `zai/glm-5.1` → `zai`) and compares that provider's `usedPercent` to the configured window's budget curve.
 
 Default policy:
 
-- infer the budget start as `resetAt - 7 days`
-- allow usage up to `elapsed_week_percent + 5%` slack
+- default to the `Week` usage window unless a provider override exists
+- use `zai:Monthly` by default because Z.ai reports a monthly quota window
+- infer the budget start from the window label: `Monthly` → `resetAt - 30 days`, `Week` → `resetAt - 7 days`, `5h` → `resetAt - 5 hours`
+- allow usage up to `elapsed_window_percent + 5%` slack
 - allow at least `3%` early in the window
 - if one provider is ahead of schedule, skip that model and try the next configured provider
 - if all configured providers are ahead of schedule, sleep until the earliest provider should be back inside budget, then re-check
@@ -63,8 +67,8 @@ Default policy:
 Useful options:
 
 ```bash
-scripts/wolf3d_autopilot_supervisor.py --models 'openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-4.6'
-scripts/wolf3d_autopilot_supervisor.py --usage-provider openai-codex --usage-window Week
+scripts/wolf3d_autopilot_supervisor.py --models 'openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1'
+scripts/wolf3d_autopilot_supervisor.py --usage-window Week --usage-provider-windows 'zai:Monthly'
 scripts/wolf3d_autopilot_supervisor.py --usage-budget-start 2026-04-22T12:33:16Z
 scripts/wolf3d_autopilot_supervisor.py --usage-budget-reset 2026-04-29T12:33:16Z
 scripts/wolf3d_autopilot_supervisor.py --usage-slack-percent 10

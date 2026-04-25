@@ -216,6 +216,39 @@ def build_agent_command(
     return cmd
 
 
+def parse_provider_windows(raw: str) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for part in raw.split(","):
+        item = part.strip()
+        if not item:
+            continue
+        if ":" not in item:
+            raise ValueError(f"provider window override must be provider:window, got {item!r}")
+        provider, window = item.split(":", 1)
+        provider = provider.strip()
+        window = window.strip()
+        if not provider or not window:
+            raise ValueError(f"provider window override must be provider:window, got {item!r}")
+        result[provider] = window
+    return result
+
+
+def usage_window_for_provider(args: argparse.Namespace, provider: str) -> str:
+    return args.usage_provider_windows.get(provider, args.usage_window)
+
+
+def budget_start_for_window(reset_at: datetime, window_label: str) -> datetime:
+    label = window_label.lower()
+    if "month" in label:
+        return reset_at - timedelta(days=30)
+    if "week" in label:
+        return reset_at - timedelta(days=7)
+    match = re.search(r"(\d+)\s*h", label)
+    if match:
+        return reset_at - timedelta(hours=int(match.group(1)))
+    return reset_at - timedelta(days=7)
+
+
 def find_usage_window(status: dict[str, Any], provider: str, window_label: str) -> dict[str, Any] | None:
     usage = status.get("usage") or {}
     for item in usage.get("providers") or []:
@@ -242,9 +275,10 @@ def load_usage_status() -> dict[str, Any] | None:
 def usage_wait_seconds_for_provider(args: argparse.Namespace, status: dict[str, Any] | None, provider: str) -> int:
     if status is None:
         return 0
-    window = find_usage_window(status, provider, args.usage_window)
+    window_label = usage_window_for_provider(args, provider)
+    window = find_usage_window(status, provider, window_label)
     if not window:
-        log(f"usage guard: no {args.usage_window} usage window for provider={provider}; treating provider as available")
+        log(f"usage guard: no {window_label} usage window for provider={provider}; treating provider as available")
         return 0
     used_percent = float(window.get("usedPercent") or 0)
     reset_at_ms = window.get("resetAt")
@@ -253,16 +287,16 @@ def usage_wait_seconds_for_provider(args: argparse.Namespace, status: dict[str, 
     elif reset_at_ms:
         reset_at = datetime.fromtimestamp(float(reset_at_ms) / 1000, tz=timezone.utc)
     else:
-        log(f"usage guard: provider={provider} has no resetAt; treating provider as available")
+        log(f"usage guard: provider={provider} window={window_label} has no resetAt; treating provider as available")
         return 0
-    start_at = parse_iso_datetime(args.usage_budget_start) if args.usage_budget_start else reset_at - timedelta(days=7)
+    start_at = parse_iso_datetime(args.usage_budget_start) if args.usage_budget_start else budget_start_for_window(reset_at, window_label)
     now_dt = datetime.now(timezone.utc)
     total = max((reset_at - start_at).total_seconds(), 1)
     elapsed = min(max((now_dt - start_at).total_seconds(), 0), total)
     elapsed_percent = elapsed / total * 100.0
     allowed_percent = min(100.0, max(args.usage_min_allowed_percent, elapsed_percent + args.usage_slack_percent))
     log(
-        f"usage guard: provider={provider} window={args.usage_window} "
+        f"usage guard: provider={provider} window={window_label} "
         f"used={used_percent:.1f}% allowed={allowed_percent:.1f}% reset={reset_at.isoformat()}"
     )
     if used_percent <= allowed_percent:
@@ -270,7 +304,7 @@ def usage_wait_seconds_for_provider(args: argparse.Namespace, status: dict[str, 
     target_elapsed_percent = max(0.0, min(100.0, used_percent - args.usage_slack_percent))
     resume_at = start_at + timedelta(seconds=total * (target_elapsed_percent / 100.0))
     wait_seconds = max(0, int((resume_at - now_dt).total_seconds()))
-    log(f"usage guard: provider={provider} blocked until {resume_at.isoformat()} ({wait_seconds}s)")
+    log(f"usage guard: provider={provider} window={window_label} blocked until {resume_at.isoformat()} ({wait_seconds}s)")
     return wait_seconds
 
 
@@ -395,12 +429,13 @@ def main() -> int:
     ap.add_argument("--timeout", type=int, default=1800, help="OpenClaw agent turn timeout seconds")
     ap.add_argument("--thinking", default="low", help="cycle thinking level: off|minimal|low|medium|high|xhigh|adaptive|max")
     ap.add_argument("--summary-thinking", default="low", help="completion/periodic summary thinking level")
-    ap.add_argument("--models", default="openai-codex/gpt-5.5,anthropic/claude-opus-4.7", help="comma-separated preferred model rotation; provider is inferred from the prefix before '/'")
+    ap.add_argument("--models", default="openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1", help="comma-separated preferred model rotation; provider is inferred from the prefix before '/'")
     ap.add_argument("--fast-mode", action=argparse.BooleanOptionalAction, default=False, help="request fast mode if the OpenClaw CLI supports it; default is off")
     ap.add_argument("--usage-guard", action=argparse.BooleanOptionalAction, default=True, help="skip over-budget model providers and pause only when every configured provider is ahead of schedule")
     ap.add_argument("--usage-provider", default="openai-codex", help="fallback provider key from openclaw status --usage for models without a provider prefix")
-    ap.add_argument("--usage-window", default="Week", help="usage window label from openclaw status --usage")
-    ap.add_argument("--usage-budget-start", default="", help="ISO timestamp for weekly budget start; default is reset minus 7 days")
+    ap.add_argument("--usage-window", default="Week", help="default usage window label from openclaw status --usage")
+    ap.add_argument("--usage-provider-windows", default="zai:Monthly", help="comma-separated provider:window overrides, e.g. zai:Monthly,openai-codex:Week")
+    ap.add_argument("--usage-budget-start", default="", help="ISO timestamp for budget start; default is inferred from the usage window label")
     ap.add_argument("--usage-budget-reset", default="", help="ISO timestamp for weekly budget reset; default uses provider resetAt")
     ap.add_argument("--usage-slack-percent", type=float, default=5.0, help="allowed percentage above the linear weekly budget curve")
     ap.add_argument("--usage-min-allowed-percent", type=float, default=3.0, help="minimum allowed percentage early in a budget window")
@@ -410,6 +445,7 @@ def main() -> int:
     ap.add_argument("--summary-channel", default="telegram", help="OpenClaw delivery channel for summaries")
     ap.add_argument("--summary-target", default="telegram:-5268853419", help="OpenClaw delivery target for summaries")
     args = ap.parse_args()
+    args.usage_provider_windows = parse_provider_windows(args.usage_provider_windows)
 
     write_pid()
     stop_ref = {"stop": False}

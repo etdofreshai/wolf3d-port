@@ -3561,3 +3561,33 @@ Next likely move:
 - Add real model IDs for any additional providers once confirmed by the OpenClaw runtime, then run the supervisor so it can skip exhausted providers automatically.
 
 Blockers: none for headless work. Direct model switching still depends on OpenClaw CLI support for `openclaw agent --model`; until then selected models remain prompt-level preferences.
+
+
+## Cycle 2026-04-25 08:11 CDT
+
+Action taken:
+
+- Updated provider usage budgeting to support provider-specific usage windows instead of assuming every provider is weekly.
+- Added `--usage-provider-windows` overrides, defaulting to `zai:Monthly`, so Z.ai's monthly quota window is paced monthly while Codex/Anthropic can continue using the default `Week` window.
+- Added automatic budget-period inference from the usage window label: `Monthly` uses a 30-day budget period, `Week` uses 7 days, and labels like `5h` use the matching hourly period.
+- Added Z.ai to the default model rotation as `zai/glm-5.1`.
+- Updated supervisor docs with monthly Z.ai examples and provider-window override guidance.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_autopilot_supervisor.py
+scripts/wolf3d_autopilot_supervisor.py --help
+cd source/modern-c-sdl3 && make test
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+
+Next likely move:
+
+- Run one dry/limited supervisor cycle once model switching support is confirmed, or continue headless port work using the updated provider-aware budget policy.
+
+Blockers: direct model switching still depends on OpenClaw CLI support for `openclaw agent --model`; selected models are prompt-level preferences until that exists.
