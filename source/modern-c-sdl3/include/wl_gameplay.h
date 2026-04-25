@@ -139,6 +139,15 @@ typedef struct wl_pushwall_step_result {
     uint16_t pos;
 } wl_pushwall_step_result;
 
+typedef struct wl_live_tick_result {
+    wl_player_step_result motion;
+    wl_player_use_result use;
+    wl_door_step_result doors;
+    wl_pushwall_step_result pushwall;
+    wl_palette_shift_result palette;
+    uint8_t used;
+} wl_live_tick_result;
+
 int wl_init_player_gameplay_state(wl_player_gameplay_state *state,
                                   int32_t health, int32_t lives,
                                   int32_t score, int32_t next_extra);
@@ -183,6 +192,13 @@ int wl_start_pushwall(wl_player_gameplay_state *state, wl_game_model *model,
                       wl_pushwall_step_result *out);
 int wl_step_pushwall(wl_game_model *model, int32_t tics,
                      wl_pushwall_step_result *out);
+int wl_step_live_tick(wl_player_gameplay_state *state, wl_game_model *model,
+                      const uint16_t *wall_plane, const uint16_t *info_plane,
+                      size_t word_count, wl_player_motion_state *motion,
+                      int32_t xmove, int32_t ymove,
+                      int32_t forward_x, int32_t forward_y,
+                      wl_direction facing, int use_button, int button_held,
+                      int32_t tics, wl_live_tick_result *out);
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state);
 
 #ifdef __cplusplus

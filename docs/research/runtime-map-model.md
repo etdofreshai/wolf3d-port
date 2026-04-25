@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-live-ref-scene tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-live-tick tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -203,3 +203,8 @@ Extended headless runtime-scene coverage so moving pushwall markers participate 
 ## Cycle update: live runtime-ref scene rendering
 
 Broadened runtime-scene coverage by feeding five real WL6 map-0 `wl_collect_scene_sprite_refs` outputs through the mutable-model door-aware scene renderer. The test decodes the required VSWAP sprite surfaces locally, renders them with `wl_render_runtime_door_camera_scene_view`, asserts the live door center at `(32,57)` emits door page `99`, then clears that tile and confirms the same rays continue to the later wall page `15`. Scene hashes distinguish closed-door (`0x21495346`) and open-door (`0x2e4660d2`) live runtime-ref composition without committing decoded asset bytes.
+
+
+## Cycle update: headless live gameplay tick
+
+Added `wl_step_live_tick`, a deterministic orchestration seam that ties together existing player motion, visible pickup probing, optional use-button dispatch, door stepping, pushwall stepping, and palette-shift updates. This is not a full game loop yet, but it gives future SDL3 input/render frames one pure-C state transition entry point. Headless tests verify a movement tick can pick up food, heal the player, deactivate the runtime static, and emit a white palette shift; a separate use tick starts a pushwall and advances it across the first block boundary in the same call.

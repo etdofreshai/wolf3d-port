@@ -179,3 +179,8 @@ Extended `wl_gameplay` to model original-style pickup events from `GetBonus`, `G
 ## Cycle update: runtime static pickup hooks
 
 Connected bonus pickup semantics to runtime static descriptors with `wl_try_pickup_static_bonus`. Active bonus statics map from `statinfo` type ids to `wl_bonus_item`, call the same gameplay event seam, and are deactivated only when the pickup succeeds, matching the original `GetBonus` behavior where full-health/full-ammo pickups remain in the world. Scene-ref collection skips inactive statics, giving renderer-facing proof that a consumed bonus disappears from future sprite input without mutating asset bytes.
+
+
+## Cycle update: live tick palette bridge
+
+The gameplay palette-shift state is now advanced through `wl_step_live_tick`, alongside movement/use/door/pushwall state. The new tick test proves a food pickup can start the bonus flash and return a white palette-selection result from the same headless update call, keeping future SDL3 texture-upload/palette selection tied to gameplay events without needing a display.

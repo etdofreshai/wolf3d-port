@@ -603,6 +603,57 @@ static int check_wl6(const char *dir) {
     CHECK(use_model.tilemap[5 + 4 * WL_MAP_SIDE] == 0);
     CHECK(use_model.tilemap[6 + 4 * WL_MAP_SIDE] == 37);
 
+    wl_live_tick_result live_tick;
+    wl_game_model live_tick_pickup_model;
+    memset(&live_tick_pickup_model, 0, sizeof(live_tick_pickup_model));
+    live_tick_pickup_model.static_count = 1;
+    live_tick_pickup_model.statics[0].x = 4;
+    live_tick_pickup_model.statics[0].y = 4;
+    live_tick_pickup_model.statics[0].type = 24;
+    live_tick_pickup_model.statics[0].bonus = 1;
+    live_tick_pickup_model.statics[0].active = 1;
+    wl_player_motion_state live_tick_motion = {0x3f000u, 0x48000u, 3, 4};
+    CHECK(wl_init_player_gameplay_state(&pickup_state, 90, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_step_live_tick(&pickup_state, &live_tick_pickup_model,
+                            use_wall, use_info, WL_MAP_PLANE_WORDS,
+                            &live_tick_motion, 0x1000, 0, 0x10000, 0,
+                            WL_DIR_EAST, 0, 0, 1, &live_tick) == 0);
+    CHECK(live_tick.motion.moved == 1);
+    CHECK(live_tick.motion.picked_up == 1);
+    CHECK(live_tick.used == 0);
+    CHECK(live_tick.palette.kind == WL_PALETTE_SHIFT_WHITE);
+    CHECK(pickup_state.health == 100);
+    CHECK(live_tick_pickup_model.statics[0].active == 0);
+
+    memset(use_info, 0, sizeof(use_info));
+    memset(&use_model, 0, sizeof(use_model));
+    CHECK(wl_init_player_gameplay_state(&pickup_state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    use_motion.x = 0x38000u;
+    use_motion.y = 0x48000u;
+    use_motion.tile_x = 3;
+    use_motion.tile_y = 4;
+    use_info[4 + 4 * WL_MAP_SIDE] = WL_PUSHABLETILE;
+    use_model.tilemap[4 + 4 * WL_MAP_SIDE] = 37;
+    use_model.pushwall_count = 1;
+    use_model.pushwalls[0].x = 4;
+    use_model.pushwalls[0].y = 4;
+    CHECK(wl_step_live_tick(&pickup_state, &use_model,
+                            use_wall, use_info, WL_MAP_PLANE_WORDS,
+                            &use_motion, 0, 0, 0x10000, 0,
+                            WL_DIR_EAST, 1, 0, 127, &live_tick) == 0);
+    CHECK(live_tick.used == 1);
+    CHECK(live_tick.use.kind == WL_USE_PUSHWALL);
+    CHECK(live_tick.use.opened == 1);
+    CHECK(live_tick.pushwall.crossed_tile == 1);
+    CHECK(live_tick.pushwall.x == 5);
+    CHECK(live_tick.pushwall.y == 4);
+    CHECK(live_tick.pushwall.state == 128);
+    CHECK(live_tick.palette.kind == WL_PALETTE_SHIFT_NONE);
+    CHECK(pickup_state.secret_count == 1);
+    CHECK(use_model.tilemap[4 + 4 * WL_MAP_SIDE] == 0);
+    CHECK(use_model.tilemap[5 + 4 * WL_MAP_SIDE] == (37 | 0xc0));
+    CHECK(use_model.tilemap[6 + 4 * WL_MAP_SIDE] == 37);
+
     wl_game_model runtime_model;
     uint16_t runtime_plane[WL_MAP_PLANE_WORDS];
     wl_map_wall_hit live_hit;
@@ -2786,6 +2837,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-ref-scene tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-tick tests passed for %s\n", dir);
     return 0;
 }

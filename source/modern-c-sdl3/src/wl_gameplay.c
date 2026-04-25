@@ -946,6 +946,47 @@ int wl_step_pushwall(wl_game_model *model, int32_t tics,
     return 0;
 }
 
+int wl_step_live_tick(wl_player_gameplay_state *state, wl_game_model *model,
+                      const uint16_t *wall_plane, const uint16_t *info_plane,
+                      size_t word_count, wl_player_motion_state *motion,
+                      int32_t xmove, int32_t ymove,
+                      int32_t forward_x, int32_t forward_y,
+                      wl_direction facing, int use_button, int button_held,
+                      int32_t tics, wl_live_tick_result *out) {
+    if (!state || !model || !wall_plane || !info_plane || !motion || !out || tics < 0) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->use.door_index = model->door_count;
+    out->use.pushwall_index = model->pushwall_count;
+
+    if (wl_step_player_motion(state, model, motion, xmove, ymove,
+                              forward_x, forward_y, &out->motion) != 0) {
+        return -1;
+    }
+
+    if (use_button) {
+        if (wl_use_player_facing(state, model, wall_plane, info_plane, word_count,
+                                 motion, facing, button_held, &out->use) != 0) {
+            return -1;
+        }
+        out->used = 1;
+    }
+
+    if (wl_step_doors(model, motion, tics, &out->doors) != 0) {
+        return -1;
+    }
+    if (wl_step_pushwall(model, tics, &out->pushwall) != 0) {
+        return -1;
+    }
+    if (wl_update_palette_shift_state(&state->palette_shift, tics,
+                                      &out->palette) != 0) {
+        return -1;
+    }
+    return 0;
+}
+
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state) {
     if (!state) {
         return -1;

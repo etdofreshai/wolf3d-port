@@ -71,3 +71,8 @@ The runtime door-aware scene renderer is now covered with moving pushwall state 
 ## Live runtime-ref scene rendering
 
 The broader WL6 runtime-ref sprite set now also flows through `wl_render_runtime_door_camera_scene_view`, not only the immutable wall-plane scene renderer. A headless test renders five real `wl_collect_scene_sprite_refs` outputs against the mutable `wl_game_model::tilemap`, verifies the closed door at `(32,57)` emits door page `99`, then clears that door center and verifies rays continue to the later wall page. The closed/open live scene hashes are committed as metadata only.
+
+
+## Headless live gameplay tick
+
+`wl_step_live_tick` is a small deterministic orchestration seam for future frame updates. It combines player motion/pickup probing, optional use-button dispatch, door progression, pushwall progression, and palette-shift advancement into one headless call. Current tests cover a movement tick that picks up food and emits a white palette shift, plus a use tick that starts and advances a pushwall across its first block boundary.
