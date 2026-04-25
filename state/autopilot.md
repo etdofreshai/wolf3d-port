@@ -5232,3 +5232,40 @@ Next likely move:
 - Add a dummy/offscreen SDL3 smoke layer when SDL3 dev files are available, or continue broadening SDL-free present descriptors for active live combat scenes.
 
 Blockers: SDL3 presentation still cannot be verified here because SDL3 development files are unavailable via `pkg-config`; headless work is unblocked.
+
+
+
+## Cycle 2026-04-25 10:21 CDT
+
+Action taken:
+
+- Connected a real live-combat damage palette result into the SDL-free present-frame descriptor.
+- A deterministic dog bite plus projectile hit now produces `WL_PALETTE_SHIFT_RED` through `wl_step_live_combat_tick`, then feeds `wl_describe_present_frame`.
+- Verified the descriptor records viewport `4x4`, preserves indexed pixel hash from the sample frame, selects live-combat red palette hash `0x35132dc5`, records shift index `3`, and points at the same upload palette selected by the texture-upload descriptor.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-present-live-combat-frame tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Continue feeding full live scene renders into present descriptors, or add a dummy/offscreen SDL3 smoke layer when SDL3 dev files are available.
+
+Blockers: SDL3 presentation still cannot be verified here because SDL3 development files are unavailable via `pkg-config`; headless work is unblocked.

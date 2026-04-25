@@ -442,3 +442,8 @@ The VSWAP-backed frame descriptor now separates indexed sprite pixels from palet
 ## Cycle update: combat palette present frame descriptors
 
 VSWAP-backed frame presentation now verifies palette-only upload changes for red and white shifts without committing decoded asset bytes.
+
+
+## Cycle update: live combat present-frame descriptor
+
+Presentation metadata remains asset-byte-free while a live combat palette result selects the red-shift upload palette through the same deterministic frame descriptor path.

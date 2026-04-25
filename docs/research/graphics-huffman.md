@@ -459,3 +459,8 @@ Presentation metadata now verifies red-shifted palette selection: the dog chase 
 ## Cycle update: combat palette present frame descriptors
 
 Presentation metadata now pins both combat palette uploads: red hash `0x90a6cdc5` and white hash `0x3c8da1ed` for the same indexed frame hash `0x92ff40dd`.
+
+
+## Cycle update: live combat present-frame descriptor
+
+The present-frame boundary now verifies a live combat-produced red shift, selecting palette hash `0x35132dc5` with viewport/pixel metadata instead of only synthetic shift inputs.

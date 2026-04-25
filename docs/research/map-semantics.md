@@ -263,3 +263,8 @@ Runtime scene state now reaches a present-frame descriptor with red palette-shif
 ## Cycle update: combat palette present frame descriptors
 
 Runtime scene state now carries both red and white palette-shift descriptors toward the future SDL3 upload boundary.
+
+
+## Cycle update: live combat present-frame descriptor
+
+Gameplay semantics now drive present-frame metadata directly: live dog/projectile combat damage emits a red palette shift that becomes upload-ready descriptor state.

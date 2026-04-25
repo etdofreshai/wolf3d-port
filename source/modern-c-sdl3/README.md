@@ -386,3 +386,8 @@ The presentation descriptor now verifies palette-shifted output as well as base 
 ## Combat palette present frame descriptors
 
 Present-frame descriptor coverage now includes both red and white combat palette shifts. The same indexed dog chase death frame keeps pixel hash `0x92ff40dd` while selecting red hash `0x90a6cdc5` or white hash `0x3c8da1ed` with explicit shift kind/index metadata.
+
+
+## Live combat present-frame descriptor
+
+Live combat palette output now feeds `wl_describe_present_frame` directly. A deterministic dog/projectile combat tick produces a red-shifted descriptor with viewport `4x4`, indexed pixel hash from the sample frame, palette hash `0x35132dc5`, and shift index `3`.

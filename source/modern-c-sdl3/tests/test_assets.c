@@ -2290,6 +2290,22 @@ static int check_wl6(const char *dir) {
               WL_NUM_WHITE_SHIFTS, sizeof(upload_palette), 6, &upload) == 0);
     CHECK(upload.palette == red_shift_palettes + 3u * sizeof(upload_palette));
     CHECK(fnv1a_bytes(upload.palette, sizeof(upload_palette)) == 0x35132dc5);
+    wl_present_frame_descriptor live_combat_present;
+    CHECK(wl_describe_present_frame(&fade_sample_surface,
+                                    &live_combat.live.palette,
+                                    upload_palette,
+                                    red_shift_palettes, WL_NUM_RED_SHIFTS,
+                                    white_shift_palettes, WL_NUM_WHITE_SHIFTS,
+                                    sizeof(upload_palette), 6,
+                                    &live_combat_present) == 0);
+    CHECK(live_combat_present.viewport_width == 4);
+    CHECK(live_combat_present.viewport_height == 4);
+    CHECK(live_combat_present.pixel_hash ==
+          fnv1a_bytes(fade_sample_pixels, sizeof(fade_sample_pixels)));
+    CHECK(live_combat_present.palette_hash == 0x35132dc5);
+    CHECK(live_combat_present.palette_shift_kind == WL_PALETTE_SHIFT_RED);
+    CHECK(live_combat_present.palette_shift_index == 3);
+    CHECK(live_combat_present.texture.palette == upload.palette);
     CHECK(wl_expand_indexed_surface_to_rgba(&fade_sample_surface, upload.palette,
                                             sizeof(upload_palette), 6,
                                             fade_sample_rgba,
@@ -5674,6 +5690,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-present-combat-palette-frames tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-present-live-combat-frame tests passed for %s\n", dir);
     return 0;
 }

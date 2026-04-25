@@ -518,3 +518,8 @@ The present-frame seam now carries palette-shift metadata for a rendered live-AI
 ## Cycle update: combat palette present frame descriptors
 
 The SDL-free presentation seam now verifies both damage/red and bonus/white palette shifts on a rendered live-AI frame, keeping indexed pixels stable while changing upload palette metadata.
+
+
+## Cycle update: live combat present-frame descriptor
+
+A real `wl_step_live_combat_tick` red damage palette now reaches the SDL-free present-frame descriptor, connecting gameplay damage state to future texture-upload metadata.
