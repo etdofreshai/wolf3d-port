@@ -116,3 +116,8 @@ The gameplay layer now has a deterministic projectile step seam. `wl_step_projec
 ## Live projectile tick seam
 
 Projectile damage is now connected to a live tick orchestration path. `wl_step_live_projectile_tick` runs the same movement/use/door/pushwall work as `wl_step_live_tick`, steps an optional active projectile before palette advancement, and returns the final palette state so projectile impacts can select a red flash in the same headless frame.
+
+
+## Live actor attack tick seam
+
+Actor contact/ranged damage is now connected to live tick orchestration. `wl_step_live_actor_tick` runs the same movement/use/door/pushwall sequence as the base live tick, dispatches deterministic dog bites or shooter attacks with caller-supplied chance/damage rolls, then advances palette state so same-frame actor damage returns the red flash result future SDL3 presentation can upload.

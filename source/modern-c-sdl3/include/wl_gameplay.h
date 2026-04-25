@@ -205,6 +205,20 @@ typedef struct wl_live_projectile_tick_result {
     uint8_t projectile_stepped;
 } wl_live_projectile_tick_result;
 
+typedef enum wl_live_actor_attack_kind {
+    WL_LIVE_ACTOR_ATTACK_NONE = 0,
+    WL_LIVE_ACTOR_ATTACK_BITE = 1,
+    WL_LIVE_ACTOR_ATTACK_SHOOT = 2,
+} wl_live_actor_attack_kind;
+
+typedef struct wl_live_actor_tick_result {
+    wl_live_tick_result live;
+    wl_actor_contact_damage_result bite;
+    wl_actor_shot_damage_result shot;
+    wl_live_actor_attack_kind attack_kind;
+    uint8_t actor_attacked;
+} wl_live_actor_tick_result;
+
 int wl_init_player_gameplay_state(wl_player_gameplay_state *state,
                                   int32_t health, int32_t lives,
                                   int32_t score, int32_t next_extra);
@@ -299,6 +313,24 @@ int wl_step_live_projectile_tick(wl_player_gameplay_state *state,
                                  int god_mode, int victory_flag,
                                  int32_t tics,
                                  wl_live_projectile_tick_result *out);
+int wl_step_live_actor_tick(wl_player_gameplay_state *state,
+                            wl_game_model *model,
+                            const uint16_t *wall_plane,
+                            const uint16_t *info_plane,
+                            size_t word_count,
+                            wl_player_motion_state *motion,
+                            int32_t xmove, int32_t ymove,
+                            int32_t forward_x, int32_t forward_y,
+                            wl_direction facing, int use_button,
+                            int button_held,
+                            const wl_actor_desc *actor,
+                            wl_difficulty difficulty,
+                            int area_active, int line_of_sight,
+                            int player_running, int actor_visible,
+                            uint8_t chance_roll, uint8_t damage_roll,
+                            int god_mode, int victory_flag,
+                            int32_t tics,
+                            wl_live_actor_tick_result *out);
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state);
 
 #ifdef __cplusplus

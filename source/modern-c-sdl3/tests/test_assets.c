@@ -383,6 +383,64 @@ static int check_gameplay_events(void) {
     CHECK(live_projectile.projectile_stepped == 0);
     CHECK(live_projectile.live.palette.kind == WL_PALETTE_SHIFT_RED);
 
+    wl_live_actor_tick_result live_actor;
+    wl_player_motion_state live_actor_motion = {
+        (4u << 16) + 0x8000u, (4u << 16) + 0x8000u, 4, 4,
+    };
+    dog.kind = WL_ACTOR_DOG;
+    dog.tile_x = 5;
+    dog.tile_y = 4;
+    CHECK(wl_init_player_gameplay_state(&state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_step_live_actor_tick(&state, &projectile_model,
+                                  live_wall, live_info, WL_MAP_PLANE_WORDS,
+                                  &live_actor_motion, 0, 0,
+                                  0x10000, 0, WL_DIR_EAST, 0, 0,
+                                  &dog, WL_DIFFICULTY_HARD,
+                                  1, 1, 0, 1, 179, 80, 0, 0, 1,
+                                  &live_actor) == 0);
+    CHECK(live_actor.actor_attacked == 1);
+    CHECK(live_actor.attack_kind == WL_LIVE_ACTOR_ATTACK_BITE);
+    CHECK(live_actor.bite.damaged == 1);
+    CHECK(live_actor.bite.damage.effective_points == 5);
+    CHECK(live_actor.live.palette.kind == WL_PALETTE_SHIFT_RED);
+    CHECK(live_actor.live.palette.shift_index == 0);
+    CHECK(live_actor.live.palette.damage_count == 4);
+    CHECK(state.health == 95);
+
+    shooter.kind = WL_ACTOR_GUARD;
+    shooter.shootable = 1;
+    shooter.tile_x = 5;
+    shooter.tile_y = 4;
+    CHECK(wl_init_player_gameplay_state(&state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_step_live_actor_tick(&state, &projectile_model,
+                                  live_wall, live_info, WL_MAP_PLANE_WORDS,
+                                  &live_actor_motion, 0, 0,
+                                  0x10000, 0, WL_DIR_EAST, 0, 0,
+                                  &shooter, WL_DIFFICULTY_HARD,
+                                  1, 1, 1, 1, 143, 80, 0, 0, 1,
+                                  &live_actor) == 0);
+    CHECK(live_actor.actor_attacked == 1);
+    CHECK(live_actor.attack_kind == WL_LIVE_ACTOR_ATTACK_SHOOT);
+    CHECK(live_actor.shot.damaged == 1);
+    CHECK(live_actor.shot.distance_tiles == 1);
+    CHECK(live_actor.shot.damage.effective_points == 20);
+    CHECK(live_actor.live.palette.kind == WL_PALETTE_SHIFT_RED);
+    CHECK(live_actor.live.palette.shift_index == 2);
+    CHECK(live_actor.live.palette.damage_count == 19);
+    CHECK(state.health == 80);
+
+    CHECK(wl_init_player_gameplay_state(&state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_step_live_actor_tick(&state, &projectile_model,
+                                  live_wall, live_info, WL_MAP_PLANE_WORDS,
+                                  &live_actor_motion, 0, 0,
+                                  0x10000, 0, WL_DIR_EAST, 0, 0,
+                                  NULL, WL_DIFFICULTY_HARD,
+                                  0, 0, 0, 0, 0, 0, 0, 0, 1,
+                                  &live_actor) == 0);
+    CHECK(live_actor.actor_attacked == 0);
+    CHECK(live_actor.attack_kind == WL_LIVE_ACTOR_ATTACK_NONE);
+    CHECK(live_actor.live.palette.kind == WL_PALETTE_SHIFT_NONE);
+
     uint8_t picked_up = 255;
     CHECK(wl_init_player_gameplay_state(&state, 50, 2, 0, WL_EXTRA_POINTS) == 0);
     CHECK(wl_apply_player_bonus(&state, WL_BONUS_FOOD, &picked_up) == 0);
@@ -3254,6 +3312,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-projectile-tick tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-actor-tick tests passed for %s\n", dir);
     return 0;
 }
