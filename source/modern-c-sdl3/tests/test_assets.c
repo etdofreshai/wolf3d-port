@@ -5777,10 +5777,83 @@ static int check_audio_wl6(const char *dir) {
     /* Boundary: last chunk */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 287, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
-    CHECK(chunk_bytes > 0);
+    CHECK(chunk_bytes == 20926);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x65998666);
 
     /* Out of range */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 288, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == -1);
+
+    return 0;
+}
+
+static int check_audio_optional_sod(const char *dir) {
+    char sod_dir[1024];
+    char audiohed_path[1024];
+    char audiot_path[1024];
+    wl_audio_header audio;
+    unsigned char chunk_buf[65536];
+    size_t chunk_bytes = 0;
+    size_t audiohed_size = 0;
+    size_t audiot_size = 0;
+
+    CHECK(wl_join_path(sod_dir, sizeof(sod_dir), dir, "m1") == 0);
+    if (path(audiohed_path, sizeof(audiohed_path), sod_dir, "AUDIOHED.SOD") != 0 ||
+        path(audiot_path, sizeof(audiot_path), sod_dir, "AUDIOT.SOD") != 0) {
+        return 0;
+    }
+    if (wl_file_size(audiohed_path, &audiohed_size) != 0) {
+        printf("SOD audio data absent; skipping optional SOD audio assertions\n");
+        return 0;
+    }
+
+    CHECK(wl_read_audio_header(audiohed_path, &audio) == 0);
+    CHECK(audio.file_size == 1072);
+    CHECK(audio.chunk_count == 267);
+    CHECK(audio.offsets[0] == 0);
+    CHECK(audio.offsets[1] == 15);
+    CHECK(audio.offsets[2] == 66);
+    CHECK(audio.offsets[3] == 82);
+    CHECK(audio.offsets[4] == 174);
+
+    for (size_t i = 1; i <= audio.chunk_count; ++i) {
+        CHECK(audio.offsets[i] >= audio.offsets[i - 1]);
+    }
+
+    CHECK(wl_file_size(audiot_path, &audiot_size) == 0);
+    CHECK(audiot_size == 328620);
+    CHECK(audio.offsets[audio.chunk_count] == audiot_size);
+
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, 0, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 15);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x5971ec53);
+
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, 1, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 51);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xfafa57eb);
+
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, 87, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 69);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xf0dfcb70);
+
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, 174, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 0);
+
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, 261, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 13286);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x04a8dbe2);
+
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, 266, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 6302);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x0fdb4632);
+
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, 267, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == -1);
 
     return 0;
@@ -5793,6 +5866,7 @@ int main(void) {
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
     CHECK(check_audio_wl6(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame/audio tests passed for %s\n", dir);
+    CHECK(check_audio_optional_sod(dir) == 0);
+    printf("asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame/audio+sod-audio tests passed for %s\n", dir);
     return 0;
 }
