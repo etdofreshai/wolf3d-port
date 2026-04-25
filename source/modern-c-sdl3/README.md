@@ -425,3 +425,8 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## SDL3 palette screenshot smoke
 
 `make test-sdl3-present` now emits both base and red-shifted ignored BMP artifacts from the WL6 wall present path: `build/wolf-wall-present.bmp` and `build/wolf-wall-present-red.bmp`. The red path verifies palette descriptor metadata and RGBA hash before saving.
+
+
+## SDL3 screenshot artifact hashes
+
+`make test-sdl3-present` now verifies the generated BMP artifact bytes: base `build/wolf-wall-present.bmp` size/hash `16522` / `0xb49b4cbf`, red `build/wolf-wall-present-red.bmp` size/hash `16522` / `0xaa1c75c5`.

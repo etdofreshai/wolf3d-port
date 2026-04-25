@@ -15,19 +15,38 @@ static uint32_t fnv1a_bytes(const unsigned char *data, size_t size) {
     return h;
 }
 
-static long file_size(const char *path) {
+static int file_stats(const char *path, long *out_size, uint32_t *out_hash) {
     FILE *f = fopen(path, "rb");
-    long size;
-    if (!f) {
+    unsigned char buffer[4096];
+    uint32_t h = 2166136261u;
+    long size = 0;
+    if (!f || !out_size || !out_hash) {
+        if (f) {
+            fclose(f);
+        }
         return -1;
     }
-    if (fseek(f, 0, SEEK_END) != 0) {
-        fclose(f);
-        return -1;
+    for (;;) {
+        size_t n = fread(buffer, 1, sizeof(buffer), f);
+        if (n > 0) {
+            for (size_t i = 0; i < n; ++i) {
+                h ^= (uint32_t)buffer[i];
+                h *= 16777619u;
+            }
+            size += (long)n;
+        }
+        if (n < sizeof(buffer)) {
+            if (ferror(f)) {
+                fclose(f);
+                return -1;
+            }
+            break;
+        }
     }
-    size = ftell(f);
     fclose(f);
-    return size;
+    *out_size = size;
+    *out_hash = h;
+    return 0;
 }
 
 int main(void) {
@@ -42,6 +61,8 @@ int main(void) {
     unsigned char rgba[WL_MAP_PLANE_WORDS * 4];
     wl_palette_shift_result shift;
     wl_present_frame_descriptor present;
+    long bmp_size = 0;
+    uint32_t bmp_hash = 0;
 
     for (size_t i = 0; i < 256; ++i) {
         palette[i * 3u + 0u] = (unsigned char)(i & 63u);
@@ -166,8 +187,9 @@ int main(void) {
         SDL_Quit();
         return 1;
     }
-    if (file_size("build/wolf-wall-present.bmp") <= 0) {
-        fprintf(stderr, "unexpected screenshot artifact size\n");
+    if (file_stats("build/wolf-wall-present.bmp", &bmp_size, &bmp_hash) != 0 ||
+        bmp_size != 16522 || bmp_hash != 0xb49b4cbfu) {
+        fprintf(stderr, "unexpected screenshot artifact stats: size=%ld hash=0x%08x\n", bmp_size, bmp_hash);
         SDL_DestroySurface(source);
         SDL_DestroyWindow(window);
         SDL_Quit();
@@ -245,8 +267,9 @@ int main(void) {
         SDL_Quit();
         return 1;
     }
-    if (file_size("build/wolf-wall-present-red.bmp") <= 0) {
-        fprintf(stderr, "unexpected red screenshot artifact size\n");
+    if (file_stats("build/wolf-wall-present-red.bmp", &bmp_size, &bmp_hash) != 0 ||
+        bmp_size != 16522 || bmp_hash != 0xaa1c75c5u) {
+        fprintf(stderr, "unexpected red screenshot artifact stats: size=%ld hash=0x%08x\n", bmp_size, bmp_hash);
         SDL_DestroySurface(source);
         SDL_DestroyWindow(window);
         SDL_Quit();

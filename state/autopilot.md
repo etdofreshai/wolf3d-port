@@ -5540,3 +5540,44 @@ Next likely move:
 - Route a fuller rendered scene frame through the SDL3 screenshot seam.
 
 Blockers: none for repo-local headless SDL3 presentation smoke work.
+
+
+
+## Cycle 2026-04-25 10:46 CDT SDL3 Screenshot Hashes
+
+Action taken:
+
+- Tightened the SDL3 screenshot smoke test to verify generated BMP artifact bytes directly.
+- Added `file_stats` coverage for the base and red-shifted Wolf wall BMP outputs.
+- Verified base screenshot size/hash `16522` / `0xb49b4cbf` and red screenshot size/hash `16522` / `0xaa1c75c5`, while the artifacts remain ignored under `build/`.
+- Updated the SDL3 bootstrap research note, README, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test-sdl3-present
+make test-sdl3
+make test
+```
+
+Result:
+
+```text
+SDL3 Wolf wall palette screenshot smoke test passed
+SDL3 smoke test passed
+SDL3 Wolf wall palette screenshot smoke test passed
+asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Generated BMP artifacts remain ignored under `source/modern-c-sdl3/build/`.
+
+Next likely move:
+
+- Route a fuller rendered scene frame through the SDL3 screenshot seam.
+
+Blockers: none for repo-local headless SDL3 presentation smoke work.

@@ -55,3 +55,8 @@ The SDL3 present test now saves the headless wall-frame surface to ignored `sour
 ## SDL3 palette-shifted screenshot artifact
 
 The Wolf wall present smoke now also routes a red-shifted present descriptor through the same SDL dummy-window path and saves ignored `source/modern-c-sdl3/build/wolf-wall-present-red.bmp`. Assertions pin indexed hash `0x8fe4d8ff`, red palette hash `0xd0d5c585`, red RGBA hash `0x1dcaf8c4`, and non-empty screenshot files.
+
+
+## SDL3 screenshot artifact hashes
+
+The SDL3 present smoke now hashes the generated BMP artifacts themselves, not just the source indexed/RGBA buffers. The base wall screenshot is pinned at size `16522` and hash `0xb49b4cbf`; the red-shifted wall screenshot is pinned at size `16522` and hash `0xaa1c75c5`. This keeps screenshot verification deterministic while artifacts remain ignored.
