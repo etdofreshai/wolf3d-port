@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer with broader visible-ref/camera-angle coverage, additional maps cover officer/SS/mutant/boss/ghost runtime actor refs, and palette fade/shift generation, state, shifted upload selection, player gameplay/bonus pickup events, and runtime static pickup/removal hooks, a TransformTile-style visible pickup probe, and a small player motion/collision tick, and use-button door/elevator/pushwall dispatch metadata and deterministic door open/close progression, and pushwall start/progression metadata, a live runtime solid-plane raycast/render bridge, door-wall render descriptors, runtime door-aware ray hits, and door-aware runtime camera wall rendering, and door-aware runtime wall+sprite scene rendering, pushwall wall-page/texture descriptors, and live pushwall scene occlusion, and pushwall sub-tile distance/height, and live runtime-ref door scene coverage, and a headless live gameplay tick and live tick palette-upload selection and live tick scene rendering and live tick pushwall scene rendering and live tick static pickup scene removal and actor bite damage, actor shooting damage, projectile damage, live projectile tick damage, live actor attack tick damage, and combined live combat tick damage, live combat palette-upload selection, and actor damage/kill state, actor drop static spawning, live actor damage/drop spawning tick integration, live-spawned actor drop scene rendering, a full live combat tick combining outgoing actor damage/drop with incoming actor/projectile damage, deterministic actor death-state progression, death-state actor scene rendering, and live full-combat death-state/ref output, full-combat death-ref scene rendering, final death-frame replacement in runtime actor refs, live actor death animation ticking/finalization, and full-combat orchestration with active death ticking, and combined full-combat/death-tick final scene rendering, and broadened actor death final-frame refs for officer/SS/dog/mutant/boss, and expanded WL6 boss/secret map runtime scene-ref coverage, are covered headlessly. Next phase should deepen actor AI progression, add more runtime actor state progression, fill remaining unknown boss info-tile classifications, or add a small SDL3 presentation boundary when SDL3 is available.
+Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer with broader visible-ref/camera-angle coverage, additional maps cover officer/SS/mutant/boss/ghost runtime actor refs, and palette fade/shift generation, state, shifted upload selection, player gameplay/bonus pickup events, and runtime static pickup/removal hooks, a TransformTile-style visible pickup probe, and a small player motion/collision tick, and use-button door/elevator/pushwall dispatch metadata and deterministic door open/close progression, and pushwall start/progression metadata, a live runtime solid-plane raycast/render bridge, door-wall render descriptors, runtime door-aware ray hits, and door-aware runtime camera wall rendering, and door-aware runtime wall+sprite scene rendering, pushwall wall-page/texture descriptors, and live pushwall scene occlusion, and pushwall sub-tile distance/height, and live runtime-ref door scene coverage, and a headless live gameplay tick and live tick palette-upload selection and live tick scene rendering and live tick pushwall scene rendering and live tick static pickup scene removal and actor bite damage, actor shooting damage, projectile damage, live projectile tick damage, live actor attack tick damage, combined live combat tick damage, live combat palette-upload selection, actor damage/kill state, actor drop static spawning, live actor damage/drop spawning tick integration, live-spawned actor drop scene rendering, a full live combat tick combining outgoing actor damage/drop with incoming actor/projectile damage, deterministic actor death-state progression, death-state actor scene rendering, live full-combat death-state/ref output, full-combat death-ref scene rendering, final death-frame replacement in runtime actor refs, live actor death animation ticking/finalization, full-combat orchestration with active death ticking, combined full-combat/death-tick final scene rendering, broadened actor death final-frame refs for officer/SS/dog/mutant/boss, expanded WL6 boss/secret map runtime scene-ref coverage, live actor AI patrol/chase progression, chase combat/death rendering, and chase attack present-frame descriptors are covered headlessly. Next phase should add more runtime actor state progression, fill remaining unknown boss info-tile classifications, route a gameplay-rendered scene through SDL3 presentation when SDL3 is available, or consolidate presentation helpers.
 
 ## Latest Verified Milestone
 
@@ -165,11 +165,12 @@ Use tests as the bridge from the original code to modern C:
 87. Combined full-combat/death-tick final scene rendering. **Done headlessly.**
 88. Broaden actor death final-frame refs across enemy classes. **Done headlessly.**
 89. Broader WL6 boss/secret map runtime scene-ref coverage. **Done headlessly.**
-90. Deeper collision/gameplay events, runtime actor state progression, remaining boss info-tile classification, or SDL3 presentation seam.
+90. Live actor AI patrol/chase progression, chase combat/death rendering, and chase attack present descriptors. **Done headlessly.**
+91. Deeper runtime actor state progression, remaining boss info-tile classification, SDL3 presentation seam, or presentation helper consolidation.
 
 ## Next Likely Move
 
-Deepen collision/gameplay events, add runtime actor state progression, fill remaining boss info-tile classifications, or add a small SDL3 presentation seam.
+Add deeper runtime actor state progression, fill remaining boss info-tile classifications, route a gameplay-rendered scene through SDL3 presentation when SDL3 is available, or consolidate the SDL3 presentation helper.
 
 Recommended next commit:
 
@@ -5756,3 +5757,39 @@ Next likely move:
 - Trial one conservative wave with `scripts/wolf3d_parallel_wave.py --max-waves 1 --parallel-max-models 2` before running indefinitely.
 
 Blockers: parallel merge conflicts are expected to require sequential repair if multiple models touch the same files.
+
+## Cycle 2026-04-25 11:18 CDT GLM Parallel Worker Review/State Sync
+
+Review findings:
+
+- Reviewed `HEAD~3..HEAD` (`f87c3aa`, `f4275a0`, `44ea937`): supervisor review-scope and parallel-wave runner changes are repo-local automation/docs changes, compile-checked in their recorded cycles, and do not touch `source/original/` or proprietary game data. No corrective code issue found.
+- Found state drift instead: `state/autopilot.md` still listed actor AI progression as a next step even though `docs/research/runtime-map-model.md` and `tests/test_assets.c` already cover live actor AI patrol/chase, chase combat/death rendering, and chase attack present descriptors. Updated this state file so future workers do not duplicate completed work.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test-sdl3
+WOLF3D_DATA_DIR="/home/node/.openclaw/tmp/Wolfenstein 3D port/game-files/base" make test
+```
+
+Result:
+
+```text
+SDL3 not available; skipping SDL3 smoke test.
+Run ../../scripts/bootstrap_sdl3.sh or set PKG_CONFIG_PATH to a directory containing sdl3.pc.
+asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame tests passed for /home/node/.openclaw/tmp/Wolfenstein 3D port/game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Used the main worktree's ignored local `game-files/base` path for verification because this isolated worker worktree does not contain the ignored asset directory.
+
+Next likely move:
+
+- Add deeper runtime actor state progression, route a gameplay-rendered scene through SDL3 presentation once SDL3 is available, or consolidate the SDL3 presentation helper.
+
+Blockers: SDL3 is not installed in this isolated verification environment; core headless tests pass with the local asset path.
+
