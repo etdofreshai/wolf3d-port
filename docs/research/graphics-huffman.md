@@ -314,3 +314,8 @@ The actor AI movement seam now returns from a presentation-facing live frame res
 ## Cycle update: live AI patrol scene refs
 
 Live AI patrol movement now has a deterministic presentation-input contract: scene refs expose stable sprite source/chunk metadata and moved world coordinates for later sprite-cache rendering and SDL3 upload.
+
+
+## Cycle update: live AI patrol rendering
+
+AI-updated patrol actor refs now have a deterministic headless presentation test. The door-aware scene renderer composites the moved guard sprite and verifies visible sprite metadata plus canvas hash `0x6ee1f8bf`, preserving the SDL3 upload boundary for later.

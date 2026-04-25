@@ -241,3 +241,8 @@ Patrol actor scene-ref metadata now reaches the headless wall+sprite scene rende
 ## Live AI patrol scene refs
 
 The live actor AI patrol wrapper now has renderer-facing ref coverage. After `wl_step_live_actor_ai_tick` mutates patrol actor tiles, `wl_collect_scene_sprite_refs` emits stable guard source/VSWAP metadata and updated world coordinates, including blocked-step preservation.
+
+
+## Live AI patrol rendering
+
+Live-AI-updated patrol refs now feed the door-aware wall+sprite scene renderer. The headless test decodes the moved guard sprite from local VSWAP data, renders it through `wl_render_runtime_door_camera_scene_view`, and asserts stable projection metadata plus canvas hash `0x6ee1f8bf`.

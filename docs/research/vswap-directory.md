@@ -297,3 +297,8 @@ Patrol actor source/chunk metadata (`58/164`) now feeds the scene render path, n
 ## Cycle update: live AI patrol scene refs
 
 The VSWAP metadata path now observes patrol movement from the live actor AI frame wrapper. A moved patrol guard remains source/chunk `58/164` after live AI ticking, proving the future sprite-cache/upload path can consume AI-updated actor refs without decoded asset bytes in git.
+
+
+## Cycle update: live AI patrol rendering
+
+The VSWAP sprite-cache path now consumes refs produced after live AI patrol movement. The moved guard source/chunk `58/164` is decoded locally and rendered with hash `0x6ee1f8bf`; committed assertions remain metadata/hash-only.

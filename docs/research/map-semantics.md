@@ -118,3 +118,8 @@ Runtime patrol metadata now participates in a live frame boundary, not only isol
 ## Cycle update: live AI patrol scene refs
 
 Patrol path semantics now flow through live AI ticking into scene refs. The test confirms the moved patrol actor updates world-center coordinates and blocked movement preserves the last renderer-facing location.
+
+
+## Cycle update: live AI patrol rendering
+
+Patrol path semantics now carry through live AI movement, scene-ref collection, VSWAP sprite decoding, and headless scene rendering. This confirms movement metadata remains presentation-ready after the live frame wrapper.

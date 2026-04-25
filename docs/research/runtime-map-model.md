@@ -373,3 +373,8 @@ Patrol actor ticking now has a broader live-frame wrapper. `wl_step_live_actor_a
 ## Cycle update: live AI patrol scene refs
 
 Live actor AI output now reaches normal runtime scene-ref collection. The headless test advances a patrol actor through `wl_step_live_actor_ai_tick`, then verifies `wl_collect_scene_sprite_refs` reports source/chunk `58/164` at the moved world coordinates while a later blocked live-AI step preserves that renderer-facing position.
+
+
+## Cycle update: live AI patrol rendering
+
+Live actor AI patrol movement now reaches runtime rendering. A patrol guard moved by `wl_step_live_actor_ai_tick` is collected as a scene ref and rendered through the door-aware scene path with source `58` / chunk `164`, visible projection metadata, and canvas hash `0x6ee1f8bf`.
