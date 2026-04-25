@@ -344,6 +344,31 @@ int wl_build_game_model(const uint16_t *wall_plane, const uint16_t *info_plane,
                     }
                     continue;
                 }
+                if (match == 0) {
+                    continue;
+                }
+                match = actor_tile_for_difficulty(&tile, difficulty, 116, 120, 152, 156, 188, 192,
+                                                  &mode, &dir);
+                if (match == 1) {
+                    if (add_actor(out, x, y, tile, WL_ACTOR_OFFICER, mode, (wl_direction)dir, 1, 1) != 0) {
+                        return -1;
+                    }
+                    continue;
+                }
+                if (match == 0) {
+                    continue;
+                }
+                match = actor_tile_for_difficulty(&tile, difficulty, 126, 130, 162, 166, 198, 202,
+                                                  &mode, &dir);
+                if (match == 1) {
+                    if (add_actor(out, x, y, tile, WL_ACTOR_SS, mode, (wl_direction)dir, 1, 1) != 0) {
+                        return -1;
+                    }
+                    continue;
+                }
+                if (match == 0) {
+                    continue;
+                }
                 match = actor_tile_for_difficulty(&tile, difficulty, 134, 138, 170, 174, 206, 210,
                                                   &mode, &dir);
                 if (match == 1) {
@@ -352,17 +377,21 @@ int wl_build_game_model(const uint16_t *wall_plane, const uint16_t *info_plane,
                     }
                     continue;
                 }
-                if ((in_range(tile, 144, 151) && difficulty < WL_DIFFICULTY_MEDIUM) ||
-                    (in_range(tile, 180, 187) && difficulty < WL_DIFFICULTY_HARD) ||
-                    (in_range(tile, 170, 177) && difficulty < WL_DIFFICULTY_MEDIUM) ||
-                    (in_range(tile, 206, 213) && difficulty < WL_DIFFICULTY_HARD)) {
+                if (match == 0) {
                     continue;
                 }
-                if (match == -1 ||
-                    in_range(tile, 116, 123) || in_range(tile, 152, 159) || in_range(tile, 188, 195) ||
-                    in_range(tile, 126, 133) || in_range(tile, 162, 169) || in_range(tile, 198, 205) ||
-                    in_range(tile, 216, 223) || in_range(tile, 234, 241) || in_range(tile, 252, 259) ||
-                    in_range(tile, 224, 227) || tile == 160 || tile == 178 || tile == 179 ||
+                match = actor_tile_for_difficulty(&tile, difficulty, 216, 220, 234, 238, 252, 256,
+                                                  &mode, &dir);
+                if (match == 1) {
+                    if (add_actor(out, x, y, tile, WL_ACTOR_MUTANT, mode, (wl_direction)dir, 1, 1) != 0) {
+                        return -1;
+                    }
+                    continue;
+                }
+                if (match == 0) {
+                    continue;
+                }
+                if (match == -1 || in_range(tile, 224, 227) || tile == 160 || tile == 178 || tile == 179 ||
                     tile == 196 || tile == 197 || tile == 214 || tile == 215) {
                     ++out->unknown_info_tiles;
                 }
@@ -406,13 +435,16 @@ static uint16_t actor_to_sprite_index(const wl_actor_desc *actor) {
     switch (actor->kind) {
     case WL_ACTOR_GUARD:
         return actor->mode == WL_ACTOR_PATROL ? 58 : 50; /* SPR_GRD_W1_1 / SPR_GRD_S_1 */
+    case WL_ACTOR_OFFICER:
+        return actor->mode == WL_ACTOR_PATROL ? 246 : 238; /* SPR_OFC_W1_1 / SPR_OFC_S_1 */
+    case WL_ACTOR_SS:
+        return actor->mode == WL_ACTOR_PATROL ? 146 : 138; /* SPR_SS_W1_1 / SPR_SS_S_1 */
     case WL_ACTOR_DOG:
         return 99; /* SPR_DOG_W1_1 */
+    case WL_ACTOR_MUTANT:
+        return actor->mode == WL_ACTOR_PATROL ? 195 : 187; /* SPR_MUT_W1_1 / SPR_MUT_S_1 */
     case WL_ACTOR_DEAD_GUARD:
         return 95; /* SPR_GRD_DEAD */
-    case WL_ACTOR_OFFICER:
-    case WL_ACTOR_SS:
-    case WL_ACTOR_MUTANT:
     case WL_ACTOR_BOSS:
     case WL_ACTOR_GHOST:
         return UINT16_MAX;

@@ -361,6 +361,84 @@ static int check_wl6(const char *dir) {
     CHECK(model.kill_total == 37);
     CHECK(model.unknown_info_tiles == 0);
 
+    struct model_map_expectation {
+        uint16_t map_index;
+        const char *name;
+        uint16_t player_x;
+        uint16_t player_y;
+        wl_direction player_dir;
+        size_t door_count;
+        size_t static_count;
+        size_t actor_count;
+        size_t kill_total;
+        size_t treasure_total;
+        size_t secret_total;
+        size_t path_marker_count;
+        size_t scene_ref_count;
+        uint32_t scene_ref_hash;
+        size_t guard_count;
+        size_t officer_count;
+        size_t ss_count;
+        size_t dog_count;
+        size_t mutant_count;
+    } model_maps[] = {
+        { 1, "Wolf1 Map2", 16, 61, WL_DIR_NORTH, 47, 344, 40, 40, 62, 4, 52,
+          384, 0xab87ed41, 29, 0, 5, 6, 0 },
+        { 10, "Wolf2 Map1", 7, 45, WL_DIR_EAST, 16, 173, 8, 8, 17, 4, 0,
+          181, 0x89b8f3c0, 0, 0, 0, 0, 8 },
+        { 20, "Wolf3 Map1", 9, 17, WL_DIR_EAST, 8, 132, 9, 9, 41, 5, 22,
+          141, 0xc090c2df, 8, 1, 0, 0, 0 },
+    };
+    for (size_t i = 0; i < sizeof(model_maps) / sizeof(model_maps[0]); ++i) {
+        wl_map_header extra_map;
+        CHECK(wl_read_map_header(gamemaps_path, mh.offsets[model_maps[i].map_index],
+                                 &extra_map) == 0);
+        CHECK(strcmp(extra_map.name, model_maps[i].name) == 0);
+        CHECK(wl_read_map_plane(gamemaps_path, &extra_map, 0, mh.rlew_tag,
+                                wall_plane, WL_MAP_PLANE_WORDS) == 0);
+        CHECK(wl_read_map_plane(gamemaps_path, &extra_map, 1, mh.rlew_tag,
+                                info_plane, WL_MAP_PLANE_WORDS) == 0);
+        CHECK(wl_build_game_model(wall_plane, info_plane, WL_MAP_PLANE_WORDS,
+                                  WL_DIFFICULTY_EASY, &model) == 0);
+        CHECK(model.player.present == 1);
+        CHECK(model.player.x == model_maps[i].player_x);
+        CHECK(model.player.y == model_maps[i].player_y);
+        CHECK(model.player.dir == model_maps[i].player_dir);
+        CHECK(model.door_count == model_maps[i].door_count);
+        CHECK(model.static_count == model_maps[i].static_count);
+        CHECK(model.actor_count == model_maps[i].actor_count);
+        CHECK(model.kill_total == model_maps[i].kill_total);
+        CHECK(model.treasure_total == model_maps[i].treasure_total);
+        CHECK(model.secret_total == model_maps[i].secret_total);
+        CHECK(model.path_marker_count == model_maps[i].path_marker_count);
+        CHECK(model.unknown_info_tiles == 0);
+        size_t actor_kind_counts[WL_ACTOR_DEAD_GUARD + 1] = { 0 };
+        for (size_t actor_index = 0; actor_index < model.actor_count; ++actor_index) {
+            CHECK(model.actors[actor_index].kind <= WL_ACTOR_DEAD_GUARD);
+            ++actor_kind_counts[model.actors[actor_index].kind];
+        }
+        CHECK(actor_kind_counts[WL_ACTOR_GUARD] == model_maps[i].guard_count);
+        CHECK(actor_kind_counts[WL_ACTOR_OFFICER] == model_maps[i].officer_count);
+        CHECK(actor_kind_counts[WL_ACTOR_SS] == model_maps[i].ss_count);
+        CHECK(actor_kind_counts[WL_ACTOR_DOG] == model_maps[i].dog_count);
+        CHECK(actor_kind_counts[WL_ACTOR_MUTANT] == model_maps[i].mutant_count);
+        CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs,
+                                           sizeof(scene_refs) / sizeof(scene_refs[0]),
+                                           &scene_ref_count) == 0);
+        CHECK(scene_ref_count == model_maps[i].scene_ref_count);
+        CHECK(fnv1a_scene_sprite_refs(scene_refs, scene_ref_count) ==
+              model_maps[i].scene_ref_hash);
+    }
+    CHECK(wl_read_map_plane(gamemaps_path, &map0, 0, mh.rlew_tag,
+                            wall_plane, WL_MAP_PLANE_WORDS) == 0);
+    CHECK(wl_read_map_plane(gamemaps_path, &map0, 1, mh.rlew_tag,
+                            info_plane, WL_MAP_PLANE_WORDS) == 0);
+    CHECK(wl_build_game_model(wall_plane, info_plane, WL_MAP_PLANE_WORDS,
+                              WL_DIFFICULTY_EASY, &model) == 0);
+    CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs,
+                                       sizeof(scene_refs) / sizeof(scene_refs[0]),
+                                       &scene_ref_count) == 0);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
@@ -1883,6 +1961,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/camera-scene tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/enemy-map-scene tests passed for %s\n", dir);
     return 0;
 }

@@ -84,7 +84,7 @@ The parser:
 - wall metadata for chunk `63`: colors `26..223`, `31` unique colors, row-major indexed hash `0x5b4d4c38`, sampled column hash `0x8a859220`, combined scaled-strip/viewport canvas hash `0x0b200118`; map-derived viewport hash `0x7ffb21c0`; cardinal/fixed-ray viewport hash `0xa4c9e6e1`, DDA mixed-ray viewport hash `0xae40b70c`, projected-ray viewport hash `0xd48f2f6d`, batched-view viewport hash `0x7209a9ed`, camera-ray viewport hash `0x7320f695`, tiny-view render hash `0xfad71929`
 - wall metadata for chunk `105`: colors `0..31`, `11` unique colors, row-major indexed hash `0x66874cf5`
 - sprite metadata for chunk `106`: `64x64`, left/right pixels `4..58`, `55` visible columns, first/last column offsets `800/1298`
-- sprite post metadata for chunk `106`: `66` posts, `55` column terminators, `1..2` posts/column, span range `2..40`, source-offset range `108..782`, total post span `1372`, transparent indexed-surface hash `0x918ed728`, non-transparent pixels `614`; scaled-sprite viewport hashes `0x3f753ac8`, occluded `0xaa7c2838`, clipped `0x6ff0f5c8`; world-projected sprite descriptors `(view_x,height,distance)=(39,42,0x51700)/(46,30,0x71700)`, sorted render hash `0x819b1035`, combined wall+sprite scene hash `0x1e4a8264`; sprite-ref surface-cache hashes `0x38769770`, `0xbd6176ba`, `0x0fe580fa`, `0xa875d685`, `0x63f7eba2`, combined cache hash `0x4a8eb8db`; broader runtime-ref scene hashes `0xb92e568b` and `0x4668f191`
+- sprite post metadata for chunk `106`: `66` posts, `55` column terminators, `1..2` posts/column, span range `2..40`, source-offset range `108..782`, total post span `1372`, transparent indexed-surface hash `0x918ed728`, non-transparent pixels `614`; scaled-sprite viewport hashes `0x3f753ac8`, occluded `0xaa7c2838`, clipped `0x6ff0f5c8`; world-projected sprite descriptors `(view_x,height,distance)=(39,42,0x51700)/(46,30,0x71700)`, sorted render hash `0x819b1035`, combined wall+sprite scene hash `0x1e4a8264`; sprite-ref surface-cache hashes `0x38769770`, `0xbd6176ba`, `0x0fe580fa`, `0xa875d685`, `0x63f7eba2`, combined cache hash `0x4a8eb8db`; broader runtime-ref scene hashes `0xb92e568b` and `0x4668f191`; multi-map enemy scene-ref hashes `0xab87ed41`, `0x89b8f3c0`, and `0xc090c2df`
 - sprite post metadata for chunk `107`: `85` posts, `62` column terminators, `1..3` posts/column, max span `36`, source-offset range `113..904`, total post span `1586`, transparent indexed-surface hash `0x88a2d1b4`, non-transparent pixels `384`
 
 ## Optional SOD committed assertions
@@ -126,7 +126,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/camera-scene tests passed for game-files/base
+asset/decompression/semantics/model/vswap/enemy-map-scene tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
@@ -152,3 +152,8 @@ Expanded the runtime-ref scene smoke test from two visible refs to five WL6 map-
 ## Next step
 
 Add more map runtime-scene coverage, connect renderer seams to future live gameplay events, or add a small SDL3 presentation boundary. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.
+
+
+## Cycle update: multi-map enemy scene refs
+
+The VSWAP sprite-ref seam now receives additional runtime actor classes from maps beyond WL6 map 0. Officer, SS, and mutant actors map to their original starting stand/path sprite indices before chunk lookup, so `wl_collect_scene_sprite_refs` can describe renderer inputs for `Wolf1 Map2`, `Wolf2 Map1`, and `Wolf3 Map1` without decoding or committing proprietary bytes. Tests assert scene-ref descriptor hashes instead of stored sprite data.
