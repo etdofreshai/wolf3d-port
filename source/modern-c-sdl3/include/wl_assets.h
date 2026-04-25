@@ -102,6 +102,23 @@ typedef struct wl_indexed_surface {
     unsigned char *pixels;
 } wl_indexed_surface;
 
+typedef enum wl_texture_upload_format {
+    WL_TEXTURE_UPLOAD_INDEXED8_RGB_PALETTE = 1,
+    WL_TEXTURE_UPLOAD_RGBA8888 = 2,
+} wl_texture_upload_format;
+
+typedef struct wl_texture_upload_descriptor {
+    wl_texture_upload_format format;
+    uint16_t width;
+    uint16_t height;
+    uint16_t pitch;
+    size_t pixel_bytes;
+    const unsigned char *pixels;
+    const unsigned char *palette;
+    size_t palette_entries;
+    uint8_t palette_component_bits;
+} wl_texture_upload_descriptor;
+
 typedef struct wl_wall_page_metadata {
     uint16_t width;
     uint16_t height;
@@ -267,6 +284,17 @@ int wl_decode_picture_table(const unsigned char *chunk, size_t chunk_size,
 int wl_wrap_indexed_surface(uint16_t width, uint16_t height,
                             unsigned char *pixels, size_t pixel_size,
                             wl_indexed_surface *out);
+int wl_describe_indexed_texture_upload(const wl_indexed_surface *surface,
+                                       const unsigned char *palette,
+                                       size_t palette_size,
+                                       uint8_t palette_component_bits,
+                                       wl_texture_upload_descriptor *out);
+int wl_expand_indexed_surface_to_rgba(const wl_indexed_surface *surface,
+                                      const unsigned char *palette,
+                                      size_t palette_size,
+                                      uint8_t palette_component_bits,
+                                      unsigned char *rgba, size_t rgba_size,
+                                      wl_texture_upload_descriptor *out);
 int wl_decode_planar_picture_to_indexed(const unsigned char *planar, size_t planar_size,
                                         uint16_t width, uint16_t height,
                                         unsigned char *indexed, size_t indexed_size);

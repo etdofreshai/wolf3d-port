@@ -342,6 +342,85 @@ int wl_wrap_indexed_surface(uint16_t width, uint16_t height,
     return 0;
 }
 
+static unsigned char expand_palette_component(unsigned char value, uint8_t bits) {
+    if (bits == 6) {
+        return (unsigned char)((value << 2) | (value >> 4));
+    }
+    return value;
+}
+
+int wl_describe_indexed_texture_upload(const wl_indexed_surface *surface,
+                                       const unsigned char *palette,
+                                       size_t palette_size,
+                                       uint8_t palette_component_bits,
+                                       wl_texture_upload_descriptor *out) {
+    if (!surface || !surface->pixels || !palette || !out ||
+        surface->format != WL_SURFACE_INDEXED8 || surface->width == 0 ||
+        surface->height == 0 || surface->stride < surface->width ||
+        (palette_component_bits != 6 && palette_component_bits != 8) ||
+        palette_size < 256u * 3u) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->format = WL_TEXTURE_UPLOAD_INDEXED8_RGB_PALETTE;
+    out->width = surface->width;
+    out->height = surface->height;
+    out->pitch = surface->stride;
+    out->pixel_bytes = (size_t)surface->stride * (size_t)surface->height;
+    out->pixels = surface->pixels;
+    out->palette = palette;
+    out->palette_entries = 256;
+    out->palette_component_bits = palette_component_bits;
+    return 0;
+}
+
+int wl_expand_indexed_surface_to_rgba(const wl_indexed_surface *surface,
+                                      const unsigned char *palette,
+                                      size_t palette_size,
+                                      uint8_t palette_component_bits,
+                                      unsigned char *rgba, size_t rgba_size,
+                                      wl_texture_upload_descriptor *out) {
+    wl_texture_upload_descriptor indexed;
+    if (!rgba || wl_describe_indexed_texture_upload(surface, palette, palette_size,
+                                                    palette_component_bits,
+                                                    &indexed) != 0) {
+        return -1;
+    }
+
+    size_t required = (size_t)surface->width * (size_t)surface->height * 4u;
+    if (rgba_size < required) {
+        return -1;
+    }
+
+    for (uint16_t y = 0; y < surface->height; ++y) {
+        const unsigned char *src_row = surface->pixels + (size_t)y * surface->stride;
+        unsigned char *dst_row = rgba + (size_t)y * (size_t)surface->width * 4u;
+        for (uint16_t x = 0; x < surface->width; ++x) {
+            unsigned char index = src_row[x];
+            const unsigned char *entry = palette + (size_t)index * 3u;
+            dst_row[(size_t)x * 4u + 0u] = expand_palette_component(entry[0], palette_component_bits);
+            dst_row[(size_t)x * 4u + 1u] = expand_palette_component(entry[1], palette_component_bits);
+            dst_row[(size_t)x * 4u + 2u] = expand_palette_component(entry[2], palette_component_bits);
+            dst_row[(size_t)x * 4u + 3u] = 255;
+        }
+    }
+
+    if (out) {
+        memset(out, 0, sizeof(*out));
+        out->format = WL_TEXTURE_UPLOAD_RGBA8888;
+        out->width = surface->width;
+        out->height = surface->height;
+        out->pitch = (uint16_t)(surface->width * 4u);
+        out->pixel_bytes = required;
+        out->pixels = rgba;
+        out->palette = NULL;
+        out->palette_entries = 0;
+        out->palette_component_bits = 8;
+    }
+    return 0;
+}
+
 int wl_decode_planar_picture_to_indexed(const unsigned char *planar, size_t planar_size,
                                         uint16_t width, uint16_t height,
                                         unsigned char *indexed, size_t indexed_size) {

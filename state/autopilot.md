@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-16.16 fixed-point camera ray tables now feed a tiny SDL-free wall-view render helper on headless Linux for WL6. Next phase should add palette/texture-upload metadata or a small SDL3 presentation boundary.
+Palette/texture-upload metadata now describes indexed surfaces and deterministic RGBA expansion on headless Linux for WL6. Next phase should add a small SDL3 presentation boundary or continue renderer metadata for sprites/palette effects.
 
 ## Latest Verified Milestone
 
@@ -20,7 +20,7 @@ Status: active
 - `docs/research/map-semantics.md` records original source references and WL6 map 0 semantic-count assertions.
 - `docs/research/runtime-map-model.md` records the pure C runtime model seam, door-area connectivity descriptors, descriptor assertions, and verification output.
 - `docs/research/vswap-directory.md` records full VSWAP chunk-directory parsing, bounded chunk-read hashes, wall-page metadata/surface/column-sampler/scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view assertions, sprite shape metadata assertions, sprite post-command metadata assertions, range/count assertions, and verification output.
-- `docs/research/graphics-huffman.md` records VGAHEAD/VGADICT/VGAGRAPH parsing, pure C Huffman expansion, STRUCTPIC picture-table metadata, planar-to-indexed surface conversion, renderer-facing indexed-surface descriptors, SDL-free indexed blitting, WL6/SOD graphics chunk smoke assertions, and verification output.
+- `docs/research/graphics-huffman.md` records VGAHEAD/VGADICT/VGAGRAPH parsing, pure C Huffman expansion, STRUCTPIC picture-table metadata, planar-to-indexed surface conversion, renderer-facing indexed-surface descriptors, upload metadata/RGBA expansion, SDL-free indexed blitting, WL6/SOD graphics chunk smoke assertions, and verification output.
 
 ## Verified Findings
 
@@ -88,6 +88,7 @@ Use tests as the bridge from the original code to modern C:
 12. `STRUCTPIC` picture metadata interpretation. **Done for WL6/SOD.**
 13. Renderer-facing indexed-surface seam. **Initial planar-to-indexed conversion done for WL6/SOD.**
 14. Surface metadata/type layer. **Done for WL6/SOD indexed picture surfaces.**
+14a. Palette/texture-upload metadata and RGBA expansion. **Done for representative WL6 indexed surface.**
 15. SDL-free blit/composite smoke test. **Done for representative WL6 surfaces.**
 16. Wall-page metadata decoding and row-major indexed surface seam. **Done for representative WL6/SOD walls.**
 17. Raycaster texture-column sampler. **Done for representative WL6/SOD walls.**
@@ -101,18 +102,19 @@ Use tests as the bridge from the original code to modern C:
 25. Multi-column projected view batches. **Done for representative WL6 player-origin rays.**
 26. Camera/FOV ray-table helper. **Done for representative WL6 player-origin rays.**
 27. Tiny view render helper. **Done for representative WL6 player-origin camera rays.**
-28. Palette/texture-upload metadata or SDL3 presentation seam.
+28. Palette/texture-upload metadata. **Done for representative WL6 indexed surface.**
+29. SDL3 presentation seam or expanded renderer metadata.
 
 ## Next Likely Move
 
-Add palette/texture-upload metadata or a small SDL3 presentation seam.
+Add a small SDL3 presentation seam or expanded renderer metadata.
 
 Recommended next commit:
 
-- add palette/texture-upload metadata that can connect indexed surfaces/wall views to SDL3 textures;
-- or add a small SDL3 presentation seam once upload metadata is covered that can later connect `wl_indexed_surface` to SDL3 textures.
+- add a small SDL3 presentation seam using `wl_texture_upload_descriptor`;
+- or expand renderer metadata for sprites/palette effects before presentation.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, and door-area connectivity descriptors.
 
 ## Blockers
 
@@ -1113,5 +1115,44 @@ Safety/legal checks:
 Next likely move:
 
 - Add palette/texture-upload metadata that can connect indexed surfaces and wall views to SDL3 textures, or add a minimal SDL3 presentation seam after that metadata is covered.
+
+Blockers: none.
+
+
+## Cycle 2026-04-24 23:47 CDT
+
+Action taken:
+
+- Added `wl_texture_upload_descriptor` plus indexed-8/RGB-palette and RGBA8888 upload formats.
+- Added `wl_describe_indexed_texture_upload` to describe indexed surfaces with 256-entry RGB palettes for future SDL3 upload.
+- Added `wl_expand_indexed_surface_to_rgba` to expand indexed surfaces through 6-bit VGA DAC or 8-bit palette components into RGBA8888 without requiring SDL.
+- Extended WL6 picture-surface assertions with upload descriptor checks, deterministic synthetic-palette RGBA hash `0xb75bdee9`, and invalid palette/size validation.
+- Updated `docs/research/graphics-huffman.md` and `source/modern-c-sdl3/README.md`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/upload-metadata tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash assertions are committed.
+
+Next likely move:
+
+- Add a small SDL3 presentation seam using the upload descriptors, or expand renderer metadata for sprites/palette effects before presentation.
 
 Blockers: none.

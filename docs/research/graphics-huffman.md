@@ -1,7 +1,7 @@
 # Graphics Huffman Notes
 
 Research/implementation cycle: 2026-04-24 22:53-23:15 CDT  
-Scope: `VGAHEAD`/`VGADICT`/`VGAGRAPH` header parsing, Huffman smoke decoding, `STRUCTPIC` picture-table metadata, and indexed-surface conversion for WL6 and optional SOD, without committing proprietary graphics bytes.
+Scope: `VGAHEAD`/`VGADICT`/`VGAGRAPH` header parsing, Huffman smoke decoding, `STRUCTPIC` picture-table metadata, and indexed-surface conversion and texture-upload metadata for WL6 and optional SOD, without committing proprietary graphics bytes.
 
 ## Original reference
 
@@ -50,6 +50,9 @@ Added graphics APIs/types to `wl_assets`:
 - `wl_decode_planar_picture_to_indexed(...)`
 - `wl_decode_planar_picture_surface(...)`
 - `wl_blit_indexed_surface(...)`
+- `wl_texture_upload_descriptor`
+- `wl_describe_indexed_texture_upload(...)`
+- `wl_expand_indexed_surface_to_rgba(...)`
 
 The implementation:
 
@@ -61,6 +64,7 @@ The implementation:
 - wraps decoded indexed pixels in a renderer-facing `wl_indexed_surface` descriptor with format, width, height, stride, pixel count, and pixel pointer;
 - converts decoded planar picture chunks into linear 8-bit indexed surfaces suitable for a future SDL3 texture/upload boundary;
 - provides an SDL-free clipped blit helper for indexed surfaces;
+- describes indexed-8 + RGB-palette texture upload metadata and expands indexed surfaces to RGBA8888 using 6-bit VGA DAC or 8-bit palette components;
 - records only sizes/counts/hashes/dimensions in tests and docs, not graphics bytes.
 
 ## WL6 committed assertions
@@ -74,7 +78,7 @@ The implementation:
 - `STRUCTPIC` picture table: `132` entries, width range `8..320`, height range `8..200`, total declared pixels `342464`
 - representative WL6 dimensions: entry `0` `96x88`, entry `3` `320x8`, entry `84` `320x200`, entry `86` `320x200`, entry `87` `224x56`, entry `131` `224x48`
 - decoded chunk `1` (`STARTFONT`): compressed `3467`, expanded `8300`, FNV-1a `0xdb48ce2b`
-- decoded chunk `3`: compressed `8057`, expanded planar `8448`, planar FNV-1a `0x5c152b5c`, indexed-surface FNV-1a `0xa9c1ea92`
+- decoded chunk `3`: compressed `8057`, expanded planar `8448`, planar FNV-1a `0x5c152b5c`, indexed-surface FNV-1a `0xa9c1ea92`, synthetic-palette RGBA upload hash `0xb75bdee9`
 - decoded chunk `87` (`TITLEPIC`): compressed `45948`, expanded planar `64000`, planar FNV-1a `0x01643ebc`, indexed-surface FNV-1a `0x4b172b02`
 - decoded chunk `134` (`GETPSYCHEDPIC`): compressed `5127`, expanded planar `10752`, planar FNV-1a `0xeb393cc0`, indexed-surface FNV-1a `0x46e4bd08`
 
@@ -109,7 +113,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/vga-blit tests passed for game-files/base
+asset/decompression/semantics/model/vswap/upload-metadata tests passed for game-files/base
 ```
 
 ## Cycle update: STRUCTPIC metadata
@@ -126,8 +130,8 @@ Added `wl_indexed_surface` and `wl_decode_planar_picture_surface`, wrapping deco
 
 ## Cycle update: indexed blit smoke test
 
-Added `wl_blit_indexed_surface`, a clipped SDL-free blitter for `wl_indexed_surface`. Tests composite representative decoded WL6 picture surfaces into a synthetic indexed canvas and assert stable canvas hashes. This exercises the renderer-facing surface layer without opening a window or committing pixels.
+Added `wl_blit_indexed_surface`, a clipped SDL-free blitter for `wl_indexed_surface`. Tests composite representative decoded WL6 picture surfaces into a synthetic indexed canvas and assert stable canvas hashes. Added `wl_texture_upload_descriptor`, `wl_describe_indexed_texture_upload`, and `wl_expand_indexed_surface_to_rgba` so indexed surfaces can be described for indexed-8 + RGB-palette upload or expanded to RGBA8888 without depending on SDL. This exercises the renderer-facing surface/upload layer without opening a window or committing pixels.
 
 ## Next step
 
-Decode raw VSWAP wall page metadata for the raycaster path, or add a tiny palette/texture-upload metadata seam before SDL3 presentation. Keep headless tests comparing metadata/hashes before adding SDL3 presentation.
+Add a minimal SDL3 presentation seam using the upload metadata, or continue expanding renderer metadata for sprites/palette effects. Keep headless tests comparing metadata/hashes before requiring a display.

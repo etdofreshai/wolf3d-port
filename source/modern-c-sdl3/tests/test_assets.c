@@ -274,11 +274,20 @@ static int check_wl6(const char *dir) {
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
     unsigned char indexed_buf[65536];
+    unsigned char rgba_buf[65536 * 4];
+    unsigned char upload_palette[256 * 3];
     unsigned char canvas_pixels[160 * 120];
     wl_indexed_surface surface;
     wl_indexed_surface canvas;
+    wl_texture_upload_descriptor upload;
+    wl_texture_upload_descriptor rgba_upload;
     size_t graphics_bytes = 0;
     size_t compressed_bytes = 0;
+    for (size_t i = 0; i < 256; ++i) {
+        upload_palette[i * 3 + 0] = (unsigned char)(i & 63u);
+        upload_palette[i * 3 + 1] = (unsigned char)((i * 2u) & 63u);
+        upload_palette[i * 3 + 2] = (unsigned char)((63u - i) & 63u);
+    }
     CHECK(wl_read_graphics_header(vgahead_path, &gh) == 0);
     CHECK(gh.chunk_count == 149);
     CHECK(gh.file_size == 450);
@@ -337,6 +346,36 @@ static int check_wl6(const char *dir) {
     CHECK(surface.pixel_count == graphics_bytes);
     CHECK(surface.pixels == indexed_buf);
     CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0xa9c1ea92);
+    CHECK(wl_describe_indexed_texture_upload(&surface, upload_palette,
+                                             sizeof(upload_palette), 6,
+                                             &upload) == 0);
+    CHECK(upload.format == WL_TEXTURE_UPLOAD_INDEXED8_RGB_PALETTE);
+    CHECK(upload.width == 96);
+    CHECK(upload.height == 88);
+    CHECK(upload.pitch == 96);
+    CHECK(upload.pixel_bytes == 8448);
+    CHECK(upload.pixels == surface.pixels);
+    CHECK(upload.palette == upload_palette);
+    CHECK(upload.palette_entries == 256);
+    CHECK(upload.palette_component_bits == 6);
+    CHECK(wl_expand_indexed_surface_to_rgba(&surface, upload_palette,
+                                            sizeof(upload_palette), 6, rgba_buf,
+                                            sizeof(rgba_buf), &rgba_upload) == 0);
+    CHECK(rgba_upload.format == WL_TEXTURE_UPLOAD_RGBA8888);
+    CHECK(rgba_upload.width == 96);
+    CHECK(rgba_upload.height == 88);
+    CHECK(rgba_upload.pitch == 384);
+    CHECK(rgba_upload.pixel_bytes == 33792);
+    CHECK(rgba_upload.pixels == rgba_buf);
+    CHECK(rgba_upload.palette == NULL);
+    CHECK(fnv1a_bytes(rgba_buf, rgba_upload.pixel_bytes) == 0xb75bdee9);
+    CHECK(wl_describe_indexed_texture_upload(&surface, upload_palette,
+                                             sizeof(upload_palette), 5,
+                                             &upload) == -1);
+    CHECK(wl_expand_indexed_surface_to_rgba(&surface, upload_palette,
+                                            sizeof(upload_palette), 6, rgba_buf,
+                                            rgba_upload.pixel_bytes - 1,
+                                            &rgba_upload) == -1);
     memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
     CHECK(wl_wrap_indexed_surface(160, 120, canvas_pixels, sizeof(canvas_pixels),
                                   &canvas) == 0);
@@ -1253,6 +1292,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/view-render tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/upload-metadata tests passed for %s\n", dir);
     return 0;
 }
