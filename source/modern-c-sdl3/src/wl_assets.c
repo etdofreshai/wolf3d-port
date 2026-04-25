@@ -782,6 +782,32 @@ int wl_decode_wall_page_surface(const unsigned char *chunk, size_t chunk_size,
     return wl_wrap_indexed_surface(WL_MAP_SIDE, WL_MAP_SIDE, pixels, pixel_size, out);
 }
 
+int wl_sample_wall_page_column(const unsigned char *chunk, size_t chunk_size,
+                               uint16_t texture_offset, unsigned char *out,
+                               size_t out_size) {
+    if (!chunk || !out || chunk_size != WL_MAP_PLANE_WORDS || out_size < WL_MAP_SIDE ||
+        texture_offset > (WL_MAP_SIDE - 1u) * WL_MAP_SIDE ||
+        (texture_offset % WL_MAP_SIDE) != 0) {
+        return -1;
+    }
+
+    memcpy(out, chunk + texture_offset, WL_MAP_SIDE);
+    return 0;
+}
+
+int wl_sample_indexed_surface_column(const wl_indexed_surface *surface, uint16_t x,
+                                     unsigned char *out, size_t out_size) {
+    if (!surface || !surface->pixels || !out || surface->format != WL_SURFACE_INDEXED8 ||
+        x >= surface->width || out_size < surface->height || surface->stride < surface->width) {
+        return -1;
+    }
+
+    for (uint16_t y = 0; y < surface->height; ++y) {
+        out[y] = surface->pixels[(size_t)y * surface->stride + x];
+    }
+    return 0;
+}
+
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written) {
     const uint16_t near_tag = 0xa7;

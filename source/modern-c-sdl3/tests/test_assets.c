@@ -414,6 +414,8 @@ static int check_wl6(const char *dir) {
     CHECK(dirinfo.chunks[662].length == 184);
 
     unsigned char chunk_buf[4096];
+    unsigned char column_buf[64];
+    unsigned char surface_column_buf[64];
     size_t chunk_bytes = 0;
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 0, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -443,6 +445,25 @@ static int check_wl6(const char *dir) {
     CHECK(surface.stride == 64);
     CHECK(surface.pixel_count == 4096);
     CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0x8fe4d8ff);
+    CHECK(wl_sample_wall_page_column(chunk_buf, chunk_bytes, 0x0000, column_buf,
+                                     sizeof(column_buf)) == 0);
+    CHECK(fnv1a_bytes(column_buf, sizeof(column_buf)) == 0xc77d483d);
+    CHECK(wl_sample_wall_page_column(chunk_buf, chunk_bytes, 0x0040, column_buf,
+                                     sizeof(column_buf)) == 0);
+    CHECK(fnv1a_bytes(column_buf, sizeof(column_buf)) == 0x272b5483);
+    CHECK(wl_sample_wall_page_column(chunk_buf, chunk_bytes, 0x0800, column_buf,
+                                     sizeof(column_buf)) == 0);
+    CHECK(fnv1a_bytes(column_buf, sizeof(column_buf)) == 0x2fbb79bb);
+    CHECK(wl_sample_wall_page_column(chunk_buf, chunk_bytes, 0x0fc0, column_buf,
+                                     sizeof(column_buf)) == 0);
+    CHECK(fnv1a_bytes(column_buf, sizeof(column_buf)) == 0x19c55a4e);
+    CHECK(wl_sample_indexed_surface_column(&surface, 63, surface_column_buf,
+                                           sizeof(surface_column_buf)) == 0);
+    CHECK(memcmp(column_buf, surface_column_buf, sizeof(column_buf)) == 0);
+    CHECK(wl_sample_wall_page_column(chunk_buf, chunk_bytes, 0x0001, column_buf,
+                                     sizeof(column_buf)) == -1);
+    CHECK(wl_sample_indexed_surface_column(&surface, 64, surface_column_buf,
+                                           sizeof(surface_column_buf)) == -1);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 63, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -455,6 +476,12 @@ static int check_wl6(const char *dir) {
     CHECK(wl_decode_wall_page_surface(chunk_buf, chunk_bytes, indexed_buf,
                                       sizeof(indexed_buf), &surface) == 0);
     CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0x5b4d4c38);
+    CHECK(wl_sample_wall_page_column(chunk_buf, chunk_bytes, 0x0800, column_buf,
+                                     sizeof(column_buf)) == 0);
+    CHECK(fnv1a_bytes(column_buf, sizeof(column_buf)) == 0x8a859220);
+    CHECK(wl_sample_indexed_surface_column(&surface, 32, surface_column_buf,
+                                           sizeof(surface_column_buf)) == 0);
+    CHECK(memcmp(column_buf, surface_column_buf, sizeof(column_buf)) == 0);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 105, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -682,6 +709,8 @@ static int check_optional_sod(const char *dir) {
     CHECK(dirinfo.chunks[665].length == 160);
 
     unsigned char chunk_buf[4096];
+    unsigned char column_buf[64];
+    unsigned char surface_column_buf[64];
     size_t chunk_bytes = 0;
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 0, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -705,6 +734,12 @@ static int check_optional_sod(const char *dir) {
     CHECK(surface.height == 64);
     CHECK(surface.pixel_count == 4096);
     CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0x8fe4d8ff);
+    CHECK(wl_sample_wall_page_column(chunk_buf, chunk_bytes, 0x0800, column_buf,
+                                     sizeof(column_buf)) == 0);
+    CHECK(fnv1a_bytes(column_buf, sizeof(column_buf)) == 0x2fbb79bb);
+    CHECK(wl_sample_indexed_surface_column(&surface, 32, surface_column_buf,
+                                           sizeof(surface_column_buf)) == 0);
+    CHECK(memcmp(column_buf, surface_column_buf, sizeof(column_buf)) == 0);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 105, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -717,6 +752,15 @@ static int check_optional_sod(const char *dir) {
     CHECK(wl_decode_wall_page_surface(chunk_buf, chunk_bytes, indexed_buf,
                                       sizeof(indexed_buf), &surface) == 0);
     CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0x997d475d);
+    CHECK(wl_sample_wall_page_column(chunk_buf, chunk_bytes, 0x0000, column_buf,
+                                     sizeof(column_buf)) == 0);
+    CHECK(fnv1a_bytes(column_buf, sizeof(column_buf)) == 0xd61f9cbd);
+    CHECK(wl_sample_wall_page_column(chunk_buf, chunk_bytes, 0x0fc0, column_buf,
+                                     sizeof(column_buf)) == 0);
+    CHECK(fnv1a_bytes(column_buf, sizeof(column_buf)) == 0x3e5f4efd);
+    CHECK(wl_sample_indexed_surface_column(&surface, 63, surface_column_buf,
+                                           sizeof(surface_column_buf)) == 0);
+    CHECK(memcmp(column_buf, surface_column_buf, sizeof(column_buf)) == 0);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 133, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -782,6 +826,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/wall-page tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/wall-column tests passed for %s\n", dir);
     return 0;
 }
