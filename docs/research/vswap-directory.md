@@ -307,3 +307,8 @@ The VSWAP sprite-cache path now consumes refs produced after live AI patrol move
 ## Cycle update: patrol fine-position refs
 
 Actor sprite metadata remains stable while patrol placement advances at sub-tile precision. The moved guard keeps source/chunk `58/164`; only scene-ref world coordinates change, so decoded VSWAP bytes remain local.
+
+
+## Cycle update: live AI fine-position patrol rendering
+
+Fine-position live AI patrol refs now consume the VSWAP sprite-cache path. The guard remains source/chunk `58/164`, while sub-tile world coordinates change the rendered scene hash to `0xcf61b07b`; decoded bytes stay local.

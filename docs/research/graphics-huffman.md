@@ -324,3 +324,8 @@ AI-updated patrol actor refs now have a deterministic headless presentation test
 ## Cycle update: patrol fine-position refs
 
 Renderer-facing actor refs now can use fixed-point partial patrol positions. This gives the SDL3 presentation bridge smoother movement input without requiring SDL or decoded sprite assets in git.
+
+
+## Cycle update: live AI fine-position patrol rendering
+
+The headless renderer now verifies sub-tile patrol placement emitted by live AI. Fine actor coordinates feed scene projection and produce stable hash `0xcf61b07b`, preparing smoother future SDL3 presentation without requiring SDL in tests.

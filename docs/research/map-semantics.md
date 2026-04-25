@@ -128,3 +128,8 @@ Patrol path semantics now carry through live AI movement, scene-ref collection, 
 ## Cycle update: patrol fine-position refs
 
 Tile-granular patrol semantics now have partial movement metadata. A half-tile patrol budget keeps the actor on its tile but advances renderer-facing world coordinates, matching the path toward original `T_Path` distance accumulation.
+
+
+## Cycle update: live AI fine-position patrol rendering
+
+Path/tic patrol semantics now pass through the full live AI presentation path at sub-tile precision. A partial movement budget updates renderer-facing world coordinates without consuming a whole tile.

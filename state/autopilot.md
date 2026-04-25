@@ -4231,3 +4231,40 @@ Next likely move:
 - Feed fine-position patrol refs through live AI rendering, deepen chase/attack progression, or broaden live AI rendering across multiple actor classes/maps.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 09:10 CDT
+
+Action taken:
+
+- Fed fine-position patrol movement through the live actor AI rendering path.
+- Updated the live AI patrol render test to use a half-tile movement budget: the guard stays on its tile, scene refs emit fine world coordinates `0x60000/0x58000`, and VSWAP source/chunk metadata remains `58/164`.
+- Verified the fine-position guard ref decodes locally and renders through `wl_render_runtime_door_camera_scene_view` with stable canvas hash `0xcf61b07b`.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-ai-fine-patrol-render tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Add fine-position accumulation across multiple live AI frames, deepen chase/attack progression, or broaden live AI fine-position rendering across actor classes/maps.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

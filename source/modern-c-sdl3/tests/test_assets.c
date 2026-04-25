@@ -3579,9 +3579,10 @@ static int check_wl6(const char *dir) {
                                      use_wall, use_info, WL_MAP_PLANE_WORDS,
                                      &live_ai_render_motion, 0, 0,
                                      0x10000, 0, WL_DIR_EAST, 0, 0,
-                                     0x10000u, 1,
+                                     0x8000u, 1,
                                      &live_ai_render_tick) == 0);
-    CHECK(live_ai_render_tick.patrols_stepped == 1);
+    CHECK(live_ai_render_tick.patrols_stepped == 0);
+    CHECK(live_ai_render_tick.patrols.tiles_stepped == 0);
     CHECK(wl_collect_scene_sprite_refs(&live_ai_render_model,
                                        dirinfo.header.sprite_start,
                                        scene_refs,
@@ -3590,7 +3591,8 @@ static int check_wl6(const char *dir) {
     CHECK(scene_ref_count == 1);
     CHECK(scene_refs[0].source_index == 58);
     CHECK(scene_refs[0].vswap_chunk_index == 164);
-    CHECK(scene_refs[0].world_x == 0x68000u);
+    CHECK(scene_refs[0].world_x == 0x60000u);
+    CHECK(scene_refs[0].world_y == 0x58000u);
     unsigned char live_ai_guard_pixels[WL_MAP_PLANE_WORDS];
     wl_indexed_surface live_ai_guard_surface;
     const uint16_t live_ai_guard_chunks[] = { scene_refs[0].vswap_chunk_index };
@@ -3627,7 +3629,7 @@ static int check_wl6(const char *dir) {
     CHECK(sprites[0].surface_index == 0);
     CHECK(sprites[0].visible == 1);
     uint32_t live_ai_guard_scene_hash = fnv1a_bytes(canvas.pixels, canvas.pixel_count);
-    CHECK(live_ai_guard_scene_hash == 0x6ee1f8bf);
+    CHECK(live_ai_guard_scene_hash == 0xcf61b07b);
 
     wl_game_model live_drop_scene_model;
     memset(&live_drop_scene_model, 0, sizeof(live_drop_scene_model));
@@ -4459,6 +4461,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-patrol-fine-position tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-fine-patrol-render tests passed for %s\n", dir);
     return 0;
 }

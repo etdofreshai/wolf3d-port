@@ -251,3 +251,8 @@ Live-AI-updated patrol refs now feed the door-aware wall+sprite scene renderer. 
 ## Patrol fine-position refs
 
 Patrol actors now carry optional fixed-point `fine_x`/`fine_y` coordinates. Tic-budgeted patrol movement reports and stores partial-tile positions, while scene-ref collection prefers fine coordinates when present so render-facing actor placement can advance before a whole tile is consumed.
+
+
+## Live AI fine-position patrol rendering
+
+Live actor AI now drives sub-tile patrol placement into rendering. A half-tic patrol budget leaves the actor on its current tile, emits fine world coordinates through scene refs, decodes the guard sprite locally, and renders a stable door-aware scene hash `0xcf61b07b`.
