@@ -1,6 +1,7 @@
 
 # Autopilot runtime logs/state
 logs/
+.worktrees/
 state/autopilot-supervisor.pid
 state/autopilot-supervisor-model-state.json
 state/autopilot-supervisor-review-state.json

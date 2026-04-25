@@ -48,6 +48,7 @@ scripts/wolf3d_autopilot_supervisor.py --start-update
 scripts/wolf3d_autopilot_supervisor.py --stop-update
 scripts/wolf3d_autopilot_supervisor.py --clear-stop-files-on-start
 scripts/wolf3d_autopilot_supervisor.py --summary-interval 300  # optional periodic summaries while waiting
+scripts/wolf3d_parallel_wave.py --max-waves 1 --parallel-max-models 3
 ```
 
 Defaults are intentionally conservative:
@@ -69,6 +70,30 @@ Defaults are intentionally conservative:
 - usage guard: on; skip over-budget providers and pause only if all configured providers are over budget
 
 Current OpenClaw CLI builds may not expose a direct `openclaw agent --model` flag. The supervisor still rotates the model preference and injects it into the cycle prompt; if a future CLI exposes `--model`, the supervisor will pass it automatically.
+
+## Parallel wave mode
+
+`scripts/wolf3d_parallel_wave.py` is the opt-in parallel “beads” runner. It launches at most one worker per eligible model, each in an isolated git worktree and branch under ignored `.worktrees/`, waits for all workers to finish, then merges successful branches back into `main` one at a time.
+
+One wave:
+
+```bash
+scripts/wolf3d_parallel_wave.py --max-waves 1 --parallel-max-models 3
+```
+
+Behavior:
+
+- checks the same provider usage windows before selecting models
+- creates one worktree/branch per selected model
+- gives every worker the same cross-model review instructions before new work
+- runs workers concurrently with separate OpenClaw sessions
+- records worker JSON logs under ignored `logs/`
+- merges successful branches sequentially
+- runs `make test` after merge
+- pushes if verification passes
+- reports merged commits, issues/conflicts, verification, push status, and final head to Telegram
+
+If a branch conflicts or fails verification, the wave reports the issue and stops instead of blindly continuing. This is deliberately safer than letting multiple models edit the same checkout.
 
 ## Cross-model review phase
 

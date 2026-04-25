@@ -5724,3 +5724,35 @@ Next likely move:
 - Resume autopilot; each model will review the commits made by other models since its previous run before doing new work.
 
 Blockers: none.
+
+
+## Cycle 2026-04-25 11:05 CDT Parallel Wave Runner
+
+Action taken:
+
+- Added `scripts/wolf3d_parallel_wave.py`, an opt-in parallel wave runner for the autopilot “beads” model.
+- The runner selects eligible models with the same provider usage checks, creates one isolated git worktree/branch per model under ignored `.worktrees/`, launches concurrent OpenClaw agent turns, waits for all workers to finish, then merges successful branches back into `main` sequentially.
+- Each parallel worker receives the same cross-model review instructions before choosing new work, so review behavior is preserved inside each wave.
+- After the wave collapses, the runner runs `make test`, pushes if verification passes, records per-model last completed commits for future review scope, and sends a Telegram wave-completion update.
+- Conflicts, worker failures, no-commit branches, or verification failures stop the wave and are reported instead of being merged blindly.
+- Updated docs and `.gitignore` for `.worktrees/`.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_parallel_wave.py
+scripts/wolf3d_parallel_wave.py --help
+cd source/modern-c-sdl3 && make test-sdl3 && make test
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Parallel edits are isolated in git worktrees instead of sharing one checkout.
+
+Next likely move:
+
+- Trial one conservative wave with `scripts/wolf3d_parallel_wave.py --max-waves 1 --parallel-max-models 2` before running indefinitely.
+
+Blockers: parallel merge conflicts are expected to require sequential repair if multiple models touch the same files.
