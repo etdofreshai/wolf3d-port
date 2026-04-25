@@ -16,6 +16,8 @@ Files:
 
 The implementation intentionally avoids SDL for now. It uses normal C stdio and explicit little-endian readers so it can run on headless Linux and form the base for later SDL3 presentation/input/audio boundaries.
 
+Audio metadata now includes a small `AUDIOT` descriptor seam: representative PC speaker, AdLib, empty digital, and IMF music chunks are classified by original WL6 chunk ranges, expose an explicit empty flag, raw size, declared length, sound priority where present, and payload offsets/sizes. This keeps future decode/playback work deterministic without committing local proprietary audio data.
+
 ## Current test coverage
 
 `make test` builds and runs `build/test_assets` from `source/modern-c-sdl3`.

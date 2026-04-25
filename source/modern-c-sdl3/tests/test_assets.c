@@ -5716,6 +5716,7 @@ static int check_audio_wl6(const char *dir) {
     wl_audio_header audio;
     unsigned char chunk_buf[65536];
     size_t chunk_bytes = 0;
+    wl_audio_chunk_metadata audio_meta;
 
     CHECK(wl_join_path(audiohed_path, sizeof(audiohed_path), dir, "AUDIOHED.WL6") == 0);
     CHECK(wl_join_path(audiot_path, sizeof(audiot_path), dir, "AUDIOT.WL6") == 0);
@@ -5750,6 +5751,13 @@ static int check_audio_wl6(const char *dir) {
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 15);
     CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x5971ec53);
+    CHECK(wl_describe_audio_chunk(0, chunk_buf, chunk_bytes, &audio_meta) == 0);
+    CHECK(audio_meta.kind == WL_AUDIO_CHUNK_PC_SPEAKER);
+    CHECK(audio_meta.is_empty == 0);
+    CHECK(audio_meta.declared_length == 8);
+    CHECK(audio_meta.priority == 1);
+    CHECK(audio_meta.payload_offset == 6);
+    CHECK(audio_meta.payload_size == 9);
 
     /* PC speaker sound 1 (SELECTWPNSND) */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 1, chunk_buf, sizeof(chunk_buf),
@@ -5762,17 +5770,35 @@ static int check_audio_wl6(const char *dir) {
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 41);
     CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x799f60b1);
+    CHECK(wl_describe_audio_chunk(87, chunk_buf, chunk_bytes, &audio_meta) == 0);
+    CHECK(audio_meta.kind == WL_AUDIO_CHUNK_ADLIB);
+    CHECK(audio_meta.is_empty == 0);
+    CHECK(audio_meta.declared_length == 8);
+    CHECK(audio_meta.priority == 1);
+    CHECK(audio_meta.payload_offset == 6);
+    CHECK(audio_meta.payload_size == 35);
 
     /* Digital sound 174 (first digi = STARTDIGISOUNDS) - empty in WL6 shareware */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 174, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 0);
+    CHECK(wl_describe_audio_chunk(174, chunk_buf, chunk_bytes, &audio_meta) == 0);
+    CHECK(audio_meta.kind == WL_AUDIO_CHUNK_DIGITAL);
+    CHECK(audio_meta.is_empty == 1);
+    CHECK(audio_meta.payload_size == 0);
 
     /* Music 261 (first music = STARTMUSIC, CORNER_MUS) */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 261, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 7546);
     CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xea0d69d8);
+    CHECK(wl_describe_audio_chunk(261, chunk_buf, chunk_bytes, &audio_meta) == 0);
+    CHECK(audio_meta.kind == WL_AUDIO_CHUNK_MUSIC);
+    CHECK(audio_meta.is_empty == 0);
+    CHECK(audio_meta.declared_length == 7456);
+    CHECK(audio_meta.priority == 0);
+    CHECK(audio_meta.payload_offset == 4);
+    CHECK(audio_meta.payload_size == 7542);
 
     /* Boundary: last chunk */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 287, chunk_buf, sizeof(chunk_buf),
