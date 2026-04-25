@@ -422,3 +422,8 @@ Chase death-final metadata now asserts final corpse chunks for officer `284/390`
 ## Cycle update: shooter-class chase death-final render hashes
 
 The class death render checks decode local VSWAP chunks only for verification: officer `284/390`, SS `183/289`, mutant `233/339`, boss `303/409`, plus their drops, with hash-only assertions.
+
+
+## Cycle update: dog chase death-final render
+
+The dog chase final render verifies VSWAP metadata/hash only: final corpse source/chunk `134/240`, no committed decoded bytes, scene hash `0x92ff40dd`.

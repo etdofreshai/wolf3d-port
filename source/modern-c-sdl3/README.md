@@ -366,3 +366,8 @@ Chase-started full-combat/death-final coverage now extends from guards to office
 ## Shooter-class chase death-final render hashes
 
 Chase-started death-final rendering now includes officer, SS, mutant, and boss final corpse/drop scenes with stable hashes: officer `0x9b24b352`, SS `0x5b093720`, mutant `0xbfccde1b`, boss `0xc6d3eb4d`.
+
+
+## Dog chase death-final render
+
+Chase-started death-final rendering now covers dogs as a no-drop contact enemy. The dog completes live AI chase movement, dies through full-combat/death ticking, and renders final corpse `134/240` with stable hash `0x92ff40dd`.

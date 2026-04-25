@@ -243,3 +243,8 @@ Chase-started combat/death semantics now cover multiple shooter actor kinds, pre
 ## Cycle update: shooter-class chase death-final render hashes
 
 Chase-started class deaths now have deterministic rendered terminal states, proving final corpse override and drop persistence across officer, SS, mutant, and boss semantics.
+
+
+## Cycle update: dog chase death-final render
+
+Chase-started dog death semantics now preserve moved coordinates through final death ticking and scene collection while correctly producing no drop.

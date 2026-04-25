@@ -439,3 +439,8 @@ Renderer-facing metadata now verifies final corpse source/chunk overrides for ch
 ## Cycle update: shooter-class chase death-final render hashes
 
 Headless rendering now pins final corpse/drop hashes for chase-started officer (`0x9b24b352`), SS (`0x5b093720`), mutant (`0xbfccde1b`), and boss (`0xc6d3eb4d`) deaths.
+
+
+## Cycle update: dog chase death-final render
+
+Headless rendering now pins dog chase final corpse output: source/chunk `134/240`, no drop, scene hash `0x92ff40dd`.

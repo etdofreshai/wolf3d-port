@@ -498,3 +498,8 @@ The chase full-combat/death-final seam now covers officer, SS, mutant, and boss 
 ## Cycle update: shooter-class chase death-final render hashes
 
 The class-broadened chase death-final metadata now reaches the headless scene renderer. Officer, SS, mutant, and boss cases each render final corpse plus drop after live AI chase movement and death ticking.
+
+
+## Cycle update: dog chase death-final render
+
+The chase full-combat/death-final render seam now covers dog actors separately from shooter/drop classes. The dog final corpse override renders without a spawned drop.
