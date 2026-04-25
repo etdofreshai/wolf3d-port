@@ -8,3 +8,21 @@ Goals:
 - Replace DOS/platform-specific services with SDL3-backed equivalents.
 - Keep game data proprietary assets outside git in `game-files/`.
 - Use tests as the behavioral bridge from original source to this implementation.
+
+## Current headless verification
+
+The first runnable milestone is a pure C asset metadata harness. It has no SDL dependency yet and verifies local WL6 data discovery plus `MAPHEAD`, `GAMEMAPS`, and `VSWAP` header parsing.
+
+Run from this directory:
+
+```bash
+make test
+```
+
+By default the test uses `game-files/base` relative to the repo root. Override with:
+
+```bash
+WOLF3D_DATA_DIR=/path/to/WL6/data make test
+```
+
+The test only reads local data files and commits metadata expectations, not proprietary game bytes.

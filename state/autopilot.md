@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Initial source inventory and test strategy for modern C + SDL3 port is complete. Next phase should begin the first runnable modern C asset-loader tests.
+First runnable modern C asset-loader metadata tests are implemented and passing on headless Linux. Next phase should add Carmack/RLEW map-plane decompression tests.
 
 ## Latest Verified Milestone
 
@@ -13,7 +13,9 @@ Initial source inventory and test strategy for modern C + SDL3 port is complete.
 - Local purchased game data is present under `game-files/base/` and ignored by git.
 - Autopilot operating rules are documented in `docs/AUTOPILOT.md`.
 - `source/original/` was inspected but not modified.
-- `docs/research/source-inventory.md` now records the first source/data inventory and practical test-driven porting strategy.
+- `docs/research/source-inventory.md` records the first source/data inventory and practical test-driven porting strategy.
+- `source/modern-c-sdl3` now contains the first pure C asset metadata harness (`wl_assets`) plus `make test` headless verification.
+- `docs/research/asset-metadata-harness.md` records the implemented seam, assertions, and verification output.
 
 ## Verified Findings
 
@@ -75,16 +77,16 @@ Use tests as the bridge from the original code to modern C:
 
 ## Next Likely Move
 
-Implement the first runnable modern C test harness and WL6 map metadata parser.
+Implement pure C Carmack expansion and RLEW expansion, then decode WL6 map 0 planes.
 
 Recommended files for the next commit:
 
-- `source/modern-c-sdl3/include/wl_assets.h`
-- `source/modern-c-sdl3/src/wl_assets.c`
-- a small C test runner under `source/modern-c-sdl3/tests/` or repo-level `tests/`
-- build/run instructions for the metadata test
+- extend `source/modern-c-sdl3/include/wl_assets.h` with decompression APIs
+- extend `source/modern-c-sdl3/src/wl_assets.c` or add `src/wl_decompress.c`
+- add tests that decode WL6 map 0 planes 0/1 into 4096-word arrays
+- assert output sizes and stable hashes/counts rather than committing proprietary map bytes
 
-First assertions should verify the observed WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, and `VSWAP.WL6` header values.
+The current metadata harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header values, and optional SOD metadata.
 
 ## Blockers
 
@@ -96,3 +98,42 @@ None. SDL3 integration can safely wait until asset/decompression tests exist.
 - Target verification environment is headless Linux.
 - Prefer automated CLI/build/unit tests over visual/manual checks.
 - Autopilot is expected to continue overnight without asking ET for routine decisions.
+
+## Cycle 2026-04-24 22:22 CDT
+
+Action taken:
+
+- Implemented first runnable modern C + SDL3-port test harness without requiring SDL yet.
+- Added `wl_assets` module for local data path resolution, file-size checks, `MAPHEAD` parsing, `GAMEMAPS` map header parsing, and `VSWAP` header parsing.
+- Added `source/modern-c-sdl3/Makefile` with strict C11 warnings-as-errors build.
+- Added headless test runner `source/modern-c-sdl3/tests/test_assets.c`.
+- Added `docs/research/asset-metadata-harness.md` with assertions and verification evidence.
+- Updated root `.gitignore` to ignore `source/modern-c-sdl3/build/`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset metadata tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Verified `game-files/base/MAPHEAD.WL6` and `game-files/base/VSWAP.WL6` remain ignored by `game-files/.gitignore`.
+- Build artifact directory is ignored.
+
+Next likely move:
+
+- Add pure C Carmack + RLEW expansion and decode WL6 map 0 planes into 4096-word arrays with hash/count assertions.
+
+Blockers: none.

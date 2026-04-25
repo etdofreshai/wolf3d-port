@@ -1,0 +1,21 @@
+CC ?= cc
+CFLAGS ?= -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g
+CPPFLAGS ?= -Iinclude
+BUILD_DIR := build
+TEST_ASSETS := $(BUILD_DIR)/test_assets
+
+.PHONY: all test clean
+
+all: $(TEST_ASSETS)
+
+$(BUILD_DIR):
+	mkdir -p $@
+
+$(TEST_ASSETS): src/wl_assets.c tests/test_assets.c include/wl_assets.h | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) src/wl_assets.c tests/test_assets.c -o $@
+
+test: $(TEST_ASSETS)
+	cd ../.. && source/modern-c-sdl3/$(TEST_ASSETS)
+
+clean:
+	rm -rf $(BUILD_DIR)
