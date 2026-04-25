@@ -36,6 +36,7 @@ scripts/wolf3d_autopilot_supervisor.py --exclude-models 'zai/glm-5.1'
 scripts/wolf3d_autopilot_supervisor.py --exclude-models 'zai'  # exclude a whole provider prefix
 scripts/wolf3d_autopilot_supervisor.py --usage-provider-windows 'zai:Monthly,openai-codex:Week'
 scripts/wolf3d_autopilot_supervisor.py --usage-extra-windows '5h'
+scripts/wolf3d_autopilot_supervisor.py --usage-skip-updates
 scripts/wolf3d_autopilot_supervisor.py --no-fast-mode
 scripts/wolf3d_autopilot_supervisor.py --worker-poll 30 --max-worker-wait 7200
 scripts/wolf3d_autopilot_supervisor.py --push-after-cycle
@@ -53,6 +54,7 @@ Defaults are intentionally conservative:
 - model preference rotation: `openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1`
 - provider usage-window override: `zai:Monthly`, while other providers default to `Week`
 - extra short-window guard: `5h` must also be inside budget when the provider reports it
+- usage skip updates: on; report skipped models to Telegram with used vs allowed percentages
 - explicit model inclusion: `--include-models` (`--models` remains an alias)
 - optional model/provider exclusion after inclusion: `--exclude-models 'zai/glm-5.1'` or `--exclude-models 'zai'`
 - push after cycle: on; uses normal git auth or `GH_TOKEN_ETDOFRESHAI` / `GITHUB_TOKEN` / `GH_TOKEN` from the environment
@@ -72,8 +74,8 @@ Default policy:
 - check both the provider's long window and any `--usage-extra-windows` such as `5h`
 - allow usage up to `elapsed_window_percent + 5%` slack for each checked window
 - allow at least `3%` early in the window
-- if one provider is ahead of schedule, skip that model and try the next configured provider
-- if all configured providers are ahead of schedule, sleep until the earliest provider should be back inside budget, then re-check
+- if one provider is ahead of schedule, skip that model, send a compact Telegram update with used vs allowed percentages, and try the next configured provider
+- if all configured providers are ahead of schedule, report the skipped models, sleep until the earliest provider should be back inside budget, then re-check
 
 Useful options:
 
@@ -83,6 +85,7 @@ scripts/wolf3d_autopilot_supervisor.py --exclude-models 'anthropic/claude-opus-4
 scripts/wolf3d_autopilot_supervisor.py --exclude-models 'zai'
 scripts/wolf3d_autopilot_supervisor.py --usage-window Week --usage-provider-windows 'zai:Monthly'
 scripts/wolf3d_autopilot_supervisor.py --usage-extra-windows '5h'
+scripts/wolf3d_autopilot_supervisor.py --no-usage-skip-updates
 scripts/wolf3d_autopilot_supervisor.py --usage-budget-start 2026-04-22T12:33:16Z
 scripts/wolf3d_autopilot_supervisor.py --usage-budget-reset 2026-04-29T12:33:16Z
 scripts/wolf3d_autopilot_supervisor.py --usage-slack-percent 10

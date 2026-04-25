@@ -350,67 +350,125 @@ def load_usage_status() -> dict[str, Any] | None:
         return None
 
 
-def usage_wait_seconds_for_provider_window(args: argparse.Namespace, status: dict[str, Any] | None, provider: str, window_label: str) -> int:
+def usage_check_for_provider_window(args: argparse.Namespace, status: dict[str, Any] | None, provider: str, window_label: str) -> dict[str, Any]:
+    detail: dict[str, Any] = {"provider": provider, "window": window_label, "waitSeconds": 0, "available": True}
     if status is None:
-        return 0
+        detail["note"] = "usage unavailable"
+        return detail
     window = find_usage_window(status, provider, window_label)
     if not window:
+        detail["note"] = f"no {window_label} window"
         log(f"usage guard: no {window_label} usage window for provider={provider}; treating that window as available")
-        return 0
+        return detail
     actual_label = str(window.get("label") or window_label)
     used_percent = float(window.get("usedPercent") or 0)
+    detail.update({"window": actual_label, "usedPercent": used_percent})
     reset_at_ms = window.get("resetAt")
     if args.usage_budget_reset:
         reset_at = parse_iso_datetime(args.usage_budget_reset)
     elif reset_at_ms:
         reset_at = datetime.fromtimestamp(float(reset_at_ms) / 1000, tz=timezone.utc)
     else:
+        detail["note"] = "no resetAt"
         log(f"usage guard: provider={provider} window={actual_label} has no resetAt; treating window as available")
-        return 0
+        return detail
     start_at = parse_iso_datetime(args.usage_budget_start) if args.usage_budget_start else budget_start_for_window(reset_at, actual_label)
     now_dt = datetime.now(timezone.utc)
     total = max((reset_at - start_at).total_seconds(), 1)
     elapsed = min(max((now_dt - start_at).total_seconds(), 0), total)
     elapsed_percent = elapsed / total * 100.0
     allowed_percent = min(100.0, max(args.usage_min_allowed_percent, elapsed_percent + args.usage_slack_percent))
+    detail.update({"allowedPercent": allowed_percent, "resetAt": reset_at.isoformat()})
     log(
         f"usage guard: provider={provider} window={actual_label} "
         f"used={used_percent:.1f}% allowed={allowed_percent:.1f}% reset={reset_at.isoformat()}"
     )
     if used_percent <= allowed_percent:
-        return 0
+        return detail
     target_elapsed_percent = max(0.0, min(100.0, used_percent - args.usage_slack_percent))
     resume_at = start_at + timedelta(seconds=total * (target_elapsed_percent / 100.0))
     wait_seconds = max(0, int((resume_at - now_dt).total_seconds()))
+    detail.update({"waitSeconds": wait_seconds, "available": False, "resumeAt": resume_at.isoformat()})
     log(f"usage guard: provider={provider} window={actual_label} blocked until {resume_at.isoformat()} ({wait_seconds}s)")
-    return wait_seconds
+    return detail
+
+
+def usage_checks_for_provider(args: argparse.Namespace, status: dict[str, Any] | None, provider: str) -> list[dict[str, Any]]:
+    windows = [usage_window_for_provider(args, provider), *args.usage_extra_windows]
+    return [usage_check_for_provider_window(args, status, provider, window) for window in dict.fromkeys(windows)]
 
 
 def usage_wait_seconds_for_provider(args: argparse.Namespace, status: dict[str, Any] | None, provider: str) -> int:
-    windows = [usage_window_for_provider(args, provider), *args.usage_extra_windows]
-    waits = [usage_wait_seconds_for_provider_window(args, status, provider, window) for window in dict.fromkeys(windows)]
-    return max(waits) if waits else 0
+    checks = usage_checks_for_provider(args, status, provider)
+    return max((int(check.get("waitSeconds") or 0) for check in checks), default=0)
 
 
-def select_available_model(args: argparse.Namespace, models: list[str], stop_ref: dict[str, bool]) -> str | None:
+def format_usage_skip_lines(blocked: list[dict[str, Any]], selected_model: str | None) -> str:
+    lines = []
+    for item in blocked:
+        reasons = []
+        for check in item.get("checks", []):
+            if check.get("available") is False:
+                used = check.get("usedPercent")
+                allowed = check.get("allowedPercent")
+                window = check.get("window")
+                resume = check.get("resumeAt")
+                reason = f"{window}: {used:.1f}% used / {allowed:.1f}% allowed" if isinstance(used, (int, float)) and isinstance(allowed, (int, float)) else str(window)
+                if resume:
+                    reason += f", resumes {resume}"
+                reasons.append(reason)
+        reason_text = "; ".join(reasons) if reasons else f"wait {item.get('waitSeconds', 0)}s"
+        lines.append(f"Skipped {item['model']} ({item['provider']}) — {reason_text}.")
+    if selected_model:
+        lines.append(f"Using {selected_model} next.")
+    else:
+        lines.append("All configured models are currently over budget; waiting for the earliest window to reopen.")
+    return "\n".join(lines)
+
+
+def send_usage_skip_update(args: argparse.Namespace, blocked: list[dict[str, Any]], selected_model: str | None, help_text: str) -> None:
+    if not args.usage_skip_updates or not blocked:
+        return
+    text = format_usage_skip_lines(blocked, selected_model)
+    log(f"sending usage skip update: {text.replace(chr(10), ' | ')}")
+    cp = run(
+        build_agent_command(
+            message="Send this exact Telegram update, with no extra title or commentary:\n" + text,
+            thinking=args.summary_thinking,
+            timeout=120,
+            model="runtime default",
+            deliver=True,
+            reply_channel=args.summary_channel,
+            reply_target=args.summary_target,
+            help_text=help_text,
+        ),
+        timeout=180,
+    )
+    log(f"usage skip update rc={cp.returncode}")
+
+
+def select_available_model(args: argparse.Namespace, models: list[str], stop_ref: dict[str, bool], help_text: str) -> str | None:
     if not args.usage_guard:
         return select_model(models, args.usage_provider)
     while not stop_ref["stop"] and not STOP_FILE.exists():
         status = load_usage_status()
-        blocked: list[tuple[str, str, int]] = []
+        blocked: list[dict[str, Any]] = []
         for index, model in model_rotation_order(models):
             provider = model_provider(model, args.usage_provider)
-            wait_seconds = usage_wait_seconds_for_provider(args, status, provider)
+            checks = usage_checks_for_provider(args, status, provider)
+            wait_seconds = max((int(check.get("waitSeconds") or 0) for check in checks), default=0)
             if wait_seconds <= 0:
                 store_model_state(index, model, provider)
                 if blocked:
                     log(f"usage guard: skipped blocked providers before selecting model={model} provider={provider}")
+                    send_usage_skip_update(args, blocked, model, help_text)
                 return model
-            blocked.append((model, provider, wait_seconds))
+            blocked.append({"model": model, "provider": provider, "waitSeconds": wait_seconds, "checks": checks})
         if not blocked:
             return select_model(models, args.usage_provider)
-        min_wait = min(wait for _, _, wait in blocked)
-        summary = ", ".join(f"{model}/{provider}:{wait}s" for model, provider, wait in blocked)
+        send_usage_skip_update(args, blocked, None, help_text)
+        min_wait = min(int(item["waitSeconds"]) for item in blocked)
+        summary = ", ".join(f"{item['model']}/{item['provider']}:{item['waitSeconds']}s" for item in blocked)
         log(f"usage guard: all configured providers blocked ({summary}); sleeping before retry")
         time.sleep(min(min_wait, args.usage_check_interval))
     return None
@@ -521,6 +579,7 @@ def main() -> int:
     ap.add_argument("--usage-window", default="Week", help="default usage window label from openclaw status --usage")
     ap.add_argument("--usage-provider-windows", default="zai:Monthly", help="comma-separated provider:window overrides, e.g. zai:Monthly,openai-codex:Week")
     ap.add_argument("--usage-extra-windows", default="5h", help="comma-separated extra usage windows that must also be inside budget, e.g. 5h")
+    ap.add_argument("--usage-skip-updates", action=argparse.BooleanOptionalAction, default=True, help="send a Telegram update when a model is skipped for usage budget reasons")
     ap.add_argument("--usage-budget-start", default="", help="ISO timestamp for budget start; default is inferred from the usage window label")
     ap.add_argument("--usage-budget-reset", default="", help="ISO timestamp for weekly budget reset; default uses provider resetAt")
     ap.add_argument("--usage-slack-percent", type=float, default=5.0, help="allowed percentage above the linear weekly budget curve")
@@ -570,7 +629,7 @@ def main() -> int:
             if args.max_cycles and cycle_count >= args.max_cycles:
                 log(f"max cycles reached: {args.max_cycles}; exiting")
                 break
-            selected_model = select_available_model(args, models, stop_ref)
+            selected_model = select_available_model(args, models, stop_ref, help_text)
             if selected_model is None or stop_ref["stop"] or STOP_FILE.exists():
                 break
             cycle_count += 1

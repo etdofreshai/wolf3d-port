@@ -3740,3 +3740,34 @@ Next likely move:
 - Use `--stop-after-current-loop` when ET wants the autopilot to drain gracefully rather than cancelling current work.
 
 Blockers: none for headless work.
+
+
+## Cycle 2026-04-25 08:32 CDT Usage Skip Updates
+
+Action taken:
+
+- Added Telegram updates when the supervisor skips a model for usage-budget reasons.
+- Skip updates include the skipped model/provider, blocking window, current usage percentage, desired/allowed usage percentage, and resume time when calculable.
+- Added `--usage-skip-updates` / `--no-usage-skip-updates`, defaulting to enabled.
+- If all configured models are blocked, the supervisor reports all skipped models before sleeping until the earliest budget window should reopen.
+- Updated supervisor docs with skip-update behavior.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_autopilot_supervisor.py
+scripts/wolf3d_autopilot_supervisor.py --help
+cd source/modern-c-sdl3 && make test
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Did not start the autopilot; `state/STOP_AUTOPILOT` remains present.
+
+Next likely move:
+
+- Start the autopilot only after ET explicitly says to start; skipped models will now be announced with usage details.
+
+Blockers: none for headless work.
