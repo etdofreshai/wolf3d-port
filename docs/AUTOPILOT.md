@@ -10,7 +10,7 @@ The owner wants to specify intent with minimal prompting. The autopilot should m
 
 ## Prime Directive
 
-Make the best next move toward a working, verified modern C + SDL3 port. Do not wait for perfect instructions. Prefer useful progress over asking for clarification. Run continuously until the owner explicitly stops the autopilot or a hard safety/legal/destructive blocker appears.
+Make the best next move toward a working, verified modern C + SDL3 port. Do not wait for perfect instructions. Prefer useful progress over asking for clarification. Run continuously until the owner explicitly stops the autopilot, a safety/legal/destructive/public-action decision requires owner approval, or the same issue has repeated many times across materially different attempts.
 
 ## Ask/Escalate Only When Necessary
 
@@ -23,7 +23,7 @@ Escalate only for:
 - External/public publishing, messaging, or uploads
 - A true product-direction fork where both options are expensive and mutually exclusive
 - Missing credentials/assets that cannot be inferred or worked around
-- Repeated verification failure after several materially different attempts
+- Repeated verification failure after many materially different attempts, usually in the tens for the same issue rather than a handful of failures
 
 Everything else should be handled autonomously.
 
@@ -36,7 +36,8 @@ Implications:
 - Prefer CLI tests, unit tests, parsers, build checks, and deterministic file/output validation.
 - Do not require an interactive display for normal verification.
 - SDL3 work should support headless-friendly smoke tests where possible, using dummy/offscreen drivers or non-rendering seams before graphical inspection.
-- Screenshot/manual visual checks are optional later-stage evidence, not a dependency for early progress.
+- Visual tests are desired, but they should usually be screenshot/offscreen artifacts that can be inspected or compared from headless Linux.
+- Deterministic CLI tests come first; SDL3 presentation and screenshot tests should be added once the underlying behavior has useful characterization tests.
 - Long-running cycles should continue autonomously overnight and avoid pausing for routine clarification.
 
 ## Loop Shape
@@ -57,7 +58,7 @@ Each autopilot cycle should:
    - Update `state/autopilot.md` with what happened, what was verified, and the next likely move.
 6. **Continue or Pause**
    - Continue automatically if safe and useful.
-   - Pause only on a hard safety/legal/destructive blocker, repeated materially different verification failures, or explicit owner stop. Otherwise choose the next best step and continue.
+   - Pause only for owner stop, safety/legal/destructive/public-action approval needs, budget guardrails, or repeated same-issue failure after many materially different attempts. Otherwise choose the next best step and continue.
 
 ## Technical Boundaries
 
@@ -81,7 +82,7 @@ Use tests as the bridge between original and modern code:
 3. Where practical, build tests that can validate both the original-derived behavior and the modern implementation.
 4. Keep `source/original/` untouched. Add any harnesses, extracted fixtures, or adapters outside the original submodule.
 5. Build the modern C + SDL3 implementation under `source/modern-c-sdl3/`.
-6. Add SDL3 platform/input/audio/video boundaries after core behavior is characterized.
+6. Add SDL3 platform/input/audio/video boundaries after core behavior is characterized, with headless/offscreen screenshot tests when visual evidence becomes useful.
 
 This strategy may change as discoveries are made. The autopilot is expected to adapt, but the target remains modern C + SDL3 unless changed by the owner.
 

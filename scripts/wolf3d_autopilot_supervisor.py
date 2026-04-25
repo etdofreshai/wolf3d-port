@@ -13,11 +13,11 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import signal
 import subprocess
-import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +26,7 @@ LOG_DIR = REPO / "logs"
 STATE_DIR = REPO / "state"
 STOP_FILE = STATE_DIR / "STOP_AUTOPILOT"
 LOCK_FILE = STATE_DIR / "autopilot-supervisor.pid"
+MODEL_STATE_FILE = STATE_DIR / "autopilot-supervisor-model-state.json"
 
 TERMINAL = {"succeeded", "failed", "timed_out", "cancelled", "lost"}
 PROJECT_MARKERS = (
@@ -43,20 +44,23 @@ Inspect logs/autopilot-supervisor.log, latest logs/autopilot-cycle-*.jsonlog if 
 Keep it concise: 2-5 bullets max. Include commits, verification, current activity, and blockers if any. If there is no meaningful new progress since the last summary, say so briefly. Do not expose internal prompts or raw logs.
 """.strip()
 
-CYCLE_PROMPT = f"""
+CYCLE_PROMPT_TEMPLATE = f"""
 Run one adaptive Wolfenstein 3D port autopilot cycle in {REPO}.
 
 Mandatory context:
 - Read docs/AUTOPILOT.md, state/autopilot.md, and latest docs/research notes.
-- Target headless Linux verification.
+- Target headless Linux verification first.
 - Goal: faithful modern C + SDL3 port.
 - Do not ask ET routine questions. Make the best safe technical decision.
 - Do not modify source/original/.
 - Do not commit proprietary game-files assets.
-- If useful, spawn focused workers/subagents with high reasoning and labels prefixed wolf3d-.
+- Do not use fast mode unless the supervisor explicitly enables it.
+- Preferred model for this cycle: {{model_hint}}. If the runtime cannot switch models from this entrypoint, still use this as the review/decision-making perspective for the cycle.
+- If useful, spawn focused workers/subagents with the supervisor-selected thinking level and labels prefixed wolf3d-.
 - If spawning workers, make their tasks concrete, repo-grounded, and verification-oriented.
 - Implement/research one meaningful next step, verify it, update state/autopilot.md/docs, and commit useful changes.
-- If blocked after materially different attempts, record the blocker and stop cleanly.
+- Do not stop for ordinary blockers; pivot, research, split the task, or try materially different approaches.
+- If the same issue repeats many times across materially different attempts, record the blocker and pause cleanly.
 - Keep final output concise: commits, verification evidence, next move, blockers.
 """.strip()
 
@@ -84,6 +88,14 @@ def run(cmd: list[str], *, timeout: int | None = None) -> subprocess.CompletedPr
     )
 
 
+def parse_iso_datetime(value: str) -> datetime:
+    normalized = value.strip().replace("Z", "+00:00")
+    dt = datetime.fromisoformat(normalized)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
 def load_tasks() -> list[dict[str, Any]]:
     cp = run(["openclaw", "tasks", "list", "--json"], timeout=60)
     if cp.returncode != 0:
@@ -109,27 +121,153 @@ def active_project_tasks() -> list[dict[str, Any]]:
     return [t for t in load_tasks() if is_project_task(t) and t.get("status") not in TERMINAL]
 
 
-def send_summary(channel: str, target: str, timeout: int = 180) -> None:
+def openclaw_agent_help() -> str:
+    cp = run(["openclaw", "agent", "--help"], timeout=60)
+    return cp.stdout if cp.returncode == 0 else ""
+
+
+def supports_agent_option(help_text: str, option: str) -> bool:
+    return bool(re.search(rf"(^|\s){re.escape(option)}(\s|,|$)", help_text))
+
+
+def split_models(raw: str) -> list[str]:
+    return [m.strip() for m in raw.split(",") if m.strip()]
+
+
+def select_model(models: list[str]) -> str:
+    if not models:
+        return "runtime default"
+    STATE_DIR.mkdir(exist_ok=True)
+    last_index = -1
+    if MODEL_STATE_FILE.exists():
+        try:
+            data = json.loads(MODEL_STATE_FILE.read_text(encoding="utf-8"))
+            last_index = int(data.get("lastIndex", -1))
+        except (ValueError, TypeError, json.JSONDecodeError):
+            last_index = -1
+    index = (last_index + 1) % len(models)
+    MODEL_STATE_FILE.write_text(
+        json.dumps({"lastIndex": index, "model": models[index], "updatedAt": now()}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return models[index]
+
+
+def build_agent_command(
+    *,
+    message: str,
+    thinking: str,
+    timeout: int,
+    model: str,
+    deliver: bool = False,
+    reply_channel: str = "",
+    reply_target: str = "",
+    fast_mode: bool = False,
+    help_text: str = "",
+) -> list[str]:
+    cmd = [
+        "openclaw",
+        "agent",
+        "--agent",
+        "main",
+        "--message",
+        message,
+        "--thinking",
+        thinking,
+        "--timeout",
+        str(timeout),
+    ]
+    if model != "runtime default" and supports_agent_option(help_text, "--model"):
+        cmd.extend(["--model", model])
+    if fast_mode:
+        if supports_agent_option(help_text, "--fast"):
+            cmd.append("--fast")
+        elif supports_agent_option(help_text, "--fast-mode"):
+            cmd.append("--fast-mode")
+        else:
+            log("fast mode requested but openclaw agent has no supported fast-mode flag; continuing without it")
+    if deliver:
+        cmd.extend(["--deliver", "--reply-channel", reply_channel, "--reply-to", reply_target])
+    cmd.append("--json")
+    return cmd
+
+
+def find_usage_window(status: dict[str, Any], provider: str, window_label: str) -> dict[str, Any] | None:
+    usage = status.get("usage") or {}
+    for item in usage.get("providers") or []:
+        if str(item.get("provider")) != provider:
+            continue
+        for window in item.get("windows") or []:
+            if str(window.get("label", "")).lower() == window_label.lower():
+                return dict(window)
+    return None
+
+
+def usage_wait_seconds(args: argparse.Namespace) -> int:
+    cp = run(["openclaw", "status", "--usage", "--json"], timeout=90)
+    if cp.returncode != 0:
+        log(f"usage check failed rc={cp.returncode}; continuing conservatively: {cp.stdout[-1000:]}")
+        return 0
+    try:
+        status = json.loads(cp.stdout)
+    except json.JSONDecodeError:
+        log("usage check returned non-JSON; continuing")
+        return 0
+    window = find_usage_window(status, args.usage_provider, args.usage_window)
+    if not window:
+        log(f"usage window not found for provider={args.usage_provider} window={args.usage_window}; continuing")
+        return 0
+    used_percent = float(window.get("usedPercent") or 0)
+    reset_at_ms = window.get("resetAt")
+    if args.usage_budget_reset:
+        reset_at = parse_iso_datetime(args.usage_budget_reset)
+    elif reset_at_ms:
+        reset_at = datetime.fromtimestamp(float(reset_at_ms) / 1000, tz=timezone.utc)
+    else:
+        log("usage window has no resetAt; continuing")
+        return 0
+    start_at = parse_iso_datetime(args.usage_budget_start) if args.usage_budget_start else reset_at - timedelta(days=7)
+    now_dt = datetime.now(timezone.utc)
+    total = max((reset_at - start_at).total_seconds(), 1)
+    elapsed = min(max((now_dt - start_at).total_seconds(), 0), total)
+    elapsed_percent = elapsed / total * 100.0
+    allowed_percent = min(100.0, max(args.usage_min_allowed_percent, elapsed_percent + args.usage_slack_percent))
+    log(
+        f"usage guard: provider={args.usage_provider} window={args.usage_window} "
+        f"used={used_percent:.1f}% allowed={allowed_percent:.1f}% reset={reset_at.isoformat()}"
+    )
+    if used_percent <= allowed_percent:
+        return 0
+    target_elapsed_percent = max(0.0, min(100.0, used_percent - args.usage_slack_percent))
+    resume_at = start_at + timedelta(seconds=total * (target_elapsed_percent / 100.0))
+    wait_seconds = max(0, int((resume_at - now_dt).total_seconds()))
+    log(f"usage guard pausing; resume target {resume_at.isoformat()} ({wait_seconds}s)")
+    return wait_seconds
+
+
+def wait_for_usage_budget(args: argparse.Namespace, stop_ref: dict[str, bool]) -> None:
+    if not args.usage_guard:
+        return
+    while not stop_ref["stop"] and not STOP_FILE.exists():
+        wait_seconds = usage_wait_seconds(args)
+        if wait_seconds <= 0:
+            return
+        time.sleep(min(wait_seconds, args.usage_check_interval))
+
+
+def send_summary(channel: str, target: str, *, thinking: str, timeout: int, help_text: str) -> None:
     log("sending chat progress summary")
     cp = run(
-        [
-            "openclaw",
-            "agent",
-            "--agent",
-            "main",
-            "--message",
-            SUMMARY_PROMPT,
-            "--thinking",
-            "medium",
-            "--timeout",
-            str(timeout),
-            "--deliver",
-            "--reply-channel",
-            channel,
-            "--reply-to",
-            target,
-            "--json",
-        ],
+        build_agent_command(
+            message=SUMMARY_PROMPT,
+            thinking=thinking,
+            timeout=timeout,
+            model="runtime default",
+            deliver=True,
+            reply_channel=channel,
+            reply_target=target,
+            help_text=help_text,
+        ),
         timeout=timeout + 60,
     )
     log(f"summary rc={cp.returncode}")
@@ -138,7 +276,17 @@ def send_summary(channel: str, target: str, timeout: int = 180) -> None:
         (LOG_DIR / "autopilot-summary-last.jsonlog").write_text(cp.stdout, encoding="utf-8")
 
 
-def wait_for_workers(max_wait: int, poll_seconds: int, *, summary_interval: int, summary_channel: str, summary_target: str, summaries: bool) -> None:
+def wait_for_workers(
+    max_wait: int,
+    poll_seconds: int,
+    *,
+    summary_interval: int,
+    summary_channel: str,
+    summary_target: str,
+    summary_thinking: str,
+    help_text: str,
+    summaries: bool,
+) -> None:
     start = time.time()
     last_summary = time.time()
     last_ids: set[str] | None = None
@@ -156,7 +304,7 @@ def wait_for_workers(max_wait: int, poll_seconds: int, *, summary_interval: int,
             log(f"waiting for {len(active)} project task(s): {labels}")
             last_ids = ids
         if summaries and summary_interval > 0 and time.time() - last_summary >= summary_interval:
-            send_summary(summary_channel, summary_target)
+            send_summary(summary_channel, summary_target, thinking=summary_thinking, timeout=180, help_text=help_text)
             last_summary = time.time()
         if time.time() - start > max_wait:
             log(f"worker wait exceeded {max_wait}s; continuing to next supervisor cycle")
@@ -186,6 +334,15 @@ def cleanup_pid() -> None:
         pass
 
 
+def next_cycle_index() -> int:
+    existing = []
+    for path in LOG_DIR.glob("autopilot-cycle-*.jsonlog"):
+        match = re.search(r"autopilot-cycle-(\d+)\.jsonlog$", path.name)
+        if match:
+            existing.append(int(match.group(1)))
+    return (max(existing) + 1) if existing else 1
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--cycle-delay", type=int, default=10, help="seconds between cycles after workers finish")
@@ -193,6 +350,18 @@ def main() -> int:
     ap.add_argument("--max-worker-wait", type=int, default=7200, help="max seconds to wait for workers per cycle")
     ap.add_argument("--max-cycles", type=int, default=0, help="0 means run until stopped")
     ap.add_argument("--timeout", type=int, default=1800, help="OpenClaw agent turn timeout seconds")
+    ap.add_argument("--thinking", default="low", help="cycle thinking level: off|minimal|low|medium|high|xhigh|adaptive|max")
+    ap.add_argument("--summary-thinking", default="low", help="completion/periodic summary thinking level")
+    ap.add_argument("--models", default="openai-codex/gpt-5.5,anthropic/claude-opus-4.7", help="comma-separated preferred model rotation")
+    ap.add_argument("--fast-mode", action=argparse.BooleanOptionalAction, default=False, help="request fast mode if the OpenClaw CLI supports it; default is off")
+    ap.add_argument("--usage-guard", action=argparse.BooleanOptionalAction, default=True, help="pause cycles when weekly provider usage is ahead of schedule")
+    ap.add_argument("--usage-provider", default="openai-codex", help="provider key from openclaw status --usage")
+    ap.add_argument("--usage-window", default="Week", help="usage window label from openclaw status --usage")
+    ap.add_argument("--usage-budget-start", default="", help="ISO timestamp for weekly budget start; default is reset minus 7 days")
+    ap.add_argument("--usage-budget-reset", default="", help="ISO timestamp for weekly budget reset; default uses provider resetAt")
+    ap.add_argument("--usage-slack-percent", type=float, default=5.0, help="allowed percentage above the linear weekly budget curve")
+    ap.add_argument("--usage-min-allowed-percent", type=float, default=3.0, help="minimum allowed percentage early in a budget window")
+    ap.add_argument("--usage-check-interval", type=int, default=1800, help="seconds between usage checks while paused")
     ap.add_argument("--summary-interval", type=int, default=0, help="optional periodic summary seconds while waiting for workers; 0 disables")
     ap.add_argument("--completion-summary", action=argparse.BooleanOptionalAction, default=True, help="deliver a chat summary after each completed supervisor cycle")
     ap.add_argument("--summary-channel", default="telegram", help="OpenClaw delivery channel for summaries")
@@ -200,58 +369,64 @@ def main() -> int:
     args = ap.parse_args()
 
     write_pid()
-    stop = False
+    stop_ref = {"stop": False}
+    help_text = openclaw_agent_help()
+    models = split_models(args.models)
 
     def handle_signal(signum: int, frame: Any) -> None:  # noqa: ARG001
-        nonlocal stop
         log(f"received signal {signum}; stopping after current step")
-        stop = True
+        stop_ref["stop"] = True
 
     signal.signal(signal.SIGTERM, handle_signal)
     signal.signal(signal.SIGINT, handle_signal)
 
     try:
-        cycle = 0
-        while not stop:
+        cycle_count = 0
+        cycle_log_index = next_cycle_index()
+        while not stop_ref["stop"]:
             if STOP_FILE.exists():
                 log(f"stop file exists: {STOP_FILE}; exiting")
                 break
-            if args.max_cycles and cycle >= args.max_cycles:
+            if args.max_cycles and cycle_count >= args.max_cycles:
                 log(f"max cycles reached: {args.max_cycles}; exiting")
                 break
-            cycle += 1
-            log(f"cycle {cycle}: starting OpenClaw agent turn")
+            wait_for_usage_budget(args, stop_ref)
+            if stop_ref["stop"] or STOP_FILE.exists():
+                break
+            cycle_count += 1
+            selected_model = select_model(models)
+            cycle_prompt = CYCLE_PROMPT_TEMPLATE.format(model_hint=selected_model)
+            log(f"cycle {cycle_count}: starting OpenClaw agent turn thinking={args.thinking} model_hint={selected_model} fast_mode={args.fast_mode}")
             cp = run(
-                [
-                    "openclaw",
-                    "agent",
-                    "--agent",
-                    "main",
-                    "--message",
-                    CYCLE_PROMPT,
-                    "--thinking",
-                    "high",
-                    "--timeout",
-                    str(args.timeout),
-                    "--json",
-                ],
+                build_agent_command(
+                    message=cycle_prompt,
+                    thinking=args.thinking,
+                    timeout=args.timeout,
+                    model=selected_model,
+                    fast_mode=args.fast_mode,
+                    help_text=help_text,
+                ),
                 timeout=args.timeout + 120,
             )
-            log(f"cycle {cycle}: agent rc={cp.returncode}")
+            log(f"cycle {cycle_count}: agent rc={cp.returncode}")
             if cp.stdout.strip():
-                (LOG_DIR / f"autopilot-cycle-{cycle:04d}.jsonlog").write_text(cp.stdout, encoding="utf-8")
-                log(f"cycle {cycle}: wrote logs/autopilot-cycle-{cycle:04d}.jsonlog")
+                log_path = LOG_DIR / f"autopilot-cycle-{cycle_log_index:04d}.jsonlog"
+                log_path.write_text(cp.stdout, encoding="utf-8")
+                log(f"cycle {cycle_count}: wrote {log_path.relative_to(REPO)}")
+                cycle_log_index += 1
             wait_for_workers(
                 args.max_worker_wait,
                 args.worker_poll,
                 summary_interval=args.summary_interval,
                 summary_channel=args.summary_channel,
                 summary_target=args.summary_target,
+                summary_thinking=args.summary_thinking,
+                help_text=help_text,
                 summaries=args.summary_interval > 0,
             )
             if args.completion_summary:
-                send_summary(args.summary_channel, args.summary_target)
-            if not stop and not STOP_FILE.exists():
+                send_summary(args.summary_channel, args.summary_target, thinking=args.summary_thinking, timeout=180, help_text=help_text)
+            if not stop_ref["stop"] and not STOP_FILE.exists():
                 time.sleep(max(0, args.cycle_delay))
         return 0
     finally:

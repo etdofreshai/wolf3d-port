@@ -3500,3 +3500,35 @@ Next likely move:
 - Fill the remaining unknown boss info-tile classifications, deepen actor AI/state progression, or add SDL3 presentation once SDL3 development files are available.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+## Cycle 2026-04-25 07:47 CDT
+
+Action taken:
+
+- Updated autopilot policy from ET's feedback: ordinary blockers should trigger pivots/research/splitting rather than stopping, and repeated same-issue failures should usually mean many materially different attempts before escalation.
+- Made `scripts/wolf3d_autopilot_supervisor.py` configurable for cycle thinking, summary thinking, fast-mode requests, model preference rotation, and weekly usage-budget guarding.
+- Defaulted cycle and summary thinking to `low` and fast mode to off.
+- Added default model preference rotation between `openai-codex/gpt-5.5` and `anthropic/claude-opus-4.7`; current CLI builds without `openclaw agent --model` receive the model as a cycle prompt hint, and future CLI builds with `--model` will get the flag automatically.
+- Added `openclaw status --usage --json` weekly guardrails: infer reset/start from the provider usage window, compare `usedPercent` against a linear week curve plus slack, and pause/recheck when the autopilot is ahead of budget.
+- Updated supervisor docs with the new knobs and budget model.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_autopilot_supervisor.py
+scripts/wolf3d_autopilot_supervisor.py --help
+cd source/modern-c-sdl3 && make test
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Usage/model state remains runtime state under ignored `state/` files.
+
+Next likely move:
+
+- Run the supervisor with the new low-thinking/default-budget settings, or continue the port by filling remaining unknown boss info-tile classifications.
+
+Blockers: none for headless work. Direct model switching depends on OpenClaw CLI support for `openclaw agent --model`; until then the supervisor records and injects model preference hints.

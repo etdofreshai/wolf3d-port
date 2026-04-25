@@ -2,6 +2,7 @@
 # Autopilot runtime logs/state
 logs/
 state/autopilot-supervisor.pid
+state/autopilot-supervisor-model-state.json
 state/STOP_AUTOPILOT
 
 # Build/cache outputs
