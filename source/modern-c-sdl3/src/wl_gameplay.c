@@ -1944,6 +1944,8 @@ int wl_step_live_full_combat_tick(wl_player_gameplay_state *state,
                                   wl_projectile_state *projectile,
                                   wl_actor_combat_state *damage_actor,
                                   int32_t damage_actor_points,
+                                  uint16_t damage_actor_model_index,
+                                  uint16_t vswap_sprite_start,
                                   wl_difficulty difficulty,
                                   int area_active, int line_of_sight,
                                   int player_running, int actor_visible,
@@ -1997,6 +1999,20 @@ int wl_step_live_full_combat_tick(wl_player_gameplay_state *state,
             return -1;
         }
         out->drop_spawned = model->static_count > before_drop_count ? 1u : 0u;
+        if (out->actor_damage.killed) {
+            if (wl_start_actor_death_state(damage_actor, &out->actor_damage,
+                                           &out->actor_death) != 0) {
+                return -1;
+            }
+            out->death_started = 1;
+            if (wl_build_actor_death_scene_ref(damage_actor, &out->actor_death,
+                                               vswap_sprite_start,
+                                               damage_actor_model_index,
+                                               &out->actor_death_ref) != 0) {
+                return -1;
+            }
+            out->death_ref_built = 1;
+        }
     }
     if (attacker) {
         if (attacker->kind == WL_ACTOR_DOG) {

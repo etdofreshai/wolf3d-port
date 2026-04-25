@@ -247,3 +247,8 @@ Death animation progression now emits VSWAP sprite source indices for killed act
 ## Cycle update: actor death-state scene rendering
 
 Death-state sprite source indices now drive VSWAP sprite-cache decoding. A killed guard death frame maps to source sprite `91` / VSWAP chunk `197`, decodes locally into a temporary indexed surface, and renders through the live scene path with committed scene hash `0x2e8b4819`.
+
+
+## Cycle update: full live combat death refs
+
+Live full-combat results now carry death-frame VSWAP metadata directly. The same-frame killed guard path returns a death scene ref for source sprite `91` / chunk `197`, tying actor kill/drop gameplay output to the sprite-cache/render boundary without committing decoded sprite bytes.

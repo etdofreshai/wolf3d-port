@@ -719,7 +719,7 @@ static int check_gameplay_events(void) {
                                         &live_actor_motion, 0, 0,
                                         0x10000, 0, WL_DIR_EAST, 0, 0,
                                         &dog, &projectile, &full_target, 25,
-                                        WL_DIFFICULTY_HARD,
+                                        9, 106, WL_DIFFICULTY_HARD,
                                         1, 1, 0, 1, 179, 80,
                                         0x10000, 0, 80, 0, 0, 1,
                                         &full_combat) == 0);
@@ -728,6 +728,12 @@ static int check_gameplay_events(void) {
     CHECK(full_combat.actor_damage.score_awarded == 100);
     CHECK(full_combat.drop_spawned == 1);
     CHECK(full_combat.drop_static_index == 0);
+    CHECK(full_combat.death_started == 1);
+    CHECK(full_combat.death_ref_built == 1);
+    CHECK(full_combat.actor_death.sprite_source_index == 91);
+    CHECK(full_combat.actor_death_ref.model_index == 9);
+    CHECK(full_combat.actor_death_ref.source_index == 91);
+    CHECK(full_combat.actor_death_ref.vswap_chunk_index == 197);
     CHECK(full_combat_model.static_count == 1);
     CHECK(full_combat_model.statics[0].type == 48);
     CHECK(full_combat.actor_attacked == 1);
@@ -749,7 +755,7 @@ static int check_gameplay_events(void) {
                                         &live_actor_motion, 0, 0,
                                         0x10000, 0, WL_DIR_EAST, 0, 0,
                                         NULL, NULL, NULL, 0,
-                                        WL_DIFFICULTY_HARD,
+                                        0, 106, WL_DIFFICULTY_HARD,
                                         0, 0, 0, 0, 0, 0,
                                         0, 0, 0, 0, 0, 1,
                                         &full_combat) == 0);
@@ -757,6 +763,8 @@ static int check_gameplay_events(void) {
     CHECK(full_combat.drop_spawned == 0);
     CHECK(full_combat.actor_attacked == 0);
     CHECK(full_combat.projectile_stepped == 0);
+    CHECK(full_combat.death_started == 0);
+    CHECK(full_combat.death_ref_built == 0);
     CHECK(full_combat.drop_static_index == 1);
     CHECK(full_combat_model.static_count == 1);
     CHECK(full_combat.live.palette.kind == WL_PALETTE_SHIFT_NONE);
@@ -3801,6 +3809,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-actor-death-scene tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-full-combat-death tests passed for %s\n", dir);
     return 0;
 }

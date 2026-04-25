@@ -166,3 +166,8 @@ Actor kill effects now have deterministic death animation metadata. `wl_start_ac
 ## Actor death scene seam
 
 Death-state actor sprites now reach the renderer-facing scene path. `wl_build_actor_death_scene_ref` converts killed-actor death-state metadata into a scene ref, and the headless test decodes the referenced local VSWAP sprite surface before rendering it with `wl_render_runtime_door_camera_scene_view`. The committed evidence is metadata plus scene hash `0x2e8b4819`, keeping proprietary sprite bytes local.
+
+
+## Full combat death-ref seam
+
+The full live combat tick now returns death-state presentation metadata in the same frame as actor kill/drop spawning. When `wl_step_live_full_combat_tick` kills a target actor, its result includes the started `wl_actor_death_state` plus a renderer-facing `wl_scene_sprite_ref` for the current death frame, alongside drop, score, incoming-damage, projectile, and palette output.

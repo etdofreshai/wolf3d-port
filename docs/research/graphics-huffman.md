@@ -259,3 +259,8 @@ The gameplay layer now emits deterministic death-frame source indices and tic pr
 ## Cycle update: actor death-state scene rendering
 
 Death-frame presentation is now covered before SDL3. The current death-state sprite source index becomes a scene ref, is decoded from local VSWAP data, and is composited by the indexed renderer with stable hash `0x2e8b4819`, keeping the future SDL upload path deterministic and headless.
+
+
+## Cycle update: full live combat death refs
+
+Death-frame presentation metadata is now part of full live combat output. A same-frame kill starts death-state progression and returns a scene ref for the current death sprite, so future SDL3 presentation can consume death visuals from the same frame result as palette shifts and drop spawning.

@@ -298,3 +298,8 @@ Actor kill state now has deterministic death animation metadata that can later f
 ## Cycle update: actor death-state scene rendering
 
 Actor death animation metadata now feeds renderer-facing scene input. `wl_build_actor_death_scene_ref` turns a killed actor plus `wl_actor_death_state` into a `wl_scene_sprite_ref` with source sprite, VSWAP chunk, and world-position metadata. The test renders a guard death frame through the live door-aware wall+sprite scene path and asserts scene hash `0x2e8b4819` without storing decoded sprite bytes.
+
+
+## Cycle update: full live combat death refs
+
+The full live combat frame transition now emits renderer-facing death metadata. A killed target actor in `wl_step_live_full_combat_tick` starts death-state progression and builds a `wl_scene_sprite_ref` for the initial death frame before the same result returns drop/static, projectile, actor attack, and palette data. Tests assert guard death source/chunk metadata (`91` / `197`) and no-op flags for null combat.

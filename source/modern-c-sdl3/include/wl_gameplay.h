@@ -286,12 +286,16 @@ typedef struct wl_live_full_combat_tick_result {
     wl_actor_contact_damage_result bite;
     wl_actor_shot_damage_result shot;
     wl_actor_damage_result actor_damage;
+    wl_actor_death_state actor_death;
+    wl_scene_sprite_ref actor_death_ref;
     size_t drop_static_index;
     wl_live_actor_attack_kind actor_attack_kind;
     uint8_t actor_attacked;
     uint8_t projectile_stepped;
     uint8_t actor_damaged;
     uint8_t drop_spawned;
+    uint8_t death_started;
+    uint8_t death_ref_built;
 } wl_live_full_combat_tick_result;
 
 int wl_init_player_gameplay_state(wl_player_gameplay_state *state,
@@ -478,6 +482,8 @@ int wl_step_live_full_combat_tick(wl_player_gameplay_state *state,
                                   wl_projectile_state *projectile,
                                   wl_actor_combat_state *damage_actor,
                                   int32_t damage_actor_points,
+                                  uint16_t damage_actor_model_index,
+                                  uint16_t vswap_sprite_start,
                                   wl_difficulty difficulty,
                                   int area_active, int line_of_sight,
                                   int player_running, int actor_visible,
