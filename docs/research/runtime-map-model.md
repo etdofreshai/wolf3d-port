@@ -278,3 +278,8 @@ Actor kill drops now have a runtime model bridge. `wl_spawn_actor_drop_static` c
 ## Cycle update: live actor damage/drop tick
 
 Actor kill drops now flow through live tick orchestration, not just isolated helper calls. `wl_step_live_actor_damage_tick` runs player motion/use, door progression, and pushwall progression, then applies deterministic actor damage and spawns any killed-actor drop into the mutable `wl_game_model::statics` list before palette advancement. The headless test verifies guard kill score, actor alive clearing, spawned static count/index/type/tile metadata, and a null-actor no-op path without touching SDL or proprietary bytes.
+
+
+## Cycle update: live actor drop scene rendering
+
+Actor drops spawned during a live damage tick now feed renderer-facing scene input. The test kills a guard with `wl_step_live_actor_damage_tick`, confirms the clip drop was appended to `wl_game_model::statics`, collects it as a static scene ref, decodes the referenced local VSWAP sprite into a temporary cache, and renders it through `wl_render_runtime_door_camera_scene_view`. The stable scene hash `0x707dbe4e` proves the tick-spawned drop reaches wall+sprite composition without storing proprietary pixel bytes.

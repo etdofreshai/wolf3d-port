@@ -2993,6 +2993,85 @@ static int check_wl6(const char *dir) {
     CHECK(active_static_scene_hash == 0x7e68266c);
     CHECK(picked_static_scene_hash == 0xc928b202);
 
+    wl_game_model live_drop_scene_model;
+    memset(&live_drop_scene_model, 0, sizeof(live_drop_scene_model));
+    live_drop_scene_model.tilemap[7 + 4 * WL_MAP_SIDE] = 2;
+    memset(use_wall, 0, sizeof(use_wall));
+    memset(use_info, 0, sizeof(use_info));
+    wl_actor_desc live_drop_actor;
+    memset(&live_drop_actor, 0, sizeof(live_drop_actor));
+    live_drop_actor.kind = WL_ACTOR_GUARD;
+    live_drop_actor.shootable = 1;
+    live_drop_actor.tile_x = 5;
+    live_drop_actor.tile_y = 4;
+    wl_actor_combat_state live_drop_actor_state;
+    CHECK(wl_init_actor_combat_state(&live_drop_actor, WL_DIFFICULTY_HARD,
+                                     &live_drop_actor_state) == 0);
+    wl_player_gameplay_state live_drop_player;
+    CHECK(wl_init_player_gameplay_state(&live_drop_player, 100, 3, 0,
+                                        WL_EXTRA_POINTS) == 0);
+    wl_player_motion_state live_drop_motion = {
+        (3u << 16) + 0x8000u,
+        (4u << 16) + 0x8000u,
+        3,
+        4,
+    };
+    wl_live_actor_damage_tick_result live_drop_tick;
+    CHECK(wl_step_live_actor_damage_tick(&live_drop_player, &live_drop_scene_model,
+                                         use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                         &live_drop_motion, 0, 0,
+                                         0x10000, 0, WL_DIR_EAST, 0, 0,
+                                         &live_drop_actor_state, 25, 1,
+                                         &live_drop_tick) == 0);
+    CHECK(live_drop_tick.actor_damage.killed == 1);
+    CHECK(live_drop_tick.drop_spawned == 1);
+    CHECK(live_drop_tick.drop_static_index == 0);
+    CHECK(live_drop_scene_model.static_count == 1);
+    CHECK(live_drop_scene_model.statics[0].active == 1);
+    CHECK(wl_collect_scene_sprite_refs(&live_drop_scene_model,
+                                       dirinfo.header.sprite_start,
+                                       scene_refs,
+                                       sizeof(scene_refs) / sizeof(scene_refs[0]),
+                                       &scene_ref_count) == 0);
+    CHECK(scene_ref_count == 1);
+    CHECK(scene_refs[0].kind == WL_SCENE_SPRITE_STATIC);
+    CHECK(scene_refs[0].source_index == 28);
+    CHECK(scene_refs[0].vswap_chunk_index == 134);
+    const uint16_t live_drop_chunks[] = { scene_refs[0].vswap_chunk_index };
+    unsigned char live_drop_pixels[WL_MAP_PLANE_WORDS];
+    wl_indexed_surface live_drop_surface;
+    CHECK(wl_decode_vswap_sprite_surface_cache(vswap_path, &sprite_dirinfo,
+                                               live_drop_chunks, 1, 0,
+                                               live_drop_pixels,
+                                               sizeof(live_drop_pixels),
+                                               &live_drop_surface) == 0);
+    const wl_indexed_surface *live_drop_surfaces[] = { &live_drop_surface };
+    const uint32_t live_drop_scene_x[] = { scene_refs[0].world_x };
+    const uint32_t live_drop_scene_y[] = { scene_refs[0].world_y };
+    const uint16_t live_drop_scene_ids[] = { scene_refs[0].source_index };
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_runtime_door_camera_scene_view(&live_drop_scene_model,
+                                                   dirinfo.header.sprite_start,
+                                                   (3u << 16) + 0x8000u,
+                                                   (4u << 16) + 0x8000u,
+                                                   0x10000, 0, 0, -0x8000, 39, 1, 3,
+                                                   runtime_door_pages,
+                                                   runtime_door_page_sizes, 106,
+                                                   live_drop_surfaces,
+                                                   live_drop_scene_x,
+                                                   live_drop_scene_y,
+                                                   live_drop_scene_ids,
+                                                   scene_ref_count, 0,
+                                                   &canvas, runtime_dirs_x,
+                                                   runtime_dirs_y, runtime_view_hits,
+                                                   runtime_view_strips, sprites,
+                                                   wall_heights) == 0);
+    uint32_t live_drop_scene_hash = fnv1a_bytes(canvas.pixels, canvas.pixel_count);
+    CHECK(live_drop_scene_hash == 0x707dbe4e);
+    CHECK(live_drop_scene_hash != picked_static_scene_hash);
+
     const wl_indexed_surface *bad_scene_sprites[] = { NULL };
     CHECK(wl_render_camera_scene_view(wall_plane, WL_MAP_PLANE_WORDS, player_x,
                                       player_y, 0x10000, 0, 0, -0x8000, 30, 1, 5,
@@ -3550,6 +3629,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-actor-damage-drop tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-actor-drop-scene tests passed for %s\n", dir);
     return 0;
 }

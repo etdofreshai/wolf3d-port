@@ -239,3 +239,8 @@ Actor kill drops now bridge into the runtime static/pickup path before presentat
 ## Cycle update: live actor damage/drop tick
 
 Actor damage/drop state now reaches the same live tick boundary that future presentation will consume. The new live actor damage tick applies kill state, spawns a renderer-compatible runtime static drop, and advances palette state after the frame's gameplay mutations, keeping actor kill rewards ready for scene-ref rendering and shifted upload selection without an SDL dependency.
+
+
+## Cycle update: live actor drop scene rendering
+
+Renderer-facing upload/composition coverage now includes drops created by actor kill state during a live tick. The spawned static is collected as a scene ref, decoded through the local VSWAP sprite cache, and composited in the indexed scene renderer with stable hash `0x707dbe4e`, keeping the future SDL3 path grounded in deterministic headless metadata.

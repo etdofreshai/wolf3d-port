@@ -146,3 +146,8 @@ Actor kill drops now enter the mutable runtime model as pickup statics. `wl_spaw
 ## Live actor damage/drop tick seam
 
 Actor damage and kill drops now have a live frame-transition seam. `wl_step_live_actor_damage_tick` runs the same headless movement/use/door/pushwall sequence as the other live tick helpers, applies `wl_apply_actor_damage`, converts killed-actor drop metadata into runtime statics with `wl_spawn_actor_drop_static`, and advances palette state once. This keeps score awards, actor alive/shootable clearing, drop spawning, and future renderer input connected before SDL3 presentation.
+
+
+## Live actor drop scene seam
+
+Live-spawned actor drops now reach the renderer-facing path. A headless test kills a guard through `wl_step_live_actor_damage_tick`, collects the spawned clip drop through `wl_collect_scene_sprite_refs`, decodes the referenced local VSWAP sprite surface, and renders it with `wl_render_runtime_door_camera_scene_view`. The committed proof is metadata plus scene hash `0x707dbe4e`, not decoded asset bytes.

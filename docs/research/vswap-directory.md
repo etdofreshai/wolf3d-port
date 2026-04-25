@@ -232,3 +232,8 @@ Moving-pushwall scene rendering is now driven by `wl_step_live_tick`, not only m
 ## Cycle update: live tick static scene removal
 
 Runtime static pickup removal is now covered through the VSWAP sprite-cache/render path. The headless test decodes only the locally referenced bonus-static sprite chunk, renders it while active, then runs `wl_step_live_tick` so `wl_collect_scene_sprite_refs` omits the deactivated static and the scene hash changes. Assertions remain metadata/hash-only; no decoded proprietary sprite bytes are committed.
+
+
+## Cycle update: live actor drop scene rendering
+
+The VSWAP sprite-cache path now receives statics spawned by live actor kill/drop state, not only map-authored statics. A guard killed by `wl_step_live_actor_damage_tick` creates a clip drop whose static type maps to source sprite `28` / chunk `134`; the test decodes that chunk locally and renders the drop in the live door-aware scene path, committing only descriptor assertions and scene hash `0x707dbe4e`.
