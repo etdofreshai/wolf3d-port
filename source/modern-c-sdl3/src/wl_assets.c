@@ -2096,3 +2096,78 @@ int wl_read_map_plane(const char *gamemaps_path, const wl_map_header *header,
 
     return 0;
 }
+
+int wl_read_audio_header(const char *path, wl_audio_header *out) {
+    if (!path || !out) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    size_t file_size = 0;
+    if (wl_file_size(path, &file_size) != 0) {
+        return -1;
+    }
+    if (file_size < 4 || (file_size % 4) != 0) {
+        return -1;
+    }
+    size_t offset_count = file_size / 4;
+    if (offset_count < 2 || offset_count - 1 > WL_AUDIO_MAX_CHUNKS) {
+        return -1;
+    }
+    FILE *f = fopen(path, "rb");
+    if (!f) {
+        return -1;
+    }
+    out->chunk_count = offset_count - 1;
+    out->file_size = file_size;
+    unsigned char buf[4];
+    for (size_t i = 0; i < offset_count; ++i) {
+        if (fread(buf, 1, 4, f) != 4) {
+            fclose(f);
+            return -1;
+        }
+        out->offsets[i] = read_le32(buf);
+    }
+    fclose(f);
+    return 0;
+}
+
+int wl_read_audio_chunk(const char *audiot_path,
+                        const wl_audio_header *header,
+                        size_t chunk_index,
+                        unsigned char *out, size_t out_size,
+                        size_t *bytes_read) {
+    if (!audiot_path || !header || !out || !bytes_read) {
+        return -1;
+    }
+    *bytes_read = 0;
+    if (chunk_index >= header->chunk_count) {
+        return -1;
+    }
+    uint32_t start = header->offsets[chunk_index];
+    uint32_t end = header->offsets[chunk_index + 1];
+    if (end < start) {
+        return -1;
+    }
+    uint32_t chunk_size = end - start;
+    if (chunk_size == 0) {
+        return 0;
+    }
+    if (chunk_size > out_size) {
+        return -1;
+    }
+    FILE *f = fopen(audiot_path, "rb");
+    if (!f) {
+        return -1;
+    }
+    if (fseek(f, (long)start, SEEK_SET) != 0) {
+        fclose(f);
+        return -1;
+    }
+    size_t read_count = fread(out, 1, chunk_size, f);
+    fclose(f);
+    if (read_count != chunk_size) {
+        return -1;
+    }
+    *bytes_read = chunk_size;
+    return 0;
+}

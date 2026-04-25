@@ -5710,12 +5710,89 @@ static int check_optional_sod(const char *dir) {
     return 0;
 }
 
+static int check_audio_wl6(const char *dir) {
+    char audiohed_path[512];
+    char audiot_path[512];
+    wl_audio_header audio;
+    unsigned char chunk_buf[65536];
+    size_t chunk_bytes = 0;
+
+    CHECK(wl_join_path(audiohed_path, sizeof(audiohed_path), dir, "AUDIOHED.WL6") == 0);
+    CHECK(wl_join_path(audiot_path, sizeof(audiot_path), dir, "AUDIOT.WL6") == 0);
+    CHECK(wl_read_audio_header(audiohed_path, &audio) == 0);
+
+    /* AUDIOHED.WL6 is 1156 bytes = 289 uint32 offsets = 288 chunks + 1 sentinel */
+    CHECK(audio.file_size == 1156);
+    CHECK(audio.chunk_count == 288);
+
+    /* First offsets from the file: 0, 15, 28, 44, 102 */
+    CHECK(audio.offsets[0] == 0);
+    CHECK(audio.offsets[1] == 15);
+    CHECK(audio.offsets[2] == 28);
+    CHECK(audio.offsets[3] == 44);
+    CHECK(audio.offsets[4] == 102);
+
+    /* Offsets must be non-decreasing */
+    for (size_t i = 1; i <= audio.chunk_count; ++i) {
+        CHECK(audio.offsets[i] >= audio.offsets[i - 1]);
+    }
+
+    /* Last offset (sentinel) should be <= AUDIOT file size */
+    size_t audiot_size = 0;
+    CHECK(wl_file_size(audiot_path, &audiot_size) == 0);
+    CHECK(audiot_size == 320209);
+    CHECK(audio.offsets[audio.chunk_count] <= audiot_size);
+
+    /* Read a few representative chunks and hash them */
+
+    /* PC speaker sound 0 (HITWALLSND) */
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, 0, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 15);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x5971ec53);
+
+    /* PC speaker sound 1 (SELECTWPNSND) */
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, 1, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 13);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x21985d89);
+
+    /* Adlib sound 87 (first adlib = STARTADLIBSOUNDS) */
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, 87, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 41);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x799f60b1);
+
+    /* Digital sound 174 (first digi = STARTDIGISOUNDS) - empty in WL6 shareware */
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, 174, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 0);
+
+    /* Music 261 (first music = STARTMUSIC, CORNER_MUS) */
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, 261, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 7546);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xea0d69d8);
+
+    /* Boundary: last chunk */
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, 287, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes > 0);
+
+    /* Out of range */
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, 288, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == -1);
+
+    return 0;
+}
+
 int main(void) {
     const char *dir = wl_default_data_dir();
     CHECK(check_gameplay_events() == 0);
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame tests passed for %s\n", dir);
+    CHECK(check_audio_wl6(dir) == 0);
+    printf("asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame/audio tests passed for %s\n", dir);
     return 0;
 }

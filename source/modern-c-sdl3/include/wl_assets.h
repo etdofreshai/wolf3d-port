@@ -15,6 +15,7 @@ extern "C" {
 #define WL_MAP_PLANE_WORDS (WL_MAP_SIDE * WL_MAP_SIDE)
 #define WL_VSWAP_MAX_CHUNKS 2048
 #define WL_GRAPHICS_MAX_CHUNKS 2048
+#define WL_AUDIO_MAX_CHUNKS 512
 #define WL_HUFFMAN_NODE_COUNT 255
 
 typedef struct wl_maphead {
@@ -452,6 +453,19 @@ int wl_rlew_expand(const uint16_t *src, size_t src_words, uint16_t rlew_tag,
 int wl_read_map_plane(const char *gamemaps_path, const wl_map_header *header,
                       size_t plane_index, uint16_t rlew_tag,
                       uint16_t *out, size_t out_words);
+
+typedef struct wl_audio_header {
+    size_t chunk_count;
+    uint32_t offsets[WL_AUDIO_MAX_CHUNKS + 1];
+    size_t file_size;
+} wl_audio_header;
+
+int wl_read_audio_header(const char *path, wl_audio_header *out);
+int wl_read_audio_chunk(const char *audiot_path,
+                        const wl_audio_header *header,
+                        size_t chunk_index,
+                        unsigned char *out, size_t out_size,
+                        size_t *bytes_read);
 
 #ifdef __cplusplus
 }
