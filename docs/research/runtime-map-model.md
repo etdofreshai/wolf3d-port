@@ -288,3 +288,8 @@ Actor drops spawned during a live damage tick now feed renderer-facing scene inp
 ## Cycle update: full live combat tick
 
 The live frame seam now has a fuller combat orchestration path. `wl_step_live_full_combat_tick` mutates the runtime model once for motion/use/doors/pushwalls, then applies outgoing actor damage/drop spawning and incoming actor/projectile damage before one palette update. The headless test verifies killed-guard drop static metadata, projectile removal, actor alive clearing, cumulative player health damage, and no-op behavior when all optional combat inputs are absent.
+
+
+## Cycle update: actor death-state progression
+
+Actor kill state now has deterministic death animation metadata that can later feed scene refs. `wl_start_actor_death_state` consumes a killed `wl_actor_combat_state` plus `wl_actor_damage_result`, then `wl_step_actor_death_state` advances through original-style death sprite/tic stages. Tests cover guard, dog, and boss sequences, final dead frames, and the one-shot death-scream marker without coupling to audio or SDL.

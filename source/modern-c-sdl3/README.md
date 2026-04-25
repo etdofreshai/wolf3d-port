@@ -156,3 +156,8 @@ Live-spawned actor drops now reach the renderer-facing path. A headless test kil
 ## Full live combat tick seam
 
 `wl_step_live_full_combat_tick` combines the current headless frame seams into one broader gameplay transition: movement/use/doors/pushwalls, optional outgoing actor damage and drop spawning, optional actor bite/shoot damage, optional projectile damage, and one palette update after all frame damage. The test covers same-frame guard kill/drop, dog bite, needle projectile hit, red flash selection, score/health mutations, projectile removal, and a null-combat no-op path.
+
+
+## Actor death-state seam
+
+Actor kill effects now have deterministic death animation metadata. `wl_start_actor_death_state` and `wl_step_actor_death_state` model the original death `statetype` chains for guards, dogs, SS, mutants, officers, and the representative WL6 boss path: initial death-scream flag, sprite source indices, per-stage tic durations, and final dead-frame behavior. This keeps death visuals testable before wiring them into live scene refs or SDL3 presentation.

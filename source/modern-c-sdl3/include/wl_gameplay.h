@@ -122,6 +122,25 @@ typedef struct wl_actor_damage_result {
     int32_t score_thresholds_crossed;
 } wl_actor_damage_result;
 
+typedef struct wl_actor_death_state {
+    wl_actor_kind kind;
+    uint8_t stage;
+    uint8_t stage_count;
+    uint8_t finished;
+    uint8_t death_scream;
+    int32_t tics_remaining;
+    uint16_t sprite_source_index;
+} wl_actor_death_state;
+
+typedef struct wl_actor_death_step_result {
+    uint8_t advanced;
+    uint8_t finished;
+    uint8_t death_scream;
+    uint8_t stage;
+    int32_t tics_remaining;
+    uint16_t sprite_source_index;
+} wl_actor_death_step_result;
+
 typedef enum wl_projectile_kind {
     WL_PROJECTILE_NEEDLE = 0,
     WL_PROJECTILE_ROCKET = 1,
@@ -309,6 +328,11 @@ int wl_spawn_actor_drop_static(wl_game_model *model,
                                const wl_actor_combat_state *actor,
                                const wl_actor_damage_result *damage,
                                size_t *out_static_index);
+int wl_start_actor_death_state(const wl_actor_combat_state *actor,
+                               const wl_actor_damage_result *damage,
+                               wl_actor_death_state *out);
+int wl_step_actor_death_state(wl_actor_death_state *state, int32_t tics,
+                              wl_actor_death_step_result *out);
 int wl_step_projectile(wl_player_gameplay_state *state,
                        const wl_game_model *model,
                        const wl_player_motion_state *player,

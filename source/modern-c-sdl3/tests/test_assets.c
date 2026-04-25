@@ -294,6 +294,34 @@ static int check_gameplay_events(void) {
     CHECK(actor_state.alive == 0);
     CHECK(actor_state.shootable == 0);
     CHECK(state.score == 100);
+    wl_actor_death_state death_state;
+    wl_actor_death_step_result death_step;
+    CHECK(wl_start_actor_death_state(&actor_state, &actor_damage,
+                                     &death_state) == 0);
+    CHECK(death_state.kind == WL_ACTOR_GUARD);
+    CHECK(death_state.stage == 0);
+    CHECK(death_state.stage_count == 4);
+    CHECK(death_state.sprite_source_index == 91);
+    CHECK(death_state.tics_remaining == 15);
+    CHECK(death_state.death_scream == 1);
+    CHECK(wl_step_actor_death_state(&death_state, 14, &death_step) == 0);
+    CHECK(death_step.advanced == 0);
+    CHECK(death_step.sprite_source_index == 91);
+    CHECK(death_step.tics_remaining == 1);
+    CHECK(wl_step_actor_death_state(&death_state, 1, &death_step) == 0);
+    CHECK(death_step.advanced == 1);
+    CHECK(death_step.stage == 1);
+    CHECK(death_step.sprite_source_index == 92);
+    CHECK(death_step.tics_remaining == 15);
+    CHECK(wl_step_actor_death_state(&death_state, 30, &death_step) == 0);
+    CHECK(death_step.advanced == 1);
+    CHECK(death_step.finished == 1);
+    CHECK(death_step.stage == 3);
+    CHECK(death_step.sprite_source_index == 95);
+    CHECK(death_step.tics_remaining == 0);
+    CHECK(wl_step_actor_death_state(&death_state, 20, &death_step) == 0);
+    CHECK(death_step.finished == 1);
+    CHECK(death_step.sprite_source_index == 95);
     wl_game_model drop_model;
     memset(&drop_model, 0, sizeof(drop_model));
     size_t drop_static_index = 999;
@@ -347,6 +375,14 @@ static int check_gameplay_events(void) {
     CHECK(wl_apply_actor_damage(&state, &actor_state, 1, &actor_damage) == 0);
     CHECK(actor_damage.killed == 1);
     CHECK(actor_damage.dropped_item == 0);
+    CHECK(wl_start_actor_death_state(&actor_state, &actor_damage,
+                                     &death_state) == 0);
+    CHECK(death_state.sprite_source_index == 131);
+    CHECK(wl_step_actor_death_state(&death_state, 45, &death_step) == 0);
+    CHECK(death_step.stage == 3);
+    CHECK(death_step.sprite_source_index == 134);
+    CHECK(death_step.finished == 0);
+    CHECK(death_step.tics_remaining == 15);
     CHECK(wl_spawn_actor_drop_static(&drop_model, &actor_state, &actor_damage,
                                      &drop_static_index) == 0);
     CHECK(drop_model.static_count == 1);
@@ -412,6 +448,12 @@ static int check_gameplay_events(void) {
     CHECK(actor_damage.killed == 1);
     CHECK(actor_damage.score_awarded == 5000);
     CHECK(actor_damage.drop_item == WL_BONUS_KEY1);
+    CHECK(wl_start_actor_death_state(&actor_state, &actor_damage,
+                                     &death_state) == 0);
+    CHECK(death_state.sprite_source_index == 304);
+    CHECK(wl_step_actor_death_state(&death_state, 45, &death_step) == 0);
+    CHECK(death_step.finished == 1);
+    CHECK(death_step.sprite_source_index == 303);
     shooter.kind = WL_ACTOR_DEAD_GUARD;
     CHECK(wl_init_actor_combat_state(&shooter, WL_DIFFICULTY_HARD,
                                      &actor_state) == -1);
@@ -3702,6 +3744,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-full-combat tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-actor-death-state tests passed for %s\n", dir);
     return 0;
 }

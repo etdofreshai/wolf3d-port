@@ -237,3 +237,8 @@ Runtime static pickup removal is now covered through the VSWAP sprite-cache/rend
 ## Cycle update: live actor drop scene rendering
 
 The VSWAP sprite-cache path now receives statics spawned by live actor kill/drop state, not only map-authored statics. A guard killed by `wl_step_live_actor_damage_tick` creates a clip drop whose static type maps to source sprite `28` / chunk `134`; the test decodes that chunk locally and renders the drop in the live door-aware scene path, committing only descriptor assertions and scene hash `0x707dbe4e`.
+
+
+## Cycle update: actor death-state sprite metadata
+
+Death animation progression now emits VSWAP sprite source indices for killed actors. The new seam maps representative original `WL_ACT2.C` death chains to source-index/tic metadata for guards, dogs, SS, mutants, officers, and bosses, preparing actor death frames for future sprite-cache decoding and scene rendering without committing decoded sprite bytes.

@@ -249,3 +249,8 @@ Renderer-facing upload/composition coverage now includes drops created by actor 
 ## Cycle update: full live combat palette selection
 
 The broader live combat tick now coalesces outgoing actor damage/drop effects with incoming bite/projectile damage before palette advancement. A same-frame guard kill, dog bite, and needle projectile hit yields one deterministic red palette result, preserving the SDL-free shifted upload boundary for future presentation.
+
+
+## Cycle update: actor death-state presentation metadata
+
+The gameplay layer now emits deterministic death-frame source indices and tic progression for killed actors, including a one-shot death-scream marker and final dead-frame behavior. This gives future SDL3/render upload code a display-free contract for death visuals before decoded VSWAP frames are attached to live scene refs.

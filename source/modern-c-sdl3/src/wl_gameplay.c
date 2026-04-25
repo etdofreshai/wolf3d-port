@@ -434,6 +434,144 @@ int wl_spawn_actor_drop_static(wl_game_model *model,
     return 0;
 }
 
+
+static int actor_death_sequence(wl_actor_kind kind, const uint16_t **sprites,
+                                const int32_t **durations, uint8_t *count) {
+    static const uint16_t guard_sprites[] = { 91, 92, 93, 95 };
+    static const int32_t guard_tics[] = { 15, 15, 15, 0 };
+    static const uint16_t dog_sprites[] = { 131, 132, 133, 134 };
+    static const int32_t dog_tics[] = { 15, 15, 15, 15 };
+    static const uint16_t ss_sprites[] = { 179, 180, 181, 183 };
+    static const int32_t ss_tics[] = { 15, 15, 15, 0 };
+    static const uint16_t mutant_sprites[] = { 228, 229, 230, 232, 233 };
+    static const int32_t mutant_tics[] = { 7, 7, 7, 7, 0 };
+    static const uint16_t officer_sprites[] = { 279, 280, 281, 283, 284 };
+    static const int32_t officer_tics[] = { 11, 11, 11, 11, 0 };
+    static const uint16_t boss_sprites[] = { 304, 305, 306, 303 };
+    static const int32_t boss_tics[] = { 15, 15, 15, 0 };
+
+    if (!sprites || !durations || !count) {
+        return -1;
+    }
+    switch (kind) {
+    case WL_ACTOR_GUARD:
+        *sprites = guard_sprites;
+        *durations = guard_tics;
+        *count = (uint8_t)(sizeof(guard_sprites) / sizeof(guard_sprites[0]));
+        return 0;
+    case WL_ACTOR_DOG:
+        *sprites = dog_sprites;
+        *durations = dog_tics;
+        *count = (uint8_t)(sizeof(dog_sprites) / sizeof(dog_sprites[0]));
+        return 0;
+    case WL_ACTOR_SS:
+        *sprites = ss_sprites;
+        *durations = ss_tics;
+        *count = (uint8_t)(sizeof(ss_sprites) / sizeof(ss_sprites[0]));
+        return 0;
+    case WL_ACTOR_MUTANT:
+        *sprites = mutant_sprites;
+        *durations = mutant_tics;
+        *count = (uint8_t)(sizeof(mutant_sprites) / sizeof(mutant_sprites[0]));
+        return 0;
+    case WL_ACTOR_OFFICER:
+        *sprites = officer_sprites;
+        *durations = officer_tics;
+        *count = (uint8_t)(sizeof(officer_sprites) / sizeof(officer_sprites[0]));
+        return 0;
+    case WL_ACTOR_BOSS:
+        *sprites = boss_sprites;
+        *durations = boss_tics;
+        *count = (uint8_t)(sizeof(boss_sprites) / sizeof(boss_sprites[0]));
+        return 0;
+    default:
+        return -1;
+    }
+}
+
+static void fill_actor_death_step_result(const wl_actor_death_state *state,
+                                         wl_actor_death_step_result *out) {
+    if (!out) {
+        return;
+    }
+    out->finished = state->finished;
+    out->death_scream = state->death_scream;
+    out->stage = state->stage;
+    out->tics_remaining = state->tics_remaining;
+    out->sprite_source_index = state->sprite_source_index;
+}
+
+int wl_start_actor_death_state(const wl_actor_combat_state *actor,
+                               const wl_actor_damage_result *damage,
+                               wl_actor_death_state *out) {
+    if (!actor || !damage || !out || !damage->killed || actor->alive ||
+        actor->shootable) {
+        return -1;
+    }
+    const uint16_t *sprites = NULL;
+    const int32_t *durations = NULL;
+    uint8_t count = 0;
+    if (actor_death_sequence(actor->kind, &sprites, &durations, &count) != 0 ||
+        count == 0) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->kind = actor->kind;
+    out->stage_count = count;
+    out->finished = durations[0] == 0 ? 1u : 0u;
+    out->death_scream = 1;
+    out->tics_remaining = durations[0];
+    out->sprite_source_index = sprites[0];
+    return 0;
+}
+
+int wl_step_actor_death_state(wl_actor_death_state *state, int32_t tics,
+                              wl_actor_death_step_result *out) {
+    if (!state || !out || tics < 0 || state->stage >= state->stage_count) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    const uint16_t *sprites = NULL;
+    const int32_t *durations = NULL;
+    uint8_t count = 0;
+    if (actor_death_sequence(state->kind, &sprites, &durations, &count) != 0 ||
+        count != state->stage_count) {
+        return -1;
+    }
+
+    state->death_scream = 0;
+    if (state->finished || durations[state->stage] == 0) {
+        state->finished = 1;
+        state->sprite_source_index = sprites[state->stage];
+        state->tics_remaining = durations[state->stage];
+        fill_actor_death_step_result(state, out);
+        return 0;
+    }
+
+    int32_t remaining_tics = tics;
+    while (remaining_tics >= state->tics_remaining && !state->finished) {
+        remaining_tics -= state->tics_remaining;
+        if (state->stage + 1u >= count) {
+            state->finished = 1;
+            break;
+        }
+        ++state->stage;
+        out->advanced = 1;
+        state->sprite_source_index = sprites[state->stage];
+        state->tics_remaining = durations[state->stage];
+        if (state->tics_remaining == 0) {
+            state->finished = 1;
+            break;
+        }
+    }
+    if (!state->finished) {
+        state->tics_remaining -= remaining_tics;
+    }
+    fill_actor_death_step_result(state, out);
+    return 0;
+}
+
 int wl_try_actor_shoot_player(wl_player_gameplay_state *state,
                               const wl_actor_desc *actor,
                               const wl_player_motion_state *player,
