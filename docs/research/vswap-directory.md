@@ -126,7 +126,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-door-render tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-door-scene tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
@@ -192,3 +192,8 @@ The raycaster now has a live runtime model entry point, `wl_cast_runtime_fixed_w
 ## Cycle update: door-aware runtime camera rendering
 
 Runtime door-aware ray hits now drive a complete headless camera wall render path. `wl_render_runtime_door_camera_wall_view` uses live model hits to choose real wall/door VSWAP page indices and render strips, so closed/open door state changes the resulting indexed canvas hash without SDL or committed pixels. This supersedes the earlier placeholder solid-plane render bridge for door-aware camera tests while leaving it available as a simpler collision/render smoke seam.
+
+
+## Cycle update: door-aware runtime scene rendering
+
+The live runtime renderer now has a combined wall+sprite scene entry point. `wl_render_runtime_door_camera_scene_view` renders door-aware wall strips, records live occlusion heights, then projects and composites sprite surfaces. The test keeps all decoded VSWAP pixels local and commits only the resulting closed/open scene hashes for a doorway sprite case.

@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-door-render tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-door-scene tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -178,3 +178,8 @@ Added `wl_cast_runtime_fixed_wall_ray`, a live-model DDA seam that reads `wl_gam
 ## Cycle update: door-aware runtime camera rendering
 
 Added `wl_render_runtime_door_camera_wall_view`, which feeds camera-generated rays through `wl_cast_runtime_fixed_wall_ray` instead of the immutable wall-plane renderer. It projects heights from live hit distances, selects caller-supplied VSWAP wall/door pages by the emitted page index, and renders strips into the existing indexed viewport. The headless test now proves the camera renderer observes door descriptors, not just placeholder solid tiles: a locked opening door view hashes to `0x9102177d`, while clearing that door lets the same rays continue to the later wall and hashes to `0x32a9148e`.
+
+
+## Cycle update: door-aware runtime scene rendering
+
+Added `wl_render_runtime_door_camera_scene_view`, which extends live door-aware camera wall rendering into wall+sprite composition. The helper reuses runtime door-aware wall hits to populate the occlusion-height buffer, projects/sorts sprite surfaces, and composites transparent sprites against live wall/door state. Tests place a sprite behind a locked opening door and assert distinct closed/open canvas hashes (`0x01053e89` and `0xa06c2183`), proving live door descriptors now affect both wall rendering and sprite occlusion in the combined scene path.

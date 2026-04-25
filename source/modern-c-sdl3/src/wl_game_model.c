@@ -762,6 +762,89 @@ int wl_render_runtime_door_camera_wall_view(const wl_game_model *model,
     return wl_render_wall_strip_viewport(strips, ray_count, dst);
 }
 
+int wl_render_runtime_door_camera_scene_view(const wl_game_model *model,
+                                             uint16_t vswap_sprite_start,
+                                             uint32_t origin_x, uint32_t origin_y,
+                                             int32_t forward_x, int32_t forward_y,
+                                             int32_t plane_x, int32_t plane_y,
+                                             uint16_t first_x, uint16_t x_step,
+                                             size_t ray_count,
+                                             const unsigned char *const *wall_pages,
+                                             const size_t *wall_page_sizes,
+                                             size_t wall_page_count,
+                                             const wl_indexed_surface *const *sprite_surfaces,
+                                             const uint32_t *sprite_x,
+                                             const uint32_t *sprite_y,
+                                             const uint16_t *sprite_source_indices,
+                                             size_t sprite_count,
+                                             unsigned char transparent_index,
+                                             wl_indexed_surface *dst,
+                                             int32_t *directions_x,
+                                             int32_t *directions_y,
+                                             wl_map_wall_hit *hits,
+                                             wl_wall_strip *strips,
+                                             wl_projected_sprite *sprites,
+                                             uint16_t *wall_heights) {
+    if (!dst || !wall_heights || (sprite_count != 0 &&
+        (!sprite_surfaces || !sprite_x || !sprite_y || !sprites))) {
+        return -1;
+    }
+
+    if (wl_render_runtime_door_camera_wall_view(model, vswap_sprite_start, origin_x,
+                                                origin_y, forward_x, forward_y,
+                                                plane_x, plane_y, first_x, x_step,
+                                                ray_count, wall_pages, wall_page_sizes,
+                                                wall_page_count, dst, directions_x,
+                                                directions_y, hits, strips) != 0) {
+        return -1;
+    }
+
+    for (uint16_t x = 0; x < dst->width; ++x) {
+        wall_heights[x] = 0;
+    }
+    for (size_t i = 0; i < ray_count; ++i) {
+        uint16_t x0 = hits[i].x;
+        uint16_t x1 = (uint16_t)(x0 + x_step);
+        if (x1 > dst->width) {
+            x1 = dst->width;
+        }
+        for (uint16_t x = x0; x < x1; ++x) {
+            wall_heights[x] = hits[i].scaled_height;
+        }
+    }
+
+    for (size_t i = 0; i < sprite_count; ++i) {
+        if (!sprite_surfaces[i]) {
+            return -1;
+        }
+        uint16_t source_index = sprite_source_indices ? sprite_source_indices[i] : (uint16_t)i;
+        if (wl_project_world_sprite(source_index, origin_x, origin_y, sprite_x[i], sprite_y[i],
+                                    forward_x, forward_y, dst->width, dst->height,
+                                    &sprites[i]) != 0) {
+            return -1;
+        }
+        sprites[i].surface_index = i;
+    }
+    if (wl_sort_projected_sprites_far_to_near(sprites, sprite_count) != 0) {
+        return -1;
+    }
+    for (size_t i = 0; i < sprite_count; ++i) {
+        if (!sprites[i].visible) {
+            continue;
+        }
+        size_t surface_index = sprites[i].surface_index;
+        if (surface_index >= sprite_count || !sprite_surfaces[surface_index]) {
+            return -1;
+        }
+        if (wl_render_scaled_sprite(sprite_surfaces[surface_index], dst, sprites[i].view_x,
+                                    sprites[i].scaled_height, transparent_index,
+                                    wall_heights, dst->width) != 0) {
+            return -1;
+        }
+    }
+    return 0;
+}
+
 int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_sprite_start,
                                  wl_scene_sprite_ref *refs, size_t max_refs,
                                  size_t *out_count) {
