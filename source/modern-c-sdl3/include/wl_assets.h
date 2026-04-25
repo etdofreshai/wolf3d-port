@@ -210,6 +210,13 @@ int wl_decode_wall_page_to_indexed(const unsigned char *chunk, size_t chunk_size
 int wl_decode_wall_page_surface(const unsigned char *chunk, size_t chunk_size,
                                 unsigned char *pixels, size_t pixel_size,
                                 wl_indexed_surface *out);
+int wl_decode_sprite_shape_to_indexed(const unsigned char *chunk, size_t chunk_size,
+                                      unsigned char transparent_index,
+                                      unsigned char *indexed, size_t indexed_size);
+int wl_decode_sprite_shape_surface(const unsigned char *chunk, size_t chunk_size,
+                                   unsigned char transparent_index,
+                                   unsigned char *pixels, size_t pixel_size,
+                                   wl_indexed_surface *out);
 int wl_sample_wall_page_column(const unsigned char *chunk, size_t chunk_size,
                                uint16_t texture_offset, unsigned char *out,
                                size_t out_size);

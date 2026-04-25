@@ -37,6 +37,17 @@ static uint32_t fnv1a_bytes(const unsigned char *bytes, size_t count) {
     return hash;
 }
 
+static size_t count_byte_not_value(const unsigned char *bytes, size_t count,
+                                   unsigned char value) {
+    size_t hits = 0;
+    for (size_t i = 0; i < count; ++i) {
+        if (bytes[i] != value) {
+            ++hits;
+        }
+    }
+    return hits;
+}
+
 static uint32_t fnv1a_words(const uint16_t *words, size_t count) {
     uint32_t hash = 2166136261u;
     for (size_t i = 0; i < count; ++i) {
@@ -959,6 +970,16 @@ static int check_wl6(const char *dir) {
     CHECK(shape.min_source_offset == 108);
     CHECK(shape.max_source_offset == 782);
     CHECK(shape.total_post_span == 1372);
+    CHECK(wl_decode_sprite_shape_surface(chunk_buf, chunk_bytes, 0, indexed_buf,
+                                         sizeof(indexed_buf), &surface) == 0);
+    CHECK(surface.format == WL_SURFACE_INDEXED8);
+    CHECK(surface.width == 64);
+    CHECK(surface.height == 64);
+    CHECK(surface.stride == 64);
+    CHECK(surface.pixel_count == 4096);
+    CHECK(surface.pixels == indexed_buf);
+    CHECK(count_byte_not_value(surface.pixels, surface.pixel_count, 0) == 614);
+    CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0x918ed728);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 107, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -978,6 +999,12 @@ static int check_wl6(const char *dir) {
     CHECK(shape.min_source_offset == 113);
     CHECK(shape.max_source_offset == 904);
     CHECK(shape.total_post_span == 1586);
+    CHECK(wl_decode_sprite_shape_surface(chunk_buf, chunk_bytes, 0, indexed_buf,
+                                         sizeof(indexed_buf), &surface) == 0);
+    CHECK(count_byte_not_value(surface.pixels, surface.pixel_count, 0) == 384);
+    CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0x88a2d1b4);
+    CHECK(wl_decode_sprite_shape_surface(chunk_buf, chunk_bytes, 0, indexed_buf,
+                                         4095, &surface) == -1);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 542, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -1292,6 +1319,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/upload-metadata tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/sprite-surface tests passed for %s\n", dir);
     return 0;
 }

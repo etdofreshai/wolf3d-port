@@ -1,7 +1,7 @@
 # VSWAP Directory Notes
 
 Research/implementation cycle: 2026-04-24 22:41-23:00 CDT  
-Scope: VSWAP chunk-directory, bounded reads, wall-page metadata/surface conversion, wall texture-column sampling, fixed-height wall strip scaling, tiny wall-strip viewport composition, map-derived wall-hit descriptors, cardinal/fixed-point/DDA/projected ray stepping, multi-column view batches, camera ray tables, tiny view rendering, and metadata-only sprite shape parsing for WL6 and optional SOD, without committing proprietary chunk bytes.
+Scope: VSWAP chunk-directory, bounded reads, wall-page metadata/surface conversion, wall texture-column sampling, fixed-height wall strip scaling, tiny wall-strip viewport composition, map-derived wall-hit descriptors, cardinal/fixed-point/DDA/projected ray stepping, multi-column view batches, camera ray tables, tiny view rendering, metadata-only sprite shape parsing, and sprite indexed-surface decoding for WL6 and optional SOD, without committing proprietary chunk bytes.
 
 ## Original reference
 
@@ -52,6 +52,7 @@ The parser:
 - builds half-pixel-sampled camera ray directions from fixed-point forward and camera-plane vectors;
 - renders tiny camera wall views by composing camera rays, projected DDA batches, wall-page lookup, and strip rendering;
 - validates/counts sprite post-command streams without retaining pixel data;
+- decodes sprite post streams into caller-owned transparent indexed surfaces for future sprite rendering;
 - does not copy or commit any proprietary chunk bytes.
 
 ## WL6 committed assertions
@@ -76,8 +77,8 @@ The parser:
 - wall metadata for chunk `63`: colors `26..223`, `31` unique colors, row-major indexed hash `0x5b4d4c38`, sampled column hash `0x8a859220`, combined scaled-strip/viewport canvas hash `0x0b200118`; map-derived viewport hash `0x7ffb21c0`; cardinal/fixed-ray viewport hash `0xa4c9e6e1`, DDA mixed-ray viewport hash `0xae40b70c`, projected-ray viewport hash `0xd48f2f6d`, batched-view viewport hash `0x7209a9ed`, camera-ray viewport hash `0x7320f695`, tiny-view render hash `0xfad71929`
 - wall metadata for chunk `105`: colors `0..31`, `11` unique colors, row-major indexed hash `0x66874cf5`
 - sprite metadata for chunk `106`: `64x64`, left/right pixels `4..58`, `55` visible columns, first/last column offsets `800/1298`
-- sprite post metadata for chunk `106`: `66` posts, `55` column terminators, `1..2` posts/column, span range `2..40`, source-offset range `108..782`, total post span `1372`
-- sprite post metadata for chunk `107`: `85` posts, `62` column terminators, `1..3` posts/column, max span `36`, source-offset range `113..904`, total post span `1586`
+- sprite post metadata for chunk `106`: `66` posts, `55` column terminators, `1..2` posts/column, span range `2..40`, source-offset range `108..782`, total post span `1372`, transparent indexed-surface hash `0x918ed728`, non-transparent pixels `614`
+- sprite post metadata for chunk `107`: `85` posts, `62` column terminators, `1..3` posts/column, max span `36`, source-offset range `113..904`, total post span `1586`, transparent indexed-surface hash `0x88a2d1b4`, non-transparent pixels `384`
 
 ## Optional SOD committed assertions
 
@@ -118,7 +119,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/view-render tests passed for game-files/base
+asset/decompression/semantics/model/vswap/sprite-surface tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
@@ -131,8 +132,8 @@ Added `wl_decode_wall_page_metadata`, `wl_decode_wall_page_to_indexed`, and `wl_
 
 ## Cycle update: sprite post metadata
 
-Extended sprite metadata decoding to walk each visible column's post-command stream, validate start/end pixel*2 ranges and zero terminators, and record aggregate post counts, post-span ranges, source-offset ranges, and posts-per-column bounds. This gives the renderer path a deterministic oracle for compressed sprite layout without storing or committing proprietary pixel bytes.
+Extended sprite metadata decoding to walk each visible column's post-command stream, validate start/end pixel*2 ranges and zero terminators, and record aggregate post counts, post-span ranges, source-offset ranges, and posts-per-column bounds. Added `wl_decode_sprite_shape_to_indexed` and `wl_decode_sprite_shape_surface`, which decode the same post streams into caller-owned transparent `64x64` indexed surfaces. This gives the renderer path deterministic sprite layout and surface oracles without storing or committing proprietary pixel bytes.
 
 ## Next step
 
-Build on the tiny view render helper with palette/texture-upload metadata or a small SDL3 presentation boundary. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.
+Build on sprite indexed surfaces with scaled sprite rendering, palette/texture upload, or a small SDL3 presentation boundary. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.

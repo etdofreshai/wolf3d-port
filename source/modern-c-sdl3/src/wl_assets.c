@@ -862,6 +862,80 @@ int wl_decode_wall_page_surface(const unsigned char *chunk, size_t chunk_size,
     return wl_wrap_indexed_surface(WL_MAP_SIDE, WL_MAP_SIDE, pixels, pixel_size, out);
 }
 
+int wl_decode_sprite_shape_to_indexed(const unsigned char *chunk, size_t chunk_size,
+                                      unsigned char transparent_index,
+                                      unsigned char *indexed, size_t indexed_size) {
+    if (!chunk || !indexed || indexed_size < WL_MAP_PLANE_WORDS || chunk_size < 6) {
+        return -1;
+    }
+
+    uint16_t left = read_le16(chunk);
+    uint16_t right = read_le16(chunk + 2);
+    if (left > right || right >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    uint16_t columns = (uint16_t)(right - left + 1);
+    size_t table_bytes = 4 + (size_t)columns * sizeof(uint16_t);
+    if (table_bytes > chunk_size) {
+        return -1;
+    }
+
+    memset(indexed, transparent_index, WL_MAP_PLANE_WORDS);
+    uint16_t previous = 0;
+    for (uint16_t i = 0; i < columns; ++i) {
+        uint16_t x = (uint16_t)(left + i);
+        uint16_t offset = read_le16(chunk + 4 + (size_t)i * sizeof(uint16_t));
+        if (offset < table_bytes || offset >= chunk_size || (offset % 2) != 0 ||
+            (i > 0 && offset < previous)) {
+            return -1;
+        }
+        previous = offset;
+
+        size_t pos = offset;
+        while (1) {
+            if (pos + sizeof(uint16_t) > chunk_size) {
+                return -1;
+            }
+            uint16_t end = read_le16(chunk + pos);
+            pos += sizeof(uint16_t);
+            if (end == 0) {
+                break;
+            }
+            if (pos + 2 * sizeof(uint16_t) > chunk_size) {
+                return -1;
+            }
+            uint16_t source_offset = read_le16(chunk + pos);
+            uint16_t start = read_le16(chunk + pos + sizeof(uint16_t));
+            pos += 2 * sizeof(uint16_t);
+            if ((start % 2) != 0 || (end % 2) != 0 || start >= end ||
+                end > WL_MAP_SIDE * 2u) {
+                return -1;
+            }
+            uint16_t start_y = (uint16_t)(start / 2u);
+            uint16_t end_y = (uint16_t)(end / 2u);
+            for (uint16_t y = start_y; y < end_y; ++y) {
+                if ((size_t)source_offset + y >= chunk_size) {
+                    return -1;
+                }
+                indexed[(size_t)y * WL_MAP_SIDE + x] = chunk[(size_t)source_offset + y];
+            }
+        }
+    }
+    return 0;
+}
+
+int wl_decode_sprite_shape_surface(const unsigned char *chunk, size_t chunk_size,
+                                   unsigned char transparent_index,
+                                   unsigned char *pixels, size_t pixel_size,
+                                   wl_indexed_surface *out) {
+    if (wl_decode_sprite_shape_to_indexed(chunk, chunk_size, transparent_index,
+                                          pixels, pixel_size) != 0) {
+        return -1;
+    }
+    return wl_wrap_indexed_surface(WL_MAP_SIDE, WL_MAP_SIDE, pixels, pixel_size, out);
+}
+
 int wl_sample_wall_page_column(const unsigned char *chunk, size_t chunk_size,
                                uint16_t texture_offset, unsigned char *out,
                                size_t out_size) {
