@@ -116,6 +116,17 @@ typedef struct wl_scene_sprite_ref {
     uint32_t world_y;
 } wl_scene_sprite_ref;
 
+typedef struct wl_pushwall_motion {
+    uint8_t active;
+    uint16_t state;
+    uint16_t pos;
+    uint16_t x;
+    uint16_t y;
+    wl_direction dir;
+    uint16_t tile;
+    size_t marker_index;
+} wl_pushwall_motion;
+
 typedef struct wl_game_model {
     uint16_t tilemap[WL_MAP_PLANE_WORDS];
     wl_player_spawn player;
@@ -142,6 +153,7 @@ typedef struct wl_game_model {
     wl_marker_desc pushwalls[WL_MAX_PUSHWALLS];
     size_t pushwall_count;
     size_t secret_total;
+    wl_pushwall_motion pushwall_motion;
 
     size_t unknown_info_tiles;
 } wl_game_model;

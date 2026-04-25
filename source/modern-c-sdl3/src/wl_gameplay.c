@@ -21,6 +21,7 @@ int wl_init_player_gameplay_state(wl_player_gameplay_state *state,
     state->chosen_weapon = WL_WEAPON_PISTOL;
     state->attack_frame = 0;
     state->treasure_count = 0;
+    state->secret_count = 0;
     state->got_gat_gun = 0;
     state->play_state = WL_PLAYER_PLAY_RUNNING;
     return wl_reset_palette_shift_state(&state->palette_shift);
@@ -621,6 +622,13 @@ int wl_use_player_facing(wl_player_gameplay_state *state, wl_game_model *model,
                 break;
             }
         }
+        wl_pushwall_step_result push_result;
+        if (wl_start_pushwall(state, model, out->check_x, out->check_y,
+                              facing, &push_result) != 0) {
+            return -1;
+        }
+        out->opened = push_result.started;
+        out->locked = push_result.blocked;
         return 0;
     }
 
@@ -691,6 +699,60 @@ static int door_player_blocks_close(const wl_door_desc *door,
     return 0;
 }
 
+static int direction_delta(wl_direction dir, int *dx, int *dy) {
+    if (!dx || !dy) {
+        return -1;
+    }
+    *dx = 0;
+    *dy = 0;
+    switch (dir) {
+    case WL_DIR_NORTH:
+        *dy = -1;
+        return 0;
+    case WL_DIR_EAST:
+        *dx = 1;
+        return 0;
+    case WL_DIR_SOUTH:
+        *dy = 1;
+        return 0;
+    case WL_DIR_WEST:
+        *dx = -1;
+        return 0;
+    default:
+        return -1;
+    }
+}
+
+static int pushwall_destination(uint16_t x, uint16_t y, wl_direction dir,
+                                uint16_t *out_x, uint16_t *out_y) {
+    int dx = 0;
+    int dy = 0;
+    if (!out_x || !out_y || direction_delta(dir, &dx, &dy) != 0) {
+        return -1;
+    }
+    int nx = (int)x + dx;
+    int ny = (int)y + dy;
+    if (nx < 0 || ny < 0 || nx >= WL_MAP_SIDE || ny >= WL_MAP_SIDE) {
+        return -1;
+    }
+    *out_x = (uint16_t)nx;
+    *out_y = (uint16_t)ny;
+    return 0;
+}
+
+static void fill_pushwall_result(const wl_game_model *model, wl_pushwall_step_result *out) {
+    if (!out) {
+        return;
+    }
+    if (model) {
+        out->active = model->pushwall_motion.active;
+        out->x = model->pushwall_motion.x;
+        out->y = model->pushwall_motion.y;
+        out->state = model->pushwall_motion.state;
+        out->pos = model->pushwall_motion.pos;
+    }
+}
+
 int wl_step_doors(wl_game_model *model, const wl_player_motion_state *motion,
                   int32_t tics, wl_door_step_result *out) {
     if (!model || !out || tics < 0) {
@@ -753,6 +815,134 @@ int wl_step_doors(wl_game_model *model, const wl_player_motion_state *motion,
             break;
         }
     }
+    return 0;
+}
+
+int wl_start_pushwall(wl_player_gameplay_state *state, wl_game_model *model,
+                      uint16_t x, uint16_t y, wl_direction dir,
+                      wl_pushwall_step_result *out) {
+    if (!state || !model || x >= WL_MAP_SIDE || y >= WL_MAP_SIDE) {
+        return -1;
+    }
+    if (out) {
+        memset(out, 0, sizeof(*out));
+    }
+    fill_pushwall_result(model, out);
+    if (model->pushwall_motion.active) {
+        return 0;
+    }
+
+    size_t idx = gameplay_map_index(x, y);
+    uint16_t oldtile = model->tilemap[idx];
+    if (!oldtile) {
+        return 0;
+    }
+
+    uint16_t dest_x = 0;
+    uint16_t dest_y = 0;
+    if (pushwall_destination(x, y, dir, &dest_x, &dest_y) != 0) {
+        return -1;
+    }
+    if (tile_blocks_player_motion(model, dest_x, dest_y)) {
+        if (out) {
+            out->blocked = 1;
+        }
+        return 0;
+    }
+
+    model->tilemap[gameplay_map_index(dest_x, dest_y)] = oldtile;
+    model->pushwall_motion.active = 1;
+    model->pushwall_motion.state = 1;
+    model->pushwall_motion.pos = 0;
+    model->pushwall_motion.x = x;
+    model->pushwall_motion.y = y;
+    model->pushwall_motion.dir = dir;
+    model->pushwall_motion.tile = (uint16_t)(oldtile & 63u);
+    model->pushwall_motion.marker_index = model->pushwall_count;
+    for (size_t i = 0; i < model->pushwall_count; ++i) {
+        if (model->pushwalls[i].x == x && model->pushwalls[i].y == y) {
+            model->pushwall_motion.marker_index = i;
+            break;
+        }
+    }
+    model->tilemap[idx] = (uint16_t)(oldtile | 0xc0u);
+    ++state->secret_count;
+
+    fill_pushwall_result(model, out);
+    if (out) {
+        out->started = 1;
+    }
+    return 0;
+}
+
+int wl_step_pushwall(wl_game_model *model, int32_t tics,
+                     wl_pushwall_step_result *out) {
+    if (!model || tics < 0) {
+        return -1;
+    }
+    if (out) {
+        memset(out, 0, sizeof(*out));
+    }
+    fill_pushwall_result(model, out);
+    if (!model->pushwall_motion.active) {
+        return 0;
+    }
+
+    uint16_t oldblock = (uint16_t)(model->pushwall_motion.state / 128u);
+    model->pushwall_motion.state = (uint16_t)(model->pushwall_motion.state + (uint16_t)tics);
+    if (model->pushwall_motion.state / 128u != oldblock) {
+        if (out) {
+            out->crossed_tile = 1;
+        }
+        uint16_t oldtile = (uint16_t)(model->tilemap[gameplay_map_index(model->pushwall_motion.x, model->pushwall_motion.y)] & 63u);
+        if (!oldtile) {
+            oldtile = model->pushwall_motion.tile;
+        }
+        model->tilemap[gameplay_map_index(model->pushwall_motion.x, model->pushwall_motion.y)] = 0;
+
+        if (model->pushwall_motion.state > 256u) {
+            model->pushwall_motion.active = 0;
+            model->pushwall_motion.state = 0;
+            model->pushwall_motion.pos = 0;
+            fill_pushwall_result(model, out);
+            if (out) {
+                out->crossed_tile = 1;
+                out->stopped = 1;
+            }
+            return 0;
+        }
+
+        uint16_t next_x = 0;
+        uint16_t next_y = 0;
+        if (pushwall_destination(model->pushwall_motion.x, model->pushwall_motion.y,
+                                 model->pushwall_motion.dir, &next_x, &next_y) != 0) {
+            return -1;
+        }
+        model->pushwall_motion.x = next_x;
+        model->pushwall_motion.y = next_y;
+
+        uint16_t beyond_x = 0;
+        uint16_t beyond_y = 0;
+        if (pushwall_destination(next_x, next_y, model->pushwall_motion.dir,
+                                 &beyond_x, &beyond_y) != 0 ||
+            tile_blocks_player_motion(model, beyond_x, beyond_y)) {
+            model->pushwall_motion.active = 0;
+            model->pushwall_motion.state = 0;
+            model->pushwall_motion.pos = 0;
+            fill_pushwall_result(model, out);
+            if (out) {
+                out->crossed_tile = 1;
+                out->blocked = 1;
+                out->stopped = 1;
+            }
+            return 0;
+        }
+        model->tilemap[gameplay_map_index(beyond_x, beyond_y)] = oldtile;
+        model->tilemap[gameplay_map_index(next_x, next_y)] = (uint16_t)(oldtile | 0xc0u);
+    }
+
+    model->pushwall_motion.pos = (uint16_t)((model->pushwall_motion.state / 2u) & 63u);
+    fill_pushwall_result(model, out);
     return 0;
 }
 

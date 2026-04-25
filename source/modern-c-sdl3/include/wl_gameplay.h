@@ -62,6 +62,7 @@ typedef struct wl_player_gameplay_state {
     wl_weapon_type chosen_weapon;
     int32_t attack_frame;
     int32_t treasure_count;
+    int32_t secret_count;
     uint8_t got_gat_gun;
     wl_player_play_state play_state;
     wl_palette_shift_state palette_shift;
@@ -126,6 +127,18 @@ typedef struct wl_door_step_result {
     size_t reopened_blocked_count;
 } wl_door_step_result;
 
+typedef struct wl_pushwall_step_result {
+    uint8_t active;
+    uint8_t started;
+    uint8_t crossed_tile;
+    uint8_t stopped;
+    uint8_t blocked;
+    uint16_t x;
+    uint16_t y;
+    uint16_t state;
+    uint16_t pos;
+} wl_pushwall_step_result;
+
 int wl_init_player_gameplay_state(wl_player_gameplay_state *state,
                                   int32_t health, int32_t lives,
                                   int32_t score, int32_t next_extra);
@@ -165,6 +178,11 @@ int wl_use_player_facing(wl_player_gameplay_state *state, wl_game_model *model,
                          wl_player_use_result *out);
 int wl_step_doors(wl_game_model *model, const wl_player_motion_state *motion,
                   int32_t tics, wl_door_step_result *out);
+int wl_start_pushwall(wl_player_gameplay_state *state, wl_game_model *model,
+                      uint16_t x, uint16_t y, wl_direction dir,
+                      wl_pushwall_step_result *out);
+int wl_step_pushwall(wl_game_model *model, int32_t tics,
+                     wl_pushwall_step_result *out);
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state);
 
 #ifdef __cplusplus

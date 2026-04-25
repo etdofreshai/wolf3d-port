@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/door-progression tests passed for game-files/base
+asset/decompression/semantics/model/vswap/pushwall-progression tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -148,3 +148,8 @@ Added a headless `Cmd_Use`-style dispatch seam in `wl_use_player_facing`. The he
 ## Cycle update: door progression seam
 
 Added `wl_step_doors`, a deterministic headless door update seam mirroring the original `MoveDoors`/`DoorOpening`/`DoorOpen`/`DoorClosing` state transitions. Runtime door descriptors now retain `doorposition` and `ticcount` equivalents. Opening doors advance by `tics << 10`, become fully open at `0xffff`, reset ticcount, and release player collision by clearing the door-center tile. Open doors accumulate ticcount until `OPENTICS=300`, then begin closing and restore the solid door-center marker. Closing doors decrement by `tics << 10`, close at zero, and reopen if the player overlaps the doorway while closing. Tests cover partial opening, full opening/collision release, open wait, close start/collision restore, blocked close reopen, and full close.
+
+
+## Cycle update: pushwall progression seam
+
+Added runtime pushwall motion state plus `wl_start_pushwall` and `wl_step_pushwall`, mirroring the original `PushWall`/`MovePWalls` data transitions headlessly. Starting a pushwall now rejects concurrent pushes, requires a solid source tile and clear destination, increments the player's secret count, marks the source tile with the original `0xc0` moving bits, and reserves the next tile. Progression advances `pwallstate` by tics, derives `pwallpos=(state/2)&63`, clears the vacated tile when crossing a 128-tic block boundary, shifts the moving marker forward one tile, reserves the second tile, and stops after the second block crossing while leaving the final wall tile in place. Tests cover start metadata, secret count, sub-tile position, first tile crossing, reserved destination, and final stop.

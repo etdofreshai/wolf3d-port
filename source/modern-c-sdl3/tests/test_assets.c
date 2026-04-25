@@ -556,7 +556,9 @@ static int check_wl6(const char *dir) {
     wl_game_model use_model;
     memset(&use_model, 0, sizeof(use_model));
     wl_player_motion_state use_motion = {0x38000u, 0x48000u, 3, 4};
+    CHECK(wl_init_player_gameplay_state(&pickup_state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
     use_info[4 + 4 * WL_MAP_SIDE] = WL_PUSHABLETILE;
+    use_model.tilemap[4 + 4 * WL_MAP_SIDE] = 37;
     use_model.pushwall_count = 1;
     use_model.pushwalls[0].x = 4;
     use_model.pushwalls[0].y = 4;
@@ -567,7 +569,39 @@ static int check_wl6(const char *dir) {
     CHECK(use_result.check_x == 4);
     CHECK(use_result.check_y == 4);
     CHECK(use_result.dir == WL_DIR_EAST);
+    CHECK(use_result.opened == 1);
     CHECK(use_result.pushwall_index == 0);
+    CHECK(pickup_state.secret_count == 1);
+    CHECK(use_model.pushwall_motion.active == 1);
+    CHECK(use_model.pushwall_motion.state == 1);
+    CHECK(use_model.pushwall_motion.pos == 0);
+    CHECK(use_model.pushwall_motion.x == 4);
+    CHECK(use_model.pushwall_motion.y == 4);
+    CHECK(use_model.tilemap[4 + 4 * WL_MAP_SIDE] == (37 | 0xc0));
+    CHECK(use_model.tilemap[5 + 4 * WL_MAP_SIDE] == 37);
+
+    wl_pushwall_step_result push_step;
+    CHECK(wl_step_pushwall(&use_model, 126, &push_step) == 0);
+    CHECK(push_step.active == 1);
+    CHECK(push_step.crossed_tile == 0);
+    CHECK(push_step.state == 127);
+    CHECK(push_step.pos == 63);
+    CHECK(use_model.tilemap[4 + 4 * WL_MAP_SIDE] == (37 | 0xc0));
+    CHECK(wl_step_pushwall(&use_model, 1, &push_step) == 0);
+    CHECK(push_step.active == 1);
+    CHECK(push_step.crossed_tile == 1);
+    CHECK(push_step.x == 5);
+    CHECK(push_step.y == 4);
+    CHECK(push_step.state == 128);
+    CHECK(push_step.pos == 0);
+    CHECK(use_model.tilemap[4 + 4 * WL_MAP_SIDE] == 0);
+    CHECK(use_model.tilemap[5 + 4 * WL_MAP_SIDE] == (37 | 0xc0));
+    CHECK(use_model.tilemap[6 + 4 * WL_MAP_SIDE] == 37);
+    CHECK(wl_step_pushwall(&use_model, 129, &push_step) == 0);
+    CHECK(push_step.active == 0);
+    CHECK(push_step.stopped == 1);
+    CHECK(use_model.tilemap[5 + 4 * WL_MAP_SIDE] == 0);
+    CHECK(use_model.tilemap[6 + 4 * WL_MAP_SIDE] == 37);
 
     memset(use_info, 0, sizeof(use_info));
     memset(&use_model, 0, sizeof(use_model));
@@ -2308,6 +2342,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/door-progression tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/pushwall-progression tests passed for %s\n", dir);
     return 0;
 }
