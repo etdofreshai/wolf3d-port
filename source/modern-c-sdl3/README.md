@@ -221,3 +221,8 @@ Patrol stepping now feeds renderer-facing actor refs. Headless tests step a patr
 ## Patrol actor scene render
 
 Patrol actor scene-ref metadata now reaches the headless wall+sprite scene renderer. The test projects a patrol guard ref through `wl_render_runtime_door_camera_scene_view`, verifies source/visibility metadata, and keeps the canvas hash stable against the established open-door scene path.
+
+
+## Patrol actor tic stepping
+
+`wl_step_patrol_actor_tics` now wraps the one-tile patrol step with a `speed * tics` movement budget. Whole-tile movement advances through repeated patrol steps, partial movement is preserved as leftover metadata, and blocked paths stop without moving the actor. This is still tile-granular, but follows the original `T_Path` loop shape before adding fine-position distance accumulation.

@@ -98,3 +98,8 @@ Path marker metadata now feeds a small runtime decision seam. Cardinal `ICONARRO
 ## Cycle update: patrol actor step seam
 
 Path marker semantics now feed a small actor movement mutation. Headless tests cover marker-directed one-tile patrol stepping, continuation after leaving a marker, blocked next-tile handling, and non-patrol rejection without modifying original source.
+
+
+## Cycle update: patrol actor tic stepping
+
+Patrol path metadata now participates in a tic-budgeted actor movement seam. The headless test verifies partial movement, two-tile advancement from `speed * tics`, blocked-tile stop behavior, and invalid negative tic rejection.

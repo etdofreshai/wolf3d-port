@@ -4008,3 +4008,40 @@ Next likely move:
 - Add tic-distance style patrol movement, deepen actor AI chase/attack progression, or broaden multi-map runtime scene coverage.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 08:53 CDT
+
+Action taken:
+
+- Added a tile-granular `T_Path`-style patrol movement budget seam.
+- Added `wl_actor_patrol_tic_result` and `wl_step_patrol_actor_tics`, which compute `speed * tics`, consume whole-tile movement through `wl_step_patrol_actor`, preserve leftover partial movement metadata, and stop cleanly on blocked next tiles.
+- Headless tests cover partial half-tile movement without mutation, two-tile movement from a full budget, blocked-tile preservation, and invalid negative tic rejection.
+- Updated README, map/runtime research notes, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-patrol-actor-tics tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/state assertions are committed.
+
+Next likely move:
+
+- Add fine-position/distance accumulation for patrol movement, connect patrol tic stepping through a broader live actor AI tick, or deepen chase/attack progression.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

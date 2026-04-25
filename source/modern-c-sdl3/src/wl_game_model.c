@@ -1050,3 +1050,48 @@ int wl_step_patrol_actor(wl_game_model *model, uint16_t actor_index,
     out->tile_y = actor->tile_y;
     return 0;
 }
+
+int wl_step_patrol_actor_tics(wl_game_model *model, uint16_t actor_index,
+                              uint32_t speed, int32_t tics,
+                              wl_actor_patrol_tic_result *out) {
+    if (!model || !out || actor_index >= model->actor_count || tics < 0) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    wl_actor_desc *actor = &model->actors[actor_index];
+    if (actor->mode != WL_ACTOR_PATROL || actor->tile_x >= WL_MAP_SIDE ||
+        actor->tile_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    uint64_t move64 = (uint64_t)speed * (uint32_t)tics;
+    if (move64 > UINT32_MAX) {
+        move64 = UINT32_MAX;
+    }
+    uint32_t move = (uint32_t)move64;
+    out->requested_move = move;
+    out->dir = actor->dir;
+    out->tile_x = actor->tile_x;
+    out->tile_y = actor->tile_y;
+
+    while (move >= 0x10000u) {
+        wl_actor_patrol_step_result step;
+        if (wl_step_patrol_actor(model, actor_index, &step) != 0) {
+            return -1;
+        }
+        out->dir = step.dir;
+        out->tile_x = step.tile_x;
+        out->tile_y = step.tile_y;
+        if (step.blocked) {
+            out->blocked = 1;
+            break;
+        }
+        if (!step.stepped) {
+            break;
+        }
+        ++out->tiles_stepped;
+        move -= 0x10000u;
+    }
+    out->leftover_move = move;
+    return 0;
+}

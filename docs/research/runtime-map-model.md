@@ -353,3 +353,8 @@ Patrol actor movement now reaches the normal runtime scene-ref collection path. 
 ## Cycle update: patrol actor scene render
 
 Patrol actor refs now flow into the door-aware runtime scene renderer. The test feeds patrol guard source/VSWAP/world metadata through `wl_render_runtime_door_camera_scene_view`, verifies projection visibility/source metadata, and preserves a deterministic canvas hash without storing decoded sprite bytes.
+
+
+## Cycle update: patrol actor tic stepping
+
+Added a tile-granular `T_Path`-style budget loop. `wl_step_patrol_actor_tics` computes `speed * tics`, repeatedly consumes full-tile moves via `wl_step_patrol_actor`, reports leftover partial movement, and preserves actor position when the next full tile is blocked.
