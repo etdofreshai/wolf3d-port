@@ -5693,3 +5693,34 @@ Next likely move:
 - Resume autopilot so each model reviews recent prior model work before doing the next porting step.
 
 Blockers: none for repo-local headless SDL3 or autopilot review work.
+
+
+## Cycle 2026-04-25 10:59 CDT Dynamic Review Scope
+
+Action taken:
+
+- Replaced fixed cross-model review commit count with model-aware review state.
+- The supervisor now records the last completed commit per selected model in ignored `state/autopilot-supervisor-review-state.json` after each cycle.
+- When a model runs, its review phase inspects commits since that same model last completed work, which naturally covers whichever other models actually worked in between.
+- If the selected model has not completed work before, it falls back to a small recent range controlled by `--review-fallback-commit-count`.
+- If no other model work is recorded in the range, the prompt asks for only a brief sanity check before continuing.
+- Updated docs and gitignore for the new review state.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_autopilot_supervisor.py
+scripts/wolf3d_autopilot_supervisor.py --help
+cd source/modern-c-sdl3 && make test-sdl3 && make test
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+
+Next likely move:
+
+- Resume autopilot; each model will review the commits made by other models since its previous run before doing new work.
+
+Blockers: none.

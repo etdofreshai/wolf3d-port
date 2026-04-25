@@ -28,6 +28,7 @@ STOP_FILE = STATE_DIR / "STOP_AUTOPILOT"
 STOP_AFTER_CYCLE_FILE = STATE_DIR / "STOP_AFTER_CURRENT_LOOP"
 LOCK_FILE = STATE_DIR / "autopilot-supervisor.pid"
 MODEL_STATE_FILE = STATE_DIR / "autopilot-supervisor-model-state.json"
+REVIEW_STATE_FILE = STATE_DIR / "autopilot-supervisor-review-state.json"
 
 TERMINAL = {"succeeded", "failed", "timed_out", "cancelled", "lost"}
 PROJECT_MARKERS = (
@@ -221,10 +222,50 @@ def load_model_state() -> dict[str, Any]:
     return {"lastIndex": -1}
 
 
+def git_head_full() -> str:
+    cp = run(["git", "rev-parse", "HEAD"], timeout=30)
+    return cp.stdout.strip() if cp.returncode == 0 else ""
+
+
+def load_review_state() -> dict[str, Any]:
+    if not REVIEW_STATE_FILE.exists():
+        return {"lastCommitByModel": {}}
+    try:
+        data = json.loads(REVIEW_STATE_FILE.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            data.setdefault("lastCommitByModel", {})
+            return data
+    except json.JSONDecodeError:
+        pass
+    return {"lastCommitByModel": {}}
+
+
+def store_review_state(data: dict[str, Any]) -> None:
+    STATE_DIR.mkdir(exist_ok=True)
+    REVIEW_STATE_FILE.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def record_model_commit(model: str, commit: str) -> None:
+    if not model or not commit:
+        return
+    data = load_review_state()
+    data.setdefault("lastCommitByModel", {})[model] = commit
+    data["updatedAt"] = now()
+    store_review_state(data)
+
+
 def store_model_state(index: int, model: str, provider: str) -> None:
     STATE_DIR.mkdir(exist_ok=True)
+    state = load_model_state()
+    review_base = state.get("lastCommitByModel", {}).get(model)
     MODEL_STATE_FILE.write_text(
-        json.dumps({"lastIndex": index, "model": model, "provider": provider, "updatedAt": now()}, indent=2) + "\n",
+        json.dumps({
+            "lastIndex": index,
+            "model": model,
+            "provider": provider,
+            "reviewBase": review_base,
+            "updatedAt": now(),
+        }, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -493,12 +534,30 @@ def send_stop_update(args: argparse.Namespace, stats: dict[str, Any], help_text:
     send_plain_update(args, text, help_text, "stop update")
 
 
-def build_review_instructions(args: argparse.Namespace, models: list[str]) -> str:
+def build_review_instructions(args: argparse.Namespace, models: list[str], selected_model: str) -> str:
     if not args.review_previous_steps or len(models) <= 1:
         return "- Cross-model review phase: disabled or unnecessary because only one model is configured."
+    data = load_review_state()
+    last_by_model = dict(data.get("lastCommitByModel") or {})
+    own_base = last_by_model.get(selected_model)
+    if own_base:
+        commit_range = f"{own_base}..HEAD"
+        range_text = f"commits since this model last completed work: `{commit_range}`"
+    else:
+        commit_range = f"HEAD~{args.review_fallback_commit_count}..HEAD"
+        range_text = f"recent commits because this model has no recorded prior completion yet: `{commit_range}`"
+    other_models = {model: commit for model, commit in last_by_model.items() if model != selected_model and commit}
+    if not other_models and own_base:
+        return (
+            "- Cross-model review phase: no other model has recorded completed work since this model's last recorded commit. "
+            "Do a very brief sanity check of git status and latest state/autopilot.md, then continue with the best next porting step."
+        )
+    other_text = ", ".join(f"{model}@{commit[:7]}" for model, commit in sorted(other_models.items())) or "none recorded"
     return (
-        f"- Cross-model review phase: before choosing new work, inspect the last {args.review_commit_count} commit(s), "
-        "latest autopilot cycle logs, and state/autopilot.md. Review the previous loop(s), especially work likely produced under a different model preference. "
+        f"- Cross-model review phase: before choosing new work, inspect {range_text}, latest autopilot cycle logs, and state/autopilot.md. "
+        f"Recorded latest commits by other models: {other_text}. "
+        "Review the actual prior model work in that range; if zero commits are in range, note that no review was needed and continue. "
+        "If one model did work, review that model's commits; if multiple models did work, review each model's commits. "
         "Look for correctness issues, missing tests, docs/state drift, unsafe commits, or better next-step suggestions. "
         "If you find a concrete issue, fix it in this cycle before starting unrelated new feature work. "
         "If the prior work looks sound, record a terse review note in state/autopilot.md and continue with the best next porting step. "
@@ -650,7 +709,7 @@ def main() -> int:
     ap.add_argument("--models", "--include-models", dest="models", default="openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1", help="comma-separated included model rotation; provider is inferred from the prefix before '/'")
     ap.add_argument("--exclude-models", default="", help="comma-separated model ids or provider prefixes to exclude from this run after includes are applied")
     ap.add_argument("--review-previous-steps", action=argparse.BooleanOptionalAction, default=True, help="when multiple models are configured, review recent previous-loop commits before new work")
-    ap.add_argument("--review-commit-count", type=int, default=3, help="number of recent commits to inspect during the cross-model review phase")
+    ap.add_argument("--review-fallback-commit-count", type=int, default=3, help="recent commit count to inspect only when the selected model has no recorded prior completion")
     ap.add_argument("--fast-mode", action=argparse.BooleanOptionalAction, default=False, help="request fast mode if the OpenClaw CLI supports it; default is off")
     ap.add_argument("--usage-guard", action=argparse.BooleanOptionalAction, default=True, help="skip over-budget model providers and pause only when every configured provider is ahead of schedule")
     ap.add_argument("--usage-provider", default="openai-codex", help="fallback provider key from openclaw status --usage for models without a provider prefix")
@@ -726,7 +785,7 @@ def main() -> int:
             cycle_start = time.time()
             cycle_prompt = CYCLE_PROMPT_TEMPLATE.format(
                 model_hint=selected_model,
-                review_instructions=build_review_instructions(args, models),
+                review_instructions=build_review_instructions(args, models, selected_model),
             )
             log(f"cycle {cycle_count}: starting OpenClaw agent turn thinking={args.thinking} model_hint={selected_model} fast_mode={args.fast_mode}")
             cp = run(
@@ -760,6 +819,7 @@ def main() -> int:
             log(f"cycle {cycle_count}: completed in {duration} model={selected_model} head={git_current_head()}")
             if args.push_after_cycle:
                 git_push_current_branch()
+            record_model_commit(selected_model, git_head_full())
             if args.completion_summary:
                 send_summary(args.summary_channel, args.summary_target, thinking=args.summary_thinking, timeout=180, help_text=help_text)
             if STOP_AFTER_CYCLE_FILE.exists():

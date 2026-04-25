@@ -34,7 +34,7 @@ scripts/wolf3d_autopilot_supervisor.py --thinking low --summary-thinking low
 scripts/wolf3d_autopilot_supervisor.py --include-models 'openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1'
 scripts/wolf3d_autopilot_supervisor.py --exclude-models 'zai/glm-5.1'
 scripts/wolf3d_autopilot_supervisor.py --exclude-models 'zai'  # exclude a whole provider prefix
-scripts/wolf3d_autopilot_supervisor.py --review-previous-steps --review-commit-count 3
+scripts/wolf3d_autopilot_supervisor.py --review-previous-steps --review-fallback-commit-count 3
 scripts/wolf3d_autopilot_supervisor.py --usage-provider-windows 'zai:Monthly,openai-codex:Week'
 scripts/wolf3d_autopilot_supervisor.py --usage-extra-windows '5h'
 scripts/wolf3d_autopilot_supervisor.py --usage-skip-updates
@@ -58,7 +58,7 @@ Defaults are intentionally conservative:
 - model preference rotation: `openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1`
 - provider usage-window override: `zai:Monthly`, while other providers default to `Week`
 - extra short-window guard: `5h` must also be inside budget when the provider reports it
-- cross-model review: on when multiple models are configured; inspect recent previous-loop commits before new work
+- cross-model review: on when multiple models are configured; inspect commits since the selected model last completed work
 - clear stop files on start: on; removes stale `STOP_AUTOPILOT` and `STOP_AFTER_CURRENT_LOOP` when launching a fresh supervisor
 - start update: on; sends Telegram a short debug line when the supervisor starts
 - graceful stop update: on; reports loops run, elapsed time, models used, and last commit
@@ -77,8 +77,11 @@ When more than one model is configured, each cycle includes a short review phase
 Default behavior:
 
 - `--review-previous-steps` enabled
-- inspect the last `3` commits via `--review-commit-count 3`
-- fix concrete issues from recent work before starting unrelated new features
+- track the last completed commit per model in ignored runtime state
+- when a model runs again, review commits since that same model last completed work
+- if the selected model has no recorded prior completion yet, inspect the last `3` commits via `--review-fallback-commit-count 3`
+- if no other model work is present in the range, do only a brief sanity check
+- fix concrete issues from reviewed work before starting unrelated new features
 - if recent work looks sound, add a terse review note to `state/autopilot.md` and continue with the next best porting step
 - keep review tied to code/tests/docs; avoid long abstract critique
 

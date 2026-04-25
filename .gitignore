@@ -3,6 +3,7 @@
 logs/
 state/autopilot-supervisor.pid
 state/autopilot-supervisor-model-state.json
+state/autopilot-supervisor-review-state.json
 state/autopilot-git-askpass.sh
 state/STOP_AFTER_CURRENT_LOOP
 state/STOP_AUTOPILOT
