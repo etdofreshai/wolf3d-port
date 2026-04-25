@@ -326,3 +326,8 @@ Live AI chase rendering now covers two half-tile frames. The first frame stores 
 ## Live AI chase combat bridge
 
 Live AI chase movement now feeds combat attack selection in the same deterministic harness. A chase guard completes its accumulated tile step, then the moved actor is used by `wl_step_live_actor_tick` for a distance-2 shot that applies a red palette shift.
+
+
+## Live AI dog chase bite bridge
+
+Chase-combat coverage now includes a dog actor. Two half-tile live AI chase frames complete a dog step, then the moved dog feeds the actor tick bite path with deterministic damage and red palette state.

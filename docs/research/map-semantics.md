@@ -203,3 +203,8 @@ Chase direction/tic semantics now persist across live AI frames: first frame sto
 ## Cycle update: live AI chase combat bridge
 
 Actor AI/chase semantics now flow into combat from the updated actor tile. The test verifies chase-completed coordinates feed distance-2 shooting and damage state without SDL.
+
+
+## Cycle update: live AI dog chase bite bridge
+
+Chase direction/tic semantics now feed dog contact combat. The deterministic test proves the chase-updated dog tile is close enough for bite range and damage.

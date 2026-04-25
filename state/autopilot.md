@@ -4788,3 +4788,40 @@ Next likely move:
 - Combine live AI chase, attack, and actor damage/drop/death orchestration, or broaden chase-combat coverage across actor classes.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 09:51 CDT
+
+Action taken:
+
+- Broadened the live AI chase/combat bridge from shooter attacks to dog contact attacks.
+- Added a deterministic dog chase case that runs two half-tile `wl_step_live_actor_ai_tick` frames, completes the dog chase step, then passes the moved dog into `wl_step_live_actor_tick`.
+- Verified the chase-moved dog remains in bite range, applies 5 damage, reduces player health to 95, and preserves red palette-shift behavior.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-ai-dog-chase-combat tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Combine live AI chase, attack, actor damage/drop/death orchestration in a single frame seam, or broaden chase-combat coverage to officer/SS/mutant/boss shooters.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

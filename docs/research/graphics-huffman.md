@@ -399,3 +399,8 @@ Headless presentation now verifies multi-frame chase movement from fine placemen
 ## Cycle update: live AI chase combat bridge
 
 The headless renderer/combat bridge now covers a chase actor moving through live AI before attacking. Palette effects and future SDL upload state can consume the same result.
+
+
+## Cycle update: live AI dog chase bite bridge
+
+Palette red-shift output is now verified for dog chase contact combat after live AI movement, extending future SDL upload coverage beyond shooter attacks.

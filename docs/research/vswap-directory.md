@@ -382,3 +382,8 @@ The live AI chase remainder path keeps guard source/chunk `58/164` stable while 
 ## Cycle update: live AI chase combat bridge
 
 Chase movement still preserves VSWAP guard metadata while the moved actor feeds combat. Asset assertions remain metadata/hash-only; combat validation uses deterministic rolls.
+
+
+## Cycle update: live AI dog chase bite bridge
+
+The new dog chase-combat check remains metadata/state-only and does not commit decoded VSWAP bytes; it broadens behavior coverage around the same runtime actor refs.

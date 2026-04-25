@@ -4212,6 +4212,48 @@ static int check_wl6(const char *dir) {
     CHECK(chase_attack_tick.live.palette.kind == WL_PALETTE_SHIFT_RED);
     CHECK(chase_attack_player.health == 90);
 
+    wl_game_model dog_chase_combat_model;
+    memset(&dog_chase_combat_model, 0, sizeof(dog_chase_combat_model));
+    dog_chase_combat_model.actor_count = 1;
+    dog_chase_combat_model.actors[0].kind = WL_ACTOR_DOG;
+    dog_chase_combat_model.actors[0].mode = WL_ACTOR_CHASE;
+    dog_chase_combat_model.actors[0].dir = WL_DIR_EAST;
+    dog_chase_combat_model.actors[0].tile_x = 5;
+    dog_chase_combat_model.actors[0].tile_y = 5;
+    CHECK(wl_step_live_actor_ai_tick(&live_ai_render_player,
+                                     &dog_chase_combat_model,
+                                     use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                     &live_ai_render_motion, 0, 0,
+                                     0x10000, 0, WL_DIR_EAST, 0, 0,
+                                     0x8000u, 1,
+                                     &live_ai_render_tick) == 0);
+    CHECK(wl_step_live_actor_ai_tick(&live_ai_render_player,
+                                     &dog_chase_combat_model,
+                                     use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                     &live_ai_render_motion, 0, 0,
+                                     0x10000, 0, WL_DIR_EAST, 0, 0,
+                                     0x8000u, 1,
+                                     &live_ai_render_tick) == 0);
+    CHECK(live_ai_render_tick.chases.tiles_stepped == 1);
+    CHECK(dog_chase_combat_model.actors[0].tile_x == 5);
+    CHECK(dog_chase_combat_model.actors[0].tile_y == 4);
+    CHECK(wl_init_player_gameplay_state(&chase_attack_player, 100, 3, 0,
+                                        WL_EXTRA_POINTS) == 0);
+    CHECK(wl_step_live_actor_tick(&chase_attack_player, &dog_chase_combat_model,
+                                  use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                  &live_ai_render_motion, 0, 0,
+                                  0x10000, 0, WL_DIR_EAST, 0, 0,
+                                  &dog_chase_combat_model.actors[0],
+                                  WL_DIFFICULTY_HARD,
+                                  1, 1, 0, 1, 0, 80, 0, 0, 1,
+                                  &chase_attack_tick) == 0);
+    CHECK(chase_attack_tick.actor_attacked == 1);
+    CHECK(chase_attack_tick.attack_kind == WL_LIVE_ACTOR_ATTACK_BITE);
+    CHECK(chase_attack_tick.bite.in_range == 1);
+    CHECK(chase_attack_tick.bite.damaged == 1);
+    CHECK(chase_attack_tick.bite.damage.effective_points == 5);
+    CHECK(chase_attack_player.health == 95);
+
     wl_game_model live_drop_scene_model;
     memset(&live_drop_scene_model, 0, sizeof(live_drop_scene_model));
     live_drop_scene_model.tilemap[7 + 4 * WL_MAP_SIDE] = 2;
@@ -5042,6 +5084,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-chase-combat tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-ai-dog-chase-combat tests passed for %s\n", dir);
     return 0;
 }

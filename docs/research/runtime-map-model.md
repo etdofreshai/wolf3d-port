@@ -458,3 +458,8 @@ Multi-frame chase remainder now reaches the live AI render boundary. Two half-ti
 ## Cycle update: live AI chase combat bridge
 
 Chase movement now connects to the existing actor attack tick seam. After live AI consumes chase remainder into a tile-centered actor position, the moved runtime actor can drive `wl_step_live_actor_tick` shooting metadata and damage.
+
+
+## Cycle update: live AI dog chase bite bridge
+
+The live AI chase/combat bridge now covers contact attackers as well as shooters. A dog chase actor completes accumulated movement before `wl_step_live_actor_tick` applies bite damage from the moved tile.
