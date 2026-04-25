@@ -2317,10 +2317,29 @@ int wl_describe_adlib_sound(const unsigned char *chunk, size_t chunk_size,
     out->first_instrument_byte = chunk[common_bytes];
     out->last_instrument_byte = chunk[data_offset - 1u];
     if (sample_count > 0) {
-        out->first_sample = chunk[data_offset];
-        out->last_sample = chunk[data_offset + (size_t)sample_count - 1u];
+        if (wl_get_adlib_sound_sample(chunk, chunk_size, 0, &out->first_sample) != 0 ||
+            wl_get_adlib_sound_sample(chunk, chunk_size, (size_t)sample_count - 1u,
+                                      &out->last_sample) != 0) {
+            return -1;
+        }
     }
     out->trailing_bytes = chunk_size - data_offset - (size_t)sample_count;
+    return 0;
+}
+
+int wl_get_adlib_sound_sample(const unsigned char *chunk, size_t chunk_size,
+                              size_t sample_index, uint8_t *out_sample) {
+    uint32_t sample_count;
+    const size_t common_bytes = sizeof(uint32_t) + sizeof(uint16_t);
+    const size_t data_offset = common_bytes + 16u;
+    if (!chunk || !out_sample || chunk_size < data_offset) {
+        return -1;
+    }
+    sample_count = read_le32(chunk);
+    if ((size_t)sample_count > chunk_size - data_offset || sample_index >= (size_t)sample_count) {
+        return -1;
+    }
+    *out_sample = chunk[data_offset + sample_index];
     return 0;
 }
 
