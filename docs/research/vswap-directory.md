@@ -342,3 +342,8 @@ The live AI fine-position VSWAP path now validates SS patrol sprite metadata. So
 ## Cycle update: live AI mutant fine-position rendering
 
 The live AI fine-position VSWAP path now validates mutant patrol sprite metadata. Source/chunk `195/301` decodes locally and renders with hash `0x96655cea`; only metadata and hashes are committed.
+
+
+## Cycle update: live AI boss fine-position rendering
+
+The live AI fine-position VSWAP path now validates boss sprite metadata. Hans source/chunk `296/402` decodes locally and renders with hash `0x731d6cb3`; only metadata and hashes are committed.

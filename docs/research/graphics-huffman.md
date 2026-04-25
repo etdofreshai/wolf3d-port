@@ -359,3 +359,8 @@ Headless presentation coverage now includes a fine-position patrol SS. The scene
 ## Cycle update: live AI mutant fine-position rendering
 
 Headless presentation coverage now includes a fine-position patrol mutant. The scene renderer projects the mutant sprite from live AI refs and verifies stable hash `0x96655cea` before SDL3.
+
+
+## Cycle update: live AI boss fine-position rendering
+
+Headless presentation coverage now includes a fine-position boss actor. The scene renderer projects the Hans sprite from live AI refs and verifies stable hash `0x731d6cb3` before SDL3.

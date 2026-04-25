@@ -163,3 +163,8 @@ Patrol semantics now feed live AI fine-position rendering for SS actors too. The
 ## Cycle update: live AI mutant fine-position rendering
 
 Patrol semantics now feed live AI fine-position rendering for mutants too. The same path/tic contract selects mutant walk sprite metadata while preserving sub-tile placement.
+
+
+## Cycle update: live AI boss fine-position rendering
+
+Live AI path/tic semantics now feed renderer-facing boss refs at sub-tile precision, preserving boss source-tile sprite selection while reusing the same deterministic half-tile movement contract.
