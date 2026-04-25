@@ -226,3 +226,8 @@ Patrol actor scene-ref metadata now reaches the headless wall+sprite scene rende
 ## Patrol actor tic stepping
 
 `wl_step_patrol_actor_tics` now wraps the one-tile patrol step with a `speed * tics` movement budget. Whole-tile movement advances through repeated patrol steps, partial movement is preserved as leftover metadata, and blocked paths stop without moving the actor. This is still tile-granular, but follows the original `T_Path` loop shape before adding fine-position distance accumulation.
+
+
+## Patrol actors batch tick
+
+`wl_step_patrol_actors_tics` now applies the tic-budgeted patrol seam across all `WL_ACTOR_PATROL` runtime actors while skipping stand/inert actors. The aggregate result reports considered, stepped, blocked, and total tile-step counts for a future broader live actor AI tick.

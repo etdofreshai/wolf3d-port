@@ -136,6 +136,13 @@ typedef struct wl_actor_patrol_tic_result {
     uint32_t leftover_move;
 } wl_actor_patrol_tic_result;
 
+typedef struct wl_actor_patrols_tic_result {
+    uint16_t actors_considered;
+    uint16_t actors_stepped;
+    uint16_t actors_blocked;
+    uint16_t tiles_stepped;
+} wl_actor_patrols_tic_result;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -259,6 +266,9 @@ int wl_step_patrol_actor(wl_game_model *model, uint16_t actor_index,
 int wl_step_patrol_actor_tics(wl_game_model *model, uint16_t actor_index,
                               uint32_t speed, int32_t tics,
                               wl_actor_patrol_tic_result *out);
+int wl_step_patrol_actors_tics(wl_game_model *model, uint32_t speed,
+                               int32_t tics,
+                               wl_actor_patrols_tic_result *out);
 
 #ifdef __cplusplus
 }

@@ -103,3 +103,8 @@ Path marker semantics now feed a small actor movement mutation. Headless tests c
 ## Cycle update: patrol actor tic stepping
 
 Patrol path metadata now participates in a tic-budgeted actor movement seam. The headless test verifies partial movement, two-tile advancement from `speed * tics`, blocked-tile stop behavior, and invalid negative tic rejection.
+
+
+## Cycle update: patrol actors batch tick
+
+Patrol actor metadata now feeds a batch runtime AI tick. Headless tests verify one patrol actor moves, one blocked patrol actor stays put, and a standing actor is skipped while aggregate step/block counts remain deterministic.

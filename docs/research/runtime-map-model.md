@@ -358,3 +358,8 @@ Patrol actor refs now flow into the door-aware runtime scene renderer. The test 
 ## Cycle update: patrol actor tic stepping
 
 Added a tile-granular `T_Path`-style budget loop. `wl_step_patrol_actor_tics` computes `speed * tics`, repeatedly consumes full-tile moves via `wl_step_patrol_actor`, reports leftover partial movement, and preserves actor position when the next full tile is blocked.
+
+
+## Cycle update: patrol actors batch tick
+
+Added a small multi-actor patrol tick seam. `wl_step_patrol_actors_tics` scans the runtime actor list, applies the tic-budgeted patrol step only to patrol-mode actors, skips standing actors, and reports aggregate considered/stepped/blocked/tile counts for future live AI orchestration.

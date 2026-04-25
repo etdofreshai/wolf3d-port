@@ -1095,3 +1095,30 @@ int wl_step_patrol_actor_tics(wl_game_model *model, uint16_t actor_index,
     out->leftover_move = move;
     return 0;
 }
+
+int wl_step_patrol_actors_tics(wl_game_model *model, uint32_t speed,
+                               int32_t tics,
+                               wl_actor_patrols_tic_result *out) {
+    if (!model || !out || tics < 0) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        if (model->actors[i].mode != WL_ACTOR_PATROL) {
+            continue;
+        }
+        ++out->actors_considered;
+        wl_actor_patrol_tic_result step;
+        if (wl_step_patrol_actor_tics(model, (uint16_t)i, speed, tics, &step) != 0) {
+            return -1;
+        }
+        if (step.tiles_stepped) {
+            ++out->actors_stepped;
+            out->tiles_stepped = (uint16_t)(out->tiles_stepped + step.tiles_stepped);
+        }
+        if (step.blocked) {
+            ++out->actors_blocked;
+        }
+    }
+    return 0;
+}

@@ -1278,6 +1278,39 @@ static int check_wl6(const char *dir) {
     CHECK(path_model.actors[0].tile_x == 7);
     CHECK(wl_step_patrol_actor_tics(&path_model, 0, 0x10000u, -1,
                                     &patrol_tics) == -1);
+
+    wl_actor_patrols_tic_result patrols_tics;
+    memset(&path_model, 0, sizeof(path_model));
+    path_model.actor_count = 3;
+    path_model.actors[0].kind = WL_ACTOR_GUARD;
+    path_model.actors[0].mode = WL_ACTOR_PATROL;
+    path_model.actors[0].dir = WL_DIR_EAST;
+    path_model.actors[0].tile_x = 5;
+    path_model.actors[0].tile_y = 5;
+    path_model.actors[1].kind = WL_ACTOR_DOG;
+    path_model.actors[1].mode = WL_ACTOR_PATROL;
+    path_model.actors[1].dir = WL_DIR_SOUTH;
+    path_model.actors[1].tile_x = 10;
+    path_model.actors[1].tile_y = 10;
+    path_model.actors[2].kind = WL_ACTOR_GUARD;
+    path_model.actors[2].mode = WL_ACTOR_STAND;
+    path_model.actors[2].dir = WL_DIR_WEST;
+    path_model.actors[2].tile_x = 20;
+    path_model.actors[2].tile_y = 20;
+    path_model.tilemap[10 + 11 * WL_MAP_SIDE] = 1;
+    CHECK(wl_step_patrol_actors_tics(&path_model, 0x10000u, 1,
+                                     &patrols_tics) == 0);
+    CHECK(patrols_tics.actors_considered == 2);
+    CHECK(patrols_tics.actors_stepped == 1);
+    CHECK(patrols_tics.actors_blocked == 1);
+    CHECK(patrols_tics.tiles_stepped == 1);
+    CHECK(path_model.actors[0].tile_x == 6);
+    CHECK(path_model.actors[0].tile_y == 5);
+    CHECK(path_model.actors[1].tile_x == 10);
+    CHECK(path_model.actors[1].tile_y == 10);
+    CHECK(path_model.actors[2].tile_x == 20);
+    CHECK(wl_step_patrol_actors_tics(&path_model, 0x10000u, -1,
+                                     &patrols_tics) == -1);
     CHECK(model.pushwall_count == 5);
     CHECK(model.secret_total == 5);
     CHECK(model.pushwalls[0].x == 10);
@@ -4275,6 +4308,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-patrol-actor-tics tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-patrol-actors-tick tests passed for %s\n", dir);
     return 0;
 }
