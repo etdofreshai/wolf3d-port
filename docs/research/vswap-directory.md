@@ -126,7 +126,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-pushwall-render tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-pushwall-scene tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
@@ -202,3 +202,8 @@ The live runtime renderer now has a combined wall+sprite scene entry point. `wl_
 ## Cycle update: pushwall render descriptors
 
 Moving pushwall tiles now have a dedicated wall-hit descriptor path. `wl_build_pushwall_wall_hit` maps the original moving tile marker into wall page indices and original-style texture-column orientation, and the live runtime DDA ray helper uses it for `0xc0` tilemap entries. This keeps pushwall rendering deterministic and SDL-free while committing only page/texture metadata assertions.
+
+
+## Cycle update: live pushwall scene occlusion
+
+Added deterministic renderer coverage for moving pushwalls using real local VSWAP wall page data. The live scene test maps a moving pushwall marker to wall page `73`, checks that it occludes a sprite behind it, then clears the marker and confirms the sprite-visible scene hash changes. Assertions remain metadata/hash-only and do not commit proprietary wall or sprite bytes.

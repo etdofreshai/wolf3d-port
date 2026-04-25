@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-pushwall-render tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-pushwall-scene tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -188,3 +188,8 @@ Added `wl_render_runtime_door_camera_scene_view`, which extends live door-aware 
 ## Cycle update: pushwall render descriptors
 
 Added `wl_build_pushwall_wall_hit`, a renderer-facing descriptor seam for moving pushwalls. The helper preserves the source wall id from the low six bits of the original `0xc0` moving marker, selects horizontal/vertical wall pages, and mirrors `WL_DRAW.C::HitHorizPWall` / `HitVertPWall` texture-column flipping based on ray step direction. `wl_cast_runtime_fixed_wall_ray` now routes moving pushwall markers through this seam. Tests assert horizontal and vertical pushwall page/texture descriptors, invalid inputs, and the runtime ray path still emits the expected moving-wall page/texture metadata.
+
+
+## Cycle update: live pushwall scene occlusion
+
+Extended headless runtime-scene coverage so moving pushwall markers participate in wall+sprite occlusion, not just ray metadata. The test feeds page `73` from local VSWAP data for a `37 | 0xc0` moving marker, renders a sprite behind the pushwall through `wl_render_runtime_door_camera_scene_view`, then clears the marker and verifies a different visible-through scene hash (`0x81e9da6b` blocked vs `0xf80cfa3f` open). This proves live pushwall `tilemap` state is reaching the same door-aware wall+sprite renderer intended to back future SDL3 presentation.
