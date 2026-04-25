@@ -3591,3 +3591,32 @@ Next likely move:
 - Run one dry/limited supervisor cycle once model switching support is confirmed, or continue headless port work using the updated provider-aware budget policy.
 
 Blockers: direct model switching still depends on OpenClaw CLI support for `openclaw agent --model`; selected models are prompt-level preferences until that exists.
+
+
+## Cycle 2026-04-25 08:13 CDT
+
+Action taken:
+
+- Added `--exclude-models` to the autopilot supervisor so a specific model or whole provider prefix can be removed from the loop without editing the main model list.
+- Examples: `--exclude-models zai/glm-5.1` excludes only that Z.ai model, while `--exclude-models zai` excludes all models whose provider prefix is `zai`.
+- The supervisor fails fast if every configured model is excluded, instead of running with an empty rotation.
+- Updated supervisor docs with exclusion examples.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_autopilot_supervisor.py
+scripts/wolf3d_autopilot_supervisor.py --help
+cd source/modern-c-sdl3 && make test
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+
+Next likely move:
+
+- Use `--exclude-models` when a model/provider should be temporarily avoided, then continue headless port work under the provider-aware budget policy.
+
+Blockers: none for headless work.

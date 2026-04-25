@@ -134,6 +134,11 @@ def split_models(raw: str) -> list[str]:
     return [m.strip() for m in raw.split(",") if m.strip()]
 
 
+def filter_models(models: list[str], excluded: list[str]) -> list[str]:
+    excluded_set = {item.lower() for item in excluded}
+    return [model for model in models if model.lower() not in excluded_set and model_provider(model, "").lower() not in excluded_set]
+
+
 def model_provider(model: str, fallback: str) -> str:
     if model != "runtime default" and "/" in model:
         return model.split("/", 1)[0]
@@ -430,6 +435,7 @@ def main() -> int:
     ap.add_argument("--thinking", default="low", help="cycle thinking level: off|minimal|low|medium|high|xhigh|adaptive|max")
     ap.add_argument("--summary-thinking", default="low", help="completion/periodic summary thinking level")
     ap.add_argument("--models", default="openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1", help="comma-separated preferred model rotation; provider is inferred from the prefix before '/'")
+    ap.add_argument("--exclude-models", default="", help="comma-separated model ids or provider prefixes to exclude from this run")
     ap.add_argument("--fast-mode", action=argparse.BooleanOptionalAction, default=False, help="request fast mode if the OpenClaw CLI supports it; default is off")
     ap.add_argument("--usage-guard", action=argparse.BooleanOptionalAction, default=True, help="skip over-budget model providers and pause only when every configured provider is ahead of schedule")
     ap.add_argument("--usage-provider", default="openai-codex", help="fallback provider key from openclaw status --usage for models without a provider prefix")
@@ -450,7 +456,10 @@ def main() -> int:
     write_pid()
     stop_ref = {"stop": False}
     help_text = openclaw_agent_help()
-    models = split_models(args.models)
+    excluded_models = split_models(args.exclude_models)
+    models = filter_models(split_models(args.models), excluded_models)
+    if not models:
+        raise SystemExit("all configured models were excluded; adjust --models or --exclude-models")
 
     def handle_signal(signum: int, frame: Any) -> None:  # noqa: ARG001
         log(f"received signal {signum}; stopping after current step")

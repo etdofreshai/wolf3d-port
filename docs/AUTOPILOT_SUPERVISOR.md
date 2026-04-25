@@ -31,6 +31,8 @@ Useful options:
 scripts/wolf3d_autopilot_supervisor.py --max-cycles 1
 scripts/wolf3d_autopilot_supervisor.py --thinking low --summary-thinking low
 scripts/wolf3d_autopilot_supervisor.py --models 'openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1'
+scripts/wolf3d_autopilot_supervisor.py --exclude-models 'zai/glm-5.1'
+scripts/wolf3d_autopilot_supervisor.py --exclude-models 'zai'  # exclude a whole provider prefix
 scripts/wolf3d_autopilot_supervisor.py --usage-provider-windows 'zai:Monthly,openai-codex:Week'
 scripts/wolf3d_autopilot_supervisor.py --no-fast-mode
 scripts/wolf3d_autopilot_supervisor.py --worker-poll 30 --max-worker-wait 7200
@@ -46,6 +48,7 @@ Defaults are intentionally conservative:
 - fast mode: off
 - model preference rotation: `openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1`
 - provider usage-window override: `zai:Monthly`, while other providers default to `Week`
+- optional model/provider exclusion: `--exclude-models 'zai/glm-5.1'` or `--exclude-models 'zai'`
 - usage guard: on; skip over-budget providers and pause only if all configured providers are over budget
 
 Current OpenClaw CLI builds may not expose a direct `openclaw agent --model` flag. The supervisor still rotates the model preference and injects it into the cycle prompt; if a future CLI exposes `--model`, the supervisor will pass it automatically.
@@ -68,6 +71,8 @@ Useful options:
 
 ```bash
 scripts/wolf3d_autopilot_supervisor.py --models 'openai-codex/gpt-5.5,anthropic/claude-opus-4.7,zai/glm-5.1'
+scripts/wolf3d_autopilot_supervisor.py --exclude-models 'anthropic/claude-opus-4.7'
+scripts/wolf3d_autopilot_supervisor.py --exclude-models 'zai'
 scripts/wolf3d_autopilot_supervisor.py --usage-window Week --usage-provider-windows 'zai:Monthly'
 scripts/wolf3d_autopilot_supervisor.py --usage-budget-start 2026-04-22T12:33:16Z
 scripts/wolf3d_autopilot_supervisor.py --usage-budget-reset 2026-04-29T12:33:16Z
