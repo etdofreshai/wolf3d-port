@@ -15,6 +15,8 @@ Representative scan results using `MAPHEAD.SOD` / `GAMEMAPS.SOD`:
 
 The high unknown counts are expected until SOD-specific actor/boss/static tile constants are added. A naive widening of the WL6 static tile range is unsafe because info tiles `90..97` are already path markers and `98` is the pushwall marker in the current model.
 
+These gap counts are now pinned by optional headless assertions in `source/modern-c-sdl3/tests/test_assets.c::check_optional_sod()`. The executable coverage uses map index `17` for `Death Knight`; map index `18` is `Secret 1`.
+
 ## Next useful step
 
 Add explicit SOD info-tile classification tables instead of broadening WL6 ranges. Start with SOD boss maps (`Tunnel Boss`, `Dungeon Boss`, `Castle Boss`, `Death Knight`, `Angel of Death`) and assert unknown counts fall only when source-backed tile mappings are known.
