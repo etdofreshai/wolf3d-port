@@ -5338,3 +5338,45 @@ Next likely move:
 - Continue feeding full live scene/death renders into present descriptors, or run the optional SDL3 smoke layer once SDL3 build tools/development files are available.
 
 Blockers: SDL3 presentation still cannot be verified here because SDL3 development files/build tools are unavailable; headless work is unblocked.
+
+
+## Cycle 2026-04-25 10:30 CDT SDL3 Bootstrap Verified
+
+Action taken:
+
+- Resumed SDL3 bootstrap work and downloaded repo-local CMake/Ninja tools under ignored `.deps/tools/` because system apt and Python pip were unavailable.
+- Updated `scripts/bootstrap_sdl3.sh` to configure SDL3 for headless/offscreen use without optional Linux desktop/audio development packages: X11/Wayland/audio backends disabled and `SDL_UNIX_CONSOLE_BUILD=ON`.
+- Ran the SDL3 bootstrap successfully; SDL3 installed under ignored `.deps/SDL3/` with dummy/offscreen video support.
+- Fixed `source/modern-c-sdl3/Makefile` to use relative `.deps/SDL3` include/lib paths when the repo-local SDL3 install exists, avoiding shell splitting from absolute paths containing spaces.
+- Verified the SDL3 hidden-window smoke test now compiles and runs with `SDL_VIDEODRIVER=dummy`.
+- Documented the headless Linux dependency note and path-with-spaces fix in `docs/research/sdl3-bootstrap.md`.
+
+Verification:
+
+```bash
+scripts/bootstrap_sdl3.sh
+cd source/modern-c-sdl3
+make clean
+make sdl3-info
+make test-sdl3
+make test
+```
+
+Result:
+
+```text
+SDL3 smoke test passed
+asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Third-party SDL/tools builds remain under ignored `.deps/`.
+
+Next likely move:
+
+- Add the first SDL3 presentation smoke boundary that displays or screenshots an existing headless indexed frame through SDL surfaces/textures.
+
+Blockers: none for the repo-local headless SDL3 path.

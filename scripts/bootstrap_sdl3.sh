@@ -37,7 +37,18 @@ cmake -S "$src_dir" -B "$build_dir" \
   -DSDL_TESTS=OFF \
   -DSDL_EXAMPLES=OFF \
   -DSDL_SHARED=ON \
-  -DSDL_STATIC=ON
+  -DSDL_STATIC=ON \
+  -DSDL_ALSA=OFF \
+  -DSDL_JACK=OFF \
+  -DSDL_PIPEWIRE=OFF \
+  -DSDL_PULSEAUDIO=OFF \
+  -DSDL_SNDIO=OFF \
+  -DSDL_X11=OFF \
+  -DSDL_WAYLAND=OFF \
+  -DSDL_OPENGL=OFF \
+  -DSDL_OPENGLES=OFF \
+  -DSDL_VULKAN=OFF \
+  -DSDL_UNIX_CONSOLE_BUILD=ON
 
 cmake --build "$build_dir" --target install --parallel "${SDL3_BUILD_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"
 
