@@ -56,14 +56,19 @@ int main(void) {
     size_t chunk_size = 0;
     unsigned char wall_pixels[WL_MAP_PLANE_WORDS];
     unsigned char wall_pixels_1[WL_MAP_PLANE_WORDS];
+    unsigned char sprite_pixels[WL_MAP_PLANE_WORDS];
+    unsigned char sprite_canvas_pixels[WL_MAP_SIDE * 2u * WL_MAP_SIDE];
     unsigned char atlas_pixels[WL_MAP_SIDE * 2u * WL_MAP_SIDE];
     wl_indexed_surface wall;
     wl_indexed_surface wall_1;
+    wl_indexed_surface sprite;
+    wl_indexed_surface sprite_canvas;
     wl_indexed_surface atlas;
     unsigned char palette[256 * 3];
     unsigned char red_palettes[WL_NUM_RED_SHIFTS * 256u * 3u];
     unsigned char rgba[WL_MAP_PLANE_WORDS * 4];
     unsigned char atlas_rgba[WL_MAP_SIDE * 2u * WL_MAP_SIDE * 4u];
+    unsigned char sprite_rgba[WL_MAP_SIDE * 2u * WL_MAP_SIDE * 4u];
     wl_palette_shift_result shift;
     wl_present_frame_descriptor present;
     long bmp_size = 0;
@@ -127,6 +132,37 @@ int main(void) {
     if (wl_wrap_indexed_surface(WL_MAP_SIDE * 2u, WL_MAP_SIDE, atlas_pixels,
                                 sizeof(atlas_pixels), &atlas) != 0) {
         fprintf(stderr, "could not wrap wall atlas\n");
+        return 1;
+    }
+    if (wl_read_vswap_chunk(vswap_path, &directory, 106, chunk, sizeof(chunk),
+                            &chunk_size) != 0) {
+        fprintf(stderr, "could not read VSWAP sprite chunk 106\n");
+        return 1;
+    }
+    if (wl_decode_sprite_shape_surface(chunk, chunk_size, 0, sprite_pixels,
+                                       sizeof(sprite_pixels), &sprite) != 0) {
+        fprintf(stderr, "could not decode VSWAP sprite chunk 106\n");
+        return 1;
+    }
+    memset(sprite_canvas_pixels, 0x2a, sizeof(sprite_canvas_pixels));
+    if (wl_wrap_indexed_surface(WL_MAP_SIDE * 2u, WL_MAP_SIDE,
+                                sprite_canvas_pixels,
+                                sizeof(sprite_canvas_pixels),
+                                &sprite_canvas) != 0) {
+        fprintf(stderr, "could not wrap sprite canvas\n");
+        return 1;
+    }
+    if (wl_render_scaled_sprite(&sprite, &sprite_canvas, 64, 64, 0, NULL, 0) != 0) {
+        fprintf(stderr, "could not render sprite canvas\n");
+        return 1;
+    }
+    if (fnv1a_bytes(sprite.pixels, sprite.pixel_count) != 0x918ed728u) {
+        fprintf(stderr, "unexpected sprite pixel hash\n");
+        return 1;
+    }
+    if (fnv1a_bytes(sprite_canvas.pixels, sprite_canvas.pixel_count) !=
+        0xb7087e58u) {
+        fprintf(stderr, "unexpected sprite canvas hash\n");
         return 1;
     }
     if (fnv1a_bytes(wall_1.pixels, wall_1.pixel_count) != 0xcc7509fdu ||
@@ -362,8 +398,63 @@ int main(void) {
         return 1;
     }
     SDL_DestroySurface(source);
+    source = NULL;
+
+    memset(&shift, 0, sizeof(shift));
+    shift.kind = WL_PALETTE_SHIFT_NONE;
+    if (wl_describe_present_frame(&sprite_canvas, &shift, palette,
+                                  NULL, 0, NULL, 0, sizeof(palette), 6,
+                                  &present) != 0) {
+        fprintf(stderr, "could not describe sprite present frame\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (wl_expand_indexed_surface_to_rgba(&sprite_canvas, present.texture.palette,
+                                          sizeof(palette), 6, sprite_rgba,
+                                          sizeof(sprite_rgba), NULL) != 0) {
+        fprintf(stderr, "could not expand sprite frame to RGBA\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (present.viewport_width != WL_MAP_SIDE * 2u ||
+        present.viewport_height != WL_MAP_SIDE ||
+        present.pixel_hash != 0xb7087e58u ||
+        fnv1a_bytes(sprite_rgba, sizeof(sprite_rgba)) != 0x6159f78fu) {
+        fprintf(stderr, "unexpected sprite present metadata\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    source = SDL_CreateSurfaceFrom(present.viewport_width,
+                                   present.viewport_height,
+                                   SDL_PIXELFORMAT_RGBA32, sprite_rgba,
+                                   present.viewport_width * 4);
+    if (!source) {
+        fprintf(stderr, "SDL_CreateSurfaceFrom sprite failed: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (!SDL_SaveBMP(source, "build/wolf-sprite-present.bmp")) {
+        fprintf(stderr, "SDL_SaveBMP sprite failed: %s\n", SDL_GetError());
+        SDL_DestroySurface(source);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (file_stats("build/wolf-sprite-present.bmp", &bmp_size, &bmp_hash) != 0 ||
+        bmp_size != 32906 || bmp_hash != 0xbaeda862u) {
+        fprintf(stderr, "unexpected sprite screenshot artifact stats\n");
+        SDL_DestroySurface(source);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    SDL_DestroySurface(source);
     SDL_DestroyWindow(window);
     SDL_Quit();
-    puts("SDL3 Wolf wall atlas screenshot smoke test passed");
+    puts("SDL3 Wolf sprite screenshot smoke test passed");
     return 0;
 }

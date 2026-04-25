@@ -65,3 +65,8 @@ The SDL3 present smoke now hashes the generated BMP artifacts themselves, not ju
 ## SDL3 wall atlas screenshot seam
 
 The SDL3 present smoke now routes a fuller two-wall WL6 atlas through the screenshot seam. It decodes wall pages 0 and 1, composes a `128x64` indexed surface, verifies wall-1 hash `0xcc7509fd`, atlas indexed hash `0x223d2caf`, atlas RGBA hash `0x3a8ae4e9`, and saves ignored `build/wolf-wall-atlas-present.bmp` with size/hash `32906` / `0xaf70162c`.
+
+
+## SDL3 sprite screenshot seam
+
+The SDL3 present smoke now routes sprite-bearing output through the screenshot seam. It decodes VSWAP sprite chunk `106`, verifies sprite hash `0x918ed728`, renders it onto a `128x64` indexed canvas with hash `0xb7087e58`, expands to RGBA hash `0x6159f78f`, and saves ignored `build/wolf-sprite-present.bmp` with size/hash `32906` / `0xbaeda862`.

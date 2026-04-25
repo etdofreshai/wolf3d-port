@@ -5622,3 +5622,44 @@ Next likely move:
 - Route a sprite-bearing rendered scene frame through the SDL3 screenshot seam.
 
 Blockers: none for repo-local headless SDL3 presentation smoke work.
+
+
+
+## Cycle 2026-04-25 10:51 CDT SDL3 Sprite Screenshot
+
+Action taken:
+
+- Routed sprite-bearing output through the SDL3 screenshot seam.
+- `test_sdl3_present` now decodes VSWAP sprite chunk `106`, renders it onto a `128x64` indexed canvas, expands it through the present descriptor path, and saves ignored `build/wolf-sprite-present.bmp`.
+- Verified sprite hash `0x918ed728`, sprite-canvas hash `0xb7087e58`, RGBA hash `0x6159f78f`, and BMP size/hash `32906` / `0xbaeda862`.
+- Updated the SDL3 bootstrap research note, README, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test-sdl3-present
+make test-sdl3
+make test
+```
+
+Result:
+
+```text
+SDL3 Wolf sprite screenshot smoke test passed
+SDL3 smoke test passed
+SDL3 Wolf sprite screenshot smoke test passed
+asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Generated BMP artifacts remain ignored under `source/modern-c-sdl3/build/`.
+
+Next likely move:
+
+- Route a gameplay-rendered scene frame through the SDL3 screenshot seam, or consolidate the SDL3 presentation helper to reduce smoke-test duplication.
+
+Blockers: none for repo-local headless SDL3 presentation smoke work.
