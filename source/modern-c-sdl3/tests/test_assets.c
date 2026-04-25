@@ -597,6 +597,43 @@ static int check_wl6(const char *dir) {
                                   &canvas) == 0);
     CHECK(wl_render_wall_strip_viewport(ray_strips, 4, &canvas) == 0);
     CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0xa4c9e6e1);
+    const uint32_t player_x = (29u << 16) + 0x8000u;
+    const uint32_t player_y = (57u << 16) + 0x8000u;
+    CHECK(wl_cast_fixed_cardinal_wall_ray(wall_plane, WL_MAP_PLANE_WORDS,
+                                          player_x, player_y, WL_RAY_EAST,
+                                          5, 96, &hits[0]) == 0);
+    CHECK(hits[0].tile_x == 41);
+    CHECK(hits[0].tile_y == 57);
+    CHECK(hits[0].texture_offset == 0x0800);
+    CHECK(wl_cast_fixed_cardinal_wall_ray(wall_plane, WL_MAP_PLANE_WORDS,
+                                          player_x, player_y, WL_RAY_WEST,
+                                          15, 96, &hits[1]) == 0);
+    CHECK(hits[1].tile_x == 27);
+    CHECK(hits[1].tile_y == 57);
+    CHECK(hits[1].texture_offset == 0x0800);
+    CHECK(wl_cast_fixed_cardinal_wall_ray(wall_plane, WL_MAP_PLANE_WORDS,
+                                          player_x, player_y, WL_RAY_NORTH,
+                                          25, 96, &hits[2]) == 0);
+    CHECK(hits[2].tile_x == 29);
+    CHECK(hits[2].tile_y == 55);
+    CHECK(hits[2].texture_offset == 0x0800);
+    CHECK(wl_cast_fixed_cardinal_wall_ray(wall_plane, WL_MAP_PLANE_WORDS,
+                                          player_x, player_y, WL_RAY_SOUTH,
+                                          35, 96, &hits[3]) == 0);
+    CHECK(hits[3].tile_x == 29);
+    CHECK(hits[3].tile_y == 59);
+    CHECK(hits[3].texture_offset == 0x0800);
+    for (size_t i = 0; i < 4; ++i) {
+        CHECK(wl_wall_hit_to_strip(&hits[i], ray_pages[i], 4096, &ray_strips[i]) == 0);
+    }
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_wall_strip_viewport(ray_strips, 4, &canvas) == 0);
+    CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == 0xa4c9e6e1);
+    CHECK(wl_cast_fixed_cardinal_wall_ray(wall_plane, WL_MAP_PLANE_WORDS,
+                                          (64u << 16), player_y, WL_RAY_EAST,
+                                          0, 64, &hits[0]) == -1);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 105, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -970,6 +1007,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/cardinal-ray tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/fixed-ray tests passed for %s\n", dir);
     return 0;
 }

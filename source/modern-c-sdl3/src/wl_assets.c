@@ -962,6 +962,38 @@ int wl_cast_cardinal_wall_ray(const uint16_t *wall_plane, size_t wall_count,
     }
 }
 
+int wl_cast_fixed_cardinal_wall_ray(const uint16_t *wall_plane, size_t wall_count,
+                                    uint32_t origin_x, uint32_t origin_y,
+                                    wl_cardinal_ray_direction direction,
+                                    uint16_t x, uint16_t scaled_height,
+                                    wl_map_wall_hit *out) {
+    if (!wall_plane || !out || wall_count < WL_MAP_PLANE_WORDS || scaled_height == 0 ||
+        origin_x >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        origin_y >= ((uint32_t)WL_MAP_SIDE << 16)) {
+        return -1;
+    }
+
+    uint16_t start_x = (uint16_t)(origin_x >> 16);
+    uint16_t start_y = (uint16_t)(origin_y >> 16);
+    uint16_t texture_column = 0;
+    switch (direction) {
+    case WL_RAY_NORTH:
+    case WL_RAY_SOUTH:
+        texture_column = (uint16_t)((origin_x >> 10) & (WL_MAP_SIDE - 1u));
+        break;
+    case WL_RAY_EAST:
+    case WL_RAY_WEST:
+        texture_column = (uint16_t)((origin_y >> 10) & (WL_MAP_SIDE - 1u));
+        break;
+    default:
+        return -1;
+    }
+
+    return wl_cast_cardinal_wall_ray(wall_plane, wall_count, start_x, start_y,
+                                     direction, texture_column, x, scaled_height,
+                                     out);
+}
+
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written) {
     const uint16_t near_tag = 0xa7;
