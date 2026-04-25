@@ -380,6 +380,44 @@ int wl_interpolate_palette_range(const unsigned char *from_palette,
     return 0;
 }
 
+int wl_build_palette_shift(const unsigned char *base_palette,
+                           size_t palette_size,
+                           uint8_t palette_component_bits,
+                           uint8_t target_red, uint8_t target_green,
+                           uint8_t target_blue,
+                           uint16_t step, uint16_t steps,
+                           unsigned char *out_palette,
+                           size_t out_palette_size) {
+    if (!base_palette || !out_palette ||
+        (palette_component_bits != 6 && palette_component_bits != 8) ||
+        palette_size < 256u * 3u || out_palette_size < 256u * 3u ||
+        steps == 0 || step > steps) {
+        return -1;
+    }
+
+    unsigned int max_target = palette_component_bits == 6 ? 64u : 255u;
+    if (target_red > max_target || target_green > max_target ||
+        target_blue > max_target) {
+        return -1;
+    }
+
+    const int targets[3] = {
+        (int)target_red,
+        (int)target_green,
+        (int)target_blue,
+    };
+    for (size_t index = 0; index < 256u; ++index) {
+        size_t base = index * 3u;
+        for (size_t channel = 0; channel < 3u; ++channel) {
+            int from = base_palette[base + channel];
+            int delta = targets[channel] - from;
+            out_palette[base + channel] =
+                (unsigned char)(from + (delta * (int)step) / (int)steps);
+        }
+    }
+    return 0;
+}
+
 int wl_describe_indexed_texture_upload(const wl_indexed_surface *surface,
                                        const unsigned char *palette,
                                        size_t palette_size,

@@ -1,7 +1,7 @@
 # Graphics Huffman Notes
 
 Research/implementation cycle: 2026-04-24 22:53-23:15 CDT  
-Scope: `VGAHEAD`/`VGADICT`/`VGAGRAPH` header parsing, Huffman smoke decoding, `STRUCTPIC` picture-table metadata, indexed-surface conversion, texture-upload metadata, and palette/fade metadata for WL6 and optional SOD, without committing proprietary graphics bytes.
+Scope: `VGAHEAD`/`VGADICT`/`VGAGRAPH` header parsing, Huffman smoke decoding, `STRUCTPIC` picture-table metadata, indexed-surface conversion, texture-upload metadata, and palette/fade/shift metadata for WL6 and optional SOD, without committing proprietary graphics bytes.
 
 ## Original reference
 
@@ -22,6 +22,8 @@ Original source reference, inspected but not modified:
   - treats graphics chunks as VGA planar memory ordered by plane, copying `width / 4` bytes per row per plane.
 - `source/original/WOLFSRC/ID_VL.C::VL_FadeOut` / `VL_FadeIn`
   - interpolates 6-bit VGA palette components with integer `orig + delta * i / steps` math over a start/end palette-index range, then applies the final palette separately.
+- `source/original/WOLFSRC/WL_PLAY.C::InitRedShifts` / `UpdatePaletteShifts`
+  - precomputes six red damage palettes toward `(64,0,0)` using `REDSTEPS=8`, three bonus palettes toward `(64,62,0)` using `WHITESTEPS=20`, and prioritizes red over white while active.
 - `source/original/WOLFSRC/ID_CA.C::CAL_HuffExpand`
   - uses node 254 as the Huffman head node.
   - consumes bits least-significant-bit first from each compressed byte.
@@ -56,6 +58,7 @@ Added graphics APIs/types to `wl_assets`:
 - `wl_describe_indexed_texture_upload(...)`
 - `wl_expand_indexed_surface_to_rgba(...)`
 - `wl_interpolate_palette_range(...)`
+- `wl_build_palette_shift(...)`
 
 The implementation:
 
@@ -69,6 +72,7 @@ The implementation:
 - provides an SDL-free clipped blit helper for indexed surfaces;
 - describes indexed-8 + RGB-palette texture upload metadata and expands indexed surfaces to RGBA8888 using 6-bit VGA DAC or 8-bit palette components;
 - interpolates palette ranges with the original integer fade math so fade-in/fade-out and palette-flash effects can be tested before SDL presentation;
+- builds original-style full-palette red/white shift tables for damage and bonus flashes without touching VGA hardware;
 - records only sizes/counts/hashes/dimensions in tests and docs, not graphics bytes.
 
 ## WL6 committed assertions
@@ -82,7 +86,7 @@ The implementation:
 - `STRUCTPIC` picture table: `132` entries, width range `8..320`, height range `8..200`, total declared pixels `342464`
 - representative WL6 dimensions: entry `0` `96x88`, entry `3` `320x8`, entry `84` `320x200`, entry `86` `320x200`, entry `87` `224x56`, entry `131` `224x48`
 - decoded chunk `1` (`STARTFONT`): compressed `3467`, expanded `8300`, FNV-1a `0xdb48ce2b`
-- decoded chunk `3`: compressed `8057`, expanded planar `8448`, planar FNV-1a `0x5c152b5c`, indexed-surface FNV-1a `0xa9c1ea92`, synthetic-palette RGBA upload hash `0xb75bdee9`; palette fade hash `0xa93a5ba5`, range-final hash `0x91f102c5`, faded RGBA sample hash `0x50918d48`
+- decoded chunk `3`: compressed `8057`, expanded planar `8448`, planar FNV-1a `0x5c152b5c`, indexed-surface FNV-1a `0xa9c1ea92`, synthetic-palette RGBA upload hash `0xb75bdee9`; palette fade hash `0xa93a5ba5`, range-final hash `0x91f102c5`, faded RGBA sample hash `0x50918d48`, red-shift hash `0xb8462fc5`, red-shift RGBA sample hash `0xfa0a0cd7`, white-shift hash `0x3c8da1ed`, white-shift RGBA sample hash `0x93adda7f`
 - decoded chunk `87` (`TITLEPIC`): compressed `45948`, expanded planar `64000`, planar FNV-1a `0x01643ebc`, indexed-surface FNV-1a `0x4b172b02`
 - decoded chunk `134` (`GETPSYCHEDPIC`): compressed `5127`, expanded planar `10752`, planar FNV-1a `0xeb393cc0`, indexed-surface FNV-1a `0x46e4bd08`
 
@@ -140,6 +144,10 @@ Added `wl_blit_indexed_surface`, a clipped SDL-free blitter for `wl_indexed_surf
 
 Added `wl_interpolate_palette_range`, a pure C helper that mirrors the original `VL_FadeOut`/`VL_FadeIn` integer palette interpolation over an inclusive start/end index range. The tests use a synthetic 6-bit VGA palette and target fade color to assert full-range fade hash `0xa93a5ba5`, final-range hash `0x91f102c5`, faded RGBA expansion hash `0x50918d48`, and invalid range/component/step validation. This creates a deterministic palette-effect seam for future screen fades, damage/bonus flashes, and SDL3 texture upload without depending on a display or committing proprietary palette bytes.
 
+## Cycle update: damage/bonus palette shifts
+
+Added `wl_build_palette_shift`, a display-free helper for the original gameplay flash tables from `WL_PLAY.C::InitRedShifts`: damage palettes interpolate toward `(64,0,0)` with `REDSTEPS=8`, and bonus palettes interpolate toward `(64,62,0)` with `WHITESTEPS=20`. The headless tests assert the strongest representative damage/bonus hashes (`0xb8462fc5` and `0x3c8da1ed`), corresponding RGBA sample hashes (`0xfa0a0cd7` and `0x93adda7f`), endpoint component values, and invalid target/component/step validation. This gives future gameplay and SDL presentation code deterministic palette-flash data before any real palette upload.
+
 ## Next step
 
-Add a minimal SDL3 presentation seam using the upload/palette metadata, or continue broadening runtime scene and palette-effect coverage. Keep headless tests comparing metadata/hashes before requiring a display.
+Add a minimal SDL3 presentation seam using the upload/palette metadata, or connect palette-shift state to gameplay counters. Keep headless tests comparing metadata/hashes before requiring a display.

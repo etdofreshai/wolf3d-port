@@ -129,6 +129,15 @@ int wl_interpolate_palette_range(const unsigned char *from_palette,
                                  unsigned char *out_palette,
                                  size_t out_palette_size);
 
+int wl_build_palette_shift(const unsigned char *base_palette,
+                           size_t palette_size,
+                           uint8_t palette_component_bits,
+                           uint8_t target_red, uint8_t target_green,
+                           uint8_t target_blue,
+                           uint16_t step, uint16_t steps,
+                           unsigned char *out_palette,
+                           size_t out_palette_size);
+
 typedef struct wl_wall_page_metadata {
     uint16_t width;
     uint16_t height;

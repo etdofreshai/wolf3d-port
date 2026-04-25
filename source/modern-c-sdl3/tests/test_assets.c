@@ -435,6 +435,47 @@ static int check_wl6(const char *dir) {
                                        sizeof(upload_palette), 6, 0, 255, 11,
                                        10, fade_palette,
                                        sizeof(fade_palette)) == -1);
+    CHECK(wl_build_palette_shift(upload_palette, sizeof(upload_palette), 6,
+                                 64, 0, 0, 6, 8, fade_palette,
+                                 sizeof(fade_palette)) == 0);
+    CHECK(fnv1a_bytes(fade_palette, sizeof(fade_palette)) == 0xb8462fc5);
+    CHECK(fade_palette[0] == 48);
+    CHECK(fade_palette[1] == 0);
+    CHECK(fade_palette[2] == 16);
+    CHECK(fade_palette[255u * 3u + 0u] == 63);
+    CHECK(fade_palette[255u * 3u + 1u] == 16);
+    CHECK(fade_palette[255u * 3u + 2u] == 0);
+    CHECK(wl_expand_indexed_surface_to_rgba(&fade_sample_surface, fade_palette,
+                                            sizeof(fade_palette), 6,
+                                            fade_sample_rgba,
+                                            sizeof(fade_sample_rgba),
+                                            NULL) == 0);
+    CHECK(fnv1a_bytes(fade_sample_rgba, sizeof(fade_sample_rgba)) == 0xfa0a0cd7);
+    CHECK(wl_build_palette_shift(upload_palette, sizeof(upload_palette), 6,
+                                 64, 62, 0, 3, 20, fade_palette,
+                                 sizeof(fade_palette)) == 0);
+    CHECK(fnv1a_bytes(fade_palette, sizeof(fade_palette)) == 0x3c8da1ed);
+    CHECK(fade_palette[0] == 9);
+    CHECK(fade_palette[1] == 9);
+    CHECK(fade_palette[2] == 54);
+    CHECK(fade_palette[255u * 3u + 0u] == 63);
+    CHECK(fade_palette[255u * 3u + 1u] == 62);
+    CHECK(fade_palette[255u * 3u + 2u] == 0);
+    CHECK(wl_expand_indexed_surface_to_rgba(&fade_sample_surface, fade_palette,
+                                            sizeof(fade_palette), 6,
+                                            fade_sample_rgba,
+                                            sizeof(fade_sample_rgba),
+                                            NULL) == 0);
+    CHECK(fnv1a_bytes(fade_sample_rgba, sizeof(fade_sample_rgba)) == 0x93adda7f);
+    CHECK(wl_build_palette_shift(upload_palette, sizeof(upload_palette), 6,
+                                 65, 0, 0, 1, 8, fade_palette,
+                                 sizeof(fade_palette)) == -1);
+    CHECK(wl_build_palette_shift(upload_palette, sizeof(upload_palette), 5,
+                                 64, 0, 0, 1, 8, fade_palette,
+                                 sizeof(fade_palette)) == -1);
+    CHECK(wl_build_palette_shift(upload_palette, sizeof(upload_palette), 6,
+                                 64, 0, 0, 9, 8, fade_palette,
+                                 sizeof(fade_palette)) == -1);
     CHECK(wl_read_graphics_header(vgahead_path, &gh) == 0);
     CHECK(gh.chunk_count == 149);
     CHECK(gh.file_size == 450);
@@ -1618,6 +1659,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/palette-fade tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/palette-shift tests passed for %s\n", dir);
     return 0;
 }
