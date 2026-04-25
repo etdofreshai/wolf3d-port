@@ -381,3 +381,8 @@ Added an SDL-free presentation descriptor that wraps a rendered indexed frame wi
 ## Palette-shifted present frame descriptor
 
 The presentation descriptor now verifies palette-shifted output as well as base palettes. A red-shifted dog chase death frame preserves pixel hash `0x92ff40dd` while selecting red palette hash `0x90a6cdc5` and recording shift kind/index.
+
+
+## Combat palette present frame descriptors
+
+Present-frame descriptor coverage now includes both red and white combat palette shifts. The same indexed dog chase death frame keeps pixel hash `0x92ff40dd` while selecting red hash `0x90a6cdc5` or white hash `0x3c8da1ed` with explicit shift kind/index metadata.

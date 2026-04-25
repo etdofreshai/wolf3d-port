@@ -454,3 +454,8 @@ Presentation metadata now wraps the indexed scene surface with palette-selected 
 ## Cycle update: palette-shifted present frame descriptor
 
 Presentation metadata now verifies red-shifted palette selection: the dog chase death frame keeps pixel hash `0x92ff40dd` and selects red palette hash `0x90a6cdc5`.
+
+
+## Cycle update: combat palette present frame descriptors
+
+Presentation metadata now pins both combat palette uploads: red hash `0x90a6cdc5` and white hash `0x3c8da1ed` for the same indexed frame hash `0x92ff40dd`.

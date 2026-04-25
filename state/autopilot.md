@@ -5195,3 +5195,40 @@ Next likely move:
 - Add a dummy/offscreen SDL3 smoke layer when SDL3 dev files are available, or keep building SDL-free presentation descriptors for live combat/death scenes.
 
 Blockers: SDL3 presentation still cannot be verified here because SDL3 development files are unavailable via `pkg-config`; headless work is unblocked.
+
+
+
+## Cycle 2026-04-25 10:20 CDT
+
+Action taken:
+
+- Broadened the SDL-free present-frame descriptor coverage from red-only palette shifts to both red and white combat-style shifts.
+- The dog chase death-final render now verifies base, red, and white palette uploads against the same indexed frame.
+- Verified the descriptor keeps pixel hash `0x92ff40dd`, selects red palette hash `0x90a6cdc5`, selects white palette hash `0x3c8da1ed`, and records the correct shift kind/index for each shifted upload.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-present-combat-palette-frames tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Add a dummy/offscreen SDL3 smoke layer when SDL3 dev files are available, or continue broadening SDL-free present descriptors for active live combat scenes.
+
+Blockers: SDL3 presentation still cannot be verified here because SDL3 development files are unavailable via `pkg-config`; headless work is unblocked.

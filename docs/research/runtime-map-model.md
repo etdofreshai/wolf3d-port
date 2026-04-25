@@ -513,3 +513,8 @@ A rendered live-AI dog chase death frame now feeds `wl_describe_present_frame`, 
 ## Cycle update: palette-shifted present frame descriptor
 
 The present-frame seam now carries palette-shift metadata for a rendered live-AI frame, proving future SDL3 upload code can distinguish base and damage-flash palettes without changing indexed pixels.
+
+
+## Cycle update: combat palette present frame descriptors
+
+The SDL-free presentation seam now verifies both damage/red and bonus/white palette shifts on a rendered live-AI frame, keeping indexed pixels stable while changing upload palette metadata.

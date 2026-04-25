@@ -258,3 +258,8 @@ Runtime scene semantics now reach an SDL-free presentation boundary: the dog cha
 ## Cycle update: palette-shifted present frame descriptor
 
 Runtime scene state now reaches a present-frame descriptor with red palette-shift metadata, linking gameplay damage flashes to future presentation upload state.
+
+
+## Cycle update: combat palette present frame descriptors
+
+Runtime scene state now carries both red and white palette-shift descriptors toward the future SDL3 upload boundary.

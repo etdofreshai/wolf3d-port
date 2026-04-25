@@ -437,3 +437,8 @@ VSWAP-backed render output now crosses a presentation descriptor seam: decoded l
 ## Cycle update: palette-shifted present frame descriptor
 
 The VSWAP-backed frame descriptor now separates indexed sprite pixels from palette upload state, preserving metadata/hash-only checks for future SDL3 texture uploads.
+
+
+## Cycle update: combat palette present frame descriptors
+
+VSWAP-backed frame presentation now verifies palette-only upload changes for red and white shifts without committing decoded asset bytes.
