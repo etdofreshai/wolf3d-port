@@ -185,9 +185,7 @@ int main(void) {
         fprintf(stderr, "unexpected present descriptor\n");
         return 1;
     }
-    if (wl_expand_indexed_surface_to_rgba(&wall, present.texture.palette,
-                                          sizeof(palette), 6, rgba,
-                                          sizeof(rgba), NULL) != 0) {
+    if (wl_expand_present_frame_to_rgba(&present, rgba, sizeof(rgba), NULL) != 0) {
         fprintf(stderr, "could not expand wall frame to RGBA\n");
         return 1;
     }
@@ -289,9 +287,7 @@ int main(void) {
         SDL_Quit();
         return 1;
     }
-    if (wl_expand_indexed_surface_to_rgba(&wall, present.texture.palette,
-                                          sizeof(palette), 6, rgba,
-                                          sizeof(rgba), NULL) != 0) {
+    if (wl_expand_present_frame_to_rgba(&present, rgba, sizeof(rgba), NULL) != 0) {
         fprintf(stderr, "could not expand red wall frame to RGBA\n");
         SDL_DestroyWindow(window);
         SDL_Quit();
@@ -355,9 +351,8 @@ int main(void) {
         SDL_Quit();
         return 1;
     }
-    if (wl_expand_indexed_surface_to_rgba(&atlas, present.texture.palette,
-                                          sizeof(palette), 6, atlas_rgba,
-                                          sizeof(atlas_rgba), NULL) != 0) {
+    if (wl_expand_present_frame_to_rgba(&present, atlas_rgba,
+                                        sizeof(atlas_rgba), NULL) != 0) {
         fprintf(stderr, "could not expand atlas frame to RGBA\n");
         SDL_DestroyWindow(window);
         SDL_Quit();
@@ -410,9 +405,8 @@ int main(void) {
         SDL_Quit();
         return 1;
     }
-    if (wl_expand_indexed_surface_to_rgba(&sprite_canvas, present.texture.palette,
-                                          sizeof(palette), 6, sprite_rgba,
-                                          sizeof(sprite_rgba), NULL) != 0) {
+    if (wl_expand_present_frame_to_rgba(&present, sprite_rgba,
+                                        sizeof(sprite_rgba), NULL) != 0) {
         fprintf(stderr, "could not expand sprite frame to RGBA\n");
         SDL_DestroyWindow(window);
         SDL_Quit();

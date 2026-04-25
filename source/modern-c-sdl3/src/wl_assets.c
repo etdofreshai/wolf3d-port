@@ -690,6 +690,34 @@ int wl_describe_present_frame(const wl_indexed_surface *surface,
     return 0;
 }
 
+int wl_expand_present_frame_to_rgba(const wl_present_frame_descriptor *present,
+                                    unsigned char *rgba, size_t rgba_size,
+                                    wl_texture_upload_descriptor *out) {
+    if (!present || !rgba || present->texture.format != WL_TEXTURE_UPLOAD_INDEXED8_RGB_PALETTE ||
+        !present->texture.pixels || !present->texture.palette ||
+        present->texture.width == 0 || present->texture.height == 0 ||
+        present->texture.pitch < present->texture.width ||
+        present->texture.pixel_bytes <
+            (size_t)present->texture.pitch * (size_t)present->texture.height ||
+        present->texture.palette_entries < 256u) {
+        return -1;
+    }
+
+    wl_indexed_surface surface;
+    memset(&surface, 0, sizeof(surface));
+    surface.format = WL_SURFACE_INDEXED8;
+    surface.width = present->texture.width;
+    surface.height = present->texture.height;
+    surface.stride = present->texture.pitch;
+    surface.pixel_count = present->texture.pixel_bytes;
+    surface.pixels = (unsigned char *)present->texture.pixels;
+
+    return wl_expand_indexed_surface_to_rgba(&surface, present->texture.palette,
+                                             present->texture.palette_entries * 3u,
+                                             present->texture.palette_component_bits,
+                                             rgba, rgba_size, out);
+}
+
 int wl_decode_planar_picture_to_indexed(const unsigned char *planar, size_t planar_size,
                                         uint16_t width, uint16_t height,
                                         unsigned char *indexed, size_t indexed_size) {

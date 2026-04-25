@@ -436,6 +436,9 @@ int wl_describe_present_frame(const wl_indexed_surface *surface,
                               size_t palette_size,
                               uint8_t palette_component_bits,
                               wl_present_frame_descriptor *out);
+int wl_expand_present_frame_to_rgba(const wl_present_frame_descriptor *present,
+                                    unsigned char *rgba, size_t rgba_size,
+                                    wl_texture_upload_descriptor *out);
 int wl_decode_planar_picture_to_indexed(const unsigned char *planar, size_t planar_size,
                                         uint16_t width, uint16_t height,
                                         unsigned char *indexed, size_t indexed_size);
