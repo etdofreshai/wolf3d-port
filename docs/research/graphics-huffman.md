@@ -289,3 +289,8 @@ Death animation ticking is now available from the full combat frame boundary tha
 ## Cycle update: full combat death-tick final scene
 
 The final corpse frame emitted by combined full-combat/death ticking now reaches indexed scene composition. The renderer test decodes the local VSWAP sprite and produces hash `0x81c10dcf`, giving future SDL3 presentation a deterministic headless contract for finalized actor deaths.
+
+
+## Cycle update: broadened actor death final refs
+
+The persistent corpse-frame presentation bridge now covers more actor classes. Finalized officer, SS, dog, mutant, and boss death states flow through ordinary scene-ref collection with verified source/VSWAP metadata, preparing the SDL3 renderer path for non-guard corpse sprites.

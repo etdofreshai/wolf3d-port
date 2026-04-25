@@ -196,3 +196,8 @@ Full live combat orchestration can now also advance an active death animation in
 ## Full combat death-tick final scene
 
 The combined full-combat/death-tick output now drives headless scene rendering. The test kills a guard, advances the active death state through `wl_step_live_full_combat_death_tick`, decodes the returned final corpse-frame VSWAP chunk, and renders it through `wl_render_runtime_door_camera_scene_view` with stable scene hash `0x81c10dcf`.
+
+
+## Broadened actor death final refs
+
+Final corpse-frame actor refs now have coverage beyond the guard path. Headless tests finalize officer, SS, dog, mutant, and boss death states and verify the scene-ref source/VSWAP metadata emitted by `wl_collect_scene_sprite_refs`: officer `284/390`, SS `183/289`, dog `134/240`, mutant `233/339`, and boss `303/409`.

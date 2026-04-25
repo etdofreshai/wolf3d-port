@@ -328,3 +328,8 @@ Full live combat can now advance active actor death animation in the same frame 
 ## Cycle update: full combat death-tick final scene
 
 The combined full-combat/death-tick frame result now reaches the renderer. A guard killed by full combat is advanced to final death state, its returned source `95` / chunk `201` ref is decoded locally, and `wl_render_runtime_door_camera_scene_view` produces stable hash `0x81c10dcf`. This proves the combined frame boundary can drive final corpse presentation without a hand-built scene ref.
+
+
+## Cycle update: broadened actor death final refs
+
+Final-frame actor ref replacement now covers representative non-guard enemy classes. Finished death states for officer, SS, dog, mutant, and boss are applied to runtime actor slots and collected through the normal scene-ref path, preserving model index/world position while changing source/VSWAP metadata to the final corpse frame.

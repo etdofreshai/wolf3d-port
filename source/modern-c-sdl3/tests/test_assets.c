@@ -369,6 +369,59 @@ static int check_gameplay_events(void) {
     CHECK(wl_apply_actor_death_final_frame(&final_frame_model, 1,
                                            &death_state) == -1);
 
+    struct death_final_expectation {
+        wl_actor_kind kind;
+        int32_t damage_points;
+        uint16_t final_source;
+        uint16_t final_chunk;
+    } death_finals[] = {
+        { WL_ACTOR_OFFICER, 25, 284, 390 },
+        { WL_ACTOR_SS, 50, 183, 289 },
+        { WL_ACTOR_DOG, 1, 134, 240 },
+        { WL_ACTOR_MUTANT, 33, 233, 339 },
+        { WL_ACTOR_BOSS, 600, 303, 409 },
+    };
+    for (size_t i = 0; i < sizeof(death_finals) / sizeof(death_finals[0]); ++i) {
+        wl_actor_desc final_actor_desc;
+        memset(&final_actor_desc, 0, sizeof(final_actor_desc));
+        final_actor_desc.kind = death_finals[i].kind;
+        final_actor_desc.shootable = 1;
+        final_actor_desc.tile_x = (uint16_t)(10 + i);
+        final_actor_desc.tile_y = 12;
+        wl_actor_combat_state final_actor_state;
+        CHECK(wl_init_actor_combat_state(&final_actor_desc,
+                                         WL_DIFFICULTY_HARD,
+                                         &final_actor_state) == 0);
+        wl_actor_damage_result final_damage;
+        CHECK(wl_apply_actor_damage(&state, &final_actor_state,
+                                    death_finals[i].damage_points,
+                                    &final_damage) == 0);
+        CHECK(final_damage.killed == 1);
+        wl_actor_death_state final_death_state;
+        CHECK(wl_start_actor_death_state(&final_actor_state, &final_damage,
+                                         &final_death_state) == 0);
+        wl_actor_death_step_result final_death_step;
+        CHECK(wl_step_actor_death_state(&final_death_state, 120,
+                                        &final_death_step) == 0);
+        CHECK(final_death_step.finished == 1);
+        CHECK(final_death_step.sprite_source_index == death_finals[i].final_source);
+        wl_game_model final_actor_model;
+        memset(&final_actor_model, 0, sizeof(final_actor_model));
+        final_actor_model.actor_count = 1;
+        final_actor_model.actors[0] = final_actor_desc;
+        CHECK(wl_apply_actor_death_final_frame(&final_actor_model, 0,
+                                               &final_death_state) == 0);
+        CHECK(final_actor_model.actors[0].shootable == 0);
+        CHECK(final_actor_model.actors[0].scene_source_override == 1);
+        CHECK(final_actor_model.actors[0].scene_source_index == death_finals[i].final_source);
+        CHECK(wl_collect_scene_sprite_refs(&final_actor_model, 106,
+                                           final_frame_refs, 1,
+                                           &final_frame_ref_count) == 0);
+        CHECK(final_frame_ref_count == 1);
+        CHECK(final_frame_refs[0].source_index == death_finals[i].final_source);
+        CHECK(final_frame_refs[0].vswap_chunk_index == death_finals[i].final_chunk);
+    }
+
     wl_game_model death_tick_model;
     memset(&death_tick_model, 0, sizeof(death_tick_model));
     death_tick_model.actor_count = 1;
@@ -4072,6 +4125,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-full-combat-death-tick-scene tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-actor-death-final-broaden tests passed for %s\n", dir);
     return 0;
 }

@@ -277,3 +277,8 @@ The combined full-combat/death-tick path now carries active death VSWAP metadata
 ## Cycle update: full combat death-tick final scene
 
 Full-combat/death-tick output now consumes final death-frame VSWAP data in the scene renderer. The final guard corpse ref uses source `95` / chunk `201` and renders with committed hash `0x81c10dcf`, keeping decoded sprite bytes local.
+
+
+## Cycle update: broadened actor death final refs
+
+Final death-frame VSWAP metadata is now asserted for more enemy classes through runtime scene refs: officer source/chunk `284/390`, SS `183/289`, dog `134/240`, mutant `233/339`, and boss `303/409`. Verification remains metadata-only; decoded sprite bytes stay local.
