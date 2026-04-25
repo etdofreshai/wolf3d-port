@@ -1,7 +1,7 @@
 # VSWAP Directory Notes
 
 Research/implementation cycle: 2026-04-24 22:41-23:00 CDT  
-Scope: VSWAP chunk-directory, bounded reads, and metadata-only wall/sprite shape parsing for WL6 and optional SOD, without decoding proprietary chunk bytes.
+Scope: VSWAP chunk-directory, bounded reads, wall-page metadata/surface conversion, and metadata-only sprite shape parsing for WL6 and optional SOD, without committing proprietary chunk bytes.
 
 ## Original reference
 
@@ -39,6 +39,7 @@ The parser:
 - records aggregate wall/sprite/sound/sparse counts;
 - provides a bounded chunk read helper for tests and later decoders;
 - decodes safe wall/sprite shape metadata without retaining proprietary pixels/posts;
+- converts raw column-major wall pages into caller-owned row-major indexed surfaces for renderer/raycaster seams;
 - validates/counts sprite post-command streams without retaining pixel data;
 - does not copy or commit any proprietary chunk bytes.
 
@@ -60,7 +61,9 @@ The parser:
 - first sound chunk: index `542`, offset `1140224`, length `4096`
 - final chunk: index `662`, offset `1544192`, length `184`
 - read smoke hashes: chunk `0` `0x98d020a5`, chunk `106` `0xbf4fcd99`, chunk `542` `0xaee73350`, chunk `662` `0xfba68c74`
-- wall metadata for chunk `0`: `64x64`, `64` columns
+- wall metadata for chunk `0`: `64x64`, `64` columns, colors `7..31`, `18` unique colors, row-major indexed hash `0x8fe4d8ff`
+- wall metadata for chunk `63`: colors `26..223`, `31` unique colors, row-major indexed hash `0x5b4d4c38`
+- wall metadata for chunk `105`: colors `0..31`, `11` unique colors, row-major indexed hash `0x66874cf5`
 - sprite metadata for chunk `106`: `64x64`, left/right pixels `4..58`, `55` visible columns, first/last column offsets `800/1298`
 - sprite post metadata for chunk `106`: `66` posts, `55` column terminators, `1..2` posts/column, span range `2..40`, source-offset range `108..782`, total post span `1372`
 - sprite post metadata for chunk `107`: `85` posts, `62` column terminators, `1..3` posts/column, max span `36`, source-offset range `113..904`, total post span `1586`
@@ -81,7 +84,9 @@ When `game-files/base/m1/VSWAP.SOD` is present:
 - first sound chunk: index `555`, offset `1233408`, length `4096`
 - final chunk: index `665`, offset `1616384`, length `160`
 - read smoke hashes: chunk `0` `0x98d020a5`, chunk `134` `0xbf4fcd99`, chunk `555` `0xaee73350`, chunk `665` `0xbb53ed59`
-- wall metadata for chunk `0`: `64x64`, `64` columns
+- wall metadata for chunk `0`: `64x64`, `64` columns, colors `7..31`, `18` unique colors, row-major indexed hash `0x8fe4d8ff`
+- wall metadata for chunk `105`: colors `0..237`, `26` unique colors, row-major indexed hash `0x997d475d`
+- wall metadata for chunk `133`: colors `0..31`, `11` unique colors, row-major indexed hash `0x66874cf5`
 - sprite metadata for chunk `134`: `64x64`, left/right pixels `4..58`, `55` visible columns, first/last column offsets `800/1298`
 - sprite post metadata for chunk `134`: `66` posts, `55` column terminators, `1..2` posts/column, source-offset range `108..782`, total post span `1372`
 - sprite post metadata for chunk `135`: `85` posts, `62` column terminators, max `3` posts/column, max span `36`, max source offset `904`, total post span `1586`
@@ -102,14 +107,16 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap-sprite-post tests passed for game-files/base
+asset/decompression/semantics/model/vswap/wall-page tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
 
 Added `wl_read_vswap_chunk`, a bounded read helper that validates chunk index, sparse entries, output buffer size, and directory/file bounds before reading chunk bytes into caller-provided memory. Tests assert lengths and stable FNV-1a hashes for representative wall, sprite, sound, and final chunks without committing bytes.
 
-Added `wl_decode_vswap_shape_metadata` for safe metadata-only interpretation of representative wall/sprite chunks. Wall chunks currently assert the canonical `64x64` raw page shape; sprite chunks assert `t_compshape`-style left/right bounds, packed column-offset table metadata, and post-command list counts/ranges.
+Added `wl_decode_vswap_shape_metadata` for safe metadata-only interpretation of representative wall/sprite chunks. Wall chunks assert the canonical `64x64` raw page shape; sprite chunks assert `t_compshape`-style left/right bounds, packed column-offset table metadata, and post-command list counts/ranges.
+
+Added `wl_decode_wall_page_metadata`, `wl_decode_wall_page_to_indexed`, and `wl_decode_wall_page_surface` for raw VSWAP wall pages. These functions preserve the original column-major `PM_GetPage(wallpic) + texture` addressing model while providing row-major indexed surfaces for future SDL3 texture/raycaster seams.
 
 ## Cycle update: sprite post metadata
 
@@ -117,4 +124,4 @@ Extended sprite metadata decoding to walk each visible column's post-command str
 
 ## Next step
 
-Start VGAHEAD/VGAGRAPH/VGADICT Huffman smoke tests, or decode wall column/pixel metadata from raw wall pages. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.
+Use the wall-page surface seam to build the first raycaster texture-column sampler, or add palette/texture-upload metadata before SDL3 presentation. Keep assertions to decoded metadata and stable hashes rather than committing chunk bytes.

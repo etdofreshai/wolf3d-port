@@ -102,6 +102,16 @@ typedef struct wl_indexed_surface {
     unsigned char *pixels;
 } wl_indexed_surface;
 
+typedef struct wl_wall_page_metadata {
+    uint16_t width;
+    uint16_t height;
+    uint16_t column_count;
+    uint16_t bytes_per_column;
+    uint16_t min_color;
+    uint16_t max_color;
+    uint16_t unique_color_count;
+} wl_wall_page_metadata;
+
 typedef struct wl_vswap_shape_metadata {
     wl_vswap_chunk_kind kind;
     uint16_t width;
@@ -144,6 +154,13 @@ int wl_read_vswap_chunk(const char *path, const wl_vswap_directory *directory,
 int wl_decode_vswap_shape_metadata(const unsigned char *chunk, size_t chunk_size,
                                    wl_vswap_chunk_kind kind,
                                    wl_vswap_shape_metadata *out);
+int wl_decode_wall_page_metadata(const unsigned char *chunk, size_t chunk_size,
+                                 wl_wall_page_metadata *out);
+int wl_decode_wall_page_to_indexed(const unsigned char *chunk, size_t chunk_size,
+                                   unsigned char *indexed, size_t indexed_size);
+int wl_decode_wall_page_surface(const unsigned char *chunk, size_t chunk_size,
+                                unsigned char *pixels, size_t pixel_size,
+                                wl_indexed_surface *out);
 int wl_read_graphics_header(const char *path, wl_graphics_header *out);
 int wl_read_huffman_dictionary(const char *path, wl_huffman_node nodes[WL_HUFFMAN_NODE_COUNT]);
 int wl_huff_expand(const unsigned char *src, size_t src_len,

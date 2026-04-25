@@ -722,6 +722,66 @@ int wl_decode_vswap_shape_metadata(const unsigned char *chunk, size_t chunk_size
     return 0;
 }
 
+int wl_decode_wall_page_metadata(const unsigned char *chunk, size_t chunk_size,
+                                 wl_wall_page_metadata *out) {
+    if (!chunk || !out || chunk_size != WL_MAP_PLANE_WORDS) {
+        return -1;
+    }
+
+    unsigned char seen[256] = { 0 };
+    uint16_t min_color = UINT16_MAX;
+    uint16_t max_color = 0;
+    uint16_t unique = 0;
+    for (size_t i = 0; i < chunk_size; ++i) {
+        uint16_t color = chunk[i];
+        if (!seen[color]) {
+            seen[color] = 1;
+            ++unique;
+        }
+        if (color < min_color) {
+            min_color = color;
+        }
+        if (color > max_color) {
+            max_color = color;
+        }
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->width = WL_MAP_SIDE;
+    out->height = WL_MAP_SIDE;
+    out->column_count = WL_MAP_SIDE;
+    out->bytes_per_column = WL_MAP_SIDE;
+    out->min_color = min_color;
+    out->max_color = max_color;
+    out->unique_color_count = unique;
+    return 0;
+}
+
+int wl_decode_wall_page_to_indexed(const unsigned char *chunk, size_t chunk_size,
+                                   unsigned char *indexed, size_t indexed_size) {
+    if (!chunk || !indexed || chunk_size != WL_MAP_PLANE_WORDS ||
+        indexed_size < WL_MAP_PLANE_WORDS) {
+        return -1;
+    }
+
+    for (size_t x = 0; x < WL_MAP_SIDE; ++x) {
+        const unsigned char *src_col = chunk + x * WL_MAP_SIDE;
+        for (size_t y = 0; y < WL_MAP_SIDE; ++y) {
+            indexed[y * WL_MAP_SIDE + x] = src_col[y];
+        }
+    }
+    return 0;
+}
+
+int wl_decode_wall_page_surface(const unsigned char *chunk, size_t chunk_size,
+                                unsigned char *pixels, size_t pixel_size,
+                                wl_indexed_surface *out) {
+    if (wl_decode_wall_page_to_indexed(chunk, chunk_size, pixels, pixel_size) != 0) {
+        return -1;
+    }
+    return wl_wrap_indexed_surface(WL_MAP_SIDE, WL_MAP_SIDE, pixels, pixel_size, out);
+}
+
 int wl_carmack_expand(const unsigned char *src, size_t src_len, size_t expanded_bytes,
                       uint16_t *out, size_t out_words, size_t *words_written) {
     const uint16_t near_tag = 0xa7;

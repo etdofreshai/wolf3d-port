@@ -426,6 +426,47 @@ static int check_wl6(const char *dir) {
     CHECK(shape.width == 64);
     CHECK(shape.height == 64);
     CHECK(shape.visible_columns == 64);
+    wl_wall_page_metadata wallmeta;
+    CHECK(wl_decode_wall_page_metadata(chunk_buf, chunk_bytes, &wallmeta) == 0);
+    CHECK(wallmeta.width == 64);
+    CHECK(wallmeta.height == 64);
+    CHECK(wallmeta.column_count == 64);
+    CHECK(wallmeta.bytes_per_column == 64);
+    CHECK(wallmeta.min_color == 7);
+    CHECK(wallmeta.max_color == 31);
+    CHECK(wallmeta.unique_color_count == 18);
+    CHECK(wl_decode_wall_page_surface(chunk_buf, chunk_bytes, indexed_buf,
+                                      sizeof(indexed_buf), &surface) == 0);
+    CHECK(surface.format == WL_SURFACE_INDEXED8);
+    CHECK(surface.width == 64);
+    CHECK(surface.height == 64);
+    CHECK(surface.stride == 64);
+    CHECK(surface.pixel_count == 4096);
+    CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0x8fe4d8ff);
+
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 63, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 4096);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xa9a1ca8c);
+    CHECK(wl_decode_wall_page_metadata(chunk_buf, chunk_bytes, &wallmeta) == 0);
+    CHECK(wallmeta.min_color == 26);
+    CHECK(wallmeta.max_color == 223);
+    CHECK(wallmeta.unique_color_count == 31);
+    CHECK(wl_decode_wall_page_surface(chunk_buf, chunk_bytes, indexed_buf,
+                                      sizeof(indexed_buf), &surface) == 0);
+    CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0x5b4d4c38);
+
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 105, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 4096);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x33b7f33f);
+    CHECK(wl_decode_wall_page_metadata(chunk_buf, chunk_bytes, &wallmeta) == 0);
+    CHECK(wallmeta.min_color == 0);
+    CHECK(wallmeta.max_color == 31);
+    CHECK(wallmeta.unique_color_count == 11);
+    CHECK(wl_decode_wall_page_surface(chunk_buf, chunk_bytes, indexed_buf,
+                                      sizeof(indexed_buf), &surface) == 0);
+    CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0x66874cf5);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 106, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -653,6 +694,41 @@ static int check_optional_sod(const char *dir) {
     CHECK(shape.width == 64);
     CHECK(shape.height == 64);
     CHECK(shape.visible_columns == 64);
+    wl_wall_page_metadata wallmeta;
+    CHECK(wl_decode_wall_page_metadata(chunk_buf, chunk_bytes, &wallmeta) == 0);
+    CHECK(wallmeta.min_color == 7);
+    CHECK(wallmeta.max_color == 31);
+    CHECK(wallmeta.unique_color_count == 18);
+    CHECK(wl_decode_wall_page_surface(chunk_buf, chunk_bytes, indexed_buf,
+                                      sizeof(indexed_buf), &surface) == 0);
+    CHECK(surface.width == 64);
+    CHECK(surface.height == 64);
+    CHECK(surface.pixel_count == 4096);
+    CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0x8fe4d8ff);
+
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 105, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 4096);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0xbbbf5c67);
+    CHECK(wl_decode_wall_page_metadata(chunk_buf, chunk_bytes, &wallmeta) == 0);
+    CHECK(wallmeta.min_color == 0);
+    CHECK(wallmeta.max_color == 237);
+    CHECK(wallmeta.unique_color_count == 26);
+    CHECK(wl_decode_wall_page_surface(chunk_buf, chunk_bytes, indexed_buf,
+                                      sizeof(indexed_buf), &surface) == 0);
+    CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0x997d475d);
+
+    CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 133, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 4096);
+    CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x33b7f33f);
+    CHECK(wl_decode_wall_page_metadata(chunk_buf, chunk_bytes, &wallmeta) == 0);
+    CHECK(wallmeta.min_color == 0);
+    CHECK(wallmeta.max_color == 31);
+    CHECK(wallmeta.unique_color_count == 11);
+    CHECK(wl_decode_wall_page_surface(chunk_buf, chunk_bytes, indexed_buf,
+                                      sizeof(indexed_buf), &surface) == 0);
+    CHECK(fnv1a_bytes(surface.pixels, surface.pixel_count) == 0x66874cf5);
 
     CHECK(wl_read_vswap_chunk(vswap_path, &dirinfo, 134, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -706,6 +782,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/vga-blit tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/wall-page tests passed for %s\n", dir);
     return 0;
 }
