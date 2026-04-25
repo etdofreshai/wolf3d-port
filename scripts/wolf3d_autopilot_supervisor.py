@@ -180,6 +180,8 @@ def main() -> int:
                 [
                     "openclaw",
                     "agent",
+                    "--agent",
+                    "main",
                     "--message",
                     CYCLE_PROMPT,
                     "--thinking",
