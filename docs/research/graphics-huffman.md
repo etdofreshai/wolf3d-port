@@ -264,3 +264,8 @@ Death-frame presentation is now covered before SDL3. The current death-state spr
 ## Cycle update: full live combat death refs
 
 Death-frame presentation metadata is now part of full live combat output. A same-frame kill starts death-state progression and returns a scene ref for the current death sprite, so future SDL3 presentation can consume death visuals from the same frame result as palette shifts and drop spawning.
+
+
+## Cycle update: full combat death-ref scene rendering
+
+Full live combat death refs now reach indexed scene composition before SDL3. The returned death sprite ref is decoded from local VSWAP data and rendered with the door-aware scene renderer, producing hash `0x2e8b4819` and keeping presentation verification headless.

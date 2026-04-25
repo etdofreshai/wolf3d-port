@@ -171,3 +171,8 @@ Death-state actor sprites now reach the renderer-facing scene path. `wl_build_ac
 ## Full combat death-ref seam
 
 The full live combat tick now returns death-state presentation metadata in the same frame as actor kill/drop spawning. When `wl_step_live_full_combat_tick` kills a target actor, its result includes the started `wl_actor_death_state` plus a renderer-facing `wl_scene_sprite_ref` for the current death frame, alongside drop, score, incoming-damage, projectile, and palette output.
+
+
+## Full combat death-ref scene seam
+
+Full live combat death refs now drive the renderer-facing path directly. A headless test kills a guard via `wl_step_live_full_combat_tick`, decodes the returned death-frame VSWAP chunk locally, and renders the resulting surface through `wl_render_runtime_door_camera_scene_view`. The scene hash matches the independent death-state render hash `0x2e8b4819`.
