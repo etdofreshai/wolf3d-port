@@ -253,3 +253,8 @@ Connected projectile damage into a broader live tick path. `wl_step_live_project
 ## Cycle update: live actor attack tick seam
 
 Connected actor bite/shoot damage into live tick orchestration. `wl_step_live_actor_tick` mirrors the existing movement/use/door/pushwall frame seam, dispatches dogs through `wl_try_actor_bite_player` and shootable enemies through `wl_try_actor_shoot_player`, and advances palette state after damage has updated gameplay state. Headless tests cover a dog bite, a guard shot, and a null-actor no-op path with deterministic chance/damage rolls and same-frame red palette results.
+
+
+## Cycle update: live combat tick seam
+
+Combined the live actor and projectile damage paths into `wl_step_live_combat_tick`. The seam runs movement/use/door/pushwall state once, then applies an optional actor bite/shoot attack and an optional projectile step before a single palette update. Headless tests verify cumulative dog-bite plus needle-projectile damage, projectile removal, red palette selection from the summed damage counter, and a null-combat no-op path.

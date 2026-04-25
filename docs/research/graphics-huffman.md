@@ -214,3 +214,8 @@ Projectile impact damage now reaches palette selection through live tick orchest
 ## Cycle update: live actor attack palette damage
 
 Actor attack damage now reaches palette selection through live tick orchestration. `wl_step_live_actor_tick` steps deterministic bite/shoot damage before `wl_update_palette_shift_state`, so same-frame dog bites and guard shots return red palette-shift metadata for the existing shifted texture-upload boundary.
+
+
+## Cycle update: live combat palette damage
+
+Cumulative actor/projectile frame damage now reaches palette selection through a single live combat tick. `wl_step_live_combat_tick` applies actor and projectile damage before `wl_update_palette_shift_state`, so the returned red palette-shift metadata reflects total same-frame damage for the existing shifted texture-upload boundary.

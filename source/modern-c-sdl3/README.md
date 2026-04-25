@@ -121,3 +121,8 @@ Projectile damage is now connected to a live tick orchestration path. `wl_step_l
 ## Live actor attack tick seam
 
 Actor contact/ranged damage is now connected to live tick orchestration. `wl_step_live_actor_tick` runs the same movement/use/door/pushwall sequence as the base live tick, dispatches deterministic dog bites or shooter attacks with caller-supplied chance/damage rolls, then advances palette state so same-frame actor damage returns the red flash result future SDL3 presentation can upload.
+
+
+## Live combat tick seam
+
+Actor and projectile damage can now share one deterministic frame update. `wl_step_live_combat_tick` runs the live motion/use/door/pushwall sequence, optionally dispatches actor bite/shoot damage and an active projectile step, then advances palette state once after cumulative frame damage so future SDL3 presentation can consume one coherent red-flash result.
