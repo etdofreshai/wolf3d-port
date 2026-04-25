@@ -349,3 +349,8 @@ Headless presentation coverage now includes a fine-position patrol dog. The scen
 ## Cycle update: live AI officer fine-position rendering
 
 Headless presentation coverage now includes a fine-position patrol officer. The scene renderer projects the officer sprite from live AI refs and verifies stable hash `0xa6544334` before SDL3.
+
+
+## Cycle update: live AI SS fine-position rendering
+
+Headless presentation coverage now includes a fine-position patrol SS. The scene renderer projects the SS sprite from live AI refs and verifies stable hash `0x0b6fe30b` before SDL3.

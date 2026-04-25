@@ -276,3 +276,8 @@ Live AI fine-position rendering now covers a second patrol actor class. A patrol
 ## Live AI officer fine-position rendering
 
 Live AI fine-position rendering now covers patrol officers. Officer refs use source/chunk `246/352`, sub-tile coordinates from the half-tile patrol budget, local VSWAP decode, and stable scene hash `0xa6544334`.
+
+
+## Live AI SS fine-position rendering
+
+Live AI fine-position rendering now covers patrol SS actors. SS refs use source/chunk `146/252`, sub-tile coordinates from the half-tile patrol budget, local VSWAP decode, and stable scene hash `0x0b6fe30b`.

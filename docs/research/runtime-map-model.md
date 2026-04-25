@@ -408,3 +408,8 @@ Live AI fine-position refs now cover dog patrol actors as well as guards. The do
 ## Cycle update: live AI officer fine-position rendering
 
 Live AI fine-position refs now cover officer patrol actors in addition to guards/dogs. A half-tile officer patrol emits source/chunk `246/352` at fine world coordinates and renders through the door-aware scene path.
+
+
+## Cycle update: live AI SS fine-position rendering
+
+Live AI fine-position refs now cover SS patrol actors alongside guards/dogs/officers. A half-tile SS patrol emits source/chunk `146/252` at fine world coordinates and renders through the door-aware scene path.

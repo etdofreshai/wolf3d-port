@@ -153,3 +153,8 @@ Patrol semantics now feed live AI fine-position rendering for a second actor cla
 ## Cycle update: live AI officer fine-position rendering
 
 Patrol semantics now feed live AI fine-position rendering for officers too. The same path/tic contract selects officer walk sprite metadata while preserving sub-tile placement.
+
+
+## Cycle update: live AI SS fine-position rendering
+
+Patrol semantics now feed live AI fine-position rendering for SS actors too. The same path/tic contract selects SS walk sprite metadata while preserving sub-tile placement.

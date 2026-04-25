@@ -4416,3 +4416,40 @@ Next likely move:
 - Broaden live AI fine-position rendering across SS/mutant classes or deepen chase/attack progression.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+
+## Cycle 2026-04-25 09:22 CDT
+
+Action taken:
+
+- Broadened live AI fine-position rendering from guards/dogs/officers to patrol SS actors.
+- Added a headless SS patrol scenario using the same live AI half-tile movement path; scene refs emit source/chunk `146/252` at fine world coordinates.
+- Decoded the SS sprite from local VSWAP data and rendered it through the door-aware scene renderer with stable hash `0x0b6fe30b`.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-live-ai-ss-fine-render tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Broaden live AI fine-position rendering to mutant/boss classes or deepen chase/attack progression.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
