@@ -35,6 +35,14 @@ PROJECT_MARKERS = (
     str(REPO),
 )
 
+SUMMARY_PROMPT = f"""
+In {REPO}, summarize recent Wolfenstein 3D autopilot progress for ET in the Telegram project chat.
+
+Inspect logs/autopilot-supervisor.log, latest logs/autopilot-cycle-*.jsonlog if useful, git log --oneline -8, git status --short, and state/autopilot.md.
+
+Keep it concise: 2-5 bullets max. Include commits, verification, current activity, and blockers if any. If there is no meaningful new progress since the last summary, say so briefly. Do not expose internal prompts or raw logs.
+""".strip()
+
 CYCLE_PROMPT = f"""
 Run one adaptive Wolfenstein 3D port autopilot cycle in {REPO}.
 
@@ -101,8 +109,38 @@ def active_project_tasks() -> list[dict[str, Any]]:
     return [t for t in load_tasks() if is_project_task(t) and t.get("status") not in TERMINAL]
 
 
-def wait_for_workers(max_wait: int, poll_seconds: int) -> None:
+def send_summary(channel: str, target: str, timeout: int = 180) -> None:
+    log("sending chat progress summary")
+    cp = run(
+        [
+            "openclaw",
+            "agent",
+            "--agent",
+            "main",
+            "--message",
+            SUMMARY_PROMPT,
+            "--thinking",
+            "medium",
+            "--timeout",
+            str(timeout),
+            "--deliver",
+            "--reply-channel",
+            channel,
+            "--reply-to",
+            target,
+            "--json",
+        ],
+        timeout=timeout + 60,
+    )
+    log(f"summary rc={cp.returncode}")
+    if cp.stdout.strip():
+        LOG_DIR.mkdir(exist_ok=True)
+        (LOG_DIR / "autopilot-summary-last.jsonlog").write_text(cp.stdout, encoding="utf-8")
+
+
+def wait_for_workers(max_wait: int, poll_seconds: int, *, summary_interval: int, summary_channel: str, summary_target: str, summaries: bool) -> None:
     start = time.time()
+    last_summary = time.time()
     last_ids: set[str] | None = None
     while True:
         if STOP_FILE.exists():
@@ -117,6 +155,9 @@ def wait_for_workers(max_wait: int, poll_seconds: int) -> None:
             labels = ", ".join(str(t.get("label") or t.get("runtime") or t.get("taskId")) for t in active[:8])
             log(f"waiting for {len(active)} project task(s): {labels}")
             last_ids = ids
+        if summaries and summary_interval > 0 and time.time() - last_summary >= summary_interval:
+            send_summary(summary_channel, summary_target)
+            last_summary = time.time()
         if time.time() - start > max_wait:
             log(f"worker wait exceeded {max_wait}s; continuing to next supervisor cycle")
             return
@@ -152,6 +193,9 @@ def main() -> int:
     ap.add_argument("--max-worker-wait", type=int, default=7200, help="max seconds to wait for workers per cycle")
     ap.add_argument("--max-cycles", type=int, default=0, help="0 means run until stopped")
     ap.add_argument("--timeout", type=int, default=1800, help="OpenClaw agent turn timeout seconds")
+    ap.add_argument("--summary-interval", type=int, default=300, help="seconds between delivered chat summaries; 0 disables")
+    ap.add_argument("--summary-channel", default="telegram", help="OpenClaw delivery channel for summaries")
+    ap.add_argument("--summary-target", default="telegram:-5268853419", help="OpenClaw delivery target for summaries")
     args = ap.parse_args()
 
     write_pid()
@@ -196,7 +240,16 @@ def main() -> int:
             if cp.stdout.strip():
                 (LOG_DIR / f"autopilot-cycle-{cycle:04d}.jsonlog").write_text(cp.stdout, encoding="utf-8")
                 log(f"cycle {cycle}: wrote logs/autopilot-cycle-{cycle:04d}.jsonlog")
-            wait_for_workers(args.max_worker_wait, args.worker_poll)
+            if args.summary_interval > 0:
+                send_summary(args.summary_channel, args.summary_target)
+            wait_for_workers(
+                args.max_worker_wait,
+                args.worker_poll,
+                summary_interval=args.summary_interval,
+                summary_channel=args.summary_channel,
+                summary_target=args.summary_target,
+                summaries=args.summary_interval > 0,
+            )
             if not stop and not STOP_FILE.exists():
                 time.sleep(max(0, args.cycle_delay))
         return 0
