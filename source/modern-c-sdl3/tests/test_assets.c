@@ -48,6 +48,27 @@ static size_t count_byte_not_value(const unsigned char *bytes, size_t count,
     return hits;
 }
 
+static uint32_t fnv1a_scene_sprite_refs(const wl_scene_sprite_ref *refs, size_t count) {
+    uint32_t hash = 2166136261u;
+    for (size_t i = 0; i < count; ++i) {
+        const uint32_t values[] = {
+            (uint32_t)refs[i].kind,
+            refs[i].model_index,
+            refs[i].source_index,
+            refs[i].vswap_chunk_index,
+            refs[i].world_x,
+            refs[i].world_y,
+        };
+        for (size_t j = 0; j < sizeof(values) / sizeof(values[0]); ++j) {
+            for (size_t b = 0; b < 4; ++b) {
+                hash ^= (uint8_t)(values[j] >> (8u * b));
+                hash *= 16777619u;
+            }
+        }
+    }
+    return hash;
+}
+
 static uint32_t fnv1a_words(const uint16_t *words, size_t count) {
     uint32_t hash = 2166136261u;
     for (size_t i = 0; i < count; ++i) {
@@ -268,6 +289,31 @@ static int check_wl6(const char *dir) {
     CHECK(model.actors[11].kind == WL_ACTOR_DEAD_GUARD);
     CHECK(model.actors[11].counts_for_kill_total == 0);
     CHECK(model.unknown_info_tiles == 0);
+    wl_scene_sprite_ref scene_refs[WL_MAX_STATS + WL_MAX_ACTORS];
+    size_t scene_ref_count = 0;
+    CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs,
+                                       sizeof(scene_refs) / sizeof(scene_refs[0]),
+                                       &scene_ref_count) == 0);
+    CHECK(scene_ref_count == 133);
+    CHECK(scene_refs[0].kind == WL_SCENE_SPRITE_STATIC);
+    CHECK(scene_refs[0].model_index == 0);
+    CHECK(scene_refs[0].source_index == 14);
+    CHECK(scene_refs[0].vswap_chunk_index == 120);
+    CHECK(scene_refs[0].world_x == 0x1d8000);
+    CHECK(scene_refs[0].world_y == 0x088000);
+    CHECK(scene_refs[2].source_index == 28);
+    CHECK(scene_refs[2].vswap_chunk_index == 134);
+    CHECK(scene_refs[128].kind == WL_SCENE_SPRITE_ACTOR);
+    CHECK(scene_refs[128].model_index == 7);
+    CHECK(scene_refs[128].source_index == 58);
+    CHECK(scene_refs[128].vswap_chunk_index == 164);
+    CHECK(scene_refs[130].source_index == 99);
+    CHECK(scene_refs[130].vswap_chunk_index == 205);
+    CHECK(scene_refs[132].source_index == 95);
+    CHECK(scene_refs[132].vswap_chunk_index == 201);
+    CHECK(fnv1a_scene_sprite_refs(scene_refs, scene_ref_count) == 0x2ab36473);
+    CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs, 132,
+                                       &scene_ref_count) == -1);
 
     CHECK(wl_build_game_model(wall_plane, info_plane, WL_MAP_PLANE_WORDS,
                               WL_DIFFICULTY_MEDIUM, &model) == 0);
@@ -1430,6 +1476,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/scene-render tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/sprite-ref tests passed for %s\n", dir);
     return 0;
 }

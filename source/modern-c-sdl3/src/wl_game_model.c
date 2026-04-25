@@ -382,3 +382,86 @@ int wl_build_game_model(const uint16_t *wall_plane, const uint16_t *info_plane,
 
     return 0;
 }
+
+static uint16_t static_type_to_sprite_index(uint16_t type) {
+    static const uint16_t table[] = {
+        2, 3, 4, 5, 6, 7, 8, 9,
+        10, 11, 12, 13, 14, 15, 16, 17,
+        18, 19, 20, 21, 22, 23, 24, 25,
+        26, 27, 28, 29, 30, 31, 32, 33,
+        34, 35, 36, 37, 38, 39, 40, 41,
+        42, 43, 44, 45, 46, 47, 48, 49,
+        28,
+    };
+    if (type >= sizeof(table) / sizeof(table[0])) {
+        return UINT16_MAX;
+    }
+    return table[type];
+}
+
+static uint16_t actor_to_sprite_index(const wl_actor_desc *actor) {
+    if (!actor) {
+        return UINT16_MAX;
+    }
+    switch (actor->kind) {
+    case WL_ACTOR_GUARD:
+        return actor->mode == WL_ACTOR_PATROL ? 58 : 50; /* SPR_GRD_W1_1 / SPR_GRD_S_1 */
+    case WL_ACTOR_DOG:
+        return 99; /* SPR_DOG_W1_1 */
+    case WL_ACTOR_DEAD_GUARD:
+        return 95; /* SPR_GRD_DEAD */
+    case WL_ACTOR_OFFICER:
+    case WL_ACTOR_SS:
+    case WL_ACTOR_MUTANT:
+    case WL_ACTOR_BOSS:
+    case WL_ACTOR_GHOST:
+        return UINT16_MAX;
+    }
+    return UINT16_MAX;
+}
+
+int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_sprite_start,
+                                 wl_scene_sprite_ref *refs, size_t max_refs,
+                                 size_t *out_count) {
+    if (!model || !refs || !out_count) {
+        return -1;
+    }
+
+    size_t count = 0;
+    for (size_t i = 0; i < model->static_count; ++i) {
+        uint16_t sprite = static_type_to_sprite_index(model->statics[i].type);
+        if (sprite == UINT16_MAX) {
+            continue;
+        }
+        if (count >= max_refs) {
+            return -1;
+        }
+        refs[count].kind = WL_SCENE_SPRITE_STATIC;
+        refs[count].model_index = (uint16_t)i;
+        refs[count].source_index = sprite;
+        refs[count].vswap_chunk_index = (uint16_t)(vswap_sprite_start + sprite);
+        refs[count].world_x = ((uint32_t)model->statics[i].x << 16) + 0x8000u;
+        refs[count].world_y = ((uint32_t)model->statics[i].y << 16) + 0x8000u;
+        ++count;
+    }
+
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        uint16_t sprite = actor_to_sprite_index(&model->actors[i]);
+        if (sprite == UINT16_MAX) {
+            continue;
+        }
+        if (count >= max_refs) {
+            return -1;
+        }
+        refs[count].kind = WL_SCENE_SPRITE_ACTOR;
+        refs[count].model_index = (uint16_t)i;
+        refs[count].source_index = sprite;
+        refs[count].vswap_chunk_index = (uint16_t)(vswap_sprite_start + sprite);
+        refs[count].world_x = ((uint32_t)model->actors[i].tile_x << 16) + 0x8000u;
+        refs[count].world_y = ((uint32_t)model->actors[i].tile_y << 16) + 0x8000u;
+        ++count;
+    }
+
+    *out_count = count;
+    return 0;
+}

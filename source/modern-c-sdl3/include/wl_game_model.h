@@ -91,6 +91,20 @@ typedef struct wl_marker_desc {
     wl_direction dir;
 } wl_marker_desc;
 
+typedef enum wl_scene_sprite_kind {
+    WL_SCENE_SPRITE_STATIC = 0,
+    WL_SCENE_SPRITE_ACTOR = 1,
+} wl_scene_sprite_kind;
+
+typedef struct wl_scene_sprite_ref {
+    wl_scene_sprite_kind kind;
+    uint16_t model_index;
+    uint16_t source_index;
+    uint16_t vswap_chunk_index;
+    uint32_t world_x;
+    uint32_t world_y;
+} wl_scene_sprite_ref;
+
 typedef struct wl_game_model {
     uint16_t tilemap[WL_MAP_PLANE_WORDS];
     wl_player_spawn player;
@@ -124,6 +138,9 @@ typedef struct wl_game_model {
 int wl_build_game_model(const uint16_t *wall_plane, const uint16_t *info_plane,
                         size_t word_count, wl_difficulty difficulty,
                         wl_game_model *out);
+int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_sprite_start,
+                                 wl_scene_sprite_ref *refs, size_t max_refs,
+                                 size_t *out_count);
 
 #ifdef __cplusplus
 }
