@@ -174,6 +174,21 @@ int wl_start_damage_palette_shift(wl_palette_shift_state *state,
 int wl_update_palette_shift_state(wl_palette_shift_state *state, int32_t tics,
                                   wl_palette_shift_result *out);
 
+int wl_select_palette_for_shift(const wl_palette_shift_result *shift,
+                                const unsigned char *base_palette,
+                                const unsigned char *red_palettes,
+                                size_t red_palette_count,
+                                const unsigned char *white_palettes,
+                                size_t white_palette_count,
+                                size_t palette_size,
+                                const unsigned char **out_palette);
+int wl_describe_palette_shifted_texture_upload(
+    const wl_indexed_surface *surface, const wl_palette_shift_result *shift,
+    const unsigned char *base_palette, const unsigned char *red_palettes,
+    size_t red_palette_count, const unsigned char *white_palettes,
+    size_t white_palette_count, size_t palette_size,
+    uint8_t palette_component_bits, wl_texture_upload_descriptor *out);
+
 typedef struct wl_wall_page_metadata {
     uint16_t width;
     uint16_t height;

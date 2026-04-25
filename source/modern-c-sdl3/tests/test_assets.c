@@ -367,6 +367,8 @@ static int check_wl6(const char *dir) {
     unsigned char indexed_buf[65536];
     unsigned char rgba_buf[65536 * 4];
     unsigned char upload_palette[256 * 3];
+    unsigned char red_shift_palettes[WL_NUM_RED_SHIFTS * 256u * 3u];
+    unsigned char white_shift_palettes[WL_NUM_WHITE_SHIFTS * 256u * 3u];
     unsigned char fade_target_palette[256 * 3];
     unsigned char fade_palette[256 * 3];
     unsigned char fade_sample_pixels[16];
@@ -386,6 +388,20 @@ static int check_wl6(const char *dir) {
         fade_target_palette[i * 3 + 0] = 0;
         fade_target_palette[i * 3 + 1] = 17;
         fade_target_palette[i * 3 + 2] = 17;
+    }
+    for (uint16_t i = 1; i <= WL_NUM_RED_SHIFTS; ++i) {
+        CHECK(wl_build_palette_shift(upload_palette, sizeof(upload_palette), 6,
+                                     64, 0, 0, i, WL_RED_SHIFT_STEPS,
+                                     red_shift_palettes +
+                                         (size_t)(i - 1u) * sizeof(upload_palette),
+                                     sizeof(upload_palette)) == 0);
+    }
+    for (uint16_t i = 1; i <= WL_NUM_WHITE_SHIFTS; ++i) {
+        CHECK(wl_build_palette_shift(upload_palette, sizeof(upload_palette), 6,
+                                     64, 62, 0, i, WL_WHITE_SHIFT_STEPS,
+                                     white_shift_palettes +
+                                         (size_t)(i - 1u) * sizeof(upload_palette),
+                                     sizeof(upload_palette)) == 0);
     }
     for (size_t i = 0; i < sizeof(fade_sample_pixels); ++i) {
         fade_sample_pixels[i] = (unsigned char)(i * 17u);
@@ -478,6 +494,7 @@ static int check_wl6(const char *dir) {
                                  sizeof(fade_palette)) == -1);
     wl_palette_shift_state shift_state;
     wl_palette_shift_result shift_result;
+    const unsigned char *selected_palette = NULL;
     CHECK(wl_reset_palette_shift_state(&shift_state) == 0);
     CHECK(wl_update_palette_shift_state(&shift_state, 1, &shift_result) == 0);
     CHECK(shift_result.kind == WL_PALETTE_SHIFT_NONE);
@@ -492,6 +509,24 @@ static int check_wl6(const char *dir) {
     CHECK(shift_result.damage_count == 0);
     CHECK(shift_result.bonus_count == 13);
     CHECK(shift_result.palette_shifted == 1);
+    CHECK(wl_select_palette_for_shift(&shift_result, upload_palette,
+                                      red_shift_palettes, WL_NUM_RED_SHIFTS,
+                                      white_shift_palettes, WL_NUM_WHITE_SHIFTS,
+                                      sizeof(upload_palette),
+                                      &selected_palette) == 0);
+    CHECK(selected_palette == white_shift_palettes + 2u * sizeof(upload_palette));
+    CHECK(fnv1a_bytes(selected_palette, sizeof(upload_palette)) == 0x3c8da1ed);
+    CHECK(wl_describe_palette_shifted_texture_upload(
+              &fade_sample_surface, &shift_result, upload_palette,
+              red_shift_palettes, WL_NUM_RED_SHIFTS, white_shift_palettes,
+              WL_NUM_WHITE_SHIFTS, sizeof(upload_palette), 6, &upload) == 0);
+    CHECK(upload.palette == selected_palette);
+    CHECK(wl_expand_indexed_surface_to_rgba(&fade_sample_surface, upload.palette,
+                                            sizeof(upload_palette), 6,
+                                            fade_sample_rgba,
+                                            sizeof(fade_sample_rgba),
+                                            NULL) == 0);
+    CHECK(fnv1a_bytes(fade_sample_rgba, sizeof(fade_sample_rgba)) == 0x93adda7f);
     CHECK(wl_start_damage_palette_shift(&shift_state, 25) == 0);
     CHECK(wl_update_palette_shift_state(&shift_state, 4, &shift_result) == 0);
     CHECK(shift_result.kind == WL_PALETTE_SHIFT_RED);
@@ -499,6 +534,24 @@ static int check_wl6(const char *dir) {
     CHECK(shift_result.damage_count == 21);
     CHECK(shift_result.bonus_count == 9);
     CHECK(shift_result.palette_shifted == 1);
+    CHECK(wl_select_palette_for_shift(&shift_result, upload_palette,
+                                      red_shift_palettes, WL_NUM_RED_SHIFTS,
+                                      white_shift_palettes, WL_NUM_WHITE_SHIFTS,
+                                      sizeof(upload_palette),
+                                      &selected_palette) == 0);
+    CHECK(selected_palette == red_shift_palettes + 2u * sizeof(upload_palette));
+    CHECK(fnv1a_bytes(selected_palette, sizeof(upload_palette)) == 0x90a6cdc5);
+    CHECK(wl_describe_palette_shifted_texture_upload(
+              &fade_sample_surface, &shift_result, upload_palette,
+              red_shift_palettes, WL_NUM_RED_SHIFTS, white_shift_palettes,
+              WL_NUM_WHITE_SHIFTS, sizeof(upload_palette), 6, &upload) == 0);
+    CHECK(upload.palette == selected_palette);
+    CHECK(wl_expand_indexed_surface_to_rgba(&fade_sample_surface, upload.palette,
+                                            sizeof(upload_palette), 6,
+                                            fade_sample_rgba,
+                                            sizeof(fade_sample_rgba),
+                                            NULL) == 0);
+    CHECK(fnv1a_bytes(fade_sample_rgba, sizeof(fade_sample_rgba)) == 0xd742b64a);
     CHECK(wl_update_palette_shift_state(&shift_state, 30, &shift_result) == 0);
     CHECK(shift_result.kind == WL_PALETTE_SHIFT_RED);
     CHECK(shift_result.shift_index == 2);
@@ -509,11 +562,39 @@ static int check_wl6(const char *dir) {
     CHECK(shift_result.kind == WL_PALETTE_SHIFT_BASE);
     CHECK(shift_result.shift_index == 0);
     CHECK(shift_result.palette_shifted == 0);
+    CHECK(wl_select_palette_for_shift(&shift_result, upload_palette,
+                                      red_shift_palettes, WL_NUM_RED_SHIFTS,
+                                      white_shift_palettes, WL_NUM_WHITE_SHIFTS,
+                                      sizeof(upload_palette),
+                                      &selected_palette) == 0);
+    CHECK(selected_palette == upload_palette);
+    CHECK(wl_describe_palette_shifted_texture_upload(
+              &fade_sample_surface, &shift_result, upload_palette,
+              red_shift_palettes, WL_NUM_RED_SHIFTS, white_shift_palettes,
+              WL_NUM_WHITE_SHIFTS, sizeof(upload_palette), 6, &upload) == 0);
+    CHECK(upload.palette == upload_palette);
+    CHECK(wl_expand_indexed_surface_to_rgba(&fade_sample_surface, upload.palette,
+                                            sizeof(upload_palette), 6,
+                                            fade_sample_rgba,
+                                            sizeof(fade_sample_rgba),
+                                            NULL) == 0);
+    CHECK(fnv1a_bytes(fade_sample_rgba, sizeof(fade_sample_rgba)) == 0xccd1a665);
     CHECK(wl_update_palette_shift_state(&shift_state, 1, &shift_result) == 0);
     CHECK(shift_result.kind == WL_PALETTE_SHIFT_NONE);
     CHECK(wl_start_damage_palette_shift(&shift_state, -1) == -1);
     CHECK(wl_update_palette_shift_state(&shift_state, -1, &shift_result) == -1);
     CHECK(wl_start_bonus_palette_shift(NULL) == -1);
+    shift_result.kind = WL_PALETTE_SHIFT_RED;
+    shift_result.shift_index = WL_NUM_RED_SHIFTS;
+    CHECK(wl_select_palette_for_shift(&shift_result, upload_palette,
+                                      red_shift_palettes, WL_NUM_RED_SHIFTS,
+                                      white_shift_palettes, WL_NUM_WHITE_SHIFTS,
+                                      sizeof(upload_palette),
+                                      &selected_palette) == -1);
+    CHECK(wl_describe_palette_shifted_texture_upload(
+              &fade_sample_surface, &shift_result, upload_palette,
+              red_shift_palettes, WL_NUM_RED_SHIFTS, white_shift_palettes,
+              WL_NUM_WHITE_SHIFTS, sizeof(upload_palette), 6, &upload) == -1);
     CHECK(wl_read_graphics_header(vgahead_path, &gh) == 0);
     CHECK(gh.chunk_count == 149);
     CHECK(gh.file_size == 450);
@@ -1697,6 +1778,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/palette-state tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/palette-upload tests passed for %s\n", dir);
     return 0;
 }

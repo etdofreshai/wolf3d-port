@@ -1,7 +1,7 @@
 # Graphics Huffman Notes
 
 Research/implementation cycle: 2026-04-24 22:53-23:15 CDT  
-Scope: `VGAHEAD`/`VGADICT`/`VGAGRAPH` header parsing, Huffman smoke decoding, `STRUCTPIC` picture-table metadata, indexed-surface conversion, texture-upload metadata, palette/fade/shift metadata, and palette-shift state for WL6 and optional SOD, without committing proprietary graphics bytes.
+Scope: `VGAHEAD`/`VGADICT`/`VGAGRAPH` header parsing, Huffman smoke decoding, `STRUCTPIC` picture-table metadata, indexed-surface conversion, texture-upload metadata, palette/fade/shift metadata, palette-shift state, and palette-shifted upload selection for WL6 and optional SOD, without committing proprietary graphics bytes.
 
 ## Original reference
 
@@ -60,6 +60,8 @@ Added graphics APIs/types to `wl_assets`:
 - `wl_interpolate_palette_range(...)`
 - `wl_build_palette_shift(...)`
 - `wl_palette_shift_state` / `wl_update_palette_shift_state(...)`
+- `wl_select_palette_for_shift(...)`
+- `wl_describe_palette_shifted_texture_upload(...)`
 
 The implementation:
 
@@ -75,6 +77,7 @@ The implementation:
 - interpolates palette ranges with the original integer fade math so fade-in/fade-out and palette-flash effects can be tested before SDL presentation;
 - builds original-style full-palette red/white shift tables for damage and bonus flashes without touching VGA hardware;
 - advances damage/bonus palette-shift counters with the original red-over-white priority and base-palette reset selection;
+- selects the effective base/red/white palette from palette-shift state and describes the shifted indexed texture upload without opening a display;
 - records only sizes/counts/hashes/dimensions in tests and docs, not graphics bytes.
 
 ## WL6 committed assertions
@@ -88,7 +91,7 @@ The implementation:
 - `STRUCTPIC` picture table: `132` entries, width range `8..320`, height range `8..200`, total declared pixels `342464`
 - representative WL6 dimensions: entry `0` `96x88`, entry `3` `320x8`, entry `84` `320x200`, entry `86` `320x200`, entry `87` `224x56`, entry `131` `224x48`
 - decoded chunk `1` (`STARTFONT`): compressed `3467`, expanded `8300`, FNV-1a `0xdb48ce2b`
-- decoded chunk `3`: compressed `8057`, expanded planar `8448`, planar FNV-1a `0x5c152b5c`, indexed-surface FNV-1a `0xa9c1ea92`, synthetic-palette RGBA upload hash `0xb75bdee9`; palette fade hash `0xa93a5ba5`, range-final hash `0x91f102c5`, faded RGBA sample hash `0x50918d48`, red-shift hash `0xb8462fc5`, red-shift RGBA sample hash `0xfa0a0cd7`, white-shift hash `0x3c8da1ed`, white-shift RGBA sample hash `0x93adda7f`
+- decoded chunk `3`: compressed `8057`, expanded planar `8448`, planar FNV-1a `0x5c152b5c`, indexed-surface FNV-1a `0xa9c1ea92`, synthetic-palette RGBA upload hash `0xb75bdee9`; palette fade hash `0xa93a5ba5`, range-final hash `0x91f102c5`, faded RGBA sample hash `0x50918d48`, red-shift hash `0xb8462fc5`, red-shift RGBA sample hash `0xfa0a0cd7`, white-shift hash `0x3c8da1ed`, white-shift RGBA sample hash `0x93adda7f`, state-selected red-step-3 hash `0x90a6cdc5`, state-selected red RGBA sample hash `0xd742b64a`, base-palette RGBA reset hash `0xccd1a665`
 - decoded chunk `87` (`TITLEPIC`): compressed `45948`, expanded planar `64000`, planar FNV-1a `0x01643ebc`, indexed-surface FNV-1a `0x4b172b02`
 - decoded chunk `134` (`GETPSYCHEDPIC`): compressed `5127`, expanded planar `10752`, planar FNV-1a `0xeb393cc0`, indexed-surface FNV-1a `0x46e4bd08`
 
@@ -154,6 +157,10 @@ Added `wl_build_palette_shift`, a display-free helper for the original gameplay 
 
 Added a small `wl_palette_shift_state` seam with reset/start/update helpers mirroring `WL_PLAY.C::StartBonusFlash`, `StartDamageFlash`, and `UpdatePaletteShifts`. The update helper computes the palette selection before decrementing counters, clamps red to six shifts and white to three shifts, prioritizes red over white when both are active, requests a base-palette reset after the last shifted frame, and then returns no-op updates when already clear. Tests cover the no-op path, bonus-only white selection, overlapping damage+bonus red priority, counter clamping to zero, base reset, and invalid negative/null inputs.
 
+## Cycle update: palette-shifted upload selection
+
+Added `wl_select_palette_for_shift` and `wl_describe_palette_shifted_texture_upload`, bridging the palette-shift state machine to renderer upload metadata. Headless tests precompute original-style red/white shift tables, step through bonus-only, red-over-white, and base-reset states, select the effective palette, describe indexed texture upload with that palette, and expand a small indexed surface to RGBA. Assertions cover selected palette pointers/hashes, shifted RGBA hashes (`0x93adda7f`, `0xd742b64a`, `0xccd1a665`), and invalid out-of-range shift selection. This is the SDL-free boundary future presentation code can call before real texture upload.
+
 ## Next step
 
-Add a minimal SDL3 presentation seam using the upload/palette metadata, or connect this palette-shift state to future live gameplay/player damage and bonus events. Keep headless tests comparing metadata/hashes before requiring a display.
+Add a minimal SDL3 presentation seam using the upload/palette metadata, or connect this palette-shifted upload path to future live gameplay/player damage and bonus events. Keep headless tests comparing metadata/hashes before requiring a display.

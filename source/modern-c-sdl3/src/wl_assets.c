@@ -495,6 +495,58 @@ int wl_update_palette_shift_state(wl_palette_shift_state *state, int32_t tics,
     return 0;
 }
 
+
+int wl_select_palette_for_shift(const wl_palette_shift_result *shift,
+                                const unsigned char *base_palette,
+                                const unsigned char *red_palettes,
+                                size_t red_palette_count,
+                                const unsigned char *white_palettes,
+                                size_t white_palette_count,
+                                size_t palette_size,
+                                const unsigned char **out_palette) {
+    if (!shift || !base_palette || !out_palette || palette_size < 256u * 3u) {
+        return -1;
+    }
+
+    switch (shift->kind) {
+    case WL_PALETTE_SHIFT_NONE:
+    case WL_PALETTE_SHIFT_BASE:
+        *out_palette = base_palette;
+        return 0;
+    case WL_PALETTE_SHIFT_RED:
+        if (!red_palettes || shift->shift_index >= red_palette_count) {
+            return -1;
+        }
+        *out_palette = red_palettes + (size_t)shift->shift_index * palette_size;
+        return 0;
+    case WL_PALETTE_SHIFT_WHITE:
+        if (!white_palettes || shift->shift_index >= white_palette_count) {
+            return -1;
+        }
+        *out_palette = white_palettes + (size_t)shift->shift_index * palette_size;
+        return 0;
+    default:
+        return -1;
+    }
+}
+
+int wl_describe_palette_shifted_texture_upload(
+    const wl_indexed_surface *surface, const wl_palette_shift_result *shift,
+    const unsigned char *base_palette, const unsigned char *red_palettes,
+    size_t red_palette_count, const unsigned char *white_palettes,
+    size_t white_palette_count, size_t palette_size,
+    uint8_t palette_component_bits, wl_texture_upload_descriptor *out) {
+    const unsigned char *selected = NULL;
+    if (wl_select_palette_for_shift(shift, base_palette, red_palettes,
+                                    red_palette_count, white_palettes,
+                                    white_palette_count, palette_size,
+                                    &selected) != 0) {
+        return -1;
+    }
+    return wl_describe_indexed_texture_upload(surface, selected, palette_size,
+                                              palette_component_bits, out);
+}
+
 int wl_describe_indexed_texture_upload(const wl_indexed_surface *surface,
                                        const unsigned char *palette,
                                        size_t palette_size,
