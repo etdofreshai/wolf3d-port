@@ -38,15 +38,15 @@ ifeq ($(HAVE_SDL3),yes)
 $(TEST_SDL3): tests/test_sdl3_smoke.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(SDL3_CFLAGS) tests/test_sdl3_smoke.c $(SDL3_LIBS) -o $@
 
-$(TEST_SDL3_PRESENT): tests/test_sdl3_present.c | $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(SDL3_CFLAGS) tests/test_sdl3_present.c $(SDL3_LIBS) -o $@
+$(TEST_SDL3_PRESENT): src/wl_assets.c tests/test_sdl3_present.c include/wl_assets.h | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(SDL3_CFLAGS) src/wl_assets.c tests/test_sdl3_present.c $(SDL3_LIBS) -o $@
 
 test-sdl3: $(TEST_SDL3) $(TEST_SDL3_PRESENT)
 	$(SDL3_RUN_ENV) SDL_VIDEODRIVER=dummy ./$(TEST_SDL3)
-	$(SDL3_RUN_ENV) SDL_VIDEODRIVER=dummy ./$(TEST_SDL3_PRESENT)
+	$(SDL3_RUN_ENV) SDL_VIDEODRIVER=dummy WOLF3D_DATA_DIR=../../game-files/base ./$(TEST_SDL3_PRESENT)
 
 test-sdl3-present: $(TEST_SDL3_PRESENT)
-	$(SDL3_RUN_ENV) SDL_VIDEODRIVER=dummy ./$(TEST_SDL3_PRESENT)
+	$(SDL3_RUN_ENV) SDL_VIDEODRIVER=dummy WOLF3D_DATA_DIR=../../game-files/base ./$(TEST_SDL3_PRESENT)
 else
 test-sdl3 test-sdl3-present:
 	@echo "SDL3 not available; skipping SDL3 smoke test."

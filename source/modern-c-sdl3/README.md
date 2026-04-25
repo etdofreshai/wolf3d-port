@@ -413,3 +413,5 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 
 - `test_sdl3_smoke` initializes SDL video and updates a hidden dummy-driver window.
 - `test_sdl3_present` expands a deterministic indexed frame to RGBA, blits it to a hidden SDL3 window surface, and updates it.
+
+`test_sdl3_present` now uses actual local WL6 `VSWAP.WL6` data: it decodes wall page 0, routes it through the existing present-frame descriptor and RGBA expansion seam, then blits it to a hidden SDL3 window surface under the dummy video driver. The test commits only hashes/metadata, not decoded game pixels.

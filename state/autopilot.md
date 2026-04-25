@@ -5419,3 +5419,42 @@ Next likely move:
 - Feed an actual Wolfenstein headless scene/palette upload descriptor into the SDL3 present seam and optionally write a screenshot artifact for inspection.
 
 Blockers: none for repo-local headless SDL3 presentation smoke work.
+
+
+## Cycle 2026-04-25 10:37 CDT SDL3 Wolf Frame Present
+
+Action taken:
+
+- Upgraded `test_sdl3_present` from a synthetic 4x4 frame to an actual local WL6 renderer-facing frame.
+- The test reads `VSWAP.WL6`, decodes wall page 0 into an indexed surface, describes it with `wl_describe_present_frame`, expands it to RGBA, and blits it to a hidden SDL3 window surface under `SDL_VIDEODRIVER=dummy`.
+- Added deterministic metadata assertions for the actual wall-page indexed hash `0x8fe4d8ff` and RGBA hash `0x71d4b5b6` without committing decoded proprietary pixels.
+- Linked the SDL3 present test against `wl_assets.c` and set `WOLF3D_DATA_DIR=../../game-files/base` in the SDL3 Makefile targets.
+- Updated SDL3 bootstrap docs and README.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test-sdl3
+make test
+```
+
+Result:
+
+```text
+SDL3 smoke test passed
+SDL3 Wolf wall present smoke test passed
+asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Third-party SDL/tools builds remain under ignored `.deps/`.
+
+Next likely move:
+
+- Save a headless SDL3 screenshot artifact from the Wolf wall present seam, or route a fuller rendered scene frame through the same SDL3 path.
+
+Blockers: none for repo-local headless SDL3 presentation work.

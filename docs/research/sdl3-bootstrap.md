@@ -39,3 +39,9 @@ Because this repo path contains spaces, the Makefile prefers relative `.deps/SDL
 `tests/test_sdl3_present.c` adds the first SDL-backed presentation check above the basic initialization smoke test. It builds a deterministic 4x4 indexed frame, expands the palette entries to RGBA with the same 6-bit-to-8-bit shape used by the headless upload tests, verifies the source RGBA hash, creates a hidden SDL3 window with the dummy video driver, blits the RGBA surface to the window surface, and updates the window.
 
 This is intentionally tiny: it proves the repo-local SDL3 install can accept renderer-facing RGBA pixels in a headless presentation path before larger Wolfenstein scene screenshots are introduced.
+
+## SDL3 Wolf wall present seam
+
+`tests/test_sdl3_present.c` now feeds actual local WL6 VSWAP data into the SDL3 presentation smoke path. It reads `VSWAP.WL6`, decodes wall page 0 to an indexed `wl_indexed_surface`, describes the frame through `wl_describe_present_frame`, expands it to RGBA via `wl_expand_indexed_surface_to_rgba`, and blits that frame to a hidden SDL3 window surface under the dummy video driver.
+
+The committed assertions remain metadata-only: wall indexed hash `0x8fe4d8ff` and RGBA hash `0x71d4b5b6`. No decoded proprietary pixels are committed.
