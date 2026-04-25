@@ -2393,6 +2393,95 @@ static int check_wl6(const char *dir) {
     CHECK(runtime_view_hits[0].wall_page_index == 73);
     CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == pushwall_scene_hash);
 
+    wl_game_model tick_static_model;
+    memset(&tick_static_model, 0, sizeof(tick_static_model));
+    tick_static_model.tilemap[7 + 4 * WL_MAP_SIDE] = 2;
+    tick_static_model.static_count = 1;
+    tick_static_model.statics[0].x = 5;
+    tick_static_model.statics[0].y = 4;
+    tick_static_model.statics[0].type = 24;
+    tick_static_model.statics[0].bonus = 1;
+    tick_static_model.statics[0].active = 1;
+    CHECK(wl_collect_scene_sprite_refs(&tick_static_model,
+                                       dirinfo.header.sprite_start,
+                                       scene_refs,
+                                       sizeof(scene_refs) / sizeof(scene_refs[0]),
+                                       &scene_ref_count) == 0);
+    CHECK(scene_ref_count == 1);
+    CHECK(scene_refs[0].source_index == 26);
+    CHECK(scene_refs[0].vswap_chunk_index == 132);
+    unsigned char tick_static_pixels[WL_MAP_PLANE_WORDS];
+    wl_indexed_surface tick_static_surface;
+    const uint16_t tick_static_chunks[] = { scene_refs[0].vswap_chunk_index };
+    CHECK(wl_decode_vswap_sprite_surface_cache(vswap_path, &sprite_dirinfo,
+                                               tick_static_chunks, 1, 0,
+                                               tick_static_pixels,
+                                               sizeof(tick_static_pixels),
+                                               &tick_static_surface) == 0);
+    const wl_indexed_surface *tick_static_surfaces[] = { &tick_static_surface };
+    const uint32_t tick_static_scene_x[] = { scene_refs[0].world_x };
+    const uint32_t tick_static_scene_y[] = { scene_refs[0].world_y };
+    const uint16_t tick_static_scene_ids[] = { scene_refs[0].source_index };
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_runtime_door_camera_scene_view(&tick_static_model,
+                                                   dirinfo.header.sprite_start,
+                                                   (3u << 16) + 0x8000u,
+                                                   (4u << 16) + 0x8000u,
+                                                   0x10000, 0, 0, -0x8000, 39, 1, 3,
+                                                   runtime_door_pages,
+                                                   runtime_door_page_sizes, 106,
+                                                   tick_static_surfaces,
+                                                   tick_static_scene_x,
+                                                   tick_static_scene_y,
+                                                   tick_static_scene_ids,
+                                                   scene_ref_count, 0,
+                                                   &canvas, runtime_dirs_x,
+                                                   runtime_dirs_y, runtime_view_hits,
+                                                   runtime_view_strips, sprites,
+                                                   wall_heights) == 0);
+    uint32_t active_static_scene_hash = fnv1a_bytes(canvas.pixels, canvas.pixel_count);
+    memset(use_wall, 0, sizeof(use_wall));
+    memset(use_info, 0, sizeof(use_info));
+    live_tick_motion.x = 0x4f000u;
+    live_tick_motion.y = 0x48000u;
+    live_tick_motion.tile_x = 4;
+    live_tick_motion.tile_y = 4;
+    CHECK(wl_init_player_gameplay_state(&pickup_state, 90, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_step_live_tick(&pickup_state, &tick_static_model,
+                            use_wall, use_info, WL_MAP_PLANE_WORDS,
+                            &live_tick_motion, 0x1000, 0, 0x10000, 0,
+                            WL_DIR_EAST, 0, 0, 1, &live_tick) == 0);
+    CHECK(live_tick.motion.picked_up == 1);
+    CHECK(live_tick.motion.static_index == 0);
+    CHECK(live_tick.palette.kind == WL_PALETTE_SHIFT_WHITE);
+    CHECK(tick_static_model.statics[0].active == 0);
+    CHECK(wl_collect_scene_sprite_refs(&tick_static_model,
+                                       dirinfo.header.sprite_start,
+                                       scene_refs,
+                                       sizeof(scene_refs) / sizeof(scene_refs[0]),
+                                       &scene_ref_count) == 0);
+    CHECK(scene_ref_count == 0);
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_runtime_door_camera_scene_view(&tick_static_model,
+                                                   dirinfo.header.sprite_start,
+                                                   (3u << 16) + 0x8000u,
+                                                   (4u << 16) + 0x8000u,
+                                                   0x10000, 0, 0, -0x8000, 39, 1, 3,
+                                                   runtime_door_pages,
+                                                   runtime_door_page_sizes, 106,
+                                                   NULL, NULL, NULL, NULL, 0, 0,
+                                                   &canvas, runtime_dirs_x,
+                                                   runtime_dirs_y, runtime_view_hits,
+                                                   runtime_view_strips, sprites,
+                                                   wall_heights) == 0);
+    uint32_t picked_static_scene_hash = fnv1a_bytes(canvas.pixels, canvas.pixel_count);
+    CHECK(active_static_scene_hash == 0x7e68266c);
+    CHECK(picked_static_scene_hash == 0xc928b202);
+
     const wl_indexed_surface *bad_scene_sprites[] = { NULL };
     CHECK(wl_render_camera_scene_view(wall_plane, WL_MAP_PLANE_WORDS, player_x,
                                       player_y, 0x10000, 0, 0, -0x8000, 30, 1, 5,
@@ -2950,6 +3039,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-tick-pushwall-scene tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-tick-static-scene tests passed for %s\n", dir);
     return 0;
 }

@@ -227,3 +227,8 @@ The live wall+sprite renderer now has coverage driven by `wl_step_live_tick` rat
 ## Cycle update: live tick pushwall scene rendering
 
 Moving-pushwall scene rendering is now driven by `wl_step_live_tick`, not only manual tilemap setup. A use-button tick starts and advances a pushwall to a live `0xc0` marker; the runtime scene renderer then consumes local VSWAP wall page `73` and produces the same committed moving-pushwall occlusion hash. No decoded wall/sprite bytes are committed.
+
+
+## Cycle update: live tick static scene removal
+
+Runtime static pickup removal is now covered through the VSWAP sprite-cache/render path. The headless test decodes only the locally referenced bonus-static sprite chunk, renders it while active, then runs `wl_step_live_tick` so `wl_collect_scene_sprite_refs` omits the deactivated static and the scene hash changes. Assertions remain metadata/hash-only; no decoded proprietary sprite bytes are committed.

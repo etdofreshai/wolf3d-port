@@ -91,3 +91,8 @@ The live tick output now feeds the existing palette-shifted upload metadata path
 ## Live tick pushwall scene rendering
 
 Live tick state now drives moving-pushwall scene rendering too. A headless test runs a use-button tick that starts a pushwall and advances it across its first block boundary, then renders the resulting moving marker through `wl_render_runtime_door_camera_scene_view`. The tick-driven scene is asserted against the independently rendered moving-pushwall scene hash, keeping the input/state/render path deterministic and SDL-free.
+
+
+## Live tick static pickup scene removal
+
+Static pickup/removal now reaches the live renderer path. A headless test collects a bonus static sprite ref, decodes the matching local VSWAP sprite surface, renders the active static through `wl_render_runtime_door_camera_scene_view`, then runs `wl_step_live_tick` to pick it up and deactivate the runtime static. A second sprite-ref collection returns no visible static, and the same scene renders to a distinct empty-static hash.

@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-live-tick-pushwall-scene tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-live-tick-static-scene tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -223,3 +223,8 @@ Connected the headless live tick seam to live door-aware scene rendering. The te
 ## Cycle update: live tick pushwall scene rendering
 
 Extended the live tick → scene path from doors to pushwalls. The new test runs a `wl_step_live_tick` use-button update against a pushwall marker, advances the pushwall across the first block boundary in the same tick, verifies the mutable tilemap now carries the `37 | 0xc0` moving marker, and renders that state through `wl_render_runtime_door_camera_scene_view`. The resulting scene hash matches the existing deterministic moving-pushwall occlusion hash, proving tick-driven pushwall state reaches the renderer path.
+
+
+## Cycle update: live tick static scene removal
+
+Extended the live tick → scene path from doors and pushwalls to pickup statics. The new test builds a small live model with an active food static, collects its renderer-facing sprite ref, decodes the local VSWAP sprite surface, and renders the active static in a door-aware scene. A `wl_step_live_tick` movement update then picks up the static, starts the white palette shift, deactivates the static descriptor, and a fresh `wl_collect_scene_sprite_refs` call returns zero refs before rendering the empty-static scene. Active vs picked scene hashes (`0x7e68266c` vs `0xc928b202`) prove tick-driven static removal reaches renderer-facing scene input.
