@@ -10,3 +10,6 @@ state/STOP_AUTOPILOT
 # Build/cache outputs
 source/modern-c-sdl3/build/
 __pycache__/
+
+# Local third-party bootstrap deps
+.deps/

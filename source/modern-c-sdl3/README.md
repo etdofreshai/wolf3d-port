@@ -391,3 +391,15 @@ Present-frame descriptor coverage now includes both red and white combat palette
 ## Live combat present-frame descriptor
 
 Live combat palette output now feeds `wl_describe_present_frame` directly. A deterministic dog/projectile combat tick produces a red-shifted descriptor with viewport `4x4`, indexed pixel hash from the sample frame, palette hash `0x35132dc5`, and shift index `3`.
+
+## Optional SDL3 bootstrap and smoke test
+
+The default `make test` gate remains SDL-free. On machines without system SDL3 development files, use the repo-local bootstrap script to build SDL3 into ignored `.deps/` paths:
+
+```bash
+scripts/bootstrap_sdl3.sh
+cd source/modern-c-sdl3
+make test-sdl3
+```
+
+`make test-sdl3` auto-detects `sdl3.pc` from `../../.deps/SDL3` or `PKG_CONFIG_PATH`. If SDL3 is unavailable, it prints a skip message and exits successfully. When available, it runs a hidden-window smoke test with `SDL_VIDEODRIVER=dummy` so the first presentation boundary remains headless-friendly.

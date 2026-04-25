@@ -5269,3 +5269,35 @@ Next likely move:
 - Continue feeding full live scene renders into present descriptors, or add a dummy/offscreen SDL3 smoke layer when SDL3 dev files are available.
 
 Blockers: SDL3 presentation still cannot be verified here because SDL3 development files are unavailable via `pkg-config`; headless work is unblocked.
+
+
+## Cycle 2026-04-25 10:21 CDT SDL3 Bootstrap
+
+Action taken:
+
+- Paused the running autopilot with `state/STOP_AFTER_CURRENT_LOOP` before editing to avoid racing its commits.
+- Added `scripts/bootstrap_sdl3.sh`, an optional repo-local SDL3 bootstrap that clones/builds SDL3 into ignored `.deps/` paths without installing system packages.
+- Added `.deps/` to `.gitignore`.
+- Added `source/modern-c-sdl3/tests/test_sdl3_smoke.c`, a hidden-window SDL3 video smoke test intended to run headlessly with `SDL_VIDEODRIVER=dummy`.
+- Extended `source/modern-c-sdl3/Makefile` with `test-sdl3` and `sdl3-info`; `test-sdl3` skips cleanly when SDL3 is unavailable.
+- Documented the dependency layout and smoke-test boundary in `docs/research/sdl3-bootstrap.md` and the modern C README.
+
+Verification:
+
+```bash
+bash -n scripts/bootstrap_sdl3.sh
+cd source/modern-c-sdl3 && make test
+cd source/modern-c-sdl3 && make test-sdl3
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data.
+- Did not run the SDL3 bootstrap/download step; only added the optional script and skipped smoke target.
+
+Next likely move:
+
+- Install/provide build tools (`cmake` at minimum) and run `scripts/bootstrap_sdl3.sh`, or let the autopilot continue SDL-free headless work until SDL3 is available.
+
+Blockers: SDL3 bootstrap cannot run on this host until required build tools such as `cmake` are available.
