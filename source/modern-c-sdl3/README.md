@@ -136,3 +136,8 @@ The combined combat tick now feeds the SDL-free palette upload boundary. A headl
 ## Actor damage state seam
 
 Actor hitpoints and kill effects now have a deterministic pure-C state seam. `wl_init_actor_combat_state` applies original difficulty-based starting hitpoints, and `wl_apply_actor_damage` models doubled pre-attack damage, attack-mode start on nonlethal hits, kill score awards, shootable/alive clearing, and representative drop selection without coupling to original state tables or sound/status-bar code.
+
+
+## Actor drop static seam
+
+Actor kill drops now enter the mutable runtime model as pickup statics. `wl_spawn_actor_drop_static` converts `wl_apply_actor_damage` drop metadata into active nonblocking bonus statics at the actor tile, so killed guards/SS/bosses can produce the same pickup path later consumed by movement, scene refs, and SDL-free render/upload tests.

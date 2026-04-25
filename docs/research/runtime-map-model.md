@@ -268,3 +268,8 @@ The combined live combat tick now has direct coverage through the renderer-facin
 ## Cycle update: actor damage state seam
 
 Added a deterministic actor damage/kill state seam outside the original source. `wl_init_actor_combat_state` gives runtime actor descriptors original-style difficulty hitpoints, while `wl_apply_actor_damage` mirrors `DamageActor`/`KillActor` state effects that matter for gameplay integration: doubled damage before attack mode, attack-mode start on nonlethal hits, kill score awards, shootable/alive clearing, and representative item drops. Tests cover guard, SS, boss, and dead-guard cases headlessly.
+
+
+## Cycle update: actor drop static seam
+
+Actor kill drops now have a runtime model bridge. `wl_spawn_actor_drop_static` consumes `wl_actor_damage_result` drop metadata and appends an active bonus `wl_static_desc` at the actor tile, using the same static type/source metadata that `wl_try_pickup_static_bonus` understands. Tests verify guard clip drops can be picked up for ammo, SS machinegun drops spawn with machinegun static metadata, and no-drop dog kills leave the static list unchanged.

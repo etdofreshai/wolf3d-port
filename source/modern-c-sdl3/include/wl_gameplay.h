@@ -283,6 +283,10 @@ int wl_apply_actor_damage(wl_player_gameplay_state *player,
                           wl_actor_combat_state *actor,
                           int32_t points,
                           wl_actor_damage_result *out);
+int wl_spawn_actor_drop_static(wl_game_model *model,
+                               const wl_actor_combat_state *actor,
+                               const wl_actor_damage_result *damage,
+                               size_t *out_static_index);
 int wl_step_projectile(wl_player_gameplay_state *state,
                        const wl_game_model *model,
                        const wl_player_motion_state *player,

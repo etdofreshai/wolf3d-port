@@ -366,6 +366,74 @@ int wl_apply_actor_damage(wl_player_gameplay_state *player,
     return 0;
 }
 
+static int bonus_item_to_static_type(wl_bonus_item item, uint16_t *out) {
+    if (!out) {
+        return -1;
+    }
+    switch (item) {
+    case WL_BONUS_KEY1:
+        *out = 20;
+        return 0;
+    case WL_BONUS_KEY2:
+        *out = 21;
+        return 0;
+    case WL_BONUS_CLIP:
+        *out = 26;
+        return 0;
+    case WL_BONUS_MACHINEGUN:
+        *out = 27;
+        return 0;
+    case WL_BONUS_CHAINGUN:
+        *out = 28;
+        return 0;
+    case WL_BONUS_CLIP2:
+        *out = 48;
+        return 0;
+    default:
+        return -1;
+    }
+}
+
+int wl_spawn_actor_drop_static(wl_game_model *model,
+                               const wl_actor_combat_state *actor,
+                               const wl_actor_damage_result *damage,
+                               size_t *out_static_index) {
+    if (!model || !actor || !damage || actor->tile_x >= WL_MAP_SIDE ||
+        actor->tile_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+    if (out_static_index) {
+        *out_static_index = model->static_count;
+    }
+    if (!damage->killed || !damage->dropped_item) {
+        return 0;
+    }
+    if (model->static_count >= WL_MAX_STATS) {
+        return -1;
+    }
+    uint16_t type = 0;
+    if (bonus_item_to_static_type(damage->drop_item, &type) != 0) {
+        return -1;
+    }
+
+    size_t index = model->static_count++;
+    wl_static_desc *stat = &model->statics[index];
+    memset(stat, 0, sizeof(*stat));
+    stat->x = actor->tile_x;
+    stat->y = actor->tile_y;
+    stat->source_tile = (uint16_t)(type + 23u);
+    stat->type = type;
+    stat->blocking = 0;
+    stat->bonus = 1;
+    stat->treasure = 0;
+    stat->active = 1;
+    ++model->bonus_static_count;
+    if (out_static_index) {
+        *out_static_index = index;
+    }
+    return 0;
+}
+
 int wl_try_actor_shoot_player(wl_player_gameplay_state *state,
                               const wl_actor_desc *actor,
                               const wl_player_motion_state *player,

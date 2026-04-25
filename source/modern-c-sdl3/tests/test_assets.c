@@ -294,6 +294,28 @@ static int check_gameplay_events(void) {
     CHECK(actor_state.alive == 0);
     CHECK(actor_state.shootable == 0);
     CHECK(state.score == 100);
+    wl_game_model drop_model;
+    memset(&drop_model, 0, sizeof(drop_model));
+    size_t drop_static_index = 999;
+    CHECK(wl_spawn_actor_drop_static(&drop_model, &actor_state, &actor_damage,
+                                     &drop_static_index) == 0);
+    CHECK(drop_static_index == 0);
+    CHECK(drop_model.static_count == 1);
+    CHECK(drop_model.bonus_static_count == 1);
+    CHECK(drop_model.statics[0].x == actor_state.tile_x);
+    CHECK(drop_model.statics[0].y == actor_state.tile_y);
+    CHECK(drop_model.statics[0].source_tile == 71);
+    CHECK(drop_model.statics[0].type == 48);
+    CHECK(drop_model.statics[0].bonus == 1);
+    CHECK(drop_model.statics[0].blocking == 0);
+    CHECK(drop_model.statics[0].active == 1);
+    state.ammo = 0;
+    uint8_t drop_picked_up = 0;
+    CHECK(wl_try_pickup_static_bonus(&state, &drop_model.statics[0],
+                                     &drop_picked_up) == 0);
+    CHECK(drop_picked_up == 1);
+    CHECK(state.ammo == 4);
+    CHECK(drop_model.statics[0].active == 0);
     CHECK(wl_apply_actor_damage(&state, &actor_state, 1, &actor_damage) == -1);
 
     shooter.kind = WL_ACTOR_SS;
@@ -312,6 +334,22 @@ static int check_gameplay_events(void) {
     CHECK(actor_damage.score_thresholds_crossed == 1);
     CHECK(state.score == 40000);
     CHECK(state.lives == 4);
+    memset(&drop_model, 0, sizeof(drop_model));
+    CHECK(wl_spawn_actor_drop_static(&drop_model, &actor_state, &actor_damage,
+                                     &drop_static_index) == 0);
+    CHECK(drop_model.statics[0].source_tile == 50);
+    CHECK(drop_model.statics[0].type == 27);
+
+    dog.kind = WL_ACTOR_DOG;
+    dog.shootable = 1;
+    CHECK(wl_init_actor_combat_state(&dog, WL_DIFFICULTY_HARD,
+                                     &actor_state) == 0);
+    CHECK(wl_apply_actor_damage(&state, &actor_state, 1, &actor_damage) == 0);
+    CHECK(actor_damage.killed == 1);
+    CHECK(actor_damage.dropped_item == 0);
+    CHECK(wl_spawn_actor_drop_static(&drop_model, &actor_state, &actor_damage,
+                                     &drop_static_index) == 0);
+    CHECK(drop_model.static_count == 1);
 
     shooter.kind = WL_ACTOR_BOSS;
     shooter.shootable = 1;
@@ -3460,6 +3498,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-actor-damage-state tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-actor-drop-static tests passed for %s\n", dir);
     return 0;
 }

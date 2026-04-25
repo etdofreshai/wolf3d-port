@@ -229,3 +229,8 @@ Cumulative combat damage now reaches the existing shifted texture-upload metadat
 ## Cycle update: actor kill gameplay state
 
 Actor kill state now feeds player score/extra-life progression before presentation. `wl_apply_actor_damage` awards kill points through `wl_award_player_points`, records representative drop metadata, and stays independent of SDL/audio/status-bar code so later actor death visuals can consume deterministic gameplay state.
+
+
+## Cycle update: actor drop pickup bridge
+
+Actor kill drops now bridge into the runtime static/pickup path before presentation. Spawned drop statics carry source/type metadata compatible with existing pickup and future scene-ref rendering, keeping kill rewards deterministic and SDL-free.
