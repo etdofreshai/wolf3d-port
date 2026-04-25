@@ -268,3 +268,8 @@ Runtime scene state now carries both red and white palette-shift descriptors tow
 ## Cycle update: live combat present-frame descriptor
 
 Gameplay semantics now drive present-frame metadata directly: live dog/projectile combat damage emits a red palette shift that becomes upload-ready descriptor state.
+
+
+## Cycle update: chase attack scene present descriptor
+
+Chase attack semantics now reach presentation descriptors: moved guard rendering plus player damage palette state becomes upload-ready frame metadata.

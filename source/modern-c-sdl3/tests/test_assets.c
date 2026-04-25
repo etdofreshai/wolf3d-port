@@ -4227,6 +4227,28 @@ static int check_wl6(const char *dir) {
     CHECK(chase_attack_tick.shot.damage.effective_points == 10);
     CHECK(chase_attack_tick.live.palette.kind == WL_PALETTE_SHIFT_RED);
     CHECK(chase_attack_player.health == 90);
+    wl_present_frame_descriptor chase_attack_present;
+    CHECK(wl_describe_present_frame(&canvas, &chase_attack_tick.live.palette,
+                                    upload_palette,
+                                    red_shift_palettes, WL_NUM_RED_SHIFTS,
+                                    white_shift_palettes, WL_NUM_WHITE_SHIFTS,
+                                    sizeof(upload_palette), 6,
+                                    &chase_attack_present) == 0);
+    CHECK(chase_attack_present.viewport_width == 80);
+    CHECK(chase_attack_present.viewport_height == 128);
+    CHECK(chase_attack_present.pixel_hash == 0x4a4c3e4f);
+    CHECK(chase_attack_present.palette_shift_kind == WL_PALETTE_SHIFT_RED);
+    CHECK(chase_attack_present.palette_shift_index ==
+          chase_attack_tick.live.palette.shift_index);
+    CHECK(chase_attack_present.palette_hash ==
+          fnv1a_bytes(red_shift_palettes +
+                          (size_t)chase_attack_present.palette_shift_index *
+                              sizeof(upload_palette),
+                      sizeof(upload_palette)));
+    CHECK(chase_attack_present.texture.palette ==
+          red_shift_palettes +
+              (size_t)chase_attack_present.palette_shift_index *
+                  sizeof(upload_palette));
 
     wl_game_model dog_chase_combat_model;
     memset(&dog_chase_combat_model, 0, sizeof(dog_chase_combat_model));
@@ -5690,6 +5712,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-present-live-combat-frame tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame tests passed for %s\n", dir);
     return 0;
 }

@@ -464,3 +464,8 @@ Presentation metadata now pins both combat palette uploads: red hash `0x90a6cdc5
 ## Cycle update: live combat present-frame descriptor
 
 The present-frame boundary now verifies a live combat-produced red shift, selecting palette hash `0x35132dc5` with viewport/pixel metadata instead of only synthetic shift inputs.
+
+
+## Cycle update: chase attack scene present descriptor
+
+The rendered chase attack scene now crosses the presentation boundary with red shift metadata, preserving the indexed scene hash `0x4a4c3e4f` while selecting the shifted upload palette.

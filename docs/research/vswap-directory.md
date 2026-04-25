@@ -447,3 +447,8 @@ VSWAP-backed frame presentation now verifies palette-only upload changes for red
 ## Cycle update: live combat present-frame descriptor
 
 Presentation metadata remains asset-byte-free while a live combat palette result selects the red-shift upload palette through the same deterministic frame descriptor path.
+
+
+## Cycle update: chase attack scene present descriptor
+
+VSWAP sprite output from live chase attack rendering now feeds present-frame metadata using hash/pointer assertions only; no decoded proprietary bytes are committed.

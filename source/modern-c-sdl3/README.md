@@ -403,3 +403,8 @@ make test-sdl3
 ```
 
 `make test-sdl3` auto-detects `sdl3.pc` from `../../.deps/SDL3` or `PKG_CONFIG_PATH`. If SDL3 is unavailable, it prints a skip message and exits successfully. When available, it runs a hidden-window smoke test with `SDL_VIDEODRIVER=dummy` so the first presentation boundary remains headless-friendly.
+
+
+## Chase attack scene present descriptor
+
+A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with the actual red palette shift emitted by actor shooting. The descriptor pins viewport `80x128`, scene pixel hash `0x4a4c3e4f`, red shift metadata, and selected upload palette pointer/hash.

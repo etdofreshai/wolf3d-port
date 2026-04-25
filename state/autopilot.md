@@ -5301,3 +5301,40 @@ Next likely move:
 - Install/provide build tools (`cmake` at minimum) and run `scripts/bootstrap_sdl3.sh`, or let the autopilot continue SDL-free headless work until SDL3 is available.
 
 Blockers: SDL3 bootstrap cannot run on this host until required build tools such as `cmake` are available.
+
+
+
+## Cycle 2026-04-25 10:26 CDT
+
+Action taken:
+
+- Connected a rendered live-AI chase attack scene into the SDL-free present-frame descriptor using the actual red palette shift produced by the attack.
+- The moved guard chase render keeps scene pixel hash `0x4a4c3e4f`; the guard shot damages the player and provides `WL_PALETTE_SHIFT_RED` metadata for `wl_describe_present_frame`.
+- Verified descriptor viewport `80x128`, pixel hash `0x4a4c3e4f`, red shift kind/index, selected palette hash, and selected upload palette pointer.
+- Updated README plus runtime/map/VSWAP/graphics research notes and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/hash/state assertions are committed.
+
+Next likely move:
+
+- Continue feeding full live scene/death renders into present descriptors, or run the optional SDL3 smoke layer once SDL3 build tools/development files are available.
+
+Blockers: SDL3 presentation still cannot be verified here because SDL3 development files/build tools are unavailable; headless work is unblocked.

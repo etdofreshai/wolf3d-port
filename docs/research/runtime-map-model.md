@@ -523,3 +523,8 @@ The SDL-free presentation seam now verifies both damage/red and bonus/white pale
 ## Cycle update: live combat present-frame descriptor
 
 A real `wl_step_live_combat_tick` red damage palette now reaches the SDL-free present-frame descriptor, connecting gameplay damage state to future texture-upload metadata.
+
+
+## Cycle update: chase attack scene present descriptor
+
+Live chase movement, shooter attack damage, scene rendering, and present-frame metadata now meet in one deterministic headless path. The chase attack render hash `0x4a4c3e4f` is described with the attack-produced red palette shift.
