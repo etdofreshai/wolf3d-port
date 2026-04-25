@@ -163,6 +163,7 @@ typedef struct wl_map_wall_hit {
 
 typedef struct wl_projected_sprite {
     uint16_t source_index;
+    size_t surface_index;
     uint8_t visible;
     int32_t view_x;
     uint16_t scaled_height;
@@ -297,6 +298,20 @@ int wl_render_camera_wall_view(const uint16_t *wall_plane, size_t wall_count,
                                wl_indexed_surface *dst, int32_t *directions_x,
                                int32_t *directions_y, wl_map_wall_hit *hits,
                                wl_wall_strip *strips);
+int wl_render_camera_scene_view(const uint16_t *wall_plane, size_t wall_count,
+                                uint32_t origin_x, uint32_t origin_y,
+                                int32_t forward_x, int32_t forward_y,
+                                int32_t plane_x, int32_t plane_y,
+                                uint16_t first_x, uint16_t x_step, size_t ray_count,
+                                const unsigned char *const *wall_pages,
+                                const size_t *wall_page_sizes, size_t wall_page_count,
+                                const wl_indexed_surface *const *sprite_surfaces,
+                                const uint32_t *sprite_x, const uint32_t *sprite_y,
+                                const uint16_t *sprite_source_indices, size_t sprite_count,
+                                unsigned char transparent_index, wl_indexed_surface *dst,
+                                int32_t *directions_x, int32_t *directions_y,
+                                wl_map_wall_hit *hits, wl_wall_strip *strips,
+                                wl_projected_sprite *sprites, uint16_t *wall_heights);
 int wl_read_graphics_header(const char *path, wl_graphics_header *out);
 int wl_read_huffman_dictionary(const char *path, wl_huffman_node nodes[WL_HUFFMAN_NODE_COUNT]);
 int wl_huff_expand(const unsigned char *src, size_t src_len,
