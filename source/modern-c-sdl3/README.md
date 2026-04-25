@@ -131,3 +131,8 @@ Actor and projectile damage can now share one deterministic frame update. `wl_st
 ## Live combat upload seam
 
 The combined combat tick now feeds the SDL-free palette upload boundary. A headless test routes cumulative actor/projectile damage through `wl_step_live_combat_tick`, then passes the returned red palette state to `wl_describe_palette_shifted_texture_upload` and RGBA expansion so future SDL3 presentation can consume the same deterministic upload metadata.
+
+
+## Actor damage state seam
+
+Actor hitpoints and kill effects now have a deterministic pure-C state seam. `wl_init_actor_combat_state` applies original difficulty-based starting hitpoints, and `wl_apply_actor_damage` models doubled pre-attack damage, attack-mode start on nonlethal hits, kill score awards, shootable/alive clearing, and representative drop selection without coupling to original state tables or sound/status-bar code.

@@ -216,6 +216,156 @@ static int32_t projectile_damage_points(wl_projectile_kind kind,
     return -1;
 }
 
+static int32_t actor_start_hitpoints(wl_actor_kind kind,
+                                     wl_difficulty difficulty) {
+    static const int32_t guards[4] = { 25, 25, 25, 25 };
+    static const int32_t officers[4] = { 50, 50, 50, 50 };
+    static const int32_t ss[4] = { 100, 100, 100, 100 };
+    static const int32_t dogs[4] = { 1, 1, 1, 1 };
+    static const int32_t mutants[4] = { 45, 55, 55, 65 };
+    static const int32_t bosses[4] = { 850, 950, 1050, 1200 };
+    static const int32_t ghosts[4] = { 25, 25, 25, 25 };
+    if (difficulty > WL_DIFFICULTY_HARD) {
+        return -1;
+    }
+    switch (kind) {
+    case WL_ACTOR_GUARD:
+        return guards[difficulty];
+    case WL_ACTOR_OFFICER:
+        return officers[difficulty];
+    case WL_ACTOR_SS:
+        return ss[difficulty];
+    case WL_ACTOR_DOG:
+        return dogs[difficulty];
+    case WL_ACTOR_MUTANT:
+        return mutants[difficulty];
+    case WL_ACTOR_BOSS:
+        return bosses[difficulty];
+    case WL_ACTOR_GHOST:
+        return ghosts[difficulty];
+    case WL_ACTOR_DEAD_GUARD:
+        return -1;
+    }
+    return -1;
+}
+
+static int32_t actor_kill_points(wl_actor_kind kind) {
+    switch (kind) {
+    case WL_ACTOR_GUARD:
+        return 100;
+    case WL_ACTOR_OFFICER:
+        return 400;
+    case WL_ACTOR_SS:
+        return 500;
+    case WL_ACTOR_DOG:
+        return 200;
+    case WL_ACTOR_MUTANT:
+        return 700;
+    case WL_ACTOR_BOSS:
+        return 5000;
+    case WL_ACTOR_GHOST:
+        return 200;
+    case WL_ACTOR_DEAD_GUARD:
+        return 0;
+    }
+    return 0;
+}
+
+static int actor_kill_drop(wl_actor_kind kind, wl_weapon_type best_weapon,
+                           wl_bonus_item *out) {
+    if (!out) {
+        return 0;
+    }
+    switch (kind) {
+    case WL_ACTOR_GUARD:
+    case WL_ACTOR_OFFICER:
+    case WL_ACTOR_MUTANT:
+        *out = WL_BONUS_CLIP2;
+        return 1;
+    case WL_ACTOR_SS:
+        *out = best_weapon < WL_WEAPON_MACHINEGUN ?
+               WL_BONUS_MACHINEGUN : WL_BONUS_CLIP2;
+        return 1;
+    case WL_ACTOR_BOSS:
+        *out = WL_BONUS_KEY1;
+        return 1;
+    default:
+        return 0;
+    }
+}
+
+int wl_init_actor_combat_state(const wl_actor_desc *actor,
+                               wl_difficulty difficulty,
+                               wl_actor_combat_state *out) {
+    if (!actor || !out || difficulty > WL_DIFFICULTY_HARD ||
+        actor->kind > WL_ACTOR_DEAD_GUARD ||
+        actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+    int32_t hp = actor_start_hitpoints(actor->kind, difficulty);
+    if (hp <= 0) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->kind = actor->kind;
+    out->tile_x = actor->tile_x;
+    out->tile_y = actor->tile_y;
+    out->hitpoints = hp;
+    out->shootable = actor->shootable ? 1u : 0u;
+    out->alive = 1;
+    return 0;
+}
+
+int wl_apply_actor_damage(wl_player_gameplay_state *player,
+                          wl_actor_combat_state *actor,
+                          int32_t points,
+                          wl_actor_damage_result *out) {
+    if (!player || !actor || !out || points < 0 || !actor->alive ||
+        !actor->shootable || actor->hitpoints <= 0 ||
+        actor->kind > WL_ACTOR_DEAD_GUARD) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->requested_points = points;
+    int32_t effective = actor->attack_mode ? points : points * 2;
+    out->effective_points = effective;
+    actor->hitpoints -= effective;
+
+    if (actor->hitpoints <= 0) {
+        actor->hitpoints = 0;
+        actor->alive = 0;
+        actor->shootable = 0;
+        out->killed = 1;
+        out->score_awarded = actor_kill_points(actor->kind);
+        out->dropped_item = actor_kill_drop(actor->kind, player->best_weapon,
+                                            &out->drop_item) ? 1u : 0u;
+        if (wl_award_player_points(player, out->score_awarded,
+                                   &out->extra_lives_awarded,
+                                   &out->score_thresholds_crossed) != 0) {
+            return -1;
+        }
+    } else {
+        if (!actor->attack_mode) {
+            actor->attack_mode = 1;
+            out->attack_mode_started = 1;
+        }
+        switch (actor->kind) {
+        case WL_ACTOR_GUARD:
+        case WL_ACTOR_OFFICER:
+        case WL_ACTOR_SS:
+        case WL_ACTOR_MUTANT:
+            out->pain_state_variant = (uint8_t)(actor->hitpoints & 1);
+            break;
+        default:
+            out->pain_state_variant = 0;
+            break;
+        }
+    }
+    out->hitpoints = actor->hitpoints;
+    return 0;
+}
+
 int wl_try_actor_shoot_player(wl_player_gameplay_state *state,
                               const wl_actor_desc *actor,
                               const wl_player_motion_state *player,

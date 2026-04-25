@@ -263,3 +263,8 @@ Combined the live actor and projectile damage paths into `wl_step_live_combat_ti
 ## Cycle update: live combat upload seam
 
 The combined live combat tick now has direct coverage through the renderer-facing palette upload seam. The test applies same-frame dog-bite and needle-projectile damage, observes the cumulative red palette result, then describes the shifted texture upload and RGBA expansion without SDL or committed asset bytes.
+
+
+## Cycle update: actor damage state seam
+
+Added a deterministic actor damage/kill state seam outside the original source. `wl_init_actor_combat_state` gives runtime actor descriptors original-style difficulty hitpoints, while `wl_apply_actor_damage` mirrors `DamageActor`/`KillActor` state effects that matter for gameplay integration: doubled damage before attack mode, attack-mode start on nonlethal hits, kill score awards, shootable/alive clearing, and representative item drops. Tests cover guard, SS, boss, and dead-guard cases headlessly.

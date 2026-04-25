@@ -224,3 +224,8 @@ Cumulative actor/projectile frame damage now reaches palette selection through a
 ## Cycle update: live combat upload selection
 
 Cumulative combat damage now reaches the existing shifted texture-upload metadata. `wl_step_live_combat_tick` returns a red palette result that is fed to `wl_describe_palette_shifted_texture_upload`; tests assert the selected red-shift palette pointer, palette hash, and RGBA expansion hash for the same frame.
+
+
+## Cycle update: actor kill gameplay state
+
+Actor kill state now feeds player score/extra-life progression before presentation. `wl_apply_actor_damage` awards kill points through `wl_award_player_points`, records representative drop metadata, and stays independent of SDL/audio/status-bar code so later actor death visuals can consume deterministic gameplay state.

@@ -265,6 +265,67 @@ static int check_gameplay_events(void) {
                                     WL_DIFFICULTY_HARD, 1, 1, 1, 1,
                                     0, 80, 0, 0, &shot) == -1);
 
+    wl_actor_combat_state actor_state;
+    wl_actor_damage_result actor_damage;
+    shooter.kind = WL_ACTOR_GUARD;
+    shooter.shootable = 1;
+    shooter.tile_x = 6;
+    shooter.tile_y = 4;
+    CHECK(wl_init_player_gameplay_state(&state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    CHECK(wl_init_actor_combat_state(&shooter, WL_DIFFICULTY_HARD,
+                                     &actor_state) == 0);
+    CHECK(actor_state.hitpoints == 25);
+    CHECK(actor_state.attack_mode == 0);
+    CHECK(wl_apply_actor_damage(&state, &actor_state, 5, &actor_damage) == 0);
+    CHECK(actor_damage.effective_points == 10);
+    CHECK(actor_damage.hitpoints == 15);
+    CHECK(actor_damage.attack_mode_started == 1);
+    CHECK(actor_damage.pain_state_variant == 1);
+    CHECK(actor_damage.killed == 0);
+    CHECK(state.score == 0);
+    CHECK(actor_state.attack_mode == 1);
+    CHECK(wl_apply_actor_damage(&state, &actor_state, 15, &actor_damage) == 0);
+    CHECK(actor_damage.effective_points == 15);
+    CHECK(actor_damage.killed == 1);
+    CHECK(actor_damage.hitpoints == 0);
+    CHECK(actor_damage.score_awarded == 100);
+    CHECK(actor_damage.dropped_item == 1);
+    CHECK(actor_damage.drop_item == WL_BONUS_CLIP2);
+    CHECK(actor_state.alive == 0);
+    CHECK(actor_state.shootable == 0);
+    CHECK(state.score == 100);
+    CHECK(wl_apply_actor_damage(&state, &actor_state, 1, &actor_damage) == -1);
+
+    shooter.kind = WL_ACTOR_SS;
+    shooter.shootable = 1;
+    CHECK(wl_init_player_gameplay_state(&state, 100, 3, 39500, WL_EXTRA_POINTS) == 0);
+    state.best_weapon = WL_WEAPON_PISTOL;
+    CHECK(wl_init_actor_combat_state(&shooter, WL_DIFFICULTY_HARD,
+                                     &actor_state) == 0);
+    actor_state.attack_mode = 1;
+    CHECK(wl_apply_actor_damage(&state, &actor_state, 100, &actor_damage) == 0);
+    CHECK(actor_damage.killed == 1);
+    CHECK(actor_damage.score_awarded == 500);
+    CHECK(actor_damage.dropped_item == 1);
+    CHECK(actor_damage.drop_item == WL_BONUS_MACHINEGUN);
+    CHECK(actor_damage.extra_lives_awarded == 1);
+    CHECK(actor_damage.score_thresholds_crossed == 1);
+    CHECK(state.score == 40000);
+    CHECK(state.lives == 4);
+
+    shooter.kind = WL_ACTOR_BOSS;
+    shooter.shootable = 1;
+    CHECK(wl_init_actor_combat_state(&shooter, WL_DIFFICULTY_HARD,
+                                     &actor_state) == 0);
+    CHECK(actor_state.hitpoints == 1200);
+    CHECK(wl_apply_actor_damage(&state, &actor_state, 600, &actor_damage) == 0);
+    CHECK(actor_damage.killed == 1);
+    CHECK(actor_damage.score_awarded == 5000);
+    CHECK(actor_damage.drop_item == WL_BONUS_KEY1);
+    shooter.kind = WL_ACTOR_DEAD_GUARD;
+    CHECK(wl_init_actor_combat_state(&shooter, WL_DIFFICULTY_HARD,
+                                     &actor_state) == -1);
+
     wl_game_model projectile_model;
     memset(&projectile_model, 0, sizeof(projectile_model));
     projectile_model.tilemap[5 + 4 * WL_MAP_SIDE] = 1;
@@ -3399,6 +3460,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-combat-upload tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-actor-damage-state tests passed for %s\n", dir);
     return 0;
 }

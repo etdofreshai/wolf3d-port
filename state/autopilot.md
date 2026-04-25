@@ -4,7 +4,7 @@ Status: active
 
 ## Current Phase
 
-Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer with broader visible-ref/camera-angle coverage, additional maps cover officer/SS/mutant/boss/ghost runtime actor refs, and palette fade/shift generation, state, shifted upload selection, player gameplay/bonus pickup events, and runtime static pickup/removal hooks, a TransformTile-style visible pickup probe, and a small player motion/collision tick, and use-button door/elevator/pushwall dispatch metadata and deterministic door open/close progression, and pushwall start/progression metadata, a live runtime solid-plane raycast/render bridge, door-wall render descriptors, runtime door-aware ray hits, and door-aware runtime camera wall rendering, and door-aware runtime wall+sprite scene rendering, pushwall wall-page/texture descriptors, and live pushwall scene occlusion, and pushwall sub-tile distance/height, and live runtime-ref door scene coverage, and a headless live gameplay tick and live tick palette-upload selection and live tick scene rendering and live tick pushwall scene rendering and live tick static pickup scene removal and actor bite damage, actor shooting damage, projectile damage, live projectile tick damage, live actor attack tick damage, and combined live combat tick damage and live combat palette-upload selection are covered headlessly. Next phase should broaden map runtime-scene coverage, deepen live gameplay events, or add a small SDL3 presentation boundary when SDL3 is available.
+Runtime sprite refs feed cached VSWAP sprite surfaces into the combined wall+sprite scene renderer with broader visible-ref/camera-angle coverage, additional maps cover officer/SS/mutant/boss/ghost runtime actor refs, and palette fade/shift generation, state, shifted upload selection, player gameplay/bonus pickup events, and runtime static pickup/removal hooks, a TransformTile-style visible pickup probe, and a small player motion/collision tick, and use-button door/elevator/pushwall dispatch metadata and deterministic door open/close progression, and pushwall start/progression metadata, a live runtime solid-plane raycast/render bridge, door-wall render descriptors, runtime door-aware ray hits, and door-aware runtime camera wall rendering, and door-aware runtime wall+sprite scene rendering, pushwall wall-page/texture descriptors, and live pushwall scene occlusion, and pushwall sub-tile distance/height, and live runtime-ref door scene coverage, and a headless live gameplay tick and live tick palette-upload selection and live tick scene rendering and live tick pushwall scene rendering and live tick static pickup scene removal and actor bite damage, actor shooting damage, projectile damage, live projectile tick damage, live actor attack tick damage, and combined live combat tick damage, live combat palette-upload selection, and actor damage/kill state are covered headlessly. Next phase should broaden map runtime-scene coverage, deepen live gameplay events, or add a small SDL3 presentation boundary when SDL3 is available.
 
 ## Latest Verified Milestone
 
@@ -150,7 +150,8 @@ Use tests as the bridge from the original code to modern C:
 72. Live tick actor bite/shoot damage/palette integration. **Done headlessly.**
 73. Combined live combat actor/projectile damage and palette integration. **Done headlessly.**
 74. Live combat palette-shifted upload selection. **Done headlessly.**
-75. Broader map runtime-scene coverage, deeper collision/gameplay events, or SDL3 presentation seam.
+75. Actor hitpoint/damage/kill/drop state. **Done headlessly.**
+76. Broader map runtime-scene coverage, deeper collision/gameplay events, or SDL3 presentation seam.
 
 ## Next Likely Move
 
@@ -162,7 +163,7 @@ Recommended next commit:
 - or add a small SDL3 presentation seam using `wl_texture_upload_descriptor`;
 - or connect palette-shifted upload selection to future live player damage/bonus events before presentation.
 
-The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, scaled-sprite viewport hashes, world-sprite projection/sorted-render hashes, combined scene render hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA/palette-fade/shift hashes, shift-state transitions, and palette-selected upload hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, door-area connectivity descriptors, and runtime scene sprite-reference descriptors, VSWAP sprite surface-cache hashes, and broader runtime-scene, camera-scene, multi-map enemy scene-ref, boss-map scene-ref, ghost-map scene-ref, and gameplay-event, bonus-pickup, static-pickup, and visible-static-pickup, player-motion, player-use, door-progression, pushwall-progression, live-solid-ray, live-runtime-render, door-wall-render, runtime-door-ray, runtime-door-render, runtime-door-scene, runtime-pushwall-render, runtime-pushwall-scene, runtime-pushwall-offset, runtime-live-ref-scene, runtime-live-tick, runtime-live-tick-upload, runtime-live-tick-scene, runtime-live-tick-pushwall-scene, and runtime-live-tick-static-scene, and runtime-actor-bite, runtime-actor-shoot, runtime-projectile-damage, runtime-live-projectile-tick, runtime-live-actor-tick, runtime-live-combat-tick, and runtime-live-combat-upload assertions.
+The current harness already verifies WL6 file sizes, `MAPHEAD.WL6` RLEW tag `0xabcd`, map 0 offset/header/name/dimensions, `VSWAP.WL6` header/directory values, bounded chunk-read hashes, representative wall/sprite shape metadata, sprite post-command metadata, sprite indexed-surface hashes, scaled-sprite viewport hashes, world-sprite projection/sorted-render hashes, combined scene render hashes, VGA graphics Huffman chunk hashes, STRUCTPIC dimensions, indexed-surface hashes/descriptors, indexed blit canvas hashes, wall-page metadata/surface hashes, wall texture-column sampler hashes, wall strip scaler/viewport/map-hit/cardinal/fixed/DDA/projected/view-batch/camera-ray/tiny-view canvas hashes, upload metadata/RGBA/palette-fade/shift hashes, shift-state transitions, and palette-selected upload hashes, optional SOD metadata, Carmack/RLEW helper behavior, WL6 map 0 plane hashes/counts, WL6 map 0 semantic classification counts, a WL6 map 0 `SetupGameLevel`-style runtime model, door-area connectivity descriptors, and runtime scene sprite-reference descriptors, VSWAP sprite surface-cache hashes, and broader runtime-scene, camera-scene, multi-map enemy scene-ref, boss-map scene-ref, ghost-map scene-ref, and gameplay-event, bonus-pickup, static-pickup, and visible-static-pickup, player-motion, player-use, door-progression, pushwall-progression, live-solid-ray, live-runtime-render, door-wall-render, runtime-door-ray, runtime-door-render, runtime-door-scene, runtime-pushwall-render, runtime-pushwall-scene, runtime-pushwall-offset, runtime-live-ref-scene, runtime-live-tick, runtime-live-tick-upload, runtime-live-tick-scene, runtime-live-tick-pushwall-scene, and runtime-live-tick-static-scene, and runtime-actor-bite, runtime-actor-shoot, runtime-projectile-damage, runtime-live-projectile-tick, runtime-live-actor-tick, runtime-live-combat-tick, runtime-live-combat-upload, and runtime-actor-damage-state assertions.
 
 ## Blockers
 
@@ -2921,5 +2922,43 @@ Safety/legal checks:
 Next likely move:
 
 - Broaden multi-map live scene coverage, start deterministic actor state progression, or add an SDL3 presentation seam once SDL3 is available.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
+
+
+## Cycle 2026-04-25 03:00 CDT
+
+Action taken:
+
+- Added deterministic actor hitpoint/damage/kill state seams based on original `starthitpoints`, `DamageActor`, and `KillActor` behavior.
+- Added `wl_init_actor_combat_state` and `wl_apply_actor_damage` to model difficulty-scaled starting hitpoints, double damage before attack mode, attack-mode start on nonlethal hits, kill score awards, shootable/alive clearing, and representative item drops.
+- Headless tests cover guard pain/kill/drop, SS machinegun drop and extra-life threshold crossing, boss key drop, and dead-guard rejection.
+- Updated README, runtime/gameplay research notes, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make clean test
+```
+
+Result:
+
+```text
+rm -rf build
+mkdir -p build
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-actor-damage-state tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/state/hash assertions are committed.
+
+Next likely move:
+
+- Connect actor kill/drop state into live combat tick/runtime statics, broaden multi-map live scene coverage, or start deterministic actor state progression.
 
 Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.
