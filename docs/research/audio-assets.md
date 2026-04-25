@@ -9,6 +9,7 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 - `wl_describe_audio_chunk()` classifies the original WL6 chunk ranges and exposes raw size, declared length, sound priority where present, and payload bounds.
 - `wl_describe_imf_music_chunk()` validates IMF music chunks by their declared byte count and summarizes command count, first/last commands, maximum and zero-delay counts, total delay ticks, and trailing AUDIOT bytes.
 - `wl_get_imf_music_command()` decodes a bounded IMF command `(register, value, delay)` by index for future AdLib playback scheduling without exposing callers to raw byte offsets.
+- `wl_describe_imf_playback_window()` summarizes deterministic IMF command emission from a start index within a tick budget for future SDL3 audio scheduling.
 
 ## Verified WL6 metadata
 
@@ -20,7 +21,7 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
   - chunk 1: 13 bytes, FNV-1a `0x21985d89`.
   - chunk 87: 41 bytes, FNV-1a `0x799f60b1`.
   - chunk 174: 0 bytes.
-  - chunk 261: 7,546 bytes, FNV-1a `0xea0d69d8`; IMF declared bytes 7,456, command count 1,864, command accessor first `(reg=0, value=0, delay=189)`, accessor last `(reg=0, value=0, delay=1)`, max delay 64,098, zero-delay commands 0, total delay 25,697,407, trailing bytes 86.
+  - chunk 261: 7,546 bytes, FNV-1a `0xea0d69d8`; IMF declared bytes 7,456, command count 1,864, command accessor first `(reg=0, value=0, delay=189)`, accessor last `(reg=0, value=0, delay=1)`, playback windows emit 1 command for 189 ticks and 3 commands for 20,485 ticks, max delay 64,098, zero-delay commands 0, total delay 25,697,407, trailing bytes 86.
   - chunk 287: 20,926 bytes, FNV-1a `0x65998666`; IMF declared bytes 20,836, command count 5,209, first delay 189, last command `(reg=0, value=0, delay=1)`, max delay 65,429, zero-delay commands 0, total delay 71,494,600, trailing bytes 86.
 
 ## Verified optional SOD metadata

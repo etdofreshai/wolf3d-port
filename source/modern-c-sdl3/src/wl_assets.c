@@ -2341,3 +2341,48 @@ int wl_get_imf_music_command(const unsigned char *chunk, size_t chunk_size,
     out->delay = read_le16(cmd + 2u);
     return 0;
 }
+
+
+int wl_describe_imf_playback_window(const unsigned char *chunk, size_t chunk_size,
+                                    size_t start_command, uint32_t tick_budget,
+                                    wl_imf_playback_window *out) {
+    uint32_t declared_bytes;
+    size_t command_count;
+    uint64_t elapsed = 0;
+    if (!chunk || !out || chunk_size < sizeof(uint32_t)) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    declared_bytes = read_le32(chunk);
+    if ((declared_bytes % 4u) != 0u || (size_t)declared_bytes > chunk_size - sizeof(uint32_t)) {
+        return -1;
+    }
+    command_count = (size_t)declared_bytes / 4u;
+    if (start_command > command_count) {
+        return -1;
+    }
+    out->start_command = start_command;
+    out->commands_available = command_count - start_command;
+    out->next_command = start_command;
+    while (out->next_command < command_count) {
+        wl_imf_music_command command;
+        if (wl_get_imf_music_command(chunk, chunk_size, out->next_command, &command) != 0) {
+            return -1;
+        }
+        if (out->commands_in_window > 0 && elapsed + command.delay > tick_budget) {
+            break;
+        }
+        elapsed += command.delay;
+        if (elapsed > UINT32_MAX) {
+            return -1;
+        }
+        ++out->commands_in_window;
+        ++out->next_command;
+        if (elapsed >= tick_budget) {
+            break;
+        }
+    }
+    out->elapsed_delay = (uint32_t)elapsed;
+    out->completed = (out->next_command == command_count) ? 1u : 0u;
+    return 0;
+}

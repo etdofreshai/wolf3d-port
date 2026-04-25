@@ -501,6 +501,15 @@ typedef struct wl_imf_music_metadata {
     size_t trailing_bytes;
 } wl_imf_music_metadata;
 
+typedef struct wl_imf_playback_window {
+    size_t start_command;
+    size_t commands_available;
+    size_t commands_in_window;
+    size_t next_command;
+    uint32_t elapsed_delay;
+    uint8_t completed;
+} wl_imf_playback_window;
+
 int wl_read_audio_header(const char *path, wl_audio_header *out);
 int wl_read_audio_chunk(const char *audiot_path,
                         const wl_audio_header *header,
@@ -514,6 +523,9 @@ int wl_describe_imf_music_chunk(const unsigned char *chunk, size_t chunk_size,
                                 wl_imf_music_metadata *out);
 int wl_get_imf_music_command(const unsigned char *chunk, size_t chunk_size,
                              size_t command_index, wl_imf_music_command *out);
+int wl_describe_imf_playback_window(const unsigned char *chunk, size_t chunk_size,
+                                    size_t start_command, uint32_t tick_budget,
+                                    wl_imf_playback_window *out);
 
 #ifdef __cplusplus
 }
