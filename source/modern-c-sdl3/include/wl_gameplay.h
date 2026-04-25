@@ -94,6 +94,12 @@ int wl_apply_player_bonus(wl_player_gameplay_state *state, wl_bonus_item item,
 int wl_try_pickup_static_bonus(wl_player_gameplay_state *state,
                                wl_static_desc *stat,
                                uint8_t *out_picked_up);
+int wl_try_pickup_visible_static_bonus(wl_player_gameplay_state *state,
+                                       wl_game_model *model,
+                                       uint32_t origin_x, uint32_t origin_y,
+                                       int32_t forward_x, int32_t forward_y,
+                                       uint8_t *out_picked_up,
+                                       size_t *out_static_index);
 int wl_start_player_bonus_flash(wl_player_gameplay_state *state);
 
 #ifdef __cplusplus

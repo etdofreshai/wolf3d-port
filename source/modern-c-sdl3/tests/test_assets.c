@@ -459,14 +459,31 @@ static int check_wl6(const char *dir) {
         }
     }
     CHECK(food_static_index < pickup_model.static_count);
-    CHECK(wl_try_pickup_static_bonus(&pickup_state, &pickup_model.statics[food_static_index],
-                                     &picked_up) == 0);
+    const wl_static_desc *food_static = &pickup_model.statics[food_static_index];
+    uint32_t food_center_x = ((uint32_t)food_static->x << 16) + 0x8000u;
+    uint32_t food_center_y = ((uint32_t)food_static->y << 16) + 0x8000u;
+    uint32_t pickup_origin_x = food_center_x - 0x8000u;
+    size_t touched_static_index = pickup_model.static_count;
+    CHECK(wl_try_pickup_visible_static_bonus(&pickup_state, &pickup_model,
+                                             pickup_origin_x, food_center_y + 0x8000u,
+                                             0x10000, 0,
+                                             &picked_up, &touched_static_index) == 0);
     CHECK(picked_up == 0);
+    CHECK(touched_static_index == pickup_model.static_count);
+    CHECK(wl_try_pickup_visible_static_bonus(&pickup_state, &pickup_model,
+                                             pickup_origin_x, food_center_y,
+                                             0x10000, 0,
+                                             &picked_up, &touched_static_index) == 0);
+    CHECK(picked_up == 0);
+    CHECK(touched_static_index == food_static_index);
     CHECK(pickup_model.statics[food_static_index].active == 1);
     pickup_state.health = 90;
-    CHECK(wl_try_pickup_static_bonus(&pickup_state, &pickup_model.statics[food_static_index],
-                                     &picked_up) == 0);
+    CHECK(wl_try_pickup_visible_static_bonus(&pickup_state, &pickup_model,
+                                             pickup_origin_x, food_center_y,
+                                             0x10000, 0,
+                                             &picked_up, &touched_static_index) == 0);
     CHECK(picked_up == 1);
+    CHECK(touched_static_index == food_static_index);
     CHECK(pickup_state.health == 100);
     CHECK(pickup_state.palette_shift.bonus_count == WL_NUM_WHITE_SHIFTS * WL_WHITE_SHIFT_TICS);
     CHECK(pickup_model.statics[food_static_index].active == 0);
@@ -2140,6 +2157,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/static-pickup tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/visible-static-pickup tests passed for %s\n", dir);
     return 0;
 }

@@ -1,5 +1,6 @@
 #include "wl_gameplay.h"
 
+#include <stddef.h>
 #include <string.h>
 
 int wl_init_player_gameplay_state(wl_player_gameplay_state *state,
@@ -367,6 +368,73 @@ int wl_try_pickup_static_bonus(wl_player_gameplay_state *state,
     }
     if (out_picked_up) {
         *out_picked_up = picked_up;
+    }
+    return 0;
+}
+
+static int32_t gameplay_fixed_mul_shift(int32_t a, int32_t b) {
+    return (int32_t)(((int64_t)a * (int64_t)b) >> 16);
+}
+
+static int visible_static_is_in_pickup_range(const wl_static_desc *stat,
+                                             uint32_t origin_x, uint32_t origin_y,
+                                             int32_t forward_x, int32_t forward_y) {
+    const int32_t mindist = 0x5800;
+    const int32_t actorsize = 0x2000;
+    const int32_t tileglobal = 1 << 16;
+    const int32_t halftile = 1 << 15;
+
+    int32_t sprite_x = ((int32_t)stat->x << 16) + halftile;
+    int32_t sprite_y = ((int32_t)stat->y << 16) + halftile;
+    int32_t gx = sprite_x - (int32_t)origin_x;
+    int32_t gy = sprite_y - (int32_t)origin_y;
+    int32_t forward_distance = gameplay_fixed_mul_shift(gx, forward_x) +
+                               gameplay_fixed_mul_shift(gy, forward_y);
+    int32_t lateral = gameplay_fixed_mul_shift(gy, forward_x) -
+                      gameplay_fixed_mul_shift(gx, forward_y);
+    int32_t nx = forward_distance - actorsize;
+
+    return nx >= mindist && nx < tileglobal && lateral > -halftile && lateral < halftile;
+}
+
+int wl_try_pickup_visible_static_bonus(wl_player_gameplay_state *state,
+                                       wl_game_model *model,
+                                       uint32_t origin_x, uint32_t origin_y,
+                                       int32_t forward_x, int32_t forward_y,
+                                       uint8_t *out_picked_up,
+                                       size_t *out_static_index) {
+    if (!state || !model || (forward_x == 0 && forward_y == 0) ||
+        origin_x >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        origin_y >= ((uint32_t)WL_MAP_SIDE << 16)) {
+        return -1;
+    }
+    if (out_picked_up) {
+        *out_picked_up = 0;
+    }
+    if (out_static_index) {
+        *out_static_index = model->static_count;
+    }
+
+    for (size_t i = 0; i < model->static_count; ++i) {
+        wl_static_desc *stat = &model->statics[i];
+        if (!stat->active || !stat->bonus) {
+            continue;
+        }
+        if (!visible_static_is_in_pickup_range(stat, origin_x, origin_y,
+                                               forward_x, forward_y)) {
+            continue;
+        }
+        uint8_t picked_up = 0;
+        if (wl_try_pickup_static_bonus(state, stat, &picked_up) != 0) {
+            return -1;
+        }
+        if (out_picked_up) {
+            *out_picked_up = picked_up;
+        }
+        if (out_static_index) {
+            *out_static_index = i;
+        }
+        return 0;
     }
     return 0;
 }

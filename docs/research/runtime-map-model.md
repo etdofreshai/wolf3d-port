@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/static-pickup tests passed for game-files/base
+asset/decompression/semantics/model/vswap/visible-static-pickup tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -128,3 +128,8 @@ Expanded `wl_gameplay` from player damage/score events into bonus pickup semanti
 ## Cycle update: static pickup/removal seam
 
 Runtime static descriptors now carry an `active` flag. `wl_try_pickup_static_bonus` bridges those descriptors to `wl_gameplay` bonus handling, clears active statics only after successful pickup, and leaves rejected pickups (for example full-health food) visible. `wl_collect_scene_sprite_refs` skips inactive statics, so headless tests can verify both gameplay state changes and renderer-facing removal by checking the scene-ref count drops after a food pickup.
+
+
+## Cycle update: visible static pickup probe
+
+Added `wl_try_pickup_visible_static_bonus`, a headless gameplay/render seam based on the original `WL_DRAW.C::TransformTile` pickup test used before drawing bonus statics. The probe scans active bonus statics, applies the same near/in-front/lateral pickup window using 16.16 world coordinates and a view vector, then routes the touched static through `wl_try_pickup_static_bonus`. Tests cover an out-of-lateral-range miss, an in-range full-health food rejection that leaves the static active, and a successful in-range food pickup that heals, starts the bonus flash, deactivates the static, and removes it from later scene refs.
