@@ -193,3 +193,8 @@ Chase tic movement now closes the loop from map-blocked direction choice to rend
 ## Cycle update: live AI chase fine-position rendering
 
 Chase direction/tic semantics now run inside the live AI frame wrapper. The wrapper reports chase actor counts and keeps patrol and chase movement deterministic in the same headless frame.
+
+
+## Cycle update: live AI chase remainder rendering
+
+Chase direction/tic semantics now persist across live AI frames: first frame stores partial movement, second frame completes the tile step and clears the remainder.

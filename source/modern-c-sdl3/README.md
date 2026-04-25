@@ -316,3 +316,8 @@ Chase fine-position actor refs now feed the headless scene renderer. A half-tile
 ## Live AI chase fine-position rendering
 
 The live actor AI wrapper now advances chase actors as well as patrol actors. A half-tile chase guard passes through `wl_step_live_actor_ai_tick`, emits source/chunk `58/164` at `0x58000/0x50000`, and renders with stable hash `0xa71311c2`.
+
+
+## Live AI chase remainder rendering
+
+Live AI chase rendering now covers two half-tile frames. The first frame stores chase remainder and renders fine coords with hash `0xa71311c2`; the second consumes the carried movement into tile-centered coords `0x58000/0x48000` with hash `0x4a4c3e4f`.

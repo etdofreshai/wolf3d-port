@@ -372,3 +372,8 @@ The chase fine-position render path validates guard walk sprite metadata `58/164
 ## Cycle update: live AI chase fine-position rendering
 
 Live AI chase refs now consume the same VSWAP sprite-cache path as patrol refs. The guard remains source/chunk `58/164`; rendered hash `0xa71311c2` verifies placement without committing decoded bytes.
+
+
+## Cycle update: live AI chase remainder rendering
+
+The live AI chase remainder path keeps guard source/chunk `58/164` stable while placement changes across frames. Render hashes `0xa71311c2` then `0x4a4c3e4f` verify metadata-only placement changes.

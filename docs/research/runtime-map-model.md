@@ -448,3 +448,8 @@ Chase tic fine-position movement now reaches scene refs and the door-aware rende
 ## Cycle update: live AI chase fine-position rendering
 
 `wl_step_live_actor_ai_tick` now aggregates chase actors through `wl_step_chase_actors_tics` after the normal live tick and patrol pass. The live AI result reports chase counts while scene refs preserve fine-position chase coordinates.
+
+
+## Cycle update: live AI chase remainder rendering
+
+Multi-frame chase remainder now reaches the live AI render boundary. Two half-tile live AI frames first emit fine chase refs, then consume the accumulated full tile and clear actor remainder.

@@ -389,3 +389,8 @@ Headless presentation coverage now includes fine-position chase movement. The sc
 ## Cycle update: live AI chase fine-position rendering
 
 Headless presentation coverage now includes chase movement emitted by the live AI wrapper, proving chase fine coordinates survive the live tick/ref/render path before SDL3.
+
+
+## Cycle update: live AI chase remainder rendering
+
+Headless presentation now verifies multi-frame chase movement from fine placement to tile-centered placement. This gives SDL3 a deterministic chase animation input before any display dependency.
