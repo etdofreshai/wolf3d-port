@@ -323,3 +323,8 @@ Actor death animation now advances through a runtime tick seam. `wl_step_live_ac
 ## Cycle update: full combat death tick orchestration
 
 Full live combat can now advance active actor death animation in the same frame boundary. `wl_step_live_full_combat_death_tick` returns the normal full-combat transition plus optional death-tick output, so a previously killed guard can progress to its final corpse-frame override while the mutable model still carries spawned drops and ordinary scene refs.
+
+
+## Cycle update: full combat death-tick final scene
+
+The combined full-combat/death-tick frame result now reaches the renderer. A guard killed by full combat is advanced to final death state, its returned source `95` / chunk `201` ref is decoded locally, and `wl_render_runtime_door_camera_scene_view` produces stable hash `0x81c10dcf`. This proves the combined frame boundary can drive final corpse presentation without a hand-built scene ref.

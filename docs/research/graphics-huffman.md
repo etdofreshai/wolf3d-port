@@ -284,3 +284,8 @@ The renderer-facing death animation path now has a live ticking contract. Each t
 ## Cycle update: full combat death tick orchestration
 
 Death animation ticking is now available from the full combat frame boundary that future SDL3 presentation will consume. The combined result exposes ordinary combat output plus the current death-frame ref/final-frame override, keeping presentation state deterministic and headless.
+
+
+## Cycle update: full combat death-tick final scene
+
+The final corpse frame emitted by combined full-combat/death ticking now reaches indexed scene composition. The renderer test decodes the local VSWAP sprite and produces hash `0x81c10dcf`, giving future SDL3 presentation a deterministic headless contract for finalized actor deaths.

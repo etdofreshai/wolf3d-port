@@ -3372,6 +3372,12 @@ static int check_wl6(const char *dir) {
     wl_game_model full_death_model;
     memset(&full_death_model, 0, sizeof(full_death_model));
     full_death_model.tilemap[7 + 4 * WL_MAP_SIDE] = 2;
+    full_death_model.actor_count = 6;
+    full_death_model.actors[5].kind = WL_ACTOR_GUARD;
+    full_death_model.actors[5].mode = WL_ACTOR_STAND;
+    full_death_model.actors[5].shootable = 1;
+    full_death_model.actors[5].tile_x = 5;
+    full_death_model.actors[5].tile_y = 4;
     wl_actor_desc full_death_actor_desc;
     memset(&full_death_actor_desc, 0, sizeof(full_death_actor_desc));
     full_death_actor_desc.kind = WL_ACTOR_GUARD;
@@ -3441,6 +3447,73 @@ static int check_wl6(const char *dir) {
                                                    runtime_view_strips, sprites,
                                                    wall_heights) == 0);
     CHECK(fnv1a_bytes(canvas.pixels, canvas.pixel_count) == live_death_scene_hash);
+
+    wl_actor_death_state active_full_death = full_death_tick.actor_death;
+    wl_live_full_combat_death_tick_result combined_death_tick;
+    CHECK(wl_step_live_full_combat_death_tick(&full_death_player,
+                                              &full_death_model,
+                                              use_wall, use_info,
+                                              WL_MAP_PLANE_WORDS,
+                                              &full_death_motion, 0, 0,
+                                              0x10000, 0, WL_DIR_EAST, 0, 0,
+                                              NULL, NULL, NULL, 0,
+                                              0, dirinfo.header.sprite_start,
+                                              WL_DIFFICULTY_HARD,
+                                              0, 0, 0, 0, 0, 0,
+                                              0, 0, 0, 0, 0, 45,
+                                              5, &active_full_death,
+                                              &combined_death_tick) == 0);
+    CHECK(combined_death_tick.combat.actor_damaged == 0);
+    CHECK(combined_death_tick.combat.drop_static_index == 1);
+    CHECK(combined_death_tick.death_stepped == 1);
+    CHECK(combined_death_tick.death.step.finished == 1);
+    CHECK(combined_death_tick.death.death_ref.source_index == 95);
+    CHECK(combined_death_tick.death.death_ref.vswap_chunk_index == 201);
+    CHECK(combined_death_tick.death.final_frame_applied == 1);
+    CHECK(full_death_model.actors[5].scene_source_override == 1);
+    CHECK(full_death_model.actors[5].scene_source_index == 95);
+    const uint16_t final_death_chunks[] = {
+        combined_death_tick.death.death_ref.vswap_chunk_index,
+    };
+    unsigned char final_death_pixels[WL_MAP_PLANE_WORDS];
+    wl_indexed_surface final_death_surface;
+    CHECK(wl_decode_vswap_sprite_surface_cache(vswap_path, &sprite_dirinfo,
+                                               final_death_chunks, 1, 0,
+                                               final_death_pixels,
+                                               sizeof(final_death_pixels),
+                                               &final_death_surface) == 0);
+    const wl_indexed_surface *final_death_surfaces[] = { &final_death_surface };
+    const uint32_t final_death_scene_x[] = {
+        combined_death_tick.death.death_ref.world_x,
+    };
+    const uint32_t final_death_scene_y[] = {
+        combined_death_tick.death.death_ref.world_y,
+    };
+    const uint16_t final_death_scene_ids[] = {
+        combined_death_tick.death.death_ref.source_index,
+    };
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_runtime_door_camera_scene_view(&full_death_model,
+                                                   dirinfo.header.sprite_start,
+                                                   (3u << 16) + 0x8000u,
+                                                   (4u << 16) + 0x8000u,
+                                                   0x10000, 0, 0, -0x8000, 39, 1, 3,
+                                                   runtime_door_pages,
+                                                   runtime_door_page_sizes, 106,
+                                                   final_death_surfaces,
+                                                   final_death_scene_x,
+                                                   final_death_scene_y,
+                                                   final_death_scene_ids,
+                                                   1, 0,
+                                                   &canvas, runtime_dirs_x,
+                                                   runtime_dirs_y, runtime_view_hits,
+                                                   runtime_view_strips, sprites,
+                                                   wall_heights) == 0);
+    uint32_t combined_death_scene_hash = fnv1a_bytes(canvas.pixels, canvas.pixel_count);
+    CHECK(combined_death_scene_hash == 0x81c10dcf);
+    CHECK(combined_death_scene_hash != live_death_scene_hash);
 
     const wl_indexed_surface *bad_scene_sprites[] = { NULL };
     CHECK(wl_render_camera_scene_view(wall_plane, WL_MAP_PLANE_WORDS, player_x,
@@ -3999,6 +4072,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-live-full-combat-death-tick tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-live-full-combat-death-tick-scene tests passed for %s\n", dir);
     return 0;
 }

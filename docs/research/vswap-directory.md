@@ -272,3 +272,8 @@ Death-frame VSWAP metadata now updates through a live tick boundary. The guard d
 ## Cycle update: full combat death tick orchestration
 
 The combined full-combat/death-tick path now carries active death VSWAP metadata through the same frame result as combat state. The guard test finalizes a full-combat death to source `95` / chunk `201` on actor model index `9`, preserving metadata-only verification.
+
+
+## Cycle update: full combat death-tick final scene
+
+Full-combat/death-tick output now consumes final death-frame VSWAP data in the scene renderer. The final guard corpse ref uses source `95` / chunk `201` and renders with committed hash `0x81c10dcf`, keeping decoded sprite bytes local.

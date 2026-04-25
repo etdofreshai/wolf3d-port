@@ -191,3 +191,8 @@ Actor death animation now has a live tick seam. `wl_step_live_actor_death_tick` 
 ## Full combat plus death tick
 
 Full live combat orchestration can now also advance an active death animation in the same frame. `wl_step_live_full_combat_death_tick` wraps the existing full-combat frame transition, then optionally calls the live actor death tick to return current death refs and apply final corpse-frame overrides. The guard coverage preserves a spawned drop while finalizing model index `9` to source `95` / VSWAP chunk `201`.
+
+
+## Full combat death-tick final scene
+
+The combined full-combat/death-tick output now drives headless scene rendering. The test kills a guard, advances the active death state through `wl_step_live_full_combat_death_tick`, decodes the returned final corpse-frame VSWAP chunk, and renders it through `wl_render_runtime_door_camera_scene_view` with stable scene hash `0x81c10dcf`.
