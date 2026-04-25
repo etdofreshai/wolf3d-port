@@ -161,6 +161,16 @@ typedef struct wl_map_wall_hit {
     uint16_t scaled_height;
 } wl_map_wall_hit;
 
+typedef struct wl_projected_sprite {
+    uint16_t source_index;
+    uint8_t visible;
+    int32_t view_x;
+    uint16_t scaled_height;
+    uint32_t distance;
+    int32_t trans_x;
+    int32_t trans_y;
+} wl_projected_sprite;
+
 typedef struct wl_vswap_shape_metadata {
     wl_vswap_chunk_kind kind;
     uint16_t width;
@@ -229,6 +239,12 @@ int wl_render_scaled_sprite(const wl_indexed_surface *sprite, wl_indexed_surface
                             int x_center, uint16_t scaled_height,
                             unsigned char transparent_index,
                             const uint16_t *wall_heights, size_t wall_height_count);
+int wl_project_world_sprite(uint16_t source_index, uint32_t origin_x, uint32_t origin_y,
+                            uint32_t sprite_x, uint32_t sprite_y,
+                            int32_t forward_x, int32_t forward_y,
+                            uint16_t view_width, uint16_t view_height,
+                            wl_projected_sprite *out);
+int wl_sort_projected_sprites_far_to_near(wl_projected_sprite *sprites, size_t count);
 int wl_render_wall_strip_viewport(const wl_wall_strip *strips, size_t strip_count,
                                   wl_indexed_surface *dst);
 int wl_build_map_wall_hit(const uint16_t *wall_plane, size_t wall_count,

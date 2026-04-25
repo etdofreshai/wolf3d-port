@@ -1072,6 +1072,105 @@ int wl_render_scaled_sprite(const wl_indexed_surface *sprite, wl_indexed_surface
     return 0;
 }
 
+static int32_t fixed_mul_shift(int32_t a, int32_t b) {
+    return (int32_t)(((int64_t)a * (int64_t)b) >> 16);
+}
+
+static uint32_t projection_scale_for_width(uint16_t view_width) {
+    const uint32_t mindist = 0x5800u;
+    const uint32_t focallength = 0x5700u;
+    const uint32_t viewglobal = 0x10000u;
+    uint32_t halfview = (uint32_t)view_width / 2u;
+    return (uint32_t)(((uint64_t)halfview * (uint64_t)(focallength + mindist)) /
+                      (viewglobal / 2u));
+}
+
+int wl_project_world_sprite(uint16_t source_index, uint32_t origin_x, uint32_t origin_y,
+                            uint32_t sprite_x, uint32_t sprite_y,
+                            int32_t forward_x, int32_t forward_y,
+                            uint16_t view_width, uint16_t view_height,
+                            wl_projected_sprite *out) {
+    const int32_t mindist = 0x5800;
+    const int32_t focallength = 0x5700;
+    const int32_t actorsize = 0x4000;
+    const int32_t tileglobal = 1 << 16;
+
+    if (!out || view_width == 0 || view_height == 0 ||
+        (forward_x == 0 && forward_y == 0) ||
+        origin_x >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        origin_y >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        sprite_x >= ((uint32_t)WL_MAP_SIDE << 16) ||
+        sprite_y >= ((uint32_t)WL_MAP_SIDE << 16)) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->source_index = source_index;
+
+    int32_t focal_x = (int32_t)origin_x - fixed_mul_shift(focallength, forward_x);
+    int32_t focal_y = (int32_t)origin_y - fixed_mul_shift(focallength, forward_y);
+    int32_t gx = (int32_t)sprite_x - focal_x;
+    int32_t gy = (int32_t)sprite_y - focal_y;
+
+    int32_t forward_distance = fixed_mul_shift(gx, forward_x) + fixed_mul_shift(gy, forward_y);
+    int32_t lateral = fixed_mul_shift(gy, forward_x) - fixed_mul_shift(gx, forward_y);
+    int32_t nx = forward_distance - actorsize;
+
+    out->trans_x = nx;
+    out->trans_y = lateral;
+    if (nx < mindist) {
+        out->visible = 0;
+        return 0;
+    }
+
+    uint32_t scale = projection_scale_for_width(view_width);
+    int32_t centerx = (int32_t)view_width / 2 - 1;
+    out->view_x = (int16_t)(centerx + (int32_t)(((int64_t)lateral * scale) / nx));
+    uint32_t denominator = (uint32_t)nx >> 8;
+    if (denominator == 0) {
+        denominator = 1;
+    }
+    uint32_t heightnumerator = (uint32_t)(((uint64_t)tileglobal * scale) >> 6);
+    uint32_t projected = heightnumerator / denominator;
+    if (projected == 0) {
+        projected = 1;
+    }
+    if (projected > UINT16_MAX) {
+        projected = UINT16_MAX;
+    }
+    out->scaled_height = (uint16_t)projected;
+    out->distance = (uint32_t)nx;
+    out->visible = 1;
+    return 0;
+}
+
+int wl_sort_projected_sprites_far_to_near(wl_projected_sprite *sprites, size_t count) {
+    if (!sprites && count != 0) {
+        return -1;
+    }
+
+    for (size_t i = 1; i < count; ++i) {
+        wl_projected_sprite key = sprites[i];
+        size_t j = i;
+        while (j > 0) {
+            int move = 0;
+            if (!sprites[j - 1].visible && key.visible) {
+                move = 1;
+            } else if (sprites[j - 1].visible == key.visible &&
+                       sprites[j - 1].distance < key.distance) {
+                move = 1;
+            }
+            if (!move) {
+                break;
+            }
+            sprites[j] = sprites[j - 1];
+            --j;
+        }
+        sprites[j] = key;
+    }
+    return 0;
+}
+
 int wl_render_wall_strip_viewport(const wl_wall_strip *strips, size_t strip_count,
                                   wl_indexed_surface *dst) {
     if (!strips || !dst || strip_count == 0) {
