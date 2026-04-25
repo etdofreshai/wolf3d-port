@@ -126,7 +126,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-pushwall-scene tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-pushwall-offset tests passed for game-files/base
 ```
 
 ## Cycle update: chunk reads and shape metadata
@@ -207,3 +207,8 @@ Moving pushwall tiles now have a dedicated wall-hit descriptor path. `wl_build_p
 ## Cycle update: live pushwall scene occlusion
 
 Added deterministic renderer coverage for moving pushwalls using real local VSWAP wall page data. The live scene test maps a moving pushwall marker to wall page `73`, checks that it occludes a sprite behind it, then clears the marker and confirms the sprite-visible scene hash changes. Assertions remain metadata/hash-only and do not commit proprietary wall or sprite bytes.
+
+
+## Cycle update: pushwall sub-tile render offsets
+
+Moving pushwall render coverage now includes the `pwallpos` sub-tile offset. Runtime rays still select VSWAP wall page/texture metadata from the moving tile marker, but their emitted distance/projected height now shifts with `pwallpos`, producing a distinct deterministic scene hash for a partially moved pushwall. Assertions remain hash/metadata-only; decoded VSWAP wall bytes stay local.

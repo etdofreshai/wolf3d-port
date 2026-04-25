@@ -61,3 +61,8 @@ The test only reads local data files and commits metadata/hash/semantic/model/ch
 ## Live pushwall scene occlusion
 
 The runtime door-aware scene renderer is now covered with moving pushwall state as well as doors. A headless test supplies the real VSWAP wall page for a moving pushwall tile, renders a sprite behind that wall, then clears the moving marker and verifies a distinct visible-through state. This keeps live `tilemap` pushwall state on the wall+sprite presentation path without introducing SDL3 or committing decoded asset bytes.
+
+
+## Pushwall sub-tile render offsets
+
+`wl_cast_runtime_fixed_wall_ray` now applies the original moving-pushwall `pwallpos` offset to hit distance before projected wall height is computed. Texture-column selection still follows `HitHorizPWall` / `HitVertPWall`, while the adjusted distance makes the live renderer observe sub-tile pushwall movement. Headless scene coverage now distinguishes the same pushwall at `pwallpos=0`, at `pwallpos=16`, and after the marker is cleared.

@@ -84,7 +84,7 @@ rm -rf build
 mkdir -p build
 cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c tests/test_assets.c -o build/test_assets
 cd ../.. && source/modern-c-sdl3/build/test_assets
-asset/decompression/semantics/model/vswap/runtime-pushwall-scene tests passed for game-files/base
+asset/decompression/semantics/model/vswap/runtime-pushwall-offset tests passed for game-files/base
 ```
 
 ## Cycle update: door-area connectivity
@@ -193,3 +193,8 @@ Added `wl_build_pushwall_wall_hit`, a renderer-facing descriptor seam for moving
 ## Cycle update: live pushwall scene occlusion
 
 Extended headless runtime-scene coverage so moving pushwall markers participate in wall+sprite occlusion, not just ray metadata. The test feeds page `73` from local VSWAP data for a `37 | 0xc0` moving marker, renders a sprite behind the pushwall through `wl_render_runtime_door_camera_scene_view`, then clears the marker and verifies a different visible-through scene hash (`0x81e9da6b` blocked vs `0xf80cfa3f` open). This proves live pushwall `tilemap` state is reaching the same door-aware wall+sprite renderer intended to back future SDL3 presentation.
+
+
+## Cycle update: pushwall sub-tile render offsets
+
+`wl_cast_runtime_fixed_wall_ray` now applies moving-pushwall `pwallpos` to ray distance for live pushwall hits, mirroring the original `HitHorizPWall` / `HitVertPWall` adjustment of the hit intercept before `CalcHeight()`. The texture column remains derived from the original intercept; the sub-tile offset affects distance and projected height. Tests assert a direct east pushwall ray moving from distance `0x8000` to `0x0c000` at `pwallpos=16`, plus a live scene case where the same moving marker changes from hash `0x81e9da6b` to shifted hash `0x83a0d93b` before clearing to `0xf80cfa3f`.

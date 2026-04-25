@@ -709,9 +709,19 @@ int wl_cast_runtime_fixed_wall_ray(const wl_game_model *model,
                                            step_sign, x, scaled_height, out) != 0) {
                 return -1;
             }
+            uint32_t offset = (uint32_t)pwall_pos << 10;
+            uint32_t axis_delta = (step_sign == -1) ? (0x10000u - offset) : offset;
+            int64_t axis_direction = (side == WL_WALL_SIDE_VERTICAL) ? direction_x : direction_y;
+            int64_t adjusted_hit_t = hit_t;
+            if (axis_direction < 0) {
+                axis_direction = -axis_direction;
+            }
+            if (axis_direction != 0) {
+                adjusted_hit_t += ((int64_t)axis_delta << 16) / axis_direction;
+            }
             out->tile_x = (uint16_t)tile_x;
             out->tile_y = (uint16_t)tile_y;
-            out->distance = (hit_t > UINT32_MAX) ? UINT32_MAX : (uint32_t)hit_t;
+            out->distance = (adjusted_hit_t > UINT32_MAX) ? UINT32_MAX : (uint32_t)adjusted_hit_t;
             return 0;
         } else if (tile & 0x80u) {
             uint16_t door_index = (uint16_t)(tile & 0x7fu);

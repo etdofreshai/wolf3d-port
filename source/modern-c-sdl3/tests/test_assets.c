@@ -1499,6 +1499,19 @@ static int check_wl6(const char *dir) {
     CHECK(door_hit.source_tile == 37);
     CHECK(door_hit.wall_page_index == 73);
     CHECK(door_hit.texture_offset == 0x0800);
+    CHECK(door_hit.distance == 0x8000u);
+    ray_model.pushwall_motion.active = 1;
+    ray_model.pushwall_motion.pos = 16;
+    CHECK(wl_cast_runtime_fixed_wall_ray(&ray_model, dirinfo.header.sprite_start,
+                                         (4u << 16) + 0x8000u,
+                                         (4u << 16) + 0x8000u,
+                                         0x10000, 0, 33, 128,
+                                         &door_hit) == 0);
+    CHECK(door_hit.wall_page_index == 73);
+    CHECK(door_hit.texture_offset == 0x0800);
+    CHECK(door_hit.distance == 0x0c000u);
+    ray_model.pushwall_motion.active = 0;
+    ray_model.pushwall_motion.pos = 0;
 
     wl_map_wall_hit pwall_hit;
     CHECK(wl_build_pushwall_wall_hit(37, WL_WALL_SIDE_HORIZONTAL,
@@ -2157,6 +2170,28 @@ static int check_wl6(const char *dir) {
     CHECK(runtime_view_hits[0].tile_x == 5);
     CHECK(runtime_view_hits[0].wall_page_index == 73);
     uint32_t pushwall_scene_hash = fnv1a_bytes(canvas.pixels, canvas.pixel_count);
+    ray_model.pushwall_motion.pos = 16;
+    memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
+    CHECK(wl_wrap_indexed_surface(80, 128, canvas_pixels, sizeof(canvas_pixels),
+                                  &canvas) == 0);
+    CHECK(wl_render_runtime_door_camera_scene_view(&ray_model,
+                                                   dirinfo.header.sprite_start,
+                                                   (3u << 16) + 0x8000u,
+                                                   (4u << 16) + 0x8000u,
+                                                   0x10000, 0, 0, -0x8000, 39, 1, 3,
+                                                   runtime_door_pages,
+                                                   runtime_door_page_sizes, 106,
+                                                   runtime_scene_sprites,
+                                                   pushwall_scene_x, pushwall_scene_y,
+                                                   runtime_scene_ids, 1, 0,
+                                                   &canvas, runtime_dirs_x,
+                                                   runtime_dirs_y, runtime_view_hits,
+                                                   runtime_view_strips, sprites,
+                                                   wall_heights) == 0);
+    CHECK(runtime_view_hits[0].tile_x == 5);
+    CHECK(runtime_view_hits[0].distance == 0x1c000u);
+    CHECK(runtime_view_hits[0].scaled_height == 123);
+    uint32_t shifted_pushwall_scene_hash = fnv1a_bytes(canvas.pixels, canvas.pixel_count);
     ray_model.tilemap[5 + 4 * WL_MAP_SIDE] = 0;
     ray_model.pushwall_motion.active = 0;
     memset(canvas_pixels, 0x2a, sizeof(canvas_pixels));
@@ -2179,6 +2214,7 @@ static int check_wl6(const char *dir) {
     CHECK(runtime_view_hits[0].tile_x == 7);
     uint32_t open_pushwall_scene_hash = fnv1a_bytes(canvas.pixels, canvas.pixel_count);
     CHECK(pushwall_scene_hash == 0x81e9da6b);
+    CHECK(shifted_pushwall_scene_hash == 0x83a0d93b);
     CHECK(open_pushwall_scene_hash == 0xf80cfa3f);
 
     const wl_indexed_surface *bad_scene_sprites[] = { NULL };
@@ -2690,6 +2726,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-pushwall-scene tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-pushwall-offset tests passed for %s\n", dir);
     return 0;
 }
