@@ -945,3 +945,68 @@ int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_spri
     *out_count = count;
     return 0;
 }
+
+static int path_step(wl_direction dir, int *dx, int *dy) {
+    if (!dx || !dy) {
+        return -1;
+    }
+    *dx = 0;
+    *dy = 0;
+    switch (dir) {
+    case WL_DIR_NORTH:
+        *dy = -1;
+        return 0;
+    case WL_DIR_EAST:
+        *dx = 1;
+        return 0;
+    case WL_DIR_SOUTH:
+        *dy = 1;
+        return 0;
+    case WL_DIR_WEST:
+        *dx = -1;
+        return 0;
+    case WL_DIR_NONE:
+        return 0;
+    default:
+        return -1;
+    }
+}
+
+int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
+                             uint16_t tile_y, wl_direction current_dir,
+                             wl_direction *out_dir) {
+    if (!model || !out_dir || tile_x >= WL_MAP_SIDE || tile_y >= WL_MAP_SIDE ||
+        current_dir > WL_DIR_NONE) {
+        return -1;
+    }
+
+    wl_direction selected = current_dir;
+    for (size_t i = 0; i < model->path_marker_count; ++i) {
+        if (model->path_markers[i].x == tile_x && model->path_markers[i].y == tile_y) {
+            selected = model->path_markers[i].dir <= WL_DIR_WEST ?
+                model->path_markers[i].dir : WL_DIR_NONE;
+            break;
+        }
+    }
+
+    int dx = 0;
+    int dy = 0;
+    if (path_step(selected, &dx, &dy) != 0) {
+        return -1;
+    }
+    if (selected == WL_DIR_NONE) {
+        *out_dir = WL_DIR_NONE;
+        return 0;
+    }
+
+    int next_x = (int)tile_x + dx;
+    int next_y = (int)tile_y + dy;
+    if (next_x < 0 || next_y < 0 || next_x >= WL_MAP_SIDE || next_y >= WL_MAP_SIDE ||
+        model->tilemap[map_index((size_t)next_x, (size_t)next_y)] != 0) {
+        *out_dir = WL_DIR_NONE;
+        return 0;
+    }
+
+    *out_dir = selected;
+    return 0;
+}

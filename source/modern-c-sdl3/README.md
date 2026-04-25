@@ -201,3 +201,8 @@ The combined full-combat/death-tick output now drives headless scene rendering. 
 ## Broadened actor death final refs
 
 Final corpse-frame actor refs now have coverage beyond the guard path. Headless tests finalize officer, SS, dog, mutant, and boss death states and verify the scene-ref source/VSWAP metadata emitted by `wl_collect_scene_sprite_refs`: officer `284/390`, SS `183/289`, dog `134/240`, mutant `233/339`, and boss `303/409`.
+
+
+## Patrol path direction seam
+
+`wl_select_path_direction` now models the first `SelectPathDir` decision boundary for patrol actors in a headless-friendly way: path markers at the actor tile can replace the current direction, the next tile is checked against the mutable runtime tilemap, blocked/out-of-bounds moves return `WL_DIR_NONE`, and unsupported diagonal marker arrows are preserved in metadata but do not yet produce movement.

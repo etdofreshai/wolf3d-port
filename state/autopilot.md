@@ -3860,3 +3860,40 @@ Next likely move:
 - Start the supervisor only after ET explicitly says to start.
 
 Blockers: none for headless work.
+
+
+
+## Cycle 2026-04-25 08:41 CDT
+
+Action taken:
+
+- Added the first deterministic patrol path-direction selection seam for runtime actors.
+- Implemented `wl_select_path_direction`, which consumes `wl_game_model` path markers and the mutable tilemap: a marker at the actor tile can replace the current direction, blocked/out-of-bounds next tiles return `WL_DIR_NONE`, and unsupported diagonal markers are preserved as metadata but do not yet drive movement.
+- Added headless tests for real WL6 map marker metadata plus synthetic cardinal marker redirection, blocked next-tile handling, current-direction continuation, and invalid input rejection.
+- Updated README, map/runtime research notes, and this state file.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+cc -Iinclude -std=c11 -Wall -Wextra -Wpedantic -Werror -O2 -g src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o build/test_assets
+cd ../.. && source/modern-c-sdl3/build/test_assets
+asset/decompression/semantics/model/vswap/runtime-patrol-path-selection tests passed for game-files/base
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add or commit proprietary game data; only metadata/state assertions are committed.
+
+Next likely move:
+
+- Extend the patrol seam into a small `T_Path`-style movement tick, broaden multi-map runtime scene coverage, or add SDL3 presentation once SDL3 development files are available.
+
+Blockers: none for headless work; SDL3 presentation cannot be verified here until SDL3 development files are available.

@@ -1171,6 +1171,32 @@ static int check_wl6(const char *dir) {
     CHECK(model.path_markers[0].x == 2);
     CHECK(model.path_markers[0].y == 33);
     CHECK(model.path_markers[0].source_tile == 96);
+    CHECK(model.path_markers[0].dir == (wl_direction)(96 - WL_ICONARROWS));
+    wl_direction selected_path_dir = WL_DIR_NONE;
+    CHECK(wl_select_path_direction(&model, model.path_markers[0].x,
+                                   model.path_markers[0].y, WL_DIR_EAST,
+                                   &selected_path_dir) == 0);
+    CHECK(selected_path_dir == WL_DIR_NONE);
+    wl_game_model path_model;
+    memset(&path_model, 0, sizeof(path_model));
+    path_model.path_marker_count = 1;
+    path_model.path_markers[0].x = 5;
+    path_model.path_markers[0].y = 5;
+    path_model.path_markers[0].source_tile = WL_ICONARROWS + WL_DIR_WEST;
+    path_model.path_markers[0].dir = WL_DIR_WEST;
+    CHECK(wl_select_path_direction(&path_model, 5, 5, WL_DIR_EAST,
+                                   &selected_path_dir) == 0);
+    CHECK(selected_path_dir == WL_DIR_WEST);
+    path_model.tilemap[4 + 5 * WL_MAP_SIDE] = 1;
+    CHECK(wl_select_path_direction(&path_model, 5, 5, WL_DIR_EAST,
+                                   &selected_path_dir) == 0);
+    CHECK(selected_path_dir == WL_DIR_NONE);
+    path_model.tilemap[4 + 5 * WL_MAP_SIDE] = 0;
+    CHECK(wl_select_path_direction(&path_model, 6, 5, WL_DIR_WEST,
+                                   &selected_path_dir) == 0);
+    CHECK(selected_path_dir == WL_DIR_WEST);
+    CHECK(wl_select_path_direction(&path_model, WL_MAP_SIDE, 5, WL_DIR_WEST,
+                                   &selected_path_dir) == -1);
     CHECK(model.pushwall_count == 5);
     CHECK(model.secret_total == 5);
     CHECK(model.pushwalls[0].x == 10);
@@ -4133,6 +4159,6 @@ int main(void) {
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
-    printf("asset/decompression/semantics/model/vswap/runtime-map-boss-scene-broaden tests passed for %s\n", dir);
+    printf("asset/decompression/semantics/model/vswap/runtime-patrol-path-selection tests passed for %s\n", dir);
     return 0;
 }

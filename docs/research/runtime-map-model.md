@@ -333,3 +333,8 @@ The combined full-combat/death-tick frame result now reaches the renderer. A gua
 ## Cycle update: broadened actor death final refs
 
 Final-frame actor ref replacement now covers representative non-guard enemy classes. Finished death states for officer, SS, dog, mutant, and boss are applied to runtime actor slots and collected through the normal scene-ref path, preserving model index/world position while changing source/VSWAP metadata to the final corpse frame.
+
+
+## Cycle update: patrol path direction seam
+
+Added the first deterministic patrol-path selection helper. `wl_select_path_direction` consumes runtime path markers plus the mutable tilemap to mirror the `SelectPathDir` shape before full `T_Path`: markers can redirect patrol actors, blocked next tiles yield `WL_DIR_NONE`, and diagonal arrow markers remain metadata-only until diagonal movement is modeled.

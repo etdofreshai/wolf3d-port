@@ -88,3 +88,8 @@ asset/decompression/semantics tests passed for game-files/base
 ## Next step
 
 Use these semantic counts as the oracle for a minimal `SetupGameLevel`-style runtime map model: decoded tilemap, door descriptors, static descriptors, player spawn, and difficulty-filtered actor descriptors. Keep it pure C/headless before SDL3 presentation.
+
+
+## Cycle update: patrol path direction seam
+
+Path marker metadata now feeds a small runtime decision seam. Cardinal `ICONARROWS` markers can select an actor patrol direction, while existing non-cardinal markers are preserved for later diagonal/path fidelity instead of being forced into an invalid cardinal move.
