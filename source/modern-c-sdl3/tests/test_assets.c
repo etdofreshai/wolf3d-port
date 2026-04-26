@@ -6446,6 +6446,14 @@ static int check_audio_wl6(const char *dir) {
     CHECK(audiot_size == 320209);
     CHECK(audio.offsets[audio.chunk_count] == audiot_size);
     CHECK(wl_validate_audio_header_offsets(&audio, audiot_size) == 0);
+    {
+        uint32_t saved_offset = audio.offsets[17];
+        audio.offsets[17] = audio.offsets[16] - 1u;
+        CHECK(wl_validate_audio_header_offsets(&audio, audiot_size) == -1);
+        CHECK(wl_read_audio_chunk(audiot_path, &audio, 16,
+                                  chunk_buf, sizeof(chunk_buf), &chunk_bytes) == -1);
+        audio.offsets[17] = saved_offset;
+    }
     audio.offsets[audio.chunk_count] = (uint32_t)audiot_size + 1u;
     CHECK(wl_validate_audio_header_offsets(&audio, audiot_size) == -1);
     CHECK(wl_read_audio_chunk(audiot_path, &audio, audio.chunk_count - 1u,
