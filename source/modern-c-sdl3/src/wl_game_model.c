@@ -1670,6 +1670,39 @@ int wl_summarize_actor_patrol_paths(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_actor_chase_paths(const wl_game_model *model,
+                                   uint16_t player_x, uint16_t player_y,
+                                   int search_forward,
+                                   wl_actor_chase_path_summary *out) {
+    if (!model || !out || player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->mode != WL_ACTOR_CHASE) {
+            continue;
+        }
+        ++out->chase_count;
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+        wl_actor_chase_dir_result selected;
+        if (wl_select_chase_direction(model, actor->tile_x, actor->tile_y,
+                                      player_x, player_y, actor->dir,
+                                      search_forward, &selected) != 0) {
+            ++out->invalid_position_count;
+        } else if (!selected.selected) {
+            ++out->path_blocked_count;
+        } else {
+            ++out->path_selected_count;
+        }
+    }
+    return 0;
+}
+
 int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
                             uint16_t player_x, uint16_t player_y,
                             int search_forward, wl_actor_wake_result *out) {
