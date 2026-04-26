@@ -1858,6 +1858,7 @@ int wl_step_live_player_fire_tick(wl_player_gameplay_state *state,
     if (fire_button) {
         out->fire_attempted = 1;
         if (state->attack_frame > 0) {
+            out->fire_blocked_by_active_attack = 1;
             out->fire_attack.frame_before = state->attack_frame;
             out->fire_attack.frame_after = state->attack_frame;
             out->fire_attack.attack_frame_before = state->attack_frame;
