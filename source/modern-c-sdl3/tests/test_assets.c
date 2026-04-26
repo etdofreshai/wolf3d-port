@@ -2771,6 +2771,23 @@ static int check_wl6(const char *dir) {
     chase_summary_model.actors[0].dir = WL_DIR_NORTH;
     chase_summary_model.actors[1].dir = WL_DIR_EAST;
     chase_summary_model.actors[2].dir = (wl_direction)99;
+    chase_summary_model.actors[0].source_tile = 108;
+    chase_summary_model.actors[1].source_tile = 112;
+    chase_summary_model.actors[2].source_tile = 108;
+    chase_summary_model.actors[3].source_tile = 0;
+    chase_summary_model.actor_count = 4;
+    wl_actor_source_tile_summary synthetic_source_tiles;
+    CHECK(wl_summarize_actor_source_tiles(&chase_summary_model,
+                                          &synthetic_source_tiles) == 0);
+    CHECK(wl_summarize_actor_source_tiles(NULL, &synthetic_source_tiles) == -1);
+    CHECK(wl_summarize_actor_source_tiles(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_source_tiles.actor_count == 4);
+    CHECK(synthetic_source_tiles.unique_source_tile_count == 3);
+    CHECK(synthetic_source_tiles.zero_source_tile_count == 1);
+    CHECK(synthetic_source_tiles.min_source_tile == 0);
+    CHECK(synthetic_source_tiles.max_source_tile == 112);
+
+    chase_summary_model.actor_count = 3;
     wl_actor_direction_summary synthetic_directions;
     CHECK(wl_summarize_actor_directions(&chase_summary_model,
                                         &synthetic_directions) == 0);

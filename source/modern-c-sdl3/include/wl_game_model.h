@@ -330,6 +330,14 @@ typedef struct wl_actor_player_adjacency_summary {
     size_t invalid_position_count;
 } wl_actor_player_adjacency_summary;
 
+typedef struct wl_actor_source_tile_summary {
+    size_t actor_count;
+    size_t unique_source_tile_count;
+    size_t zero_source_tile_count;
+    uint16_t min_source_tile;
+    uint16_t max_source_tile;
+} wl_actor_source_tile_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -498,6 +506,8 @@ int wl_summarize_actor_collision_tiles(const wl_game_model *model,
 int wl_summarize_actor_player_adjacency(const wl_game_model *model,
                                         uint16_t player_x, uint16_t player_y,
                                         wl_actor_player_adjacency_summary *out);
+int wl_summarize_actor_source_tiles(const wl_game_model *model,
+                                    wl_actor_source_tile_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);
