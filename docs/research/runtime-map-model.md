@@ -638,3 +638,7 @@ Added `wl_summarize_actor_door_proximity()` as a small non-mutating actor placem
 ## Cycle update: actor-facing summary
 
 Added `wl_summarize_actor_facing()` as a non-mutating actor/player-facing diagnostic for runtime AI/chase characterization. It buckets actors into facing-player, facing-away, perpendicular, same-tile, no-direction, invalid-direction, and invalid-position counts relative to a supplied player tile, giving future chase/contact behavior a deterministic SDL-free summary before mutating actor state.
+
+## Cycle update: actor combat-class summary
+
+Added `wl_summarize_actor_combat_classes()` as a compact non-mutating actor descriptor diagnostic. It groups actors into infantry, dog, boss, ghost, corpse, invalid-kind, shootable, kill-credit, and noncombat buckets so future combat/death/drop orchestration can sanity-check class metadata before mutating live actor state. Synthetic headless coverage pins each bucket and null-argument rejection.

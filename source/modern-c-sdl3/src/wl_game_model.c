@@ -2244,6 +2244,52 @@ int wl_summarize_actor_source_tiles(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_actor_combat_classes(const wl_game_model *model,
+                                      wl_actor_combat_class_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        switch (actor->kind) {
+        case WL_ACTOR_GUARD:
+        case WL_ACTOR_OFFICER:
+        case WL_ACTOR_SS:
+        case WL_ACTOR_MUTANT:
+            ++out->infantry_count;
+            break;
+        case WL_ACTOR_DOG:
+            ++out->dog_count;
+            break;
+        case WL_ACTOR_BOSS:
+            ++out->boss_count;
+            break;
+        case WL_ACTOR_GHOST:
+            ++out->ghost_count;
+            break;
+        case WL_ACTOR_DEAD_GUARD:
+            ++out->corpse_count;
+            break;
+        default:
+            ++out->invalid_kind_count;
+            break;
+        }
+
+        if (actor->shootable) {
+            ++out->shootable_count;
+        }
+        if (actor->counts_for_kill_total) {
+            ++out->kill_credit_count;
+        }
+        if (!actor->shootable && !actor->counts_for_kill_total) {
+            ++out->noncombat_count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_actor_directions(const wl_game_model *model,
                                   wl_actor_direction_summary *out) {
     if (!model || !out) {
