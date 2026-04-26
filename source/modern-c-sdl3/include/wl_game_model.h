@@ -224,6 +224,10 @@ typedef struct wl_game_model {
     wl_pushwall_motion pushwall_motion;
 
     size_t unknown_info_tiles;
+    uint32_t unknown_info_hash;
+    uint16_t first_unknown_info_tile;
+    uint16_t first_unknown_info_x;
+    uint16_t first_unknown_info_y;
 } wl_game_model;
 
 int wl_build_game_model(const uint16_t *wall_plane, const uint16_t *info_plane,

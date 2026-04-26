@@ -120,6 +120,8 @@ static int add_door(wl_game_model *out, const uint16_t *wall_plane,
     return 0;
 }
 
+static void record_unknown_info_tile(wl_game_model *out, size_t x, size_t y, uint16_t tile);
+
 static int add_static(wl_game_model *out, size_t x, size_t y, uint16_t tile) {
     if (out->static_count >= WL_MAX_STATS) {
         return -1;
@@ -129,7 +131,7 @@ static int add_static(wl_game_model *out, size_t x, size_t y, uint16_t tile) {
     int bonus = 0;
     int treasure = 0;
     if (static_traits(type, &blocking, &bonus, &treasure) != 0) {
-        ++out->unknown_info_tiles;
+        record_unknown_info_tile(out, x, y, tile);
         return 0;
     }
 
@@ -260,6 +262,27 @@ static int add_marker(wl_marker_desc *markers, size_t max_markers, size_t *count
     marker->source_tile = tile;
     marker->dir = dir;
     return 0;
+}
+
+static uint32_t fnv1a_u16(uint32_t hash, uint16_t value) {
+    hash ^= (uint32_t)(value & 0xffu);
+    hash *= 16777619u;
+    hash ^= (uint32_t)(value >> 8);
+    hash *= 16777619u;
+    return hash;
+}
+
+static void record_unknown_info_tile(wl_game_model *out, size_t x, size_t y, uint16_t tile) {
+    if (out->unknown_info_tiles == 0) {
+        out->first_unknown_info_tile = tile;
+        out->first_unknown_info_x = (uint16_t)x;
+        out->first_unknown_info_y = (uint16_t)y;
+        out->unknown_info_hash = 2166136261u;
+    }
+    out->unknown_info_hash = fnv1a_u16(out->unknown_info_hash, tile);
+    out->unknown_info_hash = fnv1a_u16(out->unknown_info_hash, (uint16_t)x);
+    out->unknown_info_hash = fnv1a_u16(out->unknown_info_hash, (uint16_t)y);
+    ++out->unknown_info_tiles;
 }
 
 static int boss_tile_direction(uint16_t tile, wl_direction *dir) {
@@ -440,7 +463,7 @@ int wl_build_game_model(const uint16_t *wall_plane, const uint16_t *info_plane,
                     continue;
                 }
                 if (match == -1) {
-                    ++out->unknown_info_tiles;
+                    record_unknown_info_tile(out, x, y, tile);
                 }
             }
         }
