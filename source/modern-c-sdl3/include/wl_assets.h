@@ -935,6 +935,10 @@ int wl_describe_imf_playback_position_from_chunk(const wl_audio_chunk_metadata *
                                                  const unsigned char *chunk, size_t chunk_size,
                                                  uint32_t tick_position,
                                                  wl_imf_playback_position *out);
+int wl_describe_imf_looped_playback_position_from_chunk(const wl_audio_chunk_metadata *metadata,
+                                                        const unsigned char *chunk, size_t chunk_size,
+                                                        uint32_t tick_position,
+                                                        wl_imf_playback_position *out);
 int wl_advance_imf_playback_cursor(const unsigned char *chunk, size_t chunk_size,
                                    size_t start_command, uint16_t start_delay_elapsed,
                                    uint32_t tick_delta,
