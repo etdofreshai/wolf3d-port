@@ -1841,6 +1841,36 @@ int wl_step_patrol_actors_tics(wl_game_model *model, uint32_t speed,
     return 0;
 }
 
+static size_t remaining_capacity(size_t count, size_t capacity) {
+    return count < capacity ? capacity - count : 0u;
+}
+
+int wl_summarize_model_capacity(const wl_game_model *model,
+                                wl_model_capacity_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->door_count = model->door_count;
+    out->static_count = model->static_count;
+    out->actor_count = model->actor_count;
+    out->path_marker_count = model->path_marker_count;
+    out->pushwall_count = model->pushwall_count;
+    out->door_remaining = remaining_capacity(model->door_count, WL_MAX_DOORS);
+    out->static_remaining = remaining_capacity(model->static_count, WL_MAX_STATS);
+    out->actor_remaining = remaining_capacity(model->actor_count, WL_MAX_ACTORS);
+    out->path_marker_remaining = remaining_capacity(model->path_marker_count, WL_MAX_PATH_MARKERS);
+    out->pushwall_remaining = remaining_capacity(model->pushwall_count, WL_MAX_PUSHWALLS);
+    out->door_full = model->door_count >= WL_MAX_DOORS ? 1u : 0u;
+    out->static_full = model->static_count >= WL_MAX_STATS ? 1u : 0u;
+    out->actor_full = model->actor_count >= WL_MAX_ACTORS ? 1u : 0u;
+    out->path_marker_full = model->path_marker_count >= WL_MAX_PATH_MARKERS ? 1u : 0u;
+    out->pushwall_full = model->pushwall_count >= WL_MAX_PUSHWALLS ? 1u : 0u;
+    out->unknown_info_tiles = model->unknown_info_tiles;
+    return 0;
+}
+
 int wl_count_actors_by_kind(const wl_game_model *model, size_t *counts,
                             size_t count_capacity) {
     if (!model || !counts || count_capacity <= (size_t)WL_ACTOR_DEAD_GUARD) {

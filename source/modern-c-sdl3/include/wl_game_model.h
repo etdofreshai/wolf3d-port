@@ -605,6 +605,25 @@ typedef struct wl_path_marker_chain_summary {
     uint16_t first_dangling_marker_index;
 } wl_path_marker_chain_summary;
 
+typedef struct wl_model_capacity_summary {
+    size_t door_count;
+    size_t static_count;
+    size_t actor_count;
+    size_t path_marker_count;
+    size_t pushwall_count;
+    size_t door_remaining;
+    size_t static_remaining;
+    size_t actor_remaining;
+    size_t path_marker_remaining;
+    size_t pushwall_remaining;
+    uint8_t door_full;
+    uint8_t static_full;
+    uint8_t actor_full;
+    uint8_t path_marker_full;
+    uint8_t pushwall_full;
+    size_t unknown_info_tiles;
+} wl_model_capacity_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -730,6 +749,8 @@ int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_spri
 int wl_collect_spear_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_sprite_start,
                                        wl_scene_sprite_ref *refs, size_t max_refs,
                                        size_t *out_count);
+int wl_summarize_model_capacity(const wl_game_model *model,
+                                wl_model_capacity_summary *out);
 int wl_count_actors_by_kind(const wl_game_model *model, size_t *counts,
                             size_t count_capacity);
 int wl_count_actors_by_mode(const wl_game_model *model, size_t *counts,
