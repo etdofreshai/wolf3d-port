@@ -1831,6 +1831,7 @@ int wl_summarize_actor_engagements(const wl_game_model *model,
 
     memset(out, 0, sizeof(*out));
     out->nearest_threat_index = UINT16_MAX;
+    out->farthest_threat_index = UINT16_MAX;
     out->nearest_threat_distance = UINT16_MAX;
 
     for (size_t i = 0; i < model->actor_count; ++i) {
@@ -1868,10 +1869,16 @@ int wl_summarize_actor_engagements(const wl_game_model *model,
             out->nearest_threat_distance = distance;
             out->nearest_threat_index = (uint16_t)i;
         }
+        if (out->farthest_threat_index == UINT16_MAX ||
+            distance > out->farthest_threat_distance) {
+            out->farthest_threat_distance = distance;
+            out->farthest_threat_index = (uint16_t)i;
+        }
     }
 
     if (out->threat_count == 0) {
         out->nearest_threat_distance = 0;
+        out->farthest_threat_distance = 0;
     }
     return 0;
 }
