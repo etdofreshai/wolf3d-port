@@ -654,3 +654,7 @@ Added `wl_summarize_static_states`, a non-mutating runtime static diagnostic for
 ## Cycle update: runtime static/player distance summary
 
 Added `wl_summarize_static_player_distances`, a non-mutating static-object diagnostic that mirrors the actor/player distance seam for pickup and render preparation. It reports nearest/farthest static descriptors by tile Manhattan distance, invalid static coordinates, and inactive statics skipped when callers request active-only coverage. Synthetic headless tests cover all result fields, null/invalid-player rejection, active-only filtering, and the no-considered-static sentinel case.
+
+## Cycle update: runtime door state summary
+
+Added `wl_summarize_door_states()` as a compact non-mutating diagnostic for live door progression. It partitions door descriptors by orientation, lock state, action state, moving/partial-open state, invalid action values, and maximum door position, giving future collision/presentation orchestration a deterministic headless sanity check before mutating door state.

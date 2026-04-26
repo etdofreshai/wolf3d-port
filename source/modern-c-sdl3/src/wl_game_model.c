@@ -2432,6 +2432,55 @@ int wl_summarize_static_player_distances(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_door_states(const wl_game_model *model,
+                             wl_door_state_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->door_count; ++i) {
+        const wl_door_desc *door = &model->doors[i];
+        if (door->vertical) {
+            ++out->vertical_count;
+        } else {
+            ++out->horizontal_count;
+        }
+        if (door->lock) {
+            ++out->locked_count;
+        } else {
+            ++out->unlocked_count;
+        }
+        if (door->position > 0 && door->position < 0xffffu) {
+            ++out->partially_open_count;
+        }
+        if (door->position > out->max_position) {
+            out->max_position = door->position;
+        }
+
+        switch (door->action) {
+        case WL_DOOR_OPEN:
+            ++out->open_count;
+            break;
+        case WL_DOOR_CLOSED:
+            ++out->closed_count;
+            break;
+        case WL_DOOR_OPENING:
+            ++out->opening_count;
+            ++out->moving_count;
+            break;
+        case WL_DOOR_CLOSING:
+            ++out->closing_count;
+            ++out->moving_count;
+            break;
+        default:
+            ++out->invalid_action_count;
+            break;
+        }
+    }
+    return 0;
+}
+
 int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
                             uint16_t player_x, uint16_t player_y,
                             int search_forward, wl_actor_wake_result *out) {
