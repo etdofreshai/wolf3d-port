@@ -5026,6 +5026,21 @@ static int check_wl6(const char *dir) {
                                             wide_rgba,
                                             WIDE_RGBA_REJECT_WIDTH * 4u,
                                             &present_rgba_upload) == -1);
+    wl_present_frame_descriptor wide_present = present_frame;
+    wide_present.texture.width = (uint16_t)WIDE_RGBA_REJECT_WIDTH;
+    wide_present.texture.height = 1;
+    wide_present.texture.pitch = (uint16_t)WIDE_RGBA_REJECT_WIDTH;
+    wide_present.texture.pixel_bytes = WIDE_RGBA_REJECT_WIDTH;
+    wide_present.texture.pixels = wide_pixels;
+    wide_present.viewport_width = (uint16_t)WIDE_RGBA_REJECT_WIDTH;
+    wide_present.viewport_height = 1;
+    CHECK(wl_present_frame_rgba_size(&wide_present, &present_rgba_size) == -1);
+    CHECK(wl_describe_present_frame_rgba_upload(&wide_present, wide_rgba,
+                                                WIDE_RGBA_REJECT_WIDTH * 4u,
+                                                &present_rgba_upload) == -1);
+    CHECK(wl_expand_present_frame_to_rgba(&wide_present, wide_rgba,
+                                          WIDE_RGBA_REJECT_WIDTH * 4u,
+                                          &present_rgba_upload) == -1);
     free(wide_rgba);
     free(wide_pixels);
     enum { PRESENT_PADDED_PITCH = 80u * 4u + 16u };
