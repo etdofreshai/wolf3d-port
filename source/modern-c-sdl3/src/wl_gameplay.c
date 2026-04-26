@@ -1489,7 +1489,9 @@ int wl_use_player_facing(wl_player_gameplay_state *state, wl_game_model *model,
     size_t target = gameplay_map_index(out->check_x, out->check_y);
     out->tile_before = model->tilemap[target];
     out->tile_after = out->tile_before;
-    if (info_plane[target] == WL_PUSHABLETILE) {
+    out->wall_plane_value = wall_plane[target];
+    out->info_plane_value = info_plane[target];
+    if (out->info_plane_value == WL_PUSHABLETILE) {
         out->kind = WL_USE_PUSHWALL;
         for (size_t i = 0; i < model->pushwall_count; ++i) {
             if (model->pushwalls[i].x == out->check_x && model->pushwalls[i].y == out->check_y) {

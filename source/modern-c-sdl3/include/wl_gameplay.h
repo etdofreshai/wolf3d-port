@@ -251,6 +251,8 @@ typedef struct wl_player_use_result {
     uint16_t check_y;
     uint16_t tile_before;
     uint16_t tile_after;
+    uint16_t wall_plane_value;
+    uint16_t info_plane_value;
     wl_direction dir;
     uint8_t elevator_ok;
     uint8_t locked;
