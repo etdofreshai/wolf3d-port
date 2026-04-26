@@ -779,6 +779,16 @@ typedef struct wl_runtime_tile_center_summary {
     size_t center_other_marker_count;
 } wl_runtime_tile_center_summary;
 
+typedef struct wl_runtime_tile_diagonal_summary {
+    size_t northwest_southeast_solid_wall_count;
+    size_t northwest_southeast_clear_floor_count;
+    size_t northwest_southeast_marker_count;
+    size_t northeast_southwest_solid_wall_count;
+    size_t northeast_southwest_clear_floor_count;
+    size_t northeast_southwest_marker_count;
+    size_t center_overlap_count;
+} wl_runtime_tile_diagonal_summary;
+
 typedef struct wl_model_capacity_summary {
     size_t door_count;
     size_t static_count;
@@ -943,6 +953,8 @@ int wl_summarize_runtime_tile_quadrants(const wl_game_model *model,
                                         wl_runtime_tile_quadrant_summary *out);
 int wl_summarize_runtime_tile_center(const wl_game_model *model,
                                      wl_runtime_tile_center_summary *out);
+int wl_summarize_runtime_tile_diagonals(
+    const wl_game_model *model, wl_runtime_tile_diagonal_summary *out);
 int wl_summarize_model_capacity(const wl_game_model *model,
                                 wl_model_capacity_summary *out);
 int wl_summarize_unknown_info_tiles(const wl_game_model *model,
