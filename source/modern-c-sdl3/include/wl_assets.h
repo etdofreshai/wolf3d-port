@@ -706,6 +706,11 @@ int wl_tick_sound_channel(const wl_sound_channel_state *current,
                           const unsigned char *chunk, size_t chunk_size,
                           uint32_t sample_delta,
                           wl_sound_channel_tick_result *out);
+int wl_tick_sound_channel_from_chunk(const wl_sound_channel_state *current,
+                                     const wl_audio_chunk_metadata *metadata,
+                                     const unsigned char *chunk, size_t chunk_size,
+                                     uint32_t sample_delta,
+                                     wl_sound_channel_tick_result *out);
 int wl_describe_pc_speaker_sound(const unsigned char *chunk, size_t chunk_size,
                                   wl_pc_speaker_sound_metadata *out);
 int wl_get_pc_speaker_sound_sample(const unsigned char *chunk, size_t chunk_size,

@@ -6194,6 +6194,30 @@ static int check_audio_wl6(const char *dir) {
     CHECK(sound_tick.state.sample_position == 8);
     CHECK(sound_tick.samples_consumed == 1);
     CHECK(sound_tick.completed == 1);
+    sound_channel.active = 1;
+    sound_channel.sound_index = 0;
+    sound_channel.priority = 1;
+    sound_channel.sample_position = 6;
+    CHECK(wl_tick_sound_channel_from_chunk(&sound_channel, &audio_meta,
+                                           chunk_buf, chunk_bytes, 2,
+                                           &sound_tick) == 0);
+    CHECK(sound_tick.state.active == 0);
+    CHECK(sound_tick.state.sample_position == 8);
+    CHECK(sound_tick.samples_consumed == 2);
+    CHECK(sound_tick.completed == 1);
+    CHECK(wl_tick_sound_channel_from_chunk(&sound_channel, NULL,
+                                           chunk_buf, chunk_bytes, 1,
+                                           &sound_tick) == -1);
+    audio_meta.is_empty = 1;
+    CHECK(wl_tick_sound_channel_from_chunk(&sound_channel, &audio_meta,
+                                           chunk_buf, chunk_bytes, 1,
+                                           &sound_tick) == -1);
+    audio_meta.is_empty = 0;
+    audio_meta.kind = WL_AUDIO_CHUNK_MUSIC;
+    CHECK(wl_tick_sound_channel_from_chunk(&sound_channel, &audio_meta,
+                                           chunk_buf, chunk_bytes, 1,
+                                           &sound_tick) == -1);
+    audio_meta.kind = WL_AUDIO_CHUNK_PC_SPEAKER;
     memset(&sound_channel, 0, sizeof(sound_channel));
     CHECK(wl_tick_sound_channel(&sound_channel, WL_AUDIO_CHUNK_PC_SPEAKER,
                                 chunk_buf, chunk_bytes, 5, &sound_tick) == 0);
