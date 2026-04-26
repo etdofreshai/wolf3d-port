@@ -899,6 +899,24 @@ typedef struct wl_runtime_player_facing_static_summary {
     uint8_t has_first_static;
 } wl_runtime_player_facing_static_summary;
 
+typedef struct wl_runtime_player_interaction_summary {
+    wl_direction direction;
+    uint16_t nearest_kind;
+    uint16_t nearest_index;
+    uint16_t nearest_distance;
+    uint8_t has_nearest;
+    uint8_t nearest_is_actor;
+    uint8_t nearest_is_static;
+    uint8_t nearest_actor_shootable;
+    uint8_t nearest_static_blocking;
+    uint8_t nearest_static_bonus;
+    uint8_t map_blocked_before_nearest;
+    uint8_t has_map_blocking_tile;
+    uint16_t map_blocking_tile;
+    uint16_t map_blocking_x;
+    uint16_t map_blocking_y;
+} wl_runtime_player_interaction_summary;
+
 typedef struct wl_model_capacity_summary {
     size_t door_count;
     size_t static_count;
@@ -1081,6 +1099,8 @@ int wl_summarize_runtime_player_facing_actors(
     const wl_game_model *model, wl_runtime_player_facing_actor_summary *out);
 int wl_summarize_runtime_player_facing_statics(
     const wl_game_model *model, wl_runtime_player_facing_static_summary *out);
+int wl_summarize_runtime_player_interaction(
+    const wl_game_model *model, wl_runtime_player_interaction_summary *out);
 int wl_summarize_model_capacity(const wl_game_model *model,
                                 wl_model_capacity_summary *out);
 int wl_summarize_unknown_info_tiles(const wl_game_model *model,
