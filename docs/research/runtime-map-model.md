@@ -718,3 +718,7 @@ Added `wl_summarize_path_marker_player_distances()` as a non-mutating AI patrol 
 ## Cycle update: runtime path-marker tile occupancy summary
 
 Added `wl_summarize_path_marker_tile_occupancy()` as a non-mutating patrol-marker occupancy diagnostic. It counts valid unique marker tiles, duplicate marker placements, invalid marker coordinates, and total marker descriptors so future patrol-path setup can detect overlapping arrows before mutating actor path state.
+
+## Cycle update: runtime path-marker chain summary
+
+Added `wl_summarize_path_marker_chains()` as a non-mutating patrol-marker continuity diagnostic. It follows each valid marker's outgoing arrow one tile, reports whether another marker is linked there, and buckets the linked marker's direction as straight, left, right, or reverse while preserving dangling/no-direction/invalid counters. This gives future patrol progression work a compact headless check for arrow-chain continuity before mutating actor path state.

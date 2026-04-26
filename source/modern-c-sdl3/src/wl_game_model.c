@@ -1300,6 +1300,91 @@ int wl_summarize_path_marker_exits(
     return 0;
 }
 
+
+static wl_direction opposite_dir(wl_direction dir);
+
+static int find_path_marker_at(const wl_game_model *model, uint16_t x, uint16_t y,
+                               size_t *out_index) {
+    for (size_t i = 0; i < model->path_marker_count; ++i) {
+        const wl_marker_desc *marker = &model->path_markers[i];
+        if (marker->x == x && marker->y == y) {
+            if (out_index) {
+                *out_index = i;
+            }
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static int path_turn_bucket(wl_direction from, wl_direction to,
+                            wl_path_marker_chain_summary *out) {
+    if (to > WL_DIR_WEST) {
+        return -1;
+    }
+    if (from == to) {
+        ++out->straight_count;
+    } else if (opposite_dir(from) == to) {
+        ++out->reverse_turn_count;
+    } else if ((from == WL_DIR_NORTH && to == WL_DIR_WEST) ||
+               (from == WL_DIR_WEST && to == WL_DIR_SOUTH) ||
+               (from == WL_DIR_SOUTH && to == WL_DIR_EAST) ||
+               (from == WL_DIR_EAST && to == WL_DIR_NORTH)) {
+        ++out->left_turn_count;
+    } else {
+        ++out->right_turn_count;
+    }
+    return 0;
+}
+
+int wl_summarize_path_marker_chains(
+    const wl_game_model *model, wl_path_marker_chain_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->first_dangling_marker_index = UINT16_MAX;
+    for (size_t i = 0; i < model->path_marker_count; ++i) {
+        const wl_marker_desc *marker = &model->path_markers[i];
+        if (marker->x >= WL_MAP_SIDE || marker->y >= WL_MAP_SIDE) {
+            ++out->invalid_marker_position_count;
+            continue;
+        }
+        if (marker->dir == WL_DIR_NONE) {
+            ++out->no_direction_count;
+            continue;
+        }
+
+        int dx = 0;
+        int dy = 0;
+        if (path_step(marker->dir, &dx, &dy) != 0) {
+            ++out->invalid_direction_count;
+            continue;
+        }
+
+        const int next_x = (int)marker->x + dx;
+        const int next_y = (int)marker->y + dy;
+        size_t next_index = 0;
+        if (next_x < 0 || next_y < 0 || next_x >= WL_MAP_SIDE ||
+            next_y >= WL_MAP_SIDE ||
+            !find_path_marker_at(model, (uint16_t)next_x, (uint16_t)next_y,
+                                 &next_index)) {
+            ++out->dangling_exit_count;
+            if (out->first_dangling_marker_index == UINT16_MAX) {
+                out->first_dangling_marker_index = (uint16_t)i;
+            }
+            continue;
+        }
+
+        ++out->linked_marker_count;
+        if (path_turn_bucket(marker->dir, model->path_markers[next_index].dir, out) != 0) {
+            ++out->invalid_direction_count;
+        }
+    }
+    return 0;
+}
+
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir) {
