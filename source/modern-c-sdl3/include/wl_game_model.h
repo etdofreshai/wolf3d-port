@@ -417,6 +417,16 @@ typedef struct wl_static_player_distance_summary {
     uint16_t farthest_distance;
 } wl_static_player_distance_summary;
 
+typedef struct wl_static_player_adjacency_summary {
+    size_t same_tile_count;
+    size_t cardinal_adjacent_count;
+    size_t diagonal_adjacent_count;
+    size_t same_row_or_column_count;
+    size_t distant_count;
+    size_t inactive_count;
+    size_t invalid_position_count;
+} wl_static_player_adjacency_summary;
+
 typedef struct wl_door_state_summary {
     size_t vertical_count;
     size_t horizontal_count;
@@ -698,6 +708,10 @@ int wl_summarize_static_player_distances(const wl_game_model *model,
                                          uint16_t player_x, uint16_t player_y,
                                          int active_only,
                                          wl_static_player_distance_summary *out);
+int wl_summarize_static_player_adjacency(const wl_game_model *model,
+                                         uint16_t player_x, uint16_t player_y,
+                                         int active_only,
+                                         wl_static_player_adjacency_summary *out);
 int wl_summarize_door_states(const wl_game_model *model,
                              wl_door_state_summary *out);
 int wl_summarize_door_timing(const wl_game_model *model,

@@ -521,3 +521,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Runtime pushwall source-tile summary
 
 `wl_summarize_pushwall_source_tiles` reports pushwall marker source-tile provenance without mutating runtime state. It counts the original info-plane marker tile `98`, duplicate/unique source values, and zero/unexpected source tiles so future pushwall setup and diagnostics can distinguish valid secrets from malformed markers headlessly.
+
+## Runtime static/player adjacency summary
+
+`wl_summarize_static_player_adjacency` mirrors the actor/player adjacency diagnostic for static descriptors, giving pickup/render code an SDL-free same-tile/adjacent/row-column/distant proximity summary with active-only filtering and invalid-coordinate accounting.
