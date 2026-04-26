@@ -642,6 +642,12 @@ typedef struct wl_sound_channel_progress {
     uint8_t completed;
 } wl_sound_channel_progress;
 
+typedef struct wl_sound_channel_schedule_progress_result {
+    wl_sound_channel_schedule_result schedule;
+    wl_sound_channel_progress progress;
+    uint8_t described;
+} wl_sound_channel_schedule_progress_result;
+
 typedef struct wl_imf_music_command {
     uint8_t reg;
     uint8_t value;
@@ -782,6 +788,12 @@ int wl_schedule_describe_sound_channel_position_from_chunk(
     const wl_audio_chunk_metadata *metadata,
     const unsigned char *chunk, size_t chunk_size,
     wl_sound_channel_schedule_position_result *out);
+int wl_schedule_describe_sound_channel_progress_from_chunk(
+    const wl_sound_channel_state *current,
+    size_t candidate_chunk,
+    const wl_audio_chunk_metadata *metadata,
+    const unsigned char *chunk, size_t chunk_size,
+    wl_sound_channel_schedule_progress_result *out);
 int wl_describe_sound_sample_count_from_chunk(const wl_audio_chunk_metadata *metadata,
                                              const unsigned char *chunk, size_t chunk_size,
                                              size_t *out_sample_count);
