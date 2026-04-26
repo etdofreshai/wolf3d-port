@@ -77,6 +77,8 @@ The broader WL6 runtime-ref sprite set now also flows through `wl_render_runtime
 
 `wl_step_live_tick` is a small deterministic orchestration seam for future frame updates. It combines player motion/pickup probing, optional use-button dispatch, door progression, pushwall progression, and palette-shift advancement into one headless call. Current tests cover a movement tick that picks up food and emits a white palette shift, plus a use tick that starts and advances a pushwall across its first block boundary.
 
+The use-button result now reports keyed-door requirements directly: `required_key` records the zero-based key bit for locked runtime doors and `has_required_key` shows whether the current player state can open it. This keeps future HUD/status feedback and SDL3 input presentation from re-deriving lock metadata after the headless use dispatch has already identified the target door.
+
 
 ## Live tick palette upload
 
