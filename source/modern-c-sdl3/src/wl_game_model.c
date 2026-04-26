@@ -2062,6 +2062,44 @@ int wl_summarize_actor_collision_tiles(const wl_game_model *model,
     return 0;
 }
 
+
+int wl_summarize_actor_player_adjacency(const wl_game_model *model,
+                                        uint16_t player_x, uint16_t player_y,
+                                        wl_actor_player_adjacency_summary *out) {
+    if (!model || !out || player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+
+        const uint16_t dx = actor->tile_x > player_x ?
+            (uint16_t)(actor->tile_x - player_x) :
+            (uint16_t)(player_x - actor->tile_x);
+        const uint16_t dy = actor->tile_y > player_y ?
+            (uint16_t)(actor->tile_y - player_y) :
+            (uint16_t)(player_y - actor->tile_y);
+
+        if (dx == 0 && dy == 0) {
+            ++out->same_tile_count;
+        } else if (dx + dy == 1) {
+            ++out->cardinal_adjacent_count;
+        } else if (dx == 1 && dy == 1) {
+            ++out->diagonal_adjacent_count;
+        } else if (dx == 0 || dy == 0) {
+            ++out->same_row_or_column_count;
+        } else {
+            ++out->distant_count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_actor_directions(const wl_game_model *model,
                                   wl_actor_direction_summary *out) {
     if (!model || !out) {

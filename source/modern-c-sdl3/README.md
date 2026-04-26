@@ -472,3 +472,4 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 - Added `wl_summarize_actor_tile_occupancy` to report occupied actor tiles, stacked actors, invalid positions, and max stack depth for headless collision/progression diagnostics.
 - Runtime model diagnostics include actor spawn occupancy summaries for original spawn-tile stacking, invalid spawn coordinates, moved-from-spawn counts, and max spawn stack depth.
 - Runtime model diagnostics include actor collision-tile summaries for open, wall, door, door-adjacent, and invalid actor positions before live collision/AI mutation.
+- Runtime model diagnostics include actor/player adjacency summaries for same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, distant, and invalid actor positions before live bite/chase state mutation.

@@ -622,3 +622,7 @@ Added `wl_summarize_actor_spawn_occupancy()` as the spawn-tile sibling to live a
 ## Cycle update: actor collision-tile summary
 
 Added `wl_summarize_actor_collision_tiles()` as a small non-mutating actor placement diagnostic. It partitions valid actor positions by the runtime tilemap category under the actor (open, wall, door, door-adjacent marker) and reports invalid positions, giving future live collision/AI work a deterministic headless check for actors embedded in blocking runtime map state.
+
+## Cycle update: actor/player adjacency summary
+
+Added `wl_summarize_actor_player_adjacency()` as a small non-mutating runtime actor-state diagnostic. It partitions actors by same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, distant, and invalid-position buckets relative to a supplied player tile, giving future bite/chase/contact-damage ticks a deterministic headless proximity check before mutating actor AI state.

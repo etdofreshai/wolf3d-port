@@ -2925,6 +2925,35 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_collision_tiles.door_adjacent_tile_count == 1);
     CHECK(synthetic_collision_tiles.invalid_position_count == 1);
 
+    chase_summary_model.actor_count = 6;
+    chase_summary_model.actors[0].tile_x = 8;
+    chase_summary_model.actors[0].tile_y = 5;
+    chase_summary_model.actors[1].tile_x = 9;
+    chase_summary_model.actors[1].tile_y = 5;
+    chase_summary_model.actors[2].tile_x = 7;
+    chase_summary_model.actors[2].tile_y = 4;
+    chase_summary_model.actors[3].tile_x = 8;
+    chase_summary_model.actors[3].tile_y = 12;
+    chase_summary_model.actors[4].tile_x = 2;
+    chase_summary_model.actors[4].tile_y = 3;
+    chase_summary_model.actors[5].tile_x = WL_MAP_SIDE;
+    chase_summary_model.actors[5].tile_y = 5;
+    wl_actor_player_adjacency_summary synthetic_adjacency;
+    CHECK(wl_summarize_actor_player_adjacency(&chase_summary_model, 8, 5,
+                                              &synthetic_adjacency) == 0);
+    CHECK(wl_summarize_actor_player_adjacency(NULL, 8, 5,
+                                              &synthetic_adjacency) == -1);
+    CHECK(wl_summarize_actor_player_adjacency(&chase_summary_model, WL_MAP_SIDE, 5,
+                                              &synthetic_adjacency) == -1);
+    CHECK(wl_summarize_actor_player_adjacency(&chase_summary_model, 8, 5,
+                                              NULL) == -1);
+    CHECK(synthetic_adjacency.same_tile_count == 1);
+    CHECK(synthetic_adjacency.cardinal_adjacent_count == 1);
+    CHECK(synthetic_adjacency.diagonal_adjacent_count == 1);
+    CHECK(synthetic_adjacency.same_row_or_column_count == 1);
+    CHECK(synthetic_adjacency.distant_count == 1);
+    CHECK(synthetic_adjacency.invalid_position_count == 1);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
