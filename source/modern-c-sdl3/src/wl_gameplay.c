@@ -1180,6 +1180,12 @@ static int static_type_to_bonus_item(uint16_t type, wl_bonus_item *out) {
     case 48:
         *out = WL_BONUS_CLIP2;
         return 0;
+    case 50:
+        *out = WL_BONUS_25CLIP;
+        return 0;
+    case 52:
+        *out = WL_BONUS_SPEAR;
+        return 0;
     default:
         return -1;
     }

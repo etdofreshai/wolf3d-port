@@ -43,3 +43,7 @@ Result:
 ```text
 asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame/audio+sod-audio tests passed for /home/node/.openclaw/tmp/Wolfenstein 3D port/game-files/base
 ```
+
+## Cycle update: SOD bonus pickup mapping
+
+SOD static traits for type `50` (25-ammo clip) and type `52` (Spear pickup) now feed the same gameplay pickup seam as WL6 statics: type `50` maps to `WL_BONUS_25CLIP` with ammo capped at 99, and type `52` maps to `WL_BONUS_SPEAR` / level completion. Headless regression coverage uses synthetic active SOD statics so optional SOD classification can safely drive live pickup/removal later.

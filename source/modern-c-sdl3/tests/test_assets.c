@@ -487,6 +487,28 @@ static int check_gameplay_events(void) {
     CHECK(drop_picked_up == 1);
     CHECK(state.ammo == 4);
     CHECK(drop_model.statics[0].active == 0);
+    wl_static_desc sod_25clip_static;
+    memset(&sod_25clip_static, 0, sizeof(sod_25clip_static));
+    sod_25clip_static.type = 50;
+    sod_25clip_static.bonus = 1;
+    sod_25clip_static.active = 1;
+    state.ammo = 80;
+    CHECK(wl_try_pickup_static_bonus(&state, &sod_25clip_static,
+                                     &drop_picked_up) == 0);
+    CHECK(drop_picked_up == 1);
+    CHECK(state.ammo == 99);
+    CHECK(sod_25clip_static.active == 0);
+    wl_static_desc sod_spear_static;
+    memset(&sod_spear_static, 0, sizeof(sod_spear_static));
+    sod_spear_static.type = 52;
+    sod_spear_static.bonus = 1;
+    sod_spear_static.active = 1;
+    state.play_state = WL_PLAYER_PLAY_RUNNING;
+    CHECK(wl_try_pickup_static_bonus(&state, &sod_spear_static,
+                                     &drop_picked_up) == 0);
+    CHECK(drop_picked_up == 1);
+    CHECK(state.play_state == WL_PLAYER_PLAY_COMPLETED);
+    CHECK(sod_spear_static.active == 0);
     CHECK(wl_apply_actor_damage(&state, &actor_state, 1, &actor_damage) == -1);
 
     shooter.kind = WL_ACTOR_SS;
