@@ -1544,6 +1544,23 @@ int wl_count_actors_by_kind(const wl_game_model *model, size_t *counts,
     return 0;
 }
 
+int wl_count_actors_by_mode(const wl_game_model *model, size_t *counts,
+                            size_t count_capacity) {
+    if (!model || !counts || count_capacity <= (size_t)WL_ACTOR_GHOST_MODE) {
+        return -1;
+    }
+
+    memset(counts, 0, count_capacity * sizeof(counts[0]));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        wl_actor_mode mode = model->actors[i].mode;
+        if ((size_t)mode >= count_capacity) {
+            return -1;
+        }
+        ++counts[mode];
+    }
+    return 0;
+}
+
 int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
                             uint16_t player_x, uint16_t player_y,
                             int search_forward, wl_actor_wake_result *out) {
