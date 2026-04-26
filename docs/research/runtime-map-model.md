@@ -734,3 +734,7 @@ Added `wl_summarize_actor_door_blockers()` as a non-mutating actor/door collisio
 Added `wl_summarize_door_area_connections()` as a non-mutating diagnostic for the door area graph built during runtime-model construction. The synthetic headless case pins unique, duplicate, self-connected, invalid, and min/max area descriptors so future door/visibility progression can validate connectivity metadata without touching SDL or map assets.
 
 Added `wl_summarize_door_area_matrix()` to validate the cached door area adjacency matrix independently from the door descriptors. Synthetic coverage pins symmetric, asymmetric, and self-link matrix entries plus min/max area and max weight, keeping the door-connectivity seam headless and deterministic.
+
+## Cycle update: runtime pushwall motion path summary
+
+Added `wl_summarize_pushwall_motion_path()` as a non-mutating diagnostic for the single live moving-pushwall record. It reports whether motion is active, whether the current and next tiles are in bounds, the projected next tile coordinate, the next tilemap value, blocked/open status, and the current sub-tile motion position. Synthetic headless tests cover blocked and open next tiles, map-edge projection, inactive motion, and invalid arguments without advancing pushwall state.

@@ -3523,6 +3523,48 @@ int wl_summarize_pushwall_player_adjacency(
     return 0;
 }
 
+int wl_summarize_pushwall_motion_path(
+    const wl_game_model *model, wl_pushwall_motion_path_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    const wl_pushwall_motion *motion = &model->pushwall_motion;
+    out->active = motion->active ? 1u : 0u;
+    out->current_x = motion->x;
+    out->current_y = motion->y;
+    out->next_x = motion->x;
+    out->next_y = motion->y;
+    out->motion_pos = motion->pos;
+    if (!motion->active) {
+        return 0;
+    }
+
+    out->current_position_valid =
+        (motion->x < WL_MAP_SIDE && motion->y < WL_MAP_SIDE) ? 1u : 0u;
+
+    int dx = 0;
+    int dy = 0;
+    if (path_step(motion->dir, &dx, &dy) != 0 || motion->dir == WL_DIR_NONE) {
+        return 0;
+    }
+
+    const int next_x = (int)motion->x + dx;
+    const int next_y = (int)motion->y + dy;
+    if (next_x < 0 || next_y < 0 || next_x >= WL_MAP_SIDE || next_y >= WL_MAP_SIDE) {
+        return 0;
+    }
+
+    out->next_position_valid = 1u;
+    out->next_x = (uint16_t)next_x;
+    out->next_y = (uint16_t)next_y;
+    out->next_tile_value =
+        model->tilemap[map_index((size_t)next_x, (size_t)next_y)];
+    out->next_tile_blocked = out->next_tile_value != 0u ? 1u : 0u;
+    return 0;
+}
+
 int wl_summarize_pushwall_source_tiles(const wl_game_model *model,
                                        wl_pushwall_source_tile_summary *out) {
     if (!model || !out) {
