@@ -3665,6 +3665,42 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_door_sources.max_source_tile == 0);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.door_count = 6;
+    chase_summary_model.doors[0].area1 = 2;
+    chase_summary_model.doors[0].area2 = 3;
+    chase_summary_model.doors[1].area1 = 3;
+    chase_summary_model.doors[1].area2 = 2;
+    chase_summary_model.doors[2].area1 = 5;
+    chase_summary_model.doors[2].area2 = 5;
+    chase_summary_model.doors[3].area1 = 0;
+    chase_summary_model.doors[3].area2 = 36;
+    chase_summary_model.doors[4].area1 = WL_NUM_AREAS;
+    chase_summary_model.doors[4].area2 = 1;
+    chase_summary_model.doors[5].area1 = 7;
+    chase_summary_model.doors[5].area2 = 8;
+    wl_door_area_connection_summary synthetic_door_areas;
+    CHECK(wl_summarize_door_area_connections(&chase_summary_model,
+                                             &synthetic_door_areas) == 0);
+    CHECK(wl_summarize_door_area_connections(NULL, &synthetic_door_areas) == -1);
+    CHECK(wl_summarize_door_area_connections(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_door_areas.door_count == 6);
+    CHECK(synthetic_door_areas.connection_count == 5);
+    CHECK(synthetic_door_areas.unique_connection_count == 4);
+    CHECK(synthetic_door_areas.self_connection_count == 1);
+    CHECK(synthetic_door_areas.duplicate_connection_count == 1);
+    CHECK(synthetic_door_areas.invalid_area_count == 1);
+    CHECK(synthetic_door_areas.min_area == 0);
+    CHECK(synthetic_door_areas.max_area == 36);
+
+    chase_summary_model.door_count = 0;
+    CHECK(wl_summarize_door_area_connections(&chase_summary_model,
+                                             &synthetic_door_areas) == 0);
+    CHECK(synthetic_door_areas.connection_count == 0);
+    CHECK(synthetic_door_areas.unique_connection_count == 0);
+    CHECK(synthetic_door_areas.min_area == 0);
+    CHECK(synthetic_door_areas.max_area == 0);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.pushwall_count = 5;
     chase_summary_model.pushwalls[0].x = 2;
     chase_summary_model.pushwalls[0].y = 2;

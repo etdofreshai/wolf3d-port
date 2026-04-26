@@ -559,4 +559,6 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 
 The WL6 runtime-model sweep now covers all four difficulty levels across all 60 gameplay maps for unknown info-plane classifications, not just easy difficulty. This keeps boss/Spear-style tile classification regressions visible before future actor-state or presentation work consumes the model.
 
+`wl_summarize_door_area_connections` adds a compact read-only diagnostic for the SetupGameLevel-style door area graph. It reports valid, unique, duplicate, self, and invalid area links plus the area id span, giving future door/visibility work a small headless sanity check before mutating area connectivity at runtime.
+
 `wl_summarize_actor_door_blockers` reports actors currently occupying runtime door-center tiles, splitting shootable vs non-shootable blockers and unique/min/max blocked door indices before future close-door or AI collision mutation.

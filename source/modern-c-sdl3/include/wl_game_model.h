@@ -513,6 +513,17 @@ typedef struct wl_door_source_tile_summary {
     uint16_t max_source_tile;
 } wl_door_source_tile_summary;
 
+typedef struct wl_door_area_connection_summary {
+    size_t door_count;
+    size_t connection_count;
+    size_t unique_connection_count;
+    size_t self_connection_count;
+    size_t duplicate_connection_count;
+    size_t invalid_area_count;
+    uint8_t min_area;
+    uint8_t max_area;
+} wl_door_area_connection_summary;
+
 typedef struct wl_pushwall_state_summary {
     size_t marker_count;
     size_t invalid_marker_position_count;
@@ -857,6 +868,8 @@ int wl_summarize_door_locks(const wl_game_model *model,
                             wl_door_lock_summary *out);
 int wl_summarize_door_source_tiles(const wl_game_model *model,
                                    wl_door_source_tile_summary *out);
+int wl_summarize_door_area_connections(
+    const wl_game_model *model, wl_door_area_connection_summary *out);
 int wl_summarize_pushwall_state(const wl_game_model *model,
                                 wl_pushwall_state_summary *out);
 int wl_summarize_pushwall_player_distances(const wl_game_model *model,
