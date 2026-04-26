@@ -67,3 +67,7 @@ The optional SOD runtime-model harness now decodes the first and last `Tunnels 1
 ## Cycle update: Representative SOD scene refs decode cached sprite surfaces
 
 The optional SOD runtime-model harness now decodes the first and last Spear-aware scene refs for all representative maps (`Tunnels 1`, `Tunnel Boss`, `Death Knight`, and `Angel of Death`) through `wl_decode_vswap_sprite_surface_cache()`. Each map pins the combined cache pixel hash plus both decoded surface hashes, broadening renderer-facing coverage from the initial `Tunnels 1` smoke to boss/late-map Spear sprite refs without committing proprietary sprite bytes.
+
+## Cycle update: SOD live tick pickup/removal
+
+The live gameplay tick regression now covers SOD static pickup types after player motion, not just the direct static-bonus helper: type `50` (25-ammo clip) clamps ammo to 99 and removes the static, while type `52` (Spear pickup) sets level-completion state and removes the static. This keeps optional SOD static classification connected to the same live pickup/removal path used by WL6 gameplay.

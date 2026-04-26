@@ -2058,6 +2058,50 @@ static int check_wl6(const char *dir) {
     CHECK(pickup_state.health == 100);
     CHECK(live_tick_pickup_model.statics[0].active == 0);
 
+    memset(&live_tick_pickup_model, 0, sizeof(live_tick_pickup_model));
+    live_tick_pickup_model.static_count = 1;
+    live_tick_pickup_model.statics[0].x = 4;
+    live_tick_pickup_model.statics[0].y = 4;
+    live_tick_pickup_model.statics[0].type = 50;
+    live_tick_pickup_model.statics[0].bonus = 1;
+    live_tick_pickup_model.statics[0].active = 1;
+    CHECK(wl_init_player_gameplay_state(&pickup_state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    pickup_state.ammo = 80;
+    live_tick_motion.x = 0x3f000u;
+    live_tick_motion.y = 0x48000u;
+    live_tick_motion.tile_x = 3;
+    live_tick_motion.tile_y = 4;
+    CHECK(wl_step_live_tick(&pickup_state, &live_tick_pickup_model,
+                            use_wall, use_info, WL_MAP_PLANE_WORDS,
+                            &live_tick_motion, 0x1000, 0, 0x10000, 0,
+                            WL_DIR_EAST, 0, 0, 1, &live_tick) == 0);
+    CHECK(live_tick.motion.moved == 1);
+    CHECK(live_tick.motion.picked_up == 1);
+    CHECK(live_tick.palette.kind == WL_PALETTE_SHIFT_WHITE);
+    CHECK(pickup_state.ammo == 99);
+    CHECK(live_tick_pickup_model.statics[0].active == 0);
+
+    memset(&live_tick_pickup_model, 0, sizeof(live_tick_pickup_model));
+    live_tick_pickup_model.static_count = 1;
+    live_tick_pickup_model.statics[0].x = 4;
+    live_tick_pickup_model.statics[0].y = 4;
+    live_tick_pickup_model.statics[0].type = 52;
+    live_tick_pickup_model.statics[0].bonus = 1;
+    live_tick_pickup_model.statics[0].active = 1;
+    CHECK(wl_init_player_gameplay_state(&pickup_state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    live_tick_motion.x = 0x3f000u;
+    live_tick_motion.y = 0x48000u;
+    live_tick_motion.tile_x = 3;
+    live_tick_motion.tile_y = 4;
+    CHECK(wl_step_live_tick(&pickup_state, &live_tick_pickup_model,
+                            use_wall, use_info, WL_MAP_PLANE_WORDS,
+                            &live_tick_motion, 0x1000, 0, 0x10000, 0,
+                            WL_DIR_EAST, 0, 0, 1, &live_tick) == 0);
+    CHECK(live_tick.motion.moved == 1);
+    CHECK(live_tick.motion.picked_up == 1);
+    CHECK(pickup_state.play_state == WL_PLAYER_PLAY_COMPLETED);
+    CHECK(live_tick_pickup_model.statics[0].active == 0);
+
     wl_live_player_fire_tick_result live_fire_tick;
     CHECK(wl_init_player_gameplay_state(&pickup_state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
     pickup_state.ammo = 3;
