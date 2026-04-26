@@ -726,7 +726,7 @@ int wl_present_frame_rgba_layout(const wl_present_frame_descriptor *present,
         return -1;
     }
     const size_t pitch = width * 4u;
-    if (height > SIZE_MAX / pitch) {
+    if (pitch > UINT16_MAX || height > SIZE_MAX / pitch) {
         return -1;
     }
     if (out_pitch) {
