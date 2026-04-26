@@ -1991,6 +1991,49 @@ int wl_summarize_actor_tile_occupancy(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_actor_spawn_occupancy(const wl_game_model *model,
+                                       wl_actor_spawn_occupancy_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    uint8_t spawn_counts[WL_MAP_PLANE_WORDS];
+    memset(spawn_counts, 0, sizeof(spawn_counts));
+
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->spawn_x >= WL_MAP_SIDE || actor->spawn_y >= WL_MAP_SIDE) {
+            ++out->invalid_spawn_position_count;
+            continue;
+        }
+
+        if (actor->tile_x != actor->spawn_x || actor->tile_y != actor->spawn_y) {
+            ++out->moved_from_spawn_count;
+        }
+
+        const size_t tile_index = (size_t)actor->spawn_y * WL_MAP_SIDE + actor->spawn_x;
+        if (spawn_counts[tile_index] < UINT8_MAX) {
+            ++spawn_counts[tile_index];
+        }
+    }
+
+    for (size_t i = 0; i < WL_MAP_PLANE_WORDS; ++i) {
+        const size_t count = spawn_counts[i];
+        if (count == 0) {
+            continue;
+        }
+        ++out->occupied_spawn_tile_count;
+        if (count > out->max_spawn_stack_count) {
+            out->max_spawn_stack_count = count;
+        }
+        if (count > 1) {
+            out->stacked_spawn_actor_count += count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_actor_directions(const wl_game_model *model,
                                   wl_actor_direction_summary *out) {
     if (!model || !out) {
