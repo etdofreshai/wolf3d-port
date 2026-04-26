@@ -2778,6 +2778,43 @@ int wl_schedule_describe_sound_channel_progress_window_from_chunk(
     return 0;
 }
 
+int wl_schedule_tick_describe_sound_channel_progress_window_from_chunk(
+    const wl_sound_channel_state *current,
+    size_t candidate_chunk,
+    const wl_audio_chunk_metadata *metadata,
+    const unsigned char *chunk, size_t chunk_size,
+    uint32_t tick_sample_delta,
+    size_t window_sample_budget,
+    wl_sound_channel_schedule_tick_progress_window_result *out) {
+    wl_sound_channel_schedule_tick_result tick;
+    wl_sound_channel_progress_window progress_window;
+    if (!out || !chunk || !metadata || metadata->is_empty ||
+        (metadata->kind != WL_AUDIO_CHUNK_PC_SPEAKER &&
+         metadata->kind != WL_AUDIO_CHUNK_ADLIB) ||
+        metadata->payload_size == 0 || metadata->payload_size > chunk_size) {
+        return -1;
+    }
+    if (wl_schedule_tick_sound_channel_from_chunk(current, candidate_chunk, metadata,
+                                                  chunk, chunk_size, tick_sample_delta,
+                                                  &tick) != 0) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->tick = tick;
+    if (!tick.ticked || !tick.tick.state.active) {
+        return 0;
+    }
+    if (wl_describe_sound_channel_progress_window_from_chunk(&tick.tick.state, metadata,
+                                                             chunk, chunk_size,
+                                                             window_sample_budget,
+                                                             &progress_window) != 0) {
+        return -1;
+    }
+    out->progress_window = progress_window;
+    out->described = 1u;
+    return 0;
+}
+
 
 static int describe_sample_playback_window(size_t sample_count,
                                            int (*getter)(const unsigned char *, size_t, size_t, uint8_t *),
