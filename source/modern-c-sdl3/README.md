@@ -645,3 +645,5 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 ## Actor distance band diagnostic
 
 `wl_summarize_actor_distance_bands()` buckets runtime actors by Manhattan distance from the player into same-tile, adjacent, near, mid, far, and invalid-position groups while reporting the valid considered actor count. It can restrict the scan to shootable actors, giving future AI/combat/presentation preflight code a compact non-mutating proximity distribution without duplicating nearest/farthest selection logic.
+
+`wl_summarize_path_marker_endpoints` adds a non-mutating patrol-route topology check for path-marker source, sink, and branch-in nodes. It complements the chain and reciprocal-link summaries by pinning route starts, terminal/dangling exits, and converging marker paths before deeper actor patrol progression mutates live state.

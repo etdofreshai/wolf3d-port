@@ -1526,6 +1526,97 @@ int wl_summarize_path_marker_reciprocal_links(
     return 0;
 }
 
+int wl_summarize_path_marker_endpoints(
+    const wl_game_model *model, wl_path_marker_endpoint_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    uint16_t incoming_counts[WL_MAX_PATH_MARKERS];
+    memset(incoming_counts, 0, sizeof(incoming_counts));
+    memset(out, 0, sizeof(*out));
+    out->first_source_marker_index = UINT16_MAX;
+    out->first_sink_marker_index = UINT16_MAX;
+    out->first_branch_in_marker_index = UINT16_MAX;
+
+    for (size_t i = 0; i < model->path_marker_count; ++i) {
+        const wl_marker_desc *marker = &model->path_markers[i];
+        if (marker->x >= WL_MAP_SIDE || marker->y >= WL_MAP_SIDE) {
+            ++out->invalid_marker_position_count;
+            continue;
+        }
+        if (marker->dir == WL_DIR_NONE) {
+            ++out->no_direction_count;
+            continue;
+        }
+
+        int dx = 0;
+        int dy = 0;
+        if (path_step(marker->dir, &dx, &dy) != 0) {
+            ++out->invalid_direction_count;
+            continue;
+        }
+
+        const int next_x = (int)marker->x + dx;
+        const int next_y = (int)marker->y + dy;
+        size_t next_index = 0;
+        if (next_x < 0 || next_y < 0 || next_x >= WL_MAP_SIDE ||
+            next_y >= WL_MAP_SIDE ||
+            !find_path_marker_at(model, (uint16_t)next_x, (uint16_t)next_y,
+                                 &next_index)) {
+            ++out->dangling_exit_count;
+            continue;
+        }
+
+        ++out->linked_exit_count;
+        if (incoming_counts[next_index] != UINT16_MAX) {
+            ++incoming_counts[next_index];
+        }
+    }
+
+    for (size_t i = 0; i < model->path_marker_count; ++i) {
+        const wl_marker_desc *marker = &model->path_markers[i];
+        if (marker->x >= WL_MAP_SIDE || marker->y >= WL_MAP_SIDE) {
+            continue;
+        }
+        if (incoming_counts[i] == 0) {
+            ++out->source_marker_count;
+            if (out->first_source_marker_index == UINT16_MAX) {
+                out->first_source_marker_index = (uint16_t)i;
+            }
+        } else if (incoming_counts[i] > 1) {
+            ++out->branch_in_marker_count;
+            if (out->first_branch_in_marker_index == UINT16_MAX) {
+                out->first_branch_in_marker_index = (uint16_t)i;
+            }
+        }
+
+        if (marker->dir == WL_DIR_NONE) {
+            ++out->sink_marker_count;
+            if (out->first_sink_marker_index == UINT16_MAX) {
+                out->first_sink_marker_index = (uint16_t)i;
+            }
+            continue;
+        }
+        int dx = 0;
+        int dy = 0;
+        if (path_step(marker->dir, &dx, &dy) != 0) {
+            continue;
+        }
+        const int next_x = (int)marker->x + dx;
+        const int next_y = (int)marker->y + dy;
+        if (next_x < 0 || next_y < 0 || next_x >= WL_MAP_SIDE ||
+            next_y >= WL_MAP_SIDE ||
+            !find_path_marker_at(model, (uint16_t)next_x, (uint16_t)next_y, NULL)) {
+            ++out->sink_marker_count;
+            if (out->first_sink_marker_index == UINT16_MAX) {
+                out->first_sink_marker_index = (uint16_t)i;
+            }
+        }
+    }
+    return 0;
+}
+
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir) {

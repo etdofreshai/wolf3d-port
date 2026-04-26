@@ -5399,6 +5399,34 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_path_reciprocal.first_dangling_marker_index == 3);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.path_marker_count = 9;
+    chase_summary_model.path_markers[0] = (wl_marker_desc){10, 10, WL_ICONARROWS, WL_DIR_EAST};
+    chase_summary_model.path_markers[1] = (wl_marker_desc){11, 10, WL_ICONARROWS, WL_DIR_EAST};
+    chase_summary_model.path_markers[2] = (wl_marker_desc){12, 10, WL_ICONARROWS, WL_DIR_NONE};
+    chase_summary_model.path_markers[3] = (wl_marker_desc){20, 21, WL_ICONARROWS, WL_DIR_EAST};
+    chase_summary_model.path_markers[4] = (wl_marker_desc){21, 22, WL_ICONARROWS, WL_DIR_NORTH};
+    chase_summary_model.path_markers[5] = (wl_marker_desc){21, 21, WL_ICONARROWS, WL_DIR_NONE};
+    chase_summary_model.path_markers[6] = (wl_marker_desc){30, 30, WL_ICONARROWS, WL_DIR_EAST};
+    chase_summary_model.path_markers[7] = (wl_marker_desc){22, 22, WL_ICONARROWS, (wl_direction)99};
+    chase_summary_model.path_markers[8] = (wl_marker_desc){WL_MAP_SIDE, 1, WL_ICONARROWS, WL_DIR_WEST};
+    wl_path_marker_endpoint_summary synthetic_path_endpoints;
+    CHECK(wl_summarize_path_marker_endpoints(&chase_summary_model,
+                                              &synthetic_path_endpoints) == 0);
+    CHECK(wl_summarize_path_marker_endpoints(NULL, &synthetic_path_endpoints) == -1);
+    CHECK(wl_summarize_path_marker_endpoints(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_path_endpoints.source_marker_count == 5);
+    CHECK(synthetic_path_endpoints.sink_marker_count == 3);
+    CHECK(synthetic_path_endpoints.branch_in_marker_count == 1);
+    CHECK(synthetic_path_endpoints.linked_exit_count == 4);
+    CHECK(synthetic_path_endpoints.dangling_exit_count == 1);
+    CHECK(synthetic_path_endpoints.no_direction_count == 2);
+    CHECK(synthetic_path_endpoints.invalid_direction_count == 1);
+    CHECK(synthetic_path_endpoints.invalid_marker_position_count == 1);
+    CHECK(synthetic_path_endpoints.first_source_marker_index == 0);
+    CHECK(synthetic_path_endpoints.first_sink_marker_index == 2);
+    CHECK(synthetic_path_endpoints.first_branch_in_marker_index == 5);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.unknown_info_tiles = 2;
     chase_summary_model.unknown_info_hash = 0x12345678u;
     chase_summary_model.first_unknown_info_tile = 178;
