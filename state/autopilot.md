@@ -5939,3 +5939,38 @@ Next likely move:
 - Push this change and restart the wave runner excluding Opus unless ET says otherwise.
 
 Blockers: none.
+
+## Cycle 2026-04-26 12:27 CDT
+
+Cross-model review:
+
+- Reviewed commits in `10c54f5b84890d27de1b983a898fe6cc4713f191..HEAD`; only `2856b03` was present in this checkout/range. The partial chase tick actor work was code/test/doc-only, left `source/original/` untouched, preserved headless verification, and showed no asset commits or immediate correctness issue requiring repair.
+
+Action taken:
+
+- Advanced the SDL3 presentation seam from asset/sprite screenshots to a small live runtime scene.
+- Linked `test_sdl3_present` against `wl_game_model` and rendered a mutable closed-door runtime scene with a visible sprite through `wl_render_runtime_door_camera_scene_view`.
+- Routed that indexed gameplay scene through present-frame description, RGBA expansion, and SDL3 dummy-driver BMP saving.
+- Added deterministic assertions for live scene indexed/RGBA/BMP hashes while keeping generated proprietary pixels under ignored `build/`.
+- Documented the seam in `docs/research/sdl3-bootstrap.md`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame/audio+sod-audio tests passed for game-files/base
+SDL3 smoke test passed
+SDL3 Wolf live scene screenshot smoke test passed
+```
+
+Next likely move:
+
+- Route a real WL6 map/player live-tick scene (instead of the current small synthetic runtime scene) through the same SDL3 presentation artifact path, or continue deeper actor state progression.
+
+Blockers: none.

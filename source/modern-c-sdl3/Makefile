@@ -41,8 +41,8 @@ ifeq ($(HAVE_SDL3),yes)
 $(TEST_SDL3): tests/test_sdl3_smoke.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(SDL3_CFLAGS) tests/test_sdl3_smoke.c $(SDL3_LIBS) -o $@
 
-$(TEST_SDL3_PRESENT): src/wl_assets.c tests/test_sdl3_present.c include/wl_assets.h | $(BUILD_DIR)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(SDL3_CFLAGS) src/wl_assets.c tests/test_sdl3_present.c $(SDL3_LIBS) -o $@
+$(TEST_SDL3_PRESENT): src/wl_assets.c src/wl_game_model.c tests/test_sdl3_present.c include/wl_assets.h include/wl_game_model.h | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(SDL3_CFLAGS) src/wl_assets.c src/wl_game_model.c tests/test_sdl3_present.c $(SDL3_LIBS) -o $@
 
 test-sdl3: $(TEST_SDL3) $(TEST_SDL3_PRESENT)
 	$(SDL3_RUN_ENV) SDL_VIDEODRIVER=dummy ./$(TEST_SDL3)

@@ -90,3 +90,7 @@ The SDL-free presentation helpers now include `wl_expand_present_frame_to_rgba_p
 ## Cycle update: padded RGBA expansion helper
 
 `wl_expand_present_frame_to_rgba_pitched_clear_padding()` now combines indexed present-frame RGBA expansion with deterministic per-row padding initialization. This keeps future SDL3 surface/texture handoff code from duplicating the expand-then-clear sequence when using padded pitches while preserving the same pitch/size validation used by the lower-level helpers.
+
+## SDL3 live gameplay scene screenshot seam
+
+The SDL3 present smoke now routes a small runtime/gameplay-rendered scene through the headless presentation path. The test builds a mutable `wl_game_model` with a closed runtime door and a visible sprite, renders it with `wl_render_runtime_door_camera_scene_view`, describes the resulting indexed scene as a present frame, expands it to RGBA, and saves ignored `build/wolf-live-scene-present.bmp` under the dummy video driver. Assertions pin the live scene indexed hash `0x8463d905`, RGBA hash `0xd6cf31ac`, and BMP size/hash `41098` / `0x2ac02cbd` without committing decoded proprietary pixels.

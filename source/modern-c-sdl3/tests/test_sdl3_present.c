@@ -5,6 +5,7 @@
 #include <SDL3/SDL.h>
 
 #include "wl_assets.h"
+#include "wl_game_model.h"
 
 static uint32_t fnv1a_bytes(const unsigned char *data, size_t size) {
     uint32_t h = 2166136261u;
@@ -64,13 +65,29 @@ int main(void) {
     wl_indexed_surface sprite;
     wl_indexed_surface sprite_canvas;
     wl_indexed_surface atlas;
+    wl_indexed_surface live_scene;
     unsigned char palette[256 * 3];
     unsigned char red_palettes[WL_NUM_RED_SHIFTS * 256u * 3u];
     unsigned char rgba[WL_MAP_PLANE_WORDS * 4];
     unsigned char atlas_rgba[WL_MAP_SIDE * 2u * WL_MAP_SIDE * 4u];
     unsigned char sprite_rgba[WL_MAP_SIDE * 2u * WL_MAP_SIDE * 4u];
+    unsigned char live_scene_pixels[80u * 128u];
+    unsigned char live_scene_rgba[80u * 128u * 4u];
     wl_palette_shift_result shift;
     wl_present_frame_descriptor present;
+    wl_game_model live_model;
+    const unsigned char *live_wall_pages[106];
+    size_t live_wall_page_sizes[106];
+    const wl_indexed_surface *live_sprite_surfaces[1];
+    uint32_t live_sprite_x[1];
+    uint32_t live_sprite_y[1];
+    uint16_t live_sprite_ids[1];
+    int32_t live_dirs_x[3];
+    int32_t live_dirs_y[3];
+    wl_map_wall_hit live_hits[3];
+    wl_wall_strip live_strips[3];
+    wl_projected_sprite live_sprites[1];
+    uint16_t live_wall_heights[80];
     long bmp_size = 0;
     uint32_t bmp_hash = 0;
 
@@ -447,8 +464,111 @@ int main(void) {
         return 1;
     }
     SDL_DestroySurface(source);
+    source = NULL;
+
+    memset(&live_model, 0, sizeof(live_model));
+    live_model.tilemap[4u + 4u * WL_MAP_SIDE] = 0x80u;
+    live_model.door_count = 1;
+    live_model.doors[0].x = 4;
+    live_model.doors[0].y = 4;
+    live_model.doors[0].source_tile = 90;
+    live_model.doors[0].vertical = 1;
+    live_model.doors[0].lock = 0;
+    live_model.doors[0].position = 0;
+    live_model.doors[0].action = WL_DOOR_CLOSED;
+    for (size_t i = 0; i < 106u; ++i) {
+        live_wall_pages[i] = wall.pixels;
+        live_wall_page_sizes[i] = wall.pixel_count;
+    }
+    live_wall_pages[0] = wall.pixels;
+    live_wall_pages[98] = wall_1.pixels;
+    live_wall_page_sizes[98] = wall_1.pixel_count;
+    live_sprite_surfaces[0] = &sprite;
+    live_sprite_x[0] = (5u << 16) + 0x8000u;
+    live_sprite_y[0] = (4u << 16) + 0x8000u;
+    live_sprite_ids[0] = 106;
+    memset(live_scene_pixels, 0x2a, sizeof(live_scene_pixels));
+    if (wl_wrap_indexed_surface(80, 128, live_scene_pixels,
+                                sizeof(live_scene_pixels), &live_scene) != 0) {
+        fprintf(stderr, "could not wrap live scene canvas\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (wl_render_runtime_door_camera_scene_view(&live_model,
+                                                 directory.header.sprite_start,
+                                                 (3u << 16) + 0x8000u,
+                                                 (4u << 16) + 0x8000u,
+                                                 0x10000, 0, 0, -0x8000,
+                                                 39, 1, 3, live_wall_pages,
+                                                 live_wall_page_sizes, 106,
+                                                 live_sprite_surfaces, live_sprite_x,
+                                                 live_sprite_y, live_sprite_ids, 1,
+                                                 0, &live_scene, live_dirs_x,
+                                                 live_dirs_y, live_hits, live_strips,
+                                                 live_sprites, live_wall_heights) != 0) {
+        fprintf(stderr, "could not render live gameplay scene\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (fnv1a_bytes(live_scene.pixels, live_scene.pixel_count) != 0x8463d905u ||
+        live_sprites[0].source_index != 106 || live_sprites[0].surface_index != 0) {
+        fprintf(stderr, "unexpected live scene metadata: hash=0x%08x source=%u surface=%zu\n",
+                fnv1a_bytes(live_scene.pixels, live_scene.pixel_count),
+                live_sprites[0].source_index, live_sprites[0].surface_index);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    memset(&shift, 0, sizeof(shift));
+    shift.kind = WL_PALETTE_SHIFT_NONE;
+    if (wl_describe_present_frame(&live_scene, &shift, palette, NULL, 0,
+                                  NULL, 0, sizeof(palette), 6, &present) != 0 ||
+        wl_expand_present_frame_to_rgba(&present, live_scene_rgba,
+                                        sizeof(live_scene_rgba), NULL) != 0) {
+        fprintf(stderr, "could not describe/expand live scene present frame\n");
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (present.pixel_hash != 0x8463d905u ||
+        fnv1a_bytes(live_scene_rgba, sizeof(live_scene_rgba)) != 0xd6cf31acu) {
+        fprintf(stderr, "unexpected live scene present hashes: pixel=0x%08x rgba=0x%08x\n",
+                present.pixel_hash,
+                fnv1a_bytes(live_scene_rgba, sizeof(live_scene_rgba)));
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    source = SDL_CreateSurfaceFrom(present.viewport_width,
+                                   present.viewport_height,
+                                   SDL_PIXELFORMAT_RGBA32, live_scene_rgba,
+                                   present.viewport_width * 4);
+    if (!source) {
+        fprintf(stderr, "SDL_CreateSurfaceFrom live scene failed: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (!SDL_SaveBMP(source, "build/wolf-live-scene-present.bmp")) {
+        fprintf(stderr, "SDL_SaveBMP live scene failed: %s\n", SDL_GetError());
+        SDL_DestroySurface(source);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    if (file_stats("build/wolf-live-scene-present.bmp", &bmp_size, &bmp_hash) != 0 ||
+        bmp_size != 41098 || bmp_hash != 0x2ac02cbdu) {
+        fprintf(stderr, "unexpected live scene screenshot artifact stats: size=%ld hash=0x%08x\n", bmp_size, bmp_hash);
+        SDL_DestroySurface(source);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    SDL_DestroySurface(source);
     SDL_DestroyWindow(window);
     SDL_Quit();
-    puts("SDL3 Wolf sprite screenshot smoke test passed");
+    puts("SDL3 Wolf live scene screenshot smoke test passed");
     return 0;
 }
