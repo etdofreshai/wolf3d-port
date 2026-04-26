@@ -2434,6 +2434,51 @@ int wl_advance_sound_channel(const wl_sound_channel_state *current,
     return 0;
 }
 
+int wl_tick_sound_channel(const wl_sound_channel_state *current,
+                          wl_audio_chunk_kind kind,
+                          const unsigned char *chunk, size_t chunk_size,
+                          uint32_t sample_delta,
+                          wl_sound_channel_tick_result *out) {
+    wl_pc_speaker_playback_cursor pc_cursor;
+    wl_adlib_playback_cursor adlib_cursor;
+    wl_sound_channel_state state;
+    if (!current || !out || current->active > 1u ||
+        (kind != WL_AUDIO_CHUNK_PC_SPEAKER && kind != WL_AUDIO_CHUNK_ADLIB)) {
+        return -1;
+    }
+    state = *current;
+    memset(out, 0, sizeof(*out));
+    out->state = state;
+    if (!state.active) {
+        return 0;
+    }
+    if (kind == WL_AUDIO_CHUNK_PC_SPEAKER) {
+        if (wl_advance_pc_speaker_playback_cursor(chunk, chunk_size,
+                                                  state.sample_position,
+                                                  sample_delta, &pc_cursor) != 0) {
+            return -1;
+        }
+        out->state.sample_position = pc_cursor.sample_index;
+        out->samples_consumed = pc_cursor.samples_consumed;
+        out->current_sample = pc_cursor.current_sample;
+        out->completed = pc_cursor.completed;
+    } else {
+        if (wl_advance_adlib_playback_cursor(chunk, chunk_size,
+                                             state.sample_position,
+                                             sample_delta, &adlib_cursor) != 0) {
+            return -1;
+        }
+        out->state.sample_position = adlib_cursor.sample_index;
+        out->samples_consumed = adlib_cursor.samples_consumed;
+        out->current_sample = adlib_cursor.current_sample;
+        out->completed = adlib_cursor.completed;
+    }
+    if (out->completed) {
+        out->state.active = 0;
+    }
+    return 0;
+}
+
 static int describe_sample_playback_window(size_t sample_count,
                                            int (*getter)(const unsigned char *, size_t, size_t, uint8_t *),
                                            const unsigned char *chunk, size_t chunk_size,

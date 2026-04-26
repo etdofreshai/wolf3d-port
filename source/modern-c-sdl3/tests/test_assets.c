@@ -5868,6 +5868,7 @@ static int check_audio_wl6(const char *dir) {
     wl_sound_channel_state sound_channel;
     wl_sound_channel_start_result sound_start;
     wl_sound_channel_advance_result sound_advance;
+    wl_sound_channel_tick_result sound_tick;
     wl_pc_speaker_sound_metadata pc_meta;
     wl_pc_speaker_playback_cursor pc_cursor;
     wl_adlib_sound_metadata adlib_meta;
@@ -6132,6 +6133,42 @@ static int check_audio_wl6(const char *dir) {
     CHECK(wl_describe_pc_speaker_playback_position(chunk_buf, chunk_bytes, 9,
                                                    &sample_position) == -1);
 
+    memset(&sound_channel, 0, sizeof(sound_channel));
+    sound_channel.active = 1;
+    sound_channel.sound_index = 0;
+    sound_channel.priority = 1;
+    sound_channel.sample_position = 6;
+    CHECK(wl_tick_sound_channel(&sound_channel, WL_AUDIO_CHUNK_PC_SPEAKER,
+                                chunk_buf, chunk_bytes, 1, &sound_tick) == 0);
+    CHECK(sound_tick.state.active == 1);
+    CHECK(sound_tick.state.sound_index == 0);
+    CHECK(sound_tick.state.priority == 1);
+    CHECK(sound_tick.state.sample_position == 7);
+    CHECK(sound_tick.samples_consumed == 1);
+    CHECK(sound_tick.current_sample == 0x84);
+    CHECK(sound_tick.completed == 0);
+    CHECK(wl_tick_sound_channel(&sound_tick.state, WL_AUDIO_CHUNK_PC_SPEAKER,
+                                chunk_buf, chunk_bytes, 9, &sound_tick) == 0);
+    CHECK(sound_tick.state.active == 0);
+    CHECK(sound_tick.state.sample_position == 8);
+    CHECK(sound_tick.samples_consumed == 1);
+    CHECK(sound_tick.completed == 1);
+    memset(&sound_channel, 0, sizeof(sound_channel));
+    CHECK(wl_tick_sound_channel(&sound_channel, WL_AUDIO_CHUNK_PC_SPEAKER,
+                                chunk_buf, chunk_bytes, 5, &sound_tick) == 0);
+    CHECK(sound_tick.state.active == 0);
+    CHECK(sound_tick.samples_consumed == 0);
+    sound_channel.active = 2;
+    CHECK(wl_tick_sound_channel(&sound_channel, WL_AUDIO_CHUNK_PC_SPEAKER,
+                                chunk_buf, chunk_bytes, 1, &sound_tick) == -1);
+    sound_channel.active = 1;
+    CHECK(wl_tick_sound_channel(&sound_channel, WL_AUDIO_CHUNK_MUSIC,
+                                chunk_buf, chunk_bytes, 1, &sound_tick) == -1);
+    CHECK(wl_tick_sound_channel(&sound_channel, WL_AUDIO_CHUNK_PC_SPEAKER,
+                                chunk_buf, 6, 1, &sound_tick) == -1);
+    CHECK(wl_tick_sound_channel(&sound_channel, WL_AUDIO_CHUNK_PC_SPEAKER,
+                                chunk_buf, chunk_bytes, 1, NULL) == -1);
+
     /* PC speaker sound 1 (SELECTWPNSND) */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 1, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -6266,6 +6303,26 @@ static int check_audio_wl6(const char *dir) {
     CHECK(sample_position.completed == 1);
     CHECK(wl_describe_adlib_playback_position(chunk_buf, chunk_bytes, 9,
                                               &sample_position) == -1);
+
+    memset(&sound_channel, 0, sizeof(sound_channel));
+    sound_channel.active = 1;
+    sound_channel.sound_index = 87;
+    sound_channel.priority = 1;
+    sound_channel.sample_position = 5;
+    CHECK(wl_tick_sound_channel(&sound_channel, WL_AUDIO_CHUNK_ADLIB,
+                                chunk_buf, chunk_bytes, 2, &sound_tick) == 0);
+    CHECK(sound_tick.state.active == 1);
+    CHECK(sound_tick.state.sound_index == 87);
+    CHECK(sound_tick.state.sample_position == 7);
+    CHECK(sound_tick.samples_consumed == 2);
+    CHECK(sound_tick.current_sample == 0x2e);
+    CHECK(sound_tick.completed == 0);
+    CHECK(wl_tick_sound_channel(&sound_tick.state, WL_AUDIO_CHUNK_ADLIB,
+                                chunk_buf, chunk_bytes, 2, &sound_tick) == 0);
+    CHECK(sound_tick.state.active == 0);
+    CHECK(sound_tick.state.sample_position == 8);
+    CHECK(sound_tick.samples_consumed == 1);
+    CHECK(sound_tick.completed == 1);
 
     /* Digital sound 174 (first digi = STARTDIGISOUNDS) - empty in WL6 shareware */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 174, chunk_buf, sizeof(chunk_buf),
