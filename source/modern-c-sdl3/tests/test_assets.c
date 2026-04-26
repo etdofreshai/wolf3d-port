@@ -7419,6 +7419,10 @@ static int check_wl6(const char *dir) {
     CHECK(present_frame.palette_shift_kind == WL_PALETTE_SHIFT_NONE);
     CHECK(present_frame.texture.pixels == canvas.pixels);
     CHECK(present_frame.texture.palette == upload_palette);
+    uint32_t upload_row_hash = 0;
+    CHECK(wl_hash_texture_upload_rows(&present_frame.texture,
+                                      &upload_row_hash) == 0);
+    CHECK(upload_row_hash == present_frame.pixel_hash);
     size_t present_rgba_size = 0;
     CHECK(wl_present_frame_rgba_size(&present_frame, &present_rgba_size) == 0);
     CHECK(present_rgba_size == 80u * 128u * 4u);
@@ -7527,6 +7531,17 @@ static int check_wl6(const char *dir) {
     CHECK(described_padded_rgba_upload.pixel_bytes == sizeof(present_rgba_padded));
     CHECK(described_padded_rgba_upload.pixels == present_rgba_padded);
     CHECK(described_padded_rgba_upload.palette == NULL);
+    CHECK(wl_hash_texture_upload_rows(&described_padded_rgba_upload,
+                                      &upload_row_hash) == 0);
+    CHECK(upload_row_hash == fnv1a_bytes(present_rgba, present_rgba_size));
+    CHECK(wl_hash_texture_upload_rows(NULL, &upload_row_hash) == -1);
+    CHECK(wl_hash_texture_upload_rows(&described_padded_rgba_upload, NULL) == -1);
+    wl_texture_upload_descriptor invalid_upload_hash = described_padded_rgba_upload;
+    invalid_upload_hash.pitch = (uint16_t)(80u * 4u - 1u);
+    CHECK(wl_hash_texture_upload_rows(&invalid_upload_hash, &upload_row_hash) == -1);
+    invalid_upload_hash = present_frame.texture;
+    invalid_upload_hash.palette = NULL;
+    CHECK(wl_hash_texture_upload_rows(&invalid_upload_hash, &upload_row_hash) == -1);
     for (size_t row = 0; row < 128u; ++row) {
         CHECK(memcmp(present_rgba_padded + row * PRESENT_PADDED_PITCH,
                      present_rgba + row * 80u * 4u, 80u * 4u) == 0);

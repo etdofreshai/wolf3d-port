@@ -837,6 +837,49 @@ int wl_describe_present_frame_rgba_upload_pitched(
     return 0;
 }
 
+int wl_hash_texture_upload_rows(const wl_texture_upload_descriptor *upload,
+                                uint32_t *out_hash) {
+    if (!upload || !out_hash || !upload->pixels || upload->width == 0 ||
+        upload->height == 0) {
+        return -1;
+    }
+
+    size_t bytes_per_pixel = 0;
+    switch (upload->format) {
+    case WL_TEXTURE_UPLOAD_INDEXED8_RGB_PALETTE:
+        bytes_per_pixel = 1u;
+        if (!upload->palette || upload->palette_entries < 256u ||
+            (upload->palette_component_bits != 6 &&
+             upload->palette_component_bits != 8)) {
+            return -1;
+        }
+        break;
+    case WL_TEXTURE_UPLOAD_RGBA8888:
+        bytes_per_pixel = 4u;
+        break;
+    default:
+        return -1;
+    }
+
+    const size_t row_bytes = (size_t)upload->width * bytes_per_pixel;
+    if (row_bytes == 0 || upload->pitch < row_bytes ||
+        upload->pixel_bytes < (size_t)upload->pitch * (size_t)upload->height) {
+        return -1;
+    }
+
+    uint32_t hash = 2166136261u;
+    for (uint16_t y = 0; y < upload->height; ++y) {
+        const unsigned char *row =
+            upload->pixels + (size_t)y * (size_t)upload->pitch;
+        for (size_t i = 0; i < row_bytes; ++i) {
+            hash ^= row[i];
+            hash *= 16777619u;
+        }
+    }
+    *out_hash = hash;
+    return 0;
+}
+
 int wl_expand_present_frame_to_rgba_pitched(
     const wl_present_frame_descriptor *present, unsigned char *rgba,
     size_t rgba_size, size_t rgba_pitch, wl_texture_upload_descriptor *out) {

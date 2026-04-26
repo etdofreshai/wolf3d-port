@@ -496,3 +496,7 @@ Presentation preflight now reports both RGBA pitch and total buffer size through
 ## Cycle update: RGBA upload descriptor helper
 
 Presentation-frame RGBA expansion now shares a small upload-descriptor helper. `wl_describe_present_frame_rgba_upload` validates the same viewport/pitch/size preflight used by RGBA conversion and emits an `RGBA8888` upload descriptor for caller-owned frame buffers, keeping the future SDL3 handoff explicit and testable without an SDL dependency.
+
+## Cycle update: present upload row hashing
+
+The presentation seam now includes `wl_hash_texture_upload_rows`, which validates indexed/RGBA upload descriptors and hashes only width-bearing row bytes, excluding pitch padding. Tests pin the indexed present-frame hash and a padded RGBA upload hash to keep SDL3 handoff checks deterministic across backend pitch choices.
