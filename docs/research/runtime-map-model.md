@@ -581,3 +581,7 @@ Added `wl_summarize_actor_positions` as a compact runtime actor-position diagnos
 ## Cycle update: actor wake-state summaries
 
 Added `wl_summarize_actor_wake_state` as a compact diagnostic for AI wake eligibility. It partitions actors into immediately wakeable, ambush-waiting, already chasing, and ineligible buckets, with a switch for including ambush actors. The broader WL6 map sweep now cross-checks both ambush-excluded and ambush-included summaries against built actor descriptors, giving future sight/sound wake logic a deterministic headless aggregate check before mutating actor modes.
+
+## Cycle update: actor patrol-path summaries
+
+Added `wl_summarize_actor_patrol_paths` as the patrol-oriented sibling to the existing actor aggregate helpers. It counts patrol actors with a selected path direction, patrol actors blocked/no-directed at their current tile, and patrol actors with invalid positions, letting future AI ticks verify path readiness without mutating actor state. The broader WL6 map sweep cross-checks the summary against `wl_select_path_direction()` for each patrol actor.

@@ -1639,6 +1639,37 @@ int wl_summarize_actor_wake_state(const wl_game_model *model, int include_ambush
     return 0;
 }
 
+
+int wl_summarize_actor_patrol_paths(const wl_game_model *model,
+                                    wl_actor_patrol_path_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->mode != WL_ACTOR_PATROL) {
+            continue;
+        }
+        ++out->patrol_count;
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+        wl_direction selected = WL_DIR_NONE;
+        if (wl_select_path_direction(model, actor->tile_x, actor->tile_y,
+                                     actor->dir, &selected) != 0) {
+            ++out->invalid_position_count;
+        } else if (selected == WL_DIR_NONE) {
+            ++out->path_blocked_count;
+        } else {
+            ++out->path_selected_count;
+        }
+    }
+    return 0;
+}
+
 int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
                             uint16_t player_x, uint16_t player_y,
                             int search_forward, wl_actor_wake_result *out) {
