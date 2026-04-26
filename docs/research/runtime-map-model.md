@@ -666,3 +666,7 @@ Added `wl_summarize_door_timing()` as a companion non-mutating diagnostic for li
 ## Cycle update: runtime pushwall state summary
 
 Added `wl_summarize_pushwall_state()` as a non-mutating diagnostic for pushwall markers and active moving-pushwall metadata. It reports marker direction buckets, invalid marker coordinates, active motion tile/state/pos, and whether the active motion references an in-range marker and map coordinate. Synthetic headless tests cover direction buckets, invalid markers, valid active motion, and stale active-motion references without requiring SDL.
+
+## Cycle update: runtime pushwall/player distance summary
+
+Added `wl_summarize_pushwall_player_distances()` as a non-mutating pushwall proximity diagnostic. It reports nearest and farthest pushwall markers from a supplied player tile plus invalid marker coordinates, with synthetic headless tests covering normal, invalid-input, and no-considered-marker cases for future pushwall collision/presentation orchestration.

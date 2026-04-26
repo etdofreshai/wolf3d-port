@@ -3379,6 +3379,32 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_pushwalls.motion_marker_valid == 0);
     CHECK(synthetic_pushwalls.motion_position_valid == 0);
 
+    wl_pushwall_player_distance_summary synthetic_pushwall_distances;
+    CHECK(wl_summarize_pushwall_player_distances(&chase_summary_model, 3, 2,
+                                                  &synthetic_pushwall_distances) == 0);
+    CHECK(wl_summarize_pushwall_player_distances(NULL, 3, 2,
+                                                  &synthetic_pushwall_distances) == -1);
+    CHECK(wl_summarize_pushwall_player_distances(&chase_summary_model, WL_MAP_SIDE, 2,
+                                                  &synthetic_pushwall_distances) == -1);
+    CHECK(wl_summarize_pushwall_player_distances(&chase_summary_model, 3, 2, NULL) == -1);
+    CHECK(synthetic_pushwall_distances.considered_count == 4);
+    CHECK(synthetic_pushwall_distances.invalid_marker_position_count == 1);
+    CHECK(synthetic_pushwall_distances.nearest_pushwall_index == 1);
+    CHECK(synthetic_pushwall_distances.farthest_pushwall_index == 3);
+    CHECK(synthetic_pushwall_distances.nearest_distance == 0);
+    CHECK(synthetic_pushwall_distances.farthest_distance == 2);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.pushwall_count = 1;
+    chase_summary_model.pushwalls[0].x = WL_MAP_SIDE;
+    CHECK(wl_summarize_pushwall_player_distances(&chase_summary_model, 3, 2,
+                                                  &synthetic_pushwall_distances) == 0);
+    CHECK(synthetic_pushwall_distances.considered_count == 0);
+    CHECK(synthetic_pushwall_distances.invalid_marker_position_count == 1);
+    CHECK(synthetic_pushwall_distances.nearest_pushwall_index == UINT16_MAX);
+    CHECK(synthetic_pushwall_distances.farthest_pushwall_index == UINT16_MAX);
+    CHECK(synthetic_pushwall_distances.nearest_distance == 0);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];

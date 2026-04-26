@@ -501,3 +501,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Runtime pushwall state summary
 
 `wl_summarize_pushwall_state` reports pushwall marker direction buckets, invalid marker coordinates, and active moving-pushwall metadata/validity without advancing the runtime pushwall. Synthetic headless coverage pins marker direction counts plus active motion marker/position validation for future pushwall AI/collision/presentation checks.
+
+## Runtime pushwall/player distance summary
+
+`wl_summarize_pushwall_player_distances` reports nearest/farthest pushwall markers relative to a player tile while accounting for invalid marker coordinates. The helper mirrors the door/static distance diagnostics and gives pushwall collision/presentation work a deterministic SDL-free proximity seam.
