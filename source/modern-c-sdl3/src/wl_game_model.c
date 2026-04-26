@@ -2999,6 +2999,7 @@ int wl_summarize_actor_distance_bands(const wl_game_model *model,
         }
 
         const uint16_t distance = actor_model_manhattan_distance(actor, player_x, player_y);
+        ++out->considered_count;
         if (distance == 0u) {
             ++out->same_tile_count;
         } else if (distance == 1u) {

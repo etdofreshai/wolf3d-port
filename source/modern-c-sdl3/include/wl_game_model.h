@@ -268,6 +268,7 @@ typedef struct wl_actor_player_distance_summary {
 } wl_actor_player_distance_summary;
 
 typedef struct wl_actor_distance_band_summary {
+    size_t considered_count;
     size_t same_tile_count;
     size_t adjacent_count;
     size_t near_count;

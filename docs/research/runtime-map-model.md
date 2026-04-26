@@ -820,4 +820,4 @@ Extended `wl_summarize_actor_attack_readiness()` with ready horizontal-vs-vertic
 
 ### Actor distance band diagnostic
 
-Added `wl_summarize_actor_distance_bands()` as a headless runtime actor proximity diagnostic. It partitions actors by Manhattan distance from the player into same-tile, adjacent, caller-defined near/mid ranges, far, and invalid-position buckets, with optional shootable-only filtering. Synthetic coverage pins normal range bucketing, same/adjacent boundaries, invalid arguments, and shootable filtering for future AI/combat/presentation preflight work.
+Added `wl_summarize_actor_distance_bands()` as a headless runtime actor proximity diagnostic. It partitions actors by Manhattan distance from the player into same-tile, adjacent, caller-defined near/mid ranges, far, and invalid-position buckets, reports the valid considered actor count, and supports optional shootable-only filtering. Synthetic coverage pins normal range bucketing, same/adjacent boundaries, considered-count resets, invalid arguments, and shootable filtering for future AI/combat/presentation preflight work.
