@@ -558,3 +558,7 @@ Added `wl_start_player_fire_attack()` as an SDL-free helper that combines weapon
 ## Cycle update: WL6 runtime info-tile classification sweep
 
 The WL6 model harness now sweeps all 60 gameplay map slots and asserts that every map which can currently build a runtime model has zero unknown info-plane tiles. This pins boss/ghost/static/path classifications across the full WL6 map set, including boss source tiles 160/178/179/196/197/214/215, while documenting the two legacy maps that still fail runtime model construction before classification can be checked.
+
+## Cycle update: aggregate actor wake transition
+
+Added `wl_wake_actors_for_chase()` as a deterministic batch helper for alerting eligible shootable actors into chase mode. The helper can exclude ambush actors for sight/sound-sensitive wake paths or include them for explicit all-alert events, skips inert/dead/invalid actors, preserves already-chasing actors, and reports considered/woken/ambush-cleared/direction-selected counts for future live AI orchestration.
