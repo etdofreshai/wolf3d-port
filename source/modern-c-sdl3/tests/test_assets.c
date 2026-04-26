@@ -3314,6 +3314,7 @@ static int check_wl6(const char *dir) {
         CHECK(interaction.nearest_static_bonus == 1u);
         CHECK(interaction.nearest_actor_shootable == 0u);
         CHECK(interaction.has_map_blocking_tile == 0u);
+        CHECK(interaction.map_blocking_distance == 0u);
         synthetic_player_neighborhood.tilemap[(2u * WL_MAP_SIDE) + 3u] = 1u;
         CHECK(wl_summarize_runtime_player_interaction(
                   &synthetic_player_neighborhood, &interaction) == 0);
@@ -3330,6 +3331,7 @@ static int check_wl6(const char *dir) {
         CHECK(interaction.map_blocking_tile == 1u);
         CHECK(interaction.map_blocking_x == 3u);
         CHECK(interaction.map_blocking_y == 2u);
+        CHECK(interaction.map_blocking_distance == 1u);
         synthetic_player_neighborhood.tilemap[(2u * WL_MAP_SIDE) + 3u] = 0u;
         synthetic_player_neighborhood.statics[0].x = 6;
         CHECK(wl_summarize_runtime_player_interaction(
@@ -3349,6 +3351,7 @@ static int check_wl6(const char *dir) {
         CHECK(interaction.has_nearest == 0u);
         CHECK(interaction.actor_count_ahead == 0u);
         CHECK(interaction.static_count_ahead == 0u);
+        CHECK(interaction.map_blocking_distance == 0u);
         synthetic_player_neighborhood.player.dir = (wl_direction)99;
         CHECK(wl_summarize_runtime_player_interaction(
                   &synthetic_player_neighborhood, &interaction) == -1);
