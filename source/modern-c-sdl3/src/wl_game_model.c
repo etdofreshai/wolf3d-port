@@ -2499,6 +2499,13 @@ int wl_summarize_runtime_player_interaction(
     out->map_blocking_tile = run.first_blocking_tile;
     out->map_blocking_x = run.first_blocking_x;
     out->map_blocking_y = run.first_blocking_y;
+    out->actor_count_ahead = actors.actor_count_ahead;
+    out->shootable_actor_count_ahead = actors.shootable_count_ahead;
+    out->static_count_ahead = statics.static_count_ahead;
+    out->blocking_static_count_ahead = statics.blocking_count_ahead;
+    out->bonus_static_count_ahead = statics.bonus_count_ahead;
+    out->blocked_actor_count = actors.blocked_actor_count;
+    out->blocked_static_count = statics.blocked_static_count;
 
     uint16_t nearest_distance = UINT16_MAX;
     if (actors.has_first_actor) {
