@@ -3647,6 +3647,7 @@ static int check_wl6(const char *dir) {
                                             &synthetic_distance_bands) == -1);
     CHECK(wl_summarize_actor_distance_bands(&chase_summary_model, 8, 5, 3, 6, 0,
                                             NULL) == -1);
+    CHECK(synthetic_distance_bands.considered_count == 2);
     CHECK(synthetic_distance_bands.same_tile_count == 0);
     CHECK(synthetic_distance_bands.adjacent_count == 0);
     CHECK(synthetic_distance_bands.near_count == 1);
@@ -3657,6 +3658,7 @@ static int check_wl6(const char *dir) {
     chase_summary_model.actors[1].shootable = 0;
     CHECK(wl_summarize_actor_distance_bands(&chase_summary_model, 8, 5, 3, 6, 1,
                                             &synthetic_distance_bands) == 0);
+    CHECK(synthetic_distance_bands.considered_count == 1);
     CHECK(synthetic_distance_bands.near_count == 1);
     CHECK(synthetic_distance_bands.far_count == 0);
     CHECK(synthetic_distance_bands.invalid_position_count == 1);
@@ -3668,6 +3670,7 @@ static int check_wl6(const char *dir) {
     chase_summary_model.actors[1].tile_y = 5;
     CHECK(wl_summarize_actor_distance_bands(&chase_summary_model, 8, 5, 3, 6, 0,
                                             &synthetic_distance_bands) == 0);
+    CHECK(synthetic_distance_bands.considered_count == 2);
     CHECK(synthetic_distance_bands.same_tile_count == 1);
     CHECK(synthetic_distance_bands.adjacent_count == 1);
     CHECK(synthetic_distance_bands.near_count == 0);
