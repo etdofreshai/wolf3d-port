@@ -1076,6 +1076,39 @@ int wl_collect_spear_scene_sprite_refs(const wl_game_model *model, uint16_t vswa
 }
 
 
+int wl_summarize_pushwall_tile_occupancy(
+    const wl_game_model *model, wl_pushwall_tile_occupancy_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->marker_count = model->pushwall_count;
+    for (size_t i = 0; i < model->pushwall_count; ++i) {
+        const wl_marker_desc *marker = &model->pushwalls[i];
+        if (marker->x >= WL_MAP_SIDE || marker->y >= WL_MAP_SIDE) {
+            ++out->invalid_marker_position_count;
+            continue;
+        }
+
+        int seen = 0;
+        for (size_t j = 0; j < i; ++j) {
+            const wl_marker_desc *prior = &model->pushwalls[j];
+            if (prior->x < WL_MAP_SIDE && prior->y < WL_MAP_SIDE &&
+                prior->x == marker->x && prior->y == marker->y) {
+                seen = 1;
+                break;
+            }
+        }
+        if (seen) {
+            ++out->duplicate_tile_count;
+        } else {
+            ++out->unique_tile_count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_path_marker_source_tiles(
     const wl_game_model *model, wl_path_marker_source_tile_summary *out) {
     if (!model || !out) {

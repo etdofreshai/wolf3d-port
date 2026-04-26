@@ -591,6 +591,13 @@ typedef struct wl_pushwall_source_tile_summary {
     uint16_t max_source_tile;
 } wl_pushwall_source_tile_summary;
 
+typedef struct wl_pushwall_tile_occupancy_summary {
+    size_t marker_count;
+    size_t unique_tile_count;
+    size_t duplicate_tile_count;
+    size_t invalid_marker_position_count;
+} wl_pushwall_tile_occupancy_summary;
+
 typedef struct wl_path_marker_source_tile_summary {
     size_t marker_count;
     size_t unique_source_tile_count;
@@ -907,6 +914,8 @@ int wl_summarize_pushwall_motion_path(
     const wl_game_model *model, wl_pushwall_motion_path_summary *out);
 int wl_summarize_pushwall_source_tiles(const wl_game_model *model,
                                        wl_pushwall_source_tile_summary *out);
+int wl_summarize_pushwall_tile_occupancy(
+    const wl_game_model *model, wl_pushwall_tile_occupancy_summary *out);
 int wl_summarize_path_marker_source_tiles(
     const wl_game_model *model, wl_path_marker_source_tile_summary *out);
 int wl_summarize_path_marker_tile_occupancy(
