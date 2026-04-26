@@ -2898,6 +2898,33 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_spawn_occupancy.moved_from_spawn_count == 2);
     CHECK(synthetic_spawn_occupancy.max_spawn_stack_count == 3);
 
+    memset(chase_summary_model.tilemap, 0, sizeof(chase_summary_model.tilemap));
+    chase_summary_model.actors[0].tile_x = 1;
+    chase_summary_model.actors[0].tile_y = 1;
+    chase_summary_model.tilemap[(size_t)1 * WL_MAP_SIDE + 1] = 0;
+    chase_summary_model.actors[1].tile_x = 2;
+    chase_summary_model.actors[1].tile_y = 1;
+    chase_summary_model.tilemap[(size_t)1 * WL_MAP_SIDE + 2] = 12;
+    chase_summary_model.actors[2].tile_x = 3;
+    chase_summary_model.actors[2].tile_y = 1;
+    chase_summary_model.tilemap[(size_t)1 * WL_MAP_SIDE + 3] = 0x80u;
+    chase_summary_model.actors[3].tile_x = 4;
+    chase_summary_model.actors[3].tile_y = 1;
+    chase_summary_model.tilemap[(size_t)1 * WL_MAP_SIDE + 4] = 0x40u;
+    chase_summary_model.actors[4].tile_x = WL_MAP_SIDE;
+    chase_summary_model.actors[4].tile_y = 1;
+    wl_actor_collision_tile_summary synthetic_collision_tiles;
+    CHECK(wl_summarize_actor_collision_tiles(&chase_summary_model,
+                                             &synthetic_collision_tiles) == 0);
+    CHECK(wl_summarize_actor_collision_tiles(NULL,
+                                             &synthetic_collision_tiles) == -1);
+    CHECK(wl_summarize_actor_collision_tiles(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_collision_tiles.open_tile_count == 1);
+    CHECK(synthetic_collision_tiles.wall_tile_count == 1);
+    CHECK(synthetic_collision_tiles.door_tile_count == 1);
+    CHECK(synthetic_collision_tiles.door_adjacent_tile_count == 1);
+    CHECK(synthetic_collision_tiles.invalid_position_count == 1);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];

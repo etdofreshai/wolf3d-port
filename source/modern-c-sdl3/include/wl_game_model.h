@@ -313,6 +313,14 @@ typedef struct wl_actor_spawn_occupancy_summary {
     size_t max_spawn_stack_count;
 } wl_actor_spawn_occupancy_summary;
 
+typedef struct wl_actor_collision_tile_summary {
+    size_t open_tile_count;
+    size_t wall_tile_count;
+    size_t door_tile_count;
+    size_t door_adjacent_tile_count;
+    size_t invalid_position_count;
+} wl_actor_collision_tile_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -476,6 +484,8 @@ int wl_summarize_actor_tile_occupancy(const wl_game_model *model,
                                       wl_actor_tile_occupancy_summary *out);
 int wl_summarize_actor_spawn_occupancy(const wl_game_model *model,
                                        wl_actor_spawn_occupancy_summary *out);
+int wl_summarize_actor_collision_tiles(const wl_game_model *model,
+                                       wl_actor_collision_tile_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);
