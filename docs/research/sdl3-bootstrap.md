@@ -102,3 +102,7 @@ The SDL3 present smoke now builds an actual WL6 map-0 easy-difficulty runtime mo
 ## SDL3 WL6 multi-ref map scene screenshot seam
 
 The WL6 map-0 SDL3 present smoke now renders five visible runtime refs (`110`, `111`, `113`, `114`, `115`) instead of a single representative sprite. It decodes each referenced VSWAP sprite into generated-only buffers, feeds all five through the door-aware runtime scene renderer, then expands and saves the ignored dummy-driver BMP. Assertions pin the fuller scene hash `0xe9277582`, RGBA hash `0xc093aab4`, and BMP size/hash `41098` / `0xe6ebf3dd`.
+
+## SDL3 BMP artifact helper
+
+`tests/test_sdl3_present.c` now centralizes RGBA-to-BMP artifact creation and file hash verification in `save_rgba_bmp_artifact()`. The helper wraps SDL surface creation, `SDL_SaveBMP`, generated-file size/hash checks, and cleanup so future headless presentation cases can add deterministic screenshots without duplicating SDL surface/error handling.

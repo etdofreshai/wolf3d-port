@@ -6040,3 +6040,37 @@ Next likely move:
 - Add a small reusable SDL3 present helper around surface creation/BMP artifact hashing, or drive the WL6 scene from live-tick-updated refs.
 
 Blockers: none.
+
+## Cycle 2026-04-26 12:34 CDT
+
+Cross-model review:
+
+- Reviewed commits in `a9540432474d42d971dc3e1a6c891e74467c79dd..HEAD`, covering OpenAI `bc63fc6` and Anthropic `eec261e`. Both SDL3 map-scene extensions are test-backed, documented, generate only ignored BMP/pixel artifacts, and leave `source/original/` untouched. No repair was needed.
+
+Action taken:
+
+- Consolidated repeated SDL3 screenshot artifact code in `test_sdl3_present` with a reusable `save_rgba_bmp_artifact()` helper.
+- The helper owns SDL surface creation, BMP saving, file size/hash verification, and cleanup for generated-only artifacts.
+- Switched atlas, sprite, synthetic live-scene, and WL6 multi-ref map scene checks to the shared helper while preserving existing deterministic hashes.
+- Documented the presentation helper seam in `docs/research/sdl3-bootstrap.md`.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame/audio+sod-audio tests passed for game-files/base
+SDL3 smoke test passed
+SDL3 Wolf WL6 map scene screenshot smoke test passed
+```
+
+Next likely move:
+
+- Use the helper to add live-tick-updated WL6 screenshot artifacts or start extracting production-facing SDL3 presentation functions outside the test harness.
+
+Blockers: none.

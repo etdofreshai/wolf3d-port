@@ -50,6 +50,36 @@ static int file_stats(const char *path, long *out_size, uint32_t *out_hash) {
     return 0;
 }
 
+static int save_rgba_bmp_artifact(const char *path, uint16_t width,
+                                  uint16_t height, unsigned char *rgba,
+                                  long expected_size, uint32_t expected_hash) {
+    long bmp_size = 0;
+    uint32_t bmp_hash = 0;
+    SDL_Surface *surface = SDL_CreateSurfaceFrom(width, height,
+                                                 SDL_PIXELFORMAT_RGBA32, rgba,
+                                                 (int)width * 4);
+    if (!surface) {
+        fprintf(stderr, "SDL_CreateSurfaceFrom artifact failed for %s: %s\n",
+                path, SDL_GetError());
+        return -1;
+    }
+    if (!SDL_SaveBMP(surface, path)) {
+        fprintf(stderr, "SDL_SaveBMP artifact failed for %s: %s\n", path,
+                SDL_GetError());
+        SDL_DestroySurface(surface);
+        return -1;
+    }
+    SDL_DestroySurface(surface);
+    if (file_stats(path, &bmp_size, &bmp_hash) != 0 ||
+        bmp_size != expected_size || bmp_hash != expected_hash) {
+        fprintf(stderr,
+                "unexpected artifact stats for %s: size=%ld hash=0x%08x\n",
+                path, bmp_size, bmp_hash);
+        return -1;
+    }
+    return 0;
+}
+
 int main(void) {
     char vswap_path[512];
     wl_vswap_directory directory;
@@ -409,33 +439,13 @@ int main(void) {
         SDL_Quit();
         return 1;
     }
-    source = SDL_CreateSurfaceFrom(present.viewport_width,
-                                   present.viewport_height,
-                                   SDL_PIXELFORMAT_RGBA32, atlas_rgba,
-                                   present.viewport_width * 4);
-    if (!source) {
-        fprintf(stderr, "SDL_CreateSurfaceFrom atlas failed: %s\n", SDL_GetError());
+    if (save_rgba_bmp_artifact("build/wolf-wall-atlas-present.bmp",
+                               present.viewport_width, present.viewport_height,
+                               atlas_rgba, 32906, 0xaf70162cu) != 0) {
         SDL_DestroyWindow(window);
         SDL_Quit();
         return 1;
     }
-    if (!SDL_SaveBMP(source, "build/wolf-wall-atlas-present.bmp")) {
-        fprintf(stderr, "SDL_SaveBMP atlas failed: %s\n", SDL_GetError());
-        SDL_DestroySurface(source);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
-    if (file_stats("build/wolf-wall-atlas-present.bmp", &bmp_size, &bmp_hash) != 0 ||
-        bmp_size != 32906 || bmp_hash != 0xaf70162cu) {
-        fprintf(stderr, "unexpected atlas screenshot artifact stats\n");
-        SDL_DestroySurface(source);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
-    SDL_DestroySurface(source);
-    source = NULL;
 
     memset(&shift, 0, sizeof(shift));
     shift.kind = WL_PALETTE_SHIFT_NONE;
@@ -463,33 +473,13 @@ int main(void) {
         SDL_Quit();
         return 1;
     }
-    source = SDL_CreateSurfaceFrom(present.viewport_width,
-                                   present.viewport_height,
-                                   SDL_PIXELFORMAT_RGBA32, sprite_rgba,
-                                   present.viewport_width * 4);
-    if (!source) {
-        fprintf(stderr, "SDL_CreateSurfaceFrom sprite failed: %s\n", SDL_GetError());
+    if (save_rgba_bmp_artifact("build/wolf-sprite-present.bmp",
+                               present.viewport_width, present.viewport_height,
+                               sprite_rgba, 32906, 0xbaeda862u) != 0) {
         SDL_DestroyWindow(window);
         SDL_Quit();
         return 1;
     }
-    if (!SDL_SaveBMP(source, "build/wolf-sprite-present.bmp")) {
-        fprintf(stderr, "SDL_SaveBMP sprite failed: %s\n", SDL_GetError());
-        SDL_DestroySurface(source);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
-    if (file_stats("build/wolf-sprite-present.bmp", &bmp_size, &bmp_hash) != 0 ||
-        bmp_size != 32906 || bmp_hash != 0xbaeda862u) {
-        fprintf(stderr, "unexpected sprite screenshot artifact stats\n");
-        SDL_DestroySurface(source);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
-    SDL_DestroySurface(source);
-    source = NULL;
 
     memset(&live_model, 0, sizeof(live_model));
     live_model.tilemap[4u + 4u * WL_MAP_SIDE] = 0x80u;
@@ -566,33 +556,13 @@ int main(void) {
         SDL_Quit();
         return 1;
     }
-    source = SDL_CreateSurfaceFrom(present.viewport_width,
-                                   present.viewport_height,
-                                   SDL_PIXELFORMAT_RGBA32, live_scene_rgba,
-                                   present.viewport_width * 4);
-    if (!source) {
-        fprintf(stderr, "SDL_CreateSurfaceFrom live scene failed: %s\n", SDL_GetError());
+    if (save_rgba_bmp_artifact("build/wolf-live-scene-present.bmp",
+                               present.viewport_width, present.viewport_height,
+                               live_scene_rgba, 41098, 0x2ac02cbdu) != 0) {
         SDL_DestroyWindow(window);
         SDL_Quit();
         return 1;
     }
-    if (!SDL_SaveBMP(source, "build/wolf-live-scene-present.bmp")) {
-        fprintf(stderr, "SDL_SaveBMP live scene failed: %s\n", SDL_GetError());
-        SDL_DestroySurface(source);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
-    if (file_stats("build/wolf-live-scene-present.bmp", &bmp_size, &bmp_hash) != 0 ||
-        bmp_size != 41098 || bmp_hash != 0x2ac02cbdu) {
-        fprintf(stderr, "unexpected live scene screenshot artifact stats: size=%ld hash=0x%08x\n", bmp_size, bmp_hash);
-        SDL_DestroySurface(source);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
-    SDL_DestroySurface(source);
-    source = NULL;
 
     if (wl_join_path(maphead_path, sizeof(maphead_path), wl_default_data_dir(),
                      "MAPHEAD.WL6") != 0 ||
@@ -679,29 +649,13 @@ int main(void) {
         SDL_Quit();
         return 1;
     }
-    source = SDL_CreateSurfaceFrom(present.viewport_width,
-                                   present.viewport_height,
-                                   SDL_PIXELFORMAT_RGBA32, wl6_scene_rgba,
-                                   present.viewport_width * 4);
-    if (!source || !SDL_SaveBMP(source, "build/wolf-wl6-map0-scene-present.bmp")) {
-        fprintf(stderr, "could not save WL6 map scene BMP: %s\n", SDL_GetError());
-        if (source) {
-            SDL_DestroySurface(source);
-        }
+    if (save_rgba_bmp_artifact("build/wolf-wl6-map0-scene-present.bmp",
+                               present.viewport_width, present.viewport_height,
+                               wl6_scene_rgba, 41098, 0xe6ebf3ddu) != 0) {
         SDL_DestroyWindow(window);
         SDL_Quit();
         return 1;
     }
-    if (file_stats("build/wolf-wl6-map0-scene-present.bmp", &bmp_size, &bmp_hash) != 0 ||
-        bmp_size != 41098 || bmp_hash != 0xe6ebf3ddu) {
-        fprintf(stderr, "unexpected WL6 map scene BMP stats: size=%ld hash=0x%08x\n",
-                bmp_size, bmp_hash);
-        SDL_DestroySurface(source);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
-    SDL_DestroySurface(source);
     SDL_DestroyWindow(window);
     SDL_Quit();
     puts("SDL3 Wolf WL6 map scene screenshot smoke test passed");
