@@ -1734,6 +1734,39 @@ int wl_step_live_tick(wl_player_gameplay_state *state, wl_game_model *model,
     return 0;
 }
 
+int wl_step_live_player_fire_tick(wl_player_gameplay_state *state,
+                                  wl_game_model *model,
+                                  const uint16_t *wall_plane,
+                                  const uint16_t *info_plane,
+                                  size_t word_count,
+                                  wl_player_motion_state *motion,
+                                  int32_t xmove, int32_t ymove,
+                                  int32_t forward_x, int32_t forward_y,
+                                  wl_direction facing, int use_button,
+                                  int button_held, int fire_button,
+                                  wl_weapon_type requested_weapon,
+                                  int32_t tics,
+                                  wl_live_player_fire_tick_result *out) {
+    if (!state || !model || !wall_plane || !info_plane || !motion || !out ||
+        tics < 0 || requested_weapon > WL_WEAPON_CHAINGUN) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    if (wl_step_live_tick(state, model, wall_plane, info_plane, word_count,
+                          motion, xmove, ymove, forward_x, forward_y, facing,
+                          use_button, button_held, tics, &out->live) != 0) {
+        return -1;
+    }
+    if (fire_button) {
+        if (wl_try_player_fire_weapon(state, requested_weapon, &out->fire) != 0) {
+            return -1;
+        }
+        out->fire_attempted = 1;
+    }
+    return 0;
+}
+
 int wl_step_live_actor_ai_tick(wl_player_gameplay_state *state,
                                wl_game_model *model,
                                const uint16_t *wall_plane,
