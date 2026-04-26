@@ -2914,6 +2914,44 @@ static int check_wl6(const char *dir) {
               WL_MAP_SIDE - 3u);
         CHECK(synthetic_axis_summary.center_tile_overlap_count == 1);
 
+        wl_runtime_tile_corner_summary corner_summary;
+        memset(&corner_summary, 0xff, sizeof(corner_summary));
+        CHECK(wl_summarize_runtime_tile_corners(&model, &corner_summary) == 0);
+        CHECK(wl_summarize_runtime_tile_corners(NULL, &corner_summary) == -1);
+        CHECK(wl_summarize_runtime_tile_corners(&model, NULL) == -1);
+        CHECK(corner_summary.corner_tile_count == 4u);
+        CHECK(corner_summary.solid_wall_count + corner_summary.clear_floor_count +
+                  corner_summary.door_marker_count + corner_summary.pushwall_marker_count +
+                  corner_summary.other_marker_count ==
+              corner_summary.corner_tile_count);
+        CHECK(corner_summary.northwest_tile == model.tilemap[0u]);
+        CHECK(corner_summary.northeast_tile == model.tilemap[WL_MAP_SIDE - 1u]);
+        CHECK(corner_summary.southwest_tile ==
+              model.tilemap[((WL_MAP_SIDE - 1u) * WL_MAP_SIDE)]);
+        CHECK(corner_summary.southeast_tile ==
+              model.tilemap[((WL_MAP_SIDE - 1u) * WL_MAP_SIDE) + (WL_MAP_SIDE - 1u)]);
+
+        wl_game_model synthetic_corners;
+        memset(&synthetic_corners, 0, sizeof(synthetic_corners));
+        synthetic_corners.tilemap[0u] = 1;
+        synthetic_corners.tilemap[WL_MAP_SIDE - 1u] = 0x80;
+        synthetic_corners.tilemap[((WL_MAP_SIDE - 1u) * WL_MAP_SIDE)] = 0xc0 | 9u;
+        synthetic_corners.tilemap[((WL_MAP_SIDE - 1u) * WL_MAP_SIDE) +
+                                  (WL_MAP_SIDE - 1u)] = 90;
+        wl_runtime_tile_corner_summary synthetic_corner_summary;
+        CHECK(wl_summarize_runtime_tile_corners(&synthetic_corners,
+                                                &synthetic_corner_summary) == 0);
+        CHECK(synthetic_corner_summary.corner_tile_count == 4u);
+        CHECK(synthetic_corner_summary.solid_wall_count == 1);
+        CHECK(synthetic_corner_summary.clear_floor_count == 0);
+        CHECK(synthetic_corner_summary.door_marker_count == 1);
+        CHECK(synthetic_corner_summary.pushwall_marker_count == 1);
+        CHECK(synthetic_corner_summary.other_marker_count == 1);
+        CHECK(synthetic_corner_summary.northwest_tile == 1);
+        CHECK(synthetic_corner_summary.northeast_tile == 0x80);
+        CHECK(synthetic_corner_summary.southwest_tile == (uint16_t)(0xc0 | 9u));
+        CHECK(synthetic_corner_summary.southeast_tile == 90);
+
         wl_runtime_player_tile_neighborhood_summary player_neighborhood;
         memset(&player_neighborhood, 0xff, sizeof(player_neighborhood));
         CHECK(wl_summarize_runtime_player_tile_neighborhood(

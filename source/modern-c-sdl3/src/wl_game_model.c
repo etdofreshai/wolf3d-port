@@ -2155,6 +2155,46 @@ static void summarize_runtime_tile_bucket(uint16_t tile,
     }
 }
 
+int wl_summarize_runtime_tile_corners(const wl_game_model *model,
+                                      wl_runtime_tile_corner_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->corner_tile_count = 4u;
+    out->northwest_tile = model->tilemap[map_index(0u, 0u)];
+    out->northeast_tile = model->tilemap[map_index(WL_MAP_SIDE - 1u, 0u)];
+    out->southwest_tile = model->tilemap[map_index(0u, WL_MAP_SIDE - 1u)];
+    out->southeast_tile = model->tilemap[map_index(WL_MAP_SIDE - 1u, WL_MAP_SIDE - 1u)];
+
+    summarize_runtime_tile_bucket(out->northwest_tile,
+                                  &out->clear_floor_count,
+                                  &out->solid_wall_count,
+                                  &out->door_marker_count,
+                                  &out->pushwall_marker_count,
+                                  &out->other_marker_count);
+    summarize_runtime_tile_bucket(out->northeast_tile,
+                                  &out->clear_floor_count,
+                                  &out->solid_wall_count,
+                                  &out->door_marker_count,
+                                  &out->pushwall_marker_count,
+                                  &out->other_marker_count);
+    summarize_runtime_tile_bucket(out->southwest_tile,
+                                  &out->clear_floor_count,
+                                  &out->solid_wall_count,
+                                  &out->door_marker_count,
+                                  &out->pushwall_marker_count,
+                                  &out->other_marker_count);
+    summarize_runtime_tile_bucket(out->southeast_tile,
+                                  &out->clear_floor_count,
+                                  &out->solid_wall_count,
+                                  &out->door_marker_count,
+                                  &out->pushwall_marker_count,
+                                  &out->other_marker_count);
+    return 0;
+}
+
 int wl_summarize_runtime_player_tile_neighborhood(
     const wl_game_model *model,
     wl_runtime_player_tile_neighborhood_summary *out) {
