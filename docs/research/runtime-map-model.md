@@ -690,3 +690,7 @@ Added `wl_summarize_static_player_adjacency`, a non-mutating static-object proxi
 ## Cycle update: actor line-of-sight summary
 
 Added `wl_summarize_actor_line_of_sight()` as a non-mutating cardinal line-of-sight diagnostic for runtime AI/combat progression. It partitions actors into clear same-row/column visibility, wall-blocked, door-blocked, same-tile, non-cardinal, and invalid-position buckets relative to a supplied player tile, giving future chase/shoot decisions a deterministic SDL-free aggregate before mutating actor state.
+
+## Cycle update: runtime pushwall/player adjacency summary
+
+Added `wl_summarize_pushwall_player_adjacency()` as a non-mutating pushwall marker proximity diagnostic. It mirrors the actor/static adjacency helpers for same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, distant, and invalid-marker buckets so future pushwall collision/presentation orchestration can sanity-check player proximity without advancing pushwall state.

@@ -2956,6 +2956,40 @@ int wl_summarize_pushwall_player_distances(
     return 0;
 }
 
+int wl_summarize_pushwall_player_adjacency(
+    const wl_game_model *model, uint16_t player_x, uint16_t player_y,
+    wl_pushwall_player_adjacency_summary *out) {
+    if (!model || !out || player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->pushwall_count; ++i) {
+        const wl_marker_desc *marker = &model->pushwalls[i];
+        if (marker->x >= WL_MAP_SIDE || marker->y >= WL_MAP_SIDE) {
+            ++out->invalid_marker_position_count;
+            continue;
+        }
+
+        const uint16_t dx = (marker->x >= player_x) ? (uint16_t)(marker->x - player_x)
+                                                    : (uint16_t)(player_x - marker->x);
+        const uint16_t dy = (marker->y >= player_y) ? (uint16_t)(marker->y - player_y)
+                                                    : (uint16_t)(player_y - marker->y);
+        if (dx == 0 && dy == 0) {
+            ++out->same_tile_count;
+        } else if (dx + dy == 1) {
+            ++out->cardinal_adjacent_count;
+        } else if (dx == 1 && dy == 1) {
+            ++out->diagonal_adjacent_count;
+        } else if (dx == 0 || dy == 0) {
+            ++out->same_row_or_column_count;
+        } else {
+            ++out->distant_count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_pushwall_source_tiles(const wl_game_model *model,
                                        wl_pushwall_source_tile_summary *out) {
     if (!model || !out) {

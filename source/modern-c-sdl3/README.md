@@ -526,3 +526,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Runtime static/player adjacency summary
 
 `wl_summarize_static_player_adjacency` mirrors the actor/player adjacency diagnostic for static descriptors, giving pickup/render code an SDL-free same-tile/adjacent/row-column/distant proximity summary with active-only filtering and invalid-coordinate accounting.
+
+## Runtime pushwall/player adjacency summary
+
+`wl_summarize_pushwall_player_adjacency` reports same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, distant, and invalid pushwall marker buckets relative to the player without mutating pushwall state. Synthetic headless coverage pins every bucket for future pushwall collision/presentation work.
