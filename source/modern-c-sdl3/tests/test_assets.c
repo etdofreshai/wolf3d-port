@@ -5012,6 +5012,22 @@ static int check_wl6(const char *dir) {
     CHECK(present_rgba_upload.pixel_bytes == sizeof(present_rgba));
     CHECK(present_rgba_upload.pixels == present_rgba);
     CHECK(present_rgba_upload.palette == NULL);
+    enum { WIDE_RGBA_REJECT_WIDTH = UINT16_MAX / 4u + 1u };
+    unsigned char *wide_pixels = (unsigned char *)calloc(WIDE_RGBA_REJECT_WIDTH, 1u);
+    unsigned char *wide_rgba = (unsigned char *)calloc(WIDE_RGBA_REJECT_WIDTH, 4u);
+    CHECK(wide_pixels != NULL);
+    CHECK(wide_rgba != NULL);
+    wl_indexed_surface wide_surface;
+    CHECK(wl_wrap_indexed_surface((uint16_t)WIDE_RGBA_REJECT_WIDTH, 1,
+                                  wide_pixels, WIDE_RGBA_REJECT_WIDTH,
+                                  &wide_surface) == 0);
+    CHECK(wl_expand_indexed_surface_to_rgba(&wide_surface, upload_palette,
+                                            sizeof(upload_palette), 6,
+                                            wide_rgba,
+                                            WIDE_RGBA_REJECT_WIDTH * 4u,
+                                            &present_rgba_upload) == -1);
+    free(wide_rgba);
+    free(wide_pixels);
     enum { PRESENT_PADDED_PITCH = 80u * 4u + 16u };
     unsigned char present_rgba_padded[PRESENT_PADDED_PITCH * 128u];
     memset(present_rgba_padded, 0xa5, sizeof(present_rgba_padded));
