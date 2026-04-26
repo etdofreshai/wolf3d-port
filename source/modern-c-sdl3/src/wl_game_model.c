@@ -1614,6 +1614,31 @@ int wl_summarize_actor_positions(const wl_game_model *model,
     return 0;
 }
 
+
+int wl_summarize_actor_wake_state(const wl_game_model *model, int include_ambush,
+                                  wl_actor_wake_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE ||
+            actor->mode == WL_ACTOR_INERT || actor->kind == WL_ACTOR_DEAD_GUARD ||
+            !actor->shootable) {
+            ++out->ineligible_count;
+        } else if (actor->mode == WL_ACTOR_CHASE) {
+            ++out->already_chasing_count;
+        } else if (actor->ambush && !include_ambush) {
+            ++out->ambush_waiting_count;
+        } else {
+            ++out->wakeable_count;
+        }
+    }
+    return 0;
+}
+
 int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
                             uint16_t player_x, uint16_t player_y,
                             int search_forward, wl_actor_wake_result *out) {

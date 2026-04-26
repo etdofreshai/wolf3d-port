@@ -456,3 +456,5 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Actor position summary helper
 
 `wl_summarize_actor_positions` reports aggregate actor position state: actors moved from spawn, actors with fine/patrol-position state, and spawn/current tile bounds failures. The broader WL6 map coverage cross-checks the summary against model descriptors and pins initial patrol movement counts for future AI interpolation work.
+
+`wl_summarize_actor_wake_state` reports whether shootable live actors are immediately wakeable, waiting behind ambush gating, already chasing, or ineligible for wake-up. The same broader WL6 map sweep cross-checks both ambush-excluded and ambush-included views against actor descriptors before any mutating wake pass runs.

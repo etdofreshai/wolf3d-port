@@ -218,6 +218,13 @@ typedef struct wl_actor_position_summary {
     size_t tile_out_of_bounds_count;
 } wl_actor_position_summary;
 
+typedef struct wl_actor_wake_summary {
+    size_t wakeable_count;
+    size_t ambush_waiting_count;
+    size_t already_chasing_count;
+    size_t ineligible_count;
+} wl_actor_wake_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -351,6 +358,8 @@ int wl_summarize_actor_flags(const wl_game_model *model,
                              wl_actor_flag_summary *out);
 int wl_summarize_actor_positions(const wl_game_model *model,
                                  wl_actor_position_summary *out);
+int wl_summarize_actor_wake_state(const wl_game_model *model, int include_ambush,
+                                  wl_actor_wake_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);
