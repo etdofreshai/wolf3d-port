@@ -2906,6 +2906,52 @@ static int check_wl6(const char *dir) {
               WL_MAP_SIDE - 3u);
         CHECK(synthetic_axis_summary.center_tile_overlap_count == 1);
 
+        wl_runtime_player_tile_neighborhood_summary player_neighborhood;
+        memset(&player_neighborhood, 0xff, sizeof(player_neighborhood));
+        CHECK(wl_summarize_runtime_player_tile_neighborhood(
+                  &model, &player_neighborhood) == 0);
+        CHECK(wl_summarize_runtime_player_tile_neighborhood(
+                  NULL, &player_neighborhood) == -1);
+        CHECK(wl_summarize_runtime_player_tile_neighborhood(
+                  &model, NULL) == -1);
+        CHECK(player_neighborhood.sampled_tile_count == 9u);
+        CHECK(player_neighborhood.clear_floor_count +
+                  player_neighborhood.solid_wall_count +
+                  player_neighborhood.door_marker_count +
+                  player_neighborhood.pushwall_marker_count +
+                  player_neighborhood.other_marker_count ==
+              player_neighborhood.sampled_tile_count);
+        CHECK(player_neighborhood.player_tile ==
+              model.tilemap[((size_t)model.player.y * WL_MAP_SIDE) + model.player.x]);
+
+        wl_game_model synthetic_player_neighborhood;
+        memset(&synthetic_player_neighborhood, 0, sizeof(synthetic_player_neighborhood));
+        synthetic_player_neighborhood.player.present = 1;
+        synthetic_player_neighborhood.player.x = 1;
+        synthetic_player_neighborhood.player.y = 1;
+        synthetic_player_neighborhood.tilemap[(0u * WL_MAP_SIDE) + 0u] = 1;
+        synthetic_player_neighborhood.tilemap[(0u * WL_MAP_SIDE) + 1u] = 0x80;
+        synthetic_player_neighborhood.tilemap[(0u * WL_MAP_SIDE) + 2u] = 0xc0 | 4u;
+        synthetic_player_neighborhood.tilemap[(1u * WL_MAP_SIDE) + 1u] = 99;
+        wl_runtime_player_tile_neighborhood_summary synthetic_player_summary;
+        CHECK(wl_summarize_runtime_player_tile_neighborhood(
+                  &synthetic_player_neighborhood, &synthetic_player_summary) == 0);
+        CHECK(synthetic_player_summary.sampled_tile_count == 9u);
+        CHECK(synthetic_player_summary.solid_wall_count == 1u);
+        CHECK(synthetic_player_summary.door_marker_count == 1u);
+        CHECK(synthetic_player_summary.pushwall_marker_count == 1u);
+        CHECK(synthetic_player_summary.other_marker_count == 1u);
+        CHECK(synthetic_player_summary.clear_floor_count == 5u);
+        CHECK(synthetic_player_summary.player_tile == 99u);
+        synthetic_player_neighborhood.player.x = 0;
+        synthetic_player_neighborhood.player.y = 0;
+        CHECK(wl_summarize_runtime_player_tile_neighborhood(
+                  &synthetic_player_neighborhood, &synthetic_player_summary) == 0);
+        CHECK(synthetic_player_summary.sampled_tile_count == 4u);
+        synthetic_player_neighborhood.player.present = 0;
+        CHECK(wl_summarize_runtime_player_tile_neighborhood(
+                  &synthetic_player_neighborhood, &synthetic_player_summary) == -1);
+
         wl_unknown_info_summary unknown_info;
         memset(&unknown_info, 0xff, sizeof(unknown_info));
         CHECK(wl_summarize_unknown_info_tiles(&model, &unknown_info) == 0);

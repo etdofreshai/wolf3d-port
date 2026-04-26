@@ -617,6 +617,8 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 
 `wl_summarize_runtime_tile_axes` complements the diagonal check with center row/column buckets for solid walls, clear floor, and markers. The headless coverage verifies real-map totals plus synthetic wall/marker/open cases so future spawn, raycast, and minimap work can cheaply detect crosshair-axis tilemap drift.
 
+`wl_summarize_runtime_player_tile_neighborhood` adds a compact player-centered 3x3 live-tilemap diagnostic. It clips at map edges, reports the player's current tile, and splits nearby tiles into clear floor, solid walls, door markers, pushwall markers, and other markers so movement/collision/presentation work can sanity-check immediate player surroundings headlessly.
+
 ## Runtime static collision summary
 
 `wl_summarize_static_collisions` partitions static descriptors into active/inactive blocking, bonus, and dressing buckets with invalid-coordinate accounting. This keeps player collision and visible pickup preparation inspectable in headless tests without mutating runtime state.
