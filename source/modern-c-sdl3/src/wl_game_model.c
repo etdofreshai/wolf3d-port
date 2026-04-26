@@ -62,6 +62,10 @@ static int static_traits(uint16_t type, int *blocking, int *bonus, int *treasure
         1,       /* 46 spears */
         0,       /* 47 vines */
         2,       /* 48 clip2 */
+        1,       /* 49 marble pillar (Spear) */
+        2,       /* 50 25-ammo clip (Spear) */
+        1,       /* 51 truck (Spear) */
+        2,       /* 52 Spear of Destiny pickup (Spear) */
     };
 
     if (type >= sizeof(traits) / sizeof(traits[0])) {
@@ -501,7 +505,8 @@ static uint16_t static_type_to_sprite_index(uint16_t type) {
         26, 27, 28, 29, 30, 31, 32, 33,
         34, 35, 36, 37, 38, 39, 40, 41,
         42, 43, 44, 45, 46, 47, 48, 49,
-        28,
+        28, 50, 51, 52,
+        53,
     };
     if (type >= sizeof(table) / sizeof(table[0])) {
         return UINT16_MAX;
