@@ -2730,6 +2730,35 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_distances.nearest_actor_index == 0);
     CHECK(synthetic_distances.farthest_actor_index == 0);
 
+    chase_summary_model.actors[1].shootable = 1;
+    chase_summary_model.actors[1].mode = WL_ACTOR_CHASE;
+    chase_summary_model.actors[2].tile_x = WL_MAP_SIDE;
+    chase_summary_model.actors[2].tile_y = 12;
+    wl_actor_engagement_summary synthetic_engagements;
+    CHECK(wl_summarize_actor_engagements(&chase_summary_model, 8, 5, 4,
+                                         &synthetic_engagements) == 0);
+    CHECK(wl_summarize_actor_engagements(NULL, 8, 5, 4,
+                                         &synthetic_engagements) == -1);
+    CHECK(wl_summarize_actor_engagements(&chase_summary_model, 8, WL_MAP_SIDE, 4,
+                                         &synthetic_engagements) == -1);
+    CHECK(wl_summarize_actor_engagements(&chase_summary_model, 8, 5, 4,
+                                         NULL) == -1);
+    CHECK(synthetic_engagements.threat_count == 2);
+    CHECK(synthetic_engagements.melee_threat_count == 1);
+    CHECK(synthetic_engagements.ranged_threat_count == 1);
+    CHECK(synthetic_engagements.close_threat_count == 1);
+    CHECK(synthetic_engagements.invalid_position_count == 1);
+    CHECK(synthetic_engagements.nearest_threat_index == 0);
+    CHECK(synthetic_engagements.nearest_threat_distance == 3);
+
+    chase_summary_model.actors[0].mode = WL_ACTOR_INERT;
+    chase_summary_model.actors[1].shootable = 0;
+    CHECK(wl_summarize_actor_engagements(&chase_summary_model, 8, 5, 4,
+                                         &synthetic_engagements) == 0);
+    CHECK(synthetic_engagements.threat_count == 0);
+    CHECK(synthetic_engagements.nearest_threat_index == UINT16_MAX);
+    CHECK(synthetic_engagements.nearest_threat_distance == 0);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
