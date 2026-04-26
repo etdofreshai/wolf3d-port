@@ -808,9 +808,15 @@ typedef struct wl_runtime_tile_diagonal_summary {
     size_t northwest_southeast_solid_wall_count;
     size_t northwest_southeast_clear_floor_count;
     size_t northwest_southeast_marker_count;
+    size_t northwest_southeast_door_marker_count;
+    size_t northwest_southeast_pushwall_marker_count;
+    size_t northwest_southeast_other_marker_count;
     size_t northeast_southwest_solid_wall_count;
     size_t northeast_southwest_clear_floor_count;
     size_t northeast_southwest_marker_count;
+    size_t northeast_southwest_door_marker_count;
+    size_t northeast_southwest_pushwall_marker_count;
+    size_t northeast_southwest_other_marker_count;
     size_t center_overlap_count;
 } wl_runtime_tile_diagonal_summary;
 
