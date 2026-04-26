@@ -1014,6 +1014,37 @@ static int check_gameplay_events(void) {
     CHECK(fire.unavailable == 1);
     CHECK(wl_try_player_fire_weapon(&state, (wl_weapon_type)4, &fire) == -1);
 
+    wl_player_fire_attack_result fire_attack;
+    state.best_weapon = WL_WEAPON_CHAINGUN;
+    state.weapon = WL_WEAPON_CHAINGUN;
+    state.chosen_weapon = WL_WEAPON_CHAINGUN;
+    state.ammo = 3;
+    state.attack_frame = 0;
+    CHECK(wl_start_player_fire_attack(&state, WL_WEAPON_CHAINGUN, &fire_attack) == 0);
+    CHECK(fire_attack.fire.fired == 1);
+    CHECK(fire_attack.fire.consumed_ammo == 1);
+    CHECK(fire_attack.attack_started == 1);
+    CHECK(fire_attack.attack_frame_before == 0);
+    CHECK(fire_attack.attack_frame_after == 2);
+    CHECK(state.attack_frame == 2);
+    CHECK(state.ammo == 2);
+    state.ammo = 0;
+    state.weapon = WL_WEAPON_PISTOL;
+    state.chosen_weapon = WL_WEAPON_PISTOL;
+    state.attack_frame = 7;
+    CHECK(wl_start_player_fire_attack(&state, WL_WEAPON_PISTOL, &fire_attack) == 0);
+    CHECK(fire_attack.fire.fired == 0);
+    CHECK(fire_attack.fire.no_ammo == 1);
+    CHECK(fire_attack.attack_started == 0);
+    CHECK(fire_attack.attack_frame_after == 7);
+    CHECK(state.attack_frame == 7);
+    CHECK(state.weapon == WL_WEAPON_KNIFE);
+    state.best_weapon = WL_WEAPON_PISTOL;
+    CHECK(wl_start_player_fire_attack(&state, WL_WEAPON_CHAINGUN, &fire_attack) == 0);
+    CHECK(fire_attack.fire.unavailable == 1);
+    CHECK(fire_attack.attack_started == 0);
+    CHECK(wl_start_player_fire_attack(&state, (wl_weapon_type)4, &fire_attack) == -1);
+
     wl_player_attack_step_result attack_step;
     state.best_weapon = WL_WEAPON_CHAINGUN;
     state.chosen_weapon = WL_WEAPON_CHAINGUN;
@@ -1041,7 +1072,6 @@ static int check_gameplay_events(void) {
     CHECK(state.weapon == WL_WEAPON_KNIFE);
     CHECK(wl_step_player_attack_state(&state, -1, &attack_step) == -1);
 
-    wl_player_fire_attack_result fire_attack;
     state.best_weapon = WL_WEAPON_MACHINEGUN;
     state.chosen_weapon = WL_WEAPON_PISTOL;
     state.weapon = WL_WEAPON_PISTOL;

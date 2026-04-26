@@ -93,6 +93,8 @@ typedef struct wl_player_fire_attack_result {
     wl_player_fire_result fire;
     int32_t frame_before;
     int32_t frame_after;
+    int32_t attack_frame_before;
+    int32_t attack_frame_after;
     uint8_t attack_started;
 } wl_player_fire_attack_result;
 
@@ -429,6 +431,9 @@ int wl_try_player_fire_weapon_attack(wl_player_gameplay_state *state,
                                      wl_weapon_type requested_weapon,
                                      int32_t attack_tics,
                                      wl_player_fire_attack_result *out);
+int wl_start_player_fire_attack(wl_player_gameplay_state *state,
+                                wl_weapon_type requested_weapon,
+                                wl_player_fire_attack_result *out);
 int wl_step_player_attack_state(wl_player_gameplay_state *state, int32_t tics,
                                 wl_player_attack_step_result *out);
 int wl_give_player_key(wl_player_gameplay_state *state, uint8_t key);
