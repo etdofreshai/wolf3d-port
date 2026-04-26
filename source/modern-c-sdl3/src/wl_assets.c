@@ -753,9 +753,7 @@ int wl_describe_present_frame_rgba_upload_pitched(
         return -1;
     }
     const size_t height = (size_t)present->texture.height;
-    if (height != 0 &&
-        ((height - 1u) > (SIZE_MAX - tight_pitch) / rgba_pitch ||
-         rgba_size < rgba_pitch * (height - 1u) + tight_pitch)) {
+    if (height > SIZE_MAX / rgba_pitch || rgba_size < rgba_pitch * height) {
         return -1;
     }
     memset(out, 0, sizeof(*out));
