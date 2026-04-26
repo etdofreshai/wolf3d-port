@@ -692,6 +692,12 @@ int wl_describe_present_frame(const wl_indexed_surface *surface,
 
 int wl_present_frame_rgba_size(const wl_present_frame_descriptor *present,
                                size_t *out_size) {
+    size_t pitch = 0;
+    return wl_present_frame_rgba_layout(present, &pitch, out_size);
+}
+
+int wl_present_frame_rgba_layout(const wl_present_frame_descriptor *present,
+                                 size_t *out_pitch, size_t *out_size) {
     if (!present || !out_size ||
         present->texture.format != WL_TEXTURE_UPLOAD_INDEXED8_RGB_PALETTE ||
         !present->texture.pixels || !present->texture.palette ||
@@ -707,11 +713,19 @@ int wl_present_frame_rgba_size(const wl_present_frame_descriptor *present,
         return -1;
     }
 
-    const size_t pixels = (size_t)present->texture.width * (size_t)present->texture.height;
-    if (pixels > SIZE_MAX / 4u) {
+    const size_t width = (size_t)present->texture.width;
+    const size_t height = (size_t)present->texture.height;
+    if (width > SIZE_MAX / 4u) {
         return -1;
     }
-    *out_size = pixels * 4u;
+    const size_t pitch = width * 4u;
+    if (height > SIZE_MAX / pitch) {
+        return -1;
+    }
+    if (out_pitch) {
+        *out_pitch = pitch;
+    }
+    *out_size = pitch * height;
     return 0;
 }
 

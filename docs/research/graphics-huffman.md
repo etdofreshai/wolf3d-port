@@ -485,3 +485,8 @@ Presentation descriptors now expose `wl_present_frame_rgba_size()` so future SDL
 ## Cycle update: present-frame palette-depth validation
 
 `wl_present_frame_rgba_size()` now rejects unsupported palette component depths before reporting an allocation size. The live chase-attack RGBA presentation test covers the valid size path plus a malformed 7-bit palette descriptor, keeping the SDL3-facing preflight and expansion validation aligned.
+
+
+## Cycle update: presentation RGBA layout helper
+
+Presentation preflight now reports both RGBA pitch and total buffer size through `wl_present_frame_rgba_layout()`. The existing size helper delegates to it, and the live chase-attack presentation test pins the `80x128` frame pitch (`320`) and byte size before RGBA expansion. This gives future SDL3 callers a single validated source for `SDL_CreateSurfaceFrom` pitch/size metadata while remaining headless.
