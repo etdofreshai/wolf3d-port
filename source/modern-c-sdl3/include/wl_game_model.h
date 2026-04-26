@@ -321,6 +321,16 @@ typedef struct wl_actor_collision_tile_summary {
     size_t invalid_position_count;
 } wl_actor_collision_tile_summary;
 
+typedef struct wl_actor_door_proximity_summary {
+    size_t on_door_tile_count;
+    size_t door_adjacent_tile_count;
+    size_t away_from_door_count;
+    size_t invalid_position_count;
+    size_t unique_door_tile_count;
+    uint16_t first_door_index;
+    uint16_t last_door_index;
+} wl_actor_door_proximity_summary;
+
 typedef struct wl_actor_player_adjacency_summary {
     size_t same_tile_count;
     size_t cardinal_adjacent_count;
@@ -503,6 +513,8 @@ int wl_summarize_actor_spawn_occupancy(const wl_game_model *model,
                                        wl_actor_spawn_occupancy_summary *out);
 int wl_summarize_actor_collision_tiles(const wl_game_model *model,
                                        wl_actor_collision_tile_summary *out);
+int wl_summarize_actor_door_proximity(const wl_game_model *model,
+                                      wl_actor_door_proximity_summary *out);
 int wl_summarize_actor_player_adjacency(const wl_game_model *model,
                                         uint16_t player_x, uint16_t player_y,
                                         wl_actor_player_adjacency_summary *out);

@@ -630,3 +630,7 @@ Added `wl_summarize_actor_collision_tiles()` as a small non-mutating actor place
 ## Cycle update: actor/player adjacency summary
 
 Added `wl_summarize_actor_player_adjacency()` as a small non-mutating runtime actor-state diagnostic. It partitions actors by same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, distant, and invalid-position buckets relative to a supplied player tile, giving future bite/chase/contact-damage ticks a deterministic headless proximity check before mutating actor AI state.
+
+## Cycle update: actor door-proximity summary
+
+Added `wl_summarize_actor_door_proximity()` as a small non-mutating actor placement diagnostic. It partitions actors standing on runtime door tiles, actors on door-adjacent marker tiles, actors away from doors, and invalid positions, while reporting the unique door indices touched by actors. This gives future door-blocking, AI navigation, and close-door collision work a deterministic headless aggregate before mutating live door or actor state.

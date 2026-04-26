@@ -2943,6 +2943,38 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_collision_tiles.invalid_position_count == 1);
 
     chase_summary_model.actor_count = 6;
+    chase_summary_model.actors[0].tile_x = 2;
+    chase_summary_model.actors[0].tile_y = 1;
+    chase_summary_model.tilemap[(size_t)1 * WL_MAP_SIDE + 2] = 0x80u | 3u;
+    chase_summary_model.actors[1].tile_x = 3;
+    chase_summary_model.actors[1].tile_y = 1;
+    chase_summary_model.tilemap[(size_t)1 * WL_MAP_SIDE + 3] = 0x80u | 7u;
+    chase_summary_model.actors[2].tile_x = 4;
+    chase_summary_model.actors[2].tile_y = 1;
+    chase_summary_model.tilemap[(size_t)1 * WL_MAP_SIDE + 4] = 0x80u | 3u;
+    chase_summary_model.actors[3].tile_x = 5;
+    chase_summary_model.actors[3].tile_y = 1;
+    chase_summary_model.tilemap[(size_t)1 * WL_MAP_SIDE + 5] = 0x40u;
+    chase_summary_model.actors[4].tile_x = 6;
+    chase_summary_model.actors[4].tile_y = 1;
+    chase_summary_model.tilemap[(size_t)1 * WL_MAP_SIDE + 6] = 12;
+    chase_summary_model.actors[5].tile_x = WL_MAP_SIDE;
+    chase_summary_model.actors[5].tile_y = 1;
+    wl_actor_door_proximity_summary synthetic_door_proximity;
+    CHECK(wl_summarize_actor_door_proximity(&chase_summary_model,
+                                            &synthetic_door_proximity) == 0);
+    CHECK(wl_summarize_actor_door_proximity(NULL,
+                                            &synthetic_door_proximity) == -1);
+    CHECK(wl_summarize_actor_door_proximity(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_door_proximity.on_door_tile_count == 3);
+    CHECK(synthetic_door_proximity.door_adjacent_tile_count == 1);
+    CHECK(synthetic_door_proximity.away_from_door_count == 1);
+    CHECK(synthetic_door_proximity.invalid_position_count == 1);
+    CHECK(synthetic_door_proximity.unique_door_tile_count == 2);
+    CHECK(synthetic_door_proximity.first_door_index == 3);
+    CHECK(synthetic_door_proximity.last_door_index == 7);
+
+    chase_summary_model.actor_count = 6;
     chase_summary_model.actors[0].tile_x = 8;
     chase_summary_model.actors[0].tile_y = 5;
     chase_summary_model.actors[1].tile_x = 9;
