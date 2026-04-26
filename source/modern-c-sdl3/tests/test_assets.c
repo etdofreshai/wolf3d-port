@@ -3900,6 +3900,37 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_pushwall_sources.min_source_tile == 0);
     CHECK(synthetic_pushwall_sources.max_source_tile == 0);
 
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.pushwall_count = 5;
+    chase_summary_model.pushwalls[0].x = 4;
+    chase_summary_model.pushwalls[0].y = 5;
+    chase_summary_model.pushwalls[1].x = 4;
+    chase_summary_model.pushwalls[1].y = 5;
+    chase_summary_model.pushwalls[2].x = 5;
+    chase_summary_model.pushwalls[2].y = 5;
+    chase_summary_model.pushwalls[3].x = WL_MAP_SIDE;
+    chase_summary_model.pushwalls[3].y = 5;
+    chase_summary_model.pushwalls[4].x = 5;
+    chase_summary_model.pushwalls[4].y = 5;
+    wl_pushwall_tile_occupancy_summary synthetic_pushwall_occupancy;
+    CHECK(wl_summarize_pushwall_tile_occupancy(&chase_summary_model,
+                                               &synthetic_pushwall_occupancy) == 0);
+    CHECK(wl_summarize_pushwall_tile_occupancy(NULL,
+                                               &synthetic_pushwall_occupancy) == -1);
+    CHECK(wl_summarize_pushwall_tile_occupancy(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_pushwall_occupancy.marker_count == 5);
+    CHECK(synthetic_pushwall_occupancy.unique_tile_count == 2);
+    CHECK(synthetic_pushwall_occupancy.duplicate_tile_count == 2);
+    CHECK(synthetic_pushwall_occupancy.invalid_marker_position_count == 1);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    CHECK(wl_summarize_pushwall_tile_occupancy(&chase_summary_model,
+                                               &synthetic_pushwall_occupancy) == 0);
+    CHECK(synthetic_pushwall_occupancy.marker_count == 0);
+    CHECK(synthetic_pushwall_occupancy.unique_tile_count == 0);
+    CHECK(synthetic_pushwall_occupancy.duplicate_tile_count == 0);
+    CHECK(synthetic_pushwall_occupancy.invalid_marker_position_count == 0);
+
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.path_marker_count = 5;
