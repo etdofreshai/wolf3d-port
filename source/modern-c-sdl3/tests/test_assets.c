@@ -3176,6 +3176,75 @@ static int check_wl6(const char *dir) {
         CHECK(wl_summarize_runtime_player_facing_actors(
                   &synthetic_player_neighborhood, &facing_actors) == -1);
 
+        wl_runtime_player_facing_static_summary facing_statics;
+        memset(&facing_statics, 0xff, sizeof(facing_statics));
+        CHECK(wl_summarize_runtime_player_facing_statics(&model, &facing_statics) == 0);
+        CHECK(wl_summarize_runtime_player_facing_statics(NULL, &facing_statics) == -1);
+        CHECK(wl_summarize_runtime_player_facing_statics(&model, NULL) == -1);
+        CHECK(facing_statics.direction == model.player.dir);
+        CHECK(facing_statics.static_count_ahead <= model.static_count);
+        CHECK(facing_statics.blocking_count_ahead <= facing_statics.static_count_ahead);
+        CHECK(facing_statics.bonus_count_ahead <= facing_statics.static_count_ahead);
+        CHECK(facing_statics.inactive_count <= model.static_count);
+        CHECK(facing_statics.invalid_static_position_count == 0u);
+        if (facing_statics.has_first_static) {
+            CHECK(facing_statics.first_static_index < model.static_count);
+            CHECK(facing_statics.first_static_distance > 0u);
+        }
+
+        memset(&synthetic_player_neighborhood, 0, sizeof(synthetic_player_neighborhood));
+        synthetic_player_neighborhood.player.present = 1;
+        synthetic_player_neighborhood.player.x = 2;
+        synthetic_player_neighborhood.player.y = 2;
+        synthetic_player_neighborhood.player.dir = WL_DIR_EAST;
+        synthetic_player_neighborhood.static_count = 5;
+        synthetic_player_neighborhood.statics[0].x = 4;
+        synthetic_player_neighborhood.statics[0].y = 2;
+        synthetic_player_neighborhood.statics[0].active = 1;
+        synthetic_player_neighborhood.statics[0].blocking = 1;
+        synthetic_player_neighborhood.statics[1].x = 6;
+        synthetic_player_neighborhood.statics[1].y = 2;
+        synthetic_player_neighborhood.statics[1].active = 1;
+        synthetic_player_neighborhood.statics[1].bonus = 1;
+        synthetic_player_neighborhood.statics[2].x = 2;
+        synthetic_player_neighborhood.statics[2].y = 5;
+        synthetic_player_neighborhood.statics[2].active = 1;
+        synthetic_player_neighborhood.statics[2].bonus = 1;
+        synthetic_player_neighborhood.statics[3].x = 5;
+        synthetic_player_neighborhood.statics[3].y = 2;
+        synthetic_player_neighborhood.statics[3].active = 0;
+        synthetic_player_neighborhood.statics[4].x = WL_MAP_SIDE;
+        synthetic_player_neighborhood.statics[4].y = 2;
+        synthetic_player_neighborhood.statics[4].active = 1;
+        CHECK(wl_summarize_runtime_player_facing_statics(
+                  &synthetic_player_neighborhood, &facing_statics) == 0);
+        CHECK(facing_statics.static_count_ahead == 2u);
+        CHECK(facing_statics.blocking_count_ahead == 1u);
+        CHECK(facing_statics.bonus_count_ahead == 1u);
+        CHECK(facing_statics.inactive_count == 1u);
+        CHECK(facing_statics.blocked_static_count == 0u);
+        CHECK(facing_statics.invalid_static_position_count == 1u);
+        CHECK(facing_statics.has_first_static == 1u);
+        CHECK(facing_statics.first_static_index == 0u);
+        CHECK(facing_statics.first_static_distance == 2u);
+        synthetic_player_neighborhood.tilemap[(2u * WL_MAP_SIDE) + 3u] = 1u;
+        CHECK(wl_summarize_runtime_player_facing_statics(
+                  &synthetic_player_neighborhood, &facing_statics) == 0);
+        CHECK(facing_statics.static_count_ahead == 0u);
+        CHECK(facing_statics.blocked_static_count == 2u);
+        CHECK(facing_statics.has_first_static == 0u);
+        synthetic_player_neighborhood.player.dir = WL_DIR_NONE;
+        CHECK(wl_summarize_runtime_player_facing_statics(
+                  &synthetic_player_neighborhood, &facing_statics) == 0);
+        CHECK(facing_statics.static_count_ahead == 0u);
+        synthetic_player_neighborhood.player.dir = (wl_direction)99;
+        CHECK(wl_summarize_runtime_player_facing_statics(
+                  &synthetic_player_neighborhood, &facing_statics) == -1);
+        synthetic_player_neighborhood.player.present = 0;
+        synthetic_player_neighborhood.player.dir = WL_DIR_EAST;
+        CHECK(wl_summarize_runtime_player_facing_statics(
+                  &synthetic_player_neighborhood, &facing_statics) == -1);
+
         wl_unknown_info_summary unknown_info;
         memset(&unknown_info, 0xff, sizeof(unknown_info));
         CHECK(wl_summarize_unknown_info_tiles(&model, &unknown_info) == 0);
