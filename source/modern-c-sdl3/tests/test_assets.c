@@ -3273,6 +3273,12 @@ static int check_wl6(const char *dir) {
         CHECK(wl_summarize_runtime_player_interaction(
                   &synthetic_player_neighborhood, &interaction) == 0);
         CHECK(interaction.has_nearest == 1u);
+        CHECK(interaction.actor_count_ahead == 1u);
+        CHECK(interaction.shootable_actor_count_ahead == 1u);
+        CHECK(interaction.static_count_ahead == 1u);
+        CHECK(interaction.bonus_static_count_ahead == 1u);
+        CHECK(interaction.blocked_actor_count == 0u);
+        CHECK(interaction.blocked_static_count == 0u);
         CHECK(interaction.nearest_is_static == 1u);
         CHECK(interaction.nearest_is_actor == 0u);
         CHECK(interaction.nearest_kind == 2u);
@@ -3285,6 +3291,10 @@ static int check_wl6(const char *dir) {
         CHECK(wl_summarize_runtime_player_interaction(
                   &synthetic_player_neighborhood, &interaction) == 0);
         CHECK(interaction.has_nearest == 0u);
+        CHECK(interaction.actor_count_ahead == 0u);
+        CHECK(interaction.static_count_ahead == 0u);
+        CHECK(interaction.blocked_actor_count == 1u);
+        CHECK(interaction.blocked_static_count == 1u);
         CHECK(interaction.has_map_blocking_tile == 1u);
         CHECK(interaction.map_blocked_before_nearest == 0u);
         CHECK(interaction.map_blocking_tile == 1u);
@@ -3296,12 +3306,16 @@ static int check_wl6(const char *dir) {
                   &synthetic_player_neighborhood, &interaction) == 0);
         CHECK(interaction.has_nearest == 1u);
         CHECK(interaction.nearest_is_actor == 1u);
+        CHECK(interaction.actor_count_ahead == 1u);
+        CHECK(interaction.static_count_ahead == 1u);
         CHECK(interaction.nearest_actor_shootable == 1u);
         CHECK(interaction.nearest_distance == 3u);
         synthetic_player_neighborhood.player.dir = WL_DIR_NONE;
         CHECK(wl_summarize_runtime_player_interaction(
                   &synthetic_player_neighborhood, &interaction) == 0);
         CHECK(interaction.has_nearest == 0u);
+        CHECK(interaction.actor_count_ahead == 0u);
+        CHECK(interaction.static_count_ahead == 0u);
         synthetic_player_neighborhood.player.dir = (wl_direction)99;
         CHECK(wl_summarize_runtime_player_interaction(
                   &synthetic_player_neighborhood, &interaction) == -1);

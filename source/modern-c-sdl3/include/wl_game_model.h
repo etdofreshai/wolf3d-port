@@ -910,6 +910,13 @@ typedef struct wl_runtime_player_interaction_summary {
     uint8_t nearest_actor_shootable;
     uint8_t nearest_static_blocking;
     uint8_t nearest_static_bonus;
+    size_t actor_count_ahead;
+    size_t shootable_actor_count_ahead;
+    size_t static_count_ahead;
+    size_t blocking_static_count_ahead;
+    size_t bonus_static_count_ahead;
+    size_t blocked_actor_count;
+    size_t blocked_static_count;
     uint8_t map_blocked_before_nearest;
     uint8_t has_map_blocking_tile;
     uint16_t map_blocking_tile;
