@@ -2520,6 +2520,28 @@ int wl_describe_adlib_sound(const unsigned char *chunk, size_t chunk_size,
     return 0;
 }
 
+int wl_describe_adlib_instrument_registers(const unsigned char *chunk, size_t chunk_size,
+                                           wl_adlib_instrument_registers *out) {
+    static const uint8_t base_regs[5] = {0x20u, 0x40u, 0x60u, 0x80u, 0xe0u};
+    const size_t common_bytes = sizeof(uint32_t) + sizeof(uint16_t);
+    const size_t data_offset = common_bytes + 16u;
+    if (!chunk || !out || chunk_size < data_offset) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < 5u; ++i) {
+        out->modulator_regs[i] = base_regs[i];
+        out->modulator_values[i] = chunk[common_bytes + (i * 2u)];
+        out->carrier_regs[i] = (uint8_t)(base_regs[i] + 3u);
+        out->carrier_values[i] = chunk[common_bytes + (i * 2u) + 1u];
+    }
+    out->feedback_reg = 0xc0u;
+    out->feedback_value = chunk[common_bytes + 10u];
+    out->voice = chunk[common_bytes + 11u];
+    out->mode = chunk[common_bytes + 12u];
+    return 0;
+}
+
 int wl_get_adlib_instrument_byte(const unsigned char *chunk, size_t chunk_size,
                                  size_t instrument_index, uint8_t *out_byte) {
     const size_t common_bytes = sizeof(uint32_t) + sizeof(uint16_t);
