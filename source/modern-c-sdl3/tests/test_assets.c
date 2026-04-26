@@ -5873,6 +5873,7 @@ static int check_audio_wl6(const char *dir) {
     wl_sound_channel_schedule_tick_result sound_schedule_tick;
     wl_sound_channel_schedule_advance_result sound_schedule_advance;
     wl_sound_channel_schedule_window_result sound_schedule_window;
+    wl_sound_channel_schedule_position_result sound_schedule_position;
     wl_pc_speaker_sound_metadata pc_meta;
     wl_pc_speaker_playback_cursor pc_cursor;
     wl_adlib_sound_metadata adlib_meta;
@@ -6442,6 +6443,43 @@ static int check_audio_wl6(const char *dir) {
     CHECK(wl_schedule_describe_sound_channel_window_from_chunk(
               &sound_channel, 0, &audio_meta, chunk_buf, chunk_bytes, 1,
               NULL) == -1);
+    memset(&sound_channel, 0, sizeof(sound_channel));
+    sound_channel.active = 0;
+    sound_channel.sound_index = 50;
+    sound_channel.priority = 99;
+    sound_channel.sample_position = 4;
+    CHECK(wl_schedule_describe_sound_channel_position_from_chunk(
+              &sound_channel, 0, &audio_meta, chunk_buf, chunk_bytes,
+              &sound_schedule_position) == 0);
+    CHECK(sound_schedule_position.schedule.started == 1);
+    CHECK(sound_schedule_position.schedule.held == 0);
+    CHECK(sound_schedule_position.described == 1);
+    CHECK(sound_schedule_position.position.sample_position == 0);
+    CHECK(sound_schedule_position.position.sample_count == 8);
+    CHECK(sound_schedule_position.position.current_sample == 0x83);
+    CHECK(sound_schedule_position.position.completed == 0);
+    sound_channel.active = 1;
+    sound_channel.sound_index = 50;
+    sound_channel.priority = 2;
+    sound_channel.sample_position = 4;
+    CHECK(wl_schedule_describe_sound_channel_position_from_chunk(
+              &sound_channel, 0, &audio_meta, chunk_buf, chunk_bytes,
+              &sound_schedule_position) == 0);
+    CHECK(sound_schedule_position.schedule.started == 0);
+    CHECK(sound_schedule_position.schedule.held == 1);
+    CHECK(sound_schedule_position.described == 0);
+    CHECK(sound_schedule_position.schedule.state.sound_index == 50);
+    CHECK(sound_schedule_position.schedule.state.sample_position == 4);
+    CHECK(wl_schedule_describe_sound_channel_position_from_chunk(
+              &sound_channel, 70000, &audio_meta, chunk_buf, chunk_bytes,
+              &sound_schedule_position) == -1);
+    CHECK(wl_schedule_describe_sound_channel_position_from_chunk(
+              &sound_channel, 0, &audio_meta, chunk_buf, 6,
+              &sound_schedule_position) == -1);
+    CHECK(wl_schedule_describe_sound_channel_position_from_chunk(
+              &sound_channel, 0, &audio_meta, chunk_buf, chunk_bytes,
+              NULL) == -1);
+
 
     /* PC speaker sound 1 (SELECTWPNSND) */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 1, chunk_buf, sizeof(chunk_buf),

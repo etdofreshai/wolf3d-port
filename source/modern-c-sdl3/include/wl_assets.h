@@ -612,18 +612,24 @@ typedef struct wl_sample_playback_window {
     uint8_t completed;
 } wl_sample_playback_window;
 
-typedef struct wl_sound_channel_schedule_window_result {
-    wl_sound_channel_schedule_result schedule;
-    wl_sample_playback_window window;
-    uint8_t described;
-} wl_sound_channel_schedule_window_result;
-
 typedef struct wl_sample_playback_position {
     size_t sample_position;
     size_t sample_count;
     uint8_t current_sample;
     uint8_t completed;
 } wl_sample_playback_position;
+
+typedef struct wl_sound_channel_schedule_window_result {
+    wl_sound_channel_schedule_result schedule;
+    wl_sample_playback_window window;
+    uint8_t described;
+} wl_sound_channel_schedule_window_result;
+
+typedef struct wl_sound_channel_schedule_position_result {
+    wl_sound_channel_schedule_result schedule;
+    wl_sample_playback_position position;
+    uint8_t described;
+} wl_sound_channel_schedule_position_result;
 
 typedef struct wl_imf_music_command {
     uint8_t reg;
@@ -759,6 +765,12 @@ int wl_schedule_describe_sound_channel_window_from_chunk(
     const unsigned char *chunk, size_t chunk_size,
     size_t sample_budget,
     wl_sound_channel_schedule_window_result *out);
+int wl_schedule_describe_sound_channel_position_from_chunk(
+    const wl_sound_channel_state *current,
+    size_t candidate_chunk,
+    const wl_audio_chunk_metadata *metadata,
+    const unsigned char *chunk, size_t chunk_size,
+    wl_sound_channel_schedule_position_result *out);
 int wl_describe_sound_sample_count_from_chunk(const wl_audio_chunk_metadata *metadata,
                                              const unsigned char *chunk, size_t chunk_size,
                                              size_t *out_sample_count);
