@@ -2397,6 +2397,45 @@ int wl_summarize_static_states(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_static_source_tiles(const wl_game_model *model,
+                                     wl_static_source_tile_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->static_count = model->static_count;
+    if (model->static_count == 0) {
+        return 0;
+    }
+
+    out->min_source_tile = UINT16_MAX;
+    for (size_t i = 0; i < model->static_count; ++i) {
+        const uint16_t tile = model->statics[i].source_tile;
+        if (tile == 0) {
+            ++out->zero_source_tile_count;
+        }
+        if (tile < out->min_source_tile) {
+            out->min_source_tile = tile;
+        }
+        if (tile > out->max_source_tile) {
+            out->max_source_tile = tile;
+        }
+
+        int seen = 0;
+        for (size_t j = 0; j < i; ++j) {
+            if (model->statics[j].source_tile == tile) {
+                seen = 1;
+                break;
+            }
+        }
+        if (!seen) {
+            ++out->unique_source_tile_count;
+        }
+    }
+    return 0;
+}
+
 
 static uint16_t tile_manhattan_distance(uint16_t x, uint16_t y,
                                         uint16_t player_x,
