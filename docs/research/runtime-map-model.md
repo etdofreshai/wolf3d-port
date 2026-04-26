@@ -618,3 +618,7 @@ Added `wl_summarize_actor_tile_occupancy()` as a non-mutating runtime actor-stat
 ## Cycle update: actor spawn occupancy summary
 
 Added `wl_summarize_actor_spawn_occupancy()` as the spawn-tile sibling to live actor tile occupancy. It reports occupied spawn tiles, actors sharing the same original spawn tile, invalid spawn coordinates, moved-from-spawn actors, and maximum spawn stack depth so model diagnostics can distinguish original placement overlap from later live movement.
+
+## Cycle update: actor collision-tile summary
+
+Added `wl_summarize_actor_collision_tiles()` as a small non-mutating actor placement diagnostic. It partitions valid actor positions by the runtime tilemap category under the actor (open, wall, door, door-adjacent marker) and reports invalid positions, giving future live collision/AI work a deterministic headless check for actors embedded in blocking runtime map state.

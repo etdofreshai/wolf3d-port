@@ -2034,6 +2034,34 @@ int wl_summarize_actor_spawn_occupancy(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_actor_collision_tiles(const wl_game_model *model,
+                                       wl_actor_collision_tile_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+
+        const uint16_t tile = model->tilemap[map_index(actor->tile_x, actor->tile_y)];
+        if (tile & 0x80u) {
+            ++out->door_tile_count;
+        } else if (tile & 0x40u) {
+            ++out->door_adjacent_tile_count;
+        } else if (tile > 0u && tile < 64u) {
+            ++out->wall_tile_count;
+        } else {
+            ++out->open_tile_count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_actor_directions(const wl_game_model *model,
                                   wl_actor_direction_summary *out) {
     if (!model || !out) {
