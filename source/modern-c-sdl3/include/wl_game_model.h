@@ -328,6 +328,8 @@ int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_spri
 int wl_collect_spear_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_sprite_start,
                                        wl_scene_sprite_ref *refs, size_t max_refs,
                                        size_t *out_count);
+int wl_count_actors_by_kind(const wl_game_model *model, size_t *counts,
+                            size_t count_capacity);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);
