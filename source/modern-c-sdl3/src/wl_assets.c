@@ -2488,6 +2488,34 @@ int wl_advance_sound_channel(const wl_sound_channel_state *current,
     return 0;
 }
 
+int wl_advance_sound_channel_from_chunk(const wl_sound_channel_state *current,
+                                        const wl_audio_chunk_metadata *metadata,
+                                        const unsigned char *chunk, size_t chunk_size,
+                                        uint32_t sample_delta,
+                                        wl_sound_channel_advance_result *out) {
+    uint32_t sample_count;
+    if (!metadata || !chunk || metadata->is_empty ||
+        (metadata->kind != WL_AUDIO_CHUNK_PC_SPEAKER &&
+         metadata->kind != WL_AUDIO_CHUNK_ADLIB) ||
+        metadata->payload_size == 0 || metadata->payload_size > chunk_size ||
+        chunk_size < sizeof(uint32_t)) {
+        return -1;
+    }
+    sample_count = read_le32(chunk);
+    if (metadata->kind == WL_AUDIO_CHUNK_PC_SPEAKER) {
+        const size_t payload_offset = sizeof(uint32_t) + sizeof(uint16_t);
+        if (chunk_size < payload_offset || (size_t)sample_count >= chunk_size - payload_offset) {
+            return -1;
+        }
+    } else {
+        const size_t payload_offset = sizeof(uint32_t) + sizeof(uint16_t) + 16u;
+        if (chunk_size < payload_offset || (size_t)sample_count > chunk_size - payload_offset) {
+            return -1;
+        }
+    }
+    return wl_advance_sound_channel(current, (size_t)sample_count, sample_delta, out);
+}
+
 int wl_tick_sound_channel(const wl_sound_channel_state *current,
                           wl_audio_chunk_kind kind,
                           const unsigned char *chunk, size_t chunk_size,

@@ -6197,6 +6197,21 @@ static int check_audio_wl6(const char *dir) {
     CHECK(wl_describe_sound_playback_position_from_chunk(&audio_meta, chunk_buf, 6,
                                                          0, &sample_position) == -1);
 
+    sound_channel.active = 1;
+    sound_channel.sound_index = 0;
+    sound_channel.priority = 1;
+    sound_channel.sample_position = 6;
+    CHECK(wl_advance_sound_channel_from_chunk(&sound_channel, &audio_meta,
+                                              chunk_buf, chunk_bytes, 3,
+                                              &sound_advance) == 0);
+    CHECK(sound_advance.completed == 1);
+    CHECK(sound_advance.samples_consumed == 2);
+    CHECK(sound_advance.state.active == 0);
+    CHECK(sound_advance.state.sample_position == 8);
+    CHECK(wl_advance_sound_channel_from_chunk(&sound_channel, &audio_meta,
+                                              chunk_buf, 6, 1,
+                                              &sound_advance) == -1);
+
     memset(&sound_channel, 0, sizeof(sound_channel));
     sound_channel.active = 1;
     sound_channel.sound_index = 0;
@@ -6446,9 +6461,30 @@ static int check_audio_wl6(const char *dir) {
     CHECK(sample_position.sample_count == 8);
     CHECK(sample_position.current_sample == 0x2e);
     CHECK(sample_position.completed == 0);
+    sound_channel.active = 1;
+    sound_channel.sound_index = 87;
+    sound_channel.priority = 1;
+    sound_channel.sample_position = 5;
+    CHECK(wl_advance_sound_channel_from_chunk(&sound_channel, &audio_meta,
+                                              chunk_buf, chunk_bytes, 2,
+                                              &sound_advance) == 0);
+    CHECK(sound_advance.completed == 0);
+    CHECK(sound_advance.samples_consumed == 2);
+    CHECK(sound_advance.state.active == 1);
+    CHECK(sound_advance.state.sample_position == 7);
+    CHECK(wl_advance_sound_channel_from_chunk(&sound_advance.state, &audio_meta,
+                                              chunk_buf, chunk_bytes, 2,
+                                              &sound_advance) == 0);
+    CHECK(sound_advance.completed == 1);
+    CHECK(sound_advance.samples_consumed == 1);
+    CHECK(sound_advance.state.active == 0);
+    CHECK(sound_advance.state.sample_position == 8);
     audio_meta.kind = WL_AUDIO_CHUNK_MUSIC;
     CHECK(wl_describe_sound_playback_position_from_chunk(&audio_meta, chunk_buf, chunk_bytes,
                                                          0, &sample_position) == -1);
+    CHECK(wl_advance_sound_channel_from_chunk(&sound_channel, &audio_meta,
+                                              chunk_buf, chunk_bytes, 1,
+                                              &sound_advance) == -1);
     audio_meta.kind = WL_AUDIO_CHUNK_ADLIB;
 
     memset(&sound_channel, 0, sizeof(sound_channel));
