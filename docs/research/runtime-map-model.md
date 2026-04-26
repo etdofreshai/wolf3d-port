@@ -764,3 +764,7 @@ Extended `wl_player_use_result` with `tile_before` and `tile_after` for the targ
 Added `wl_summarize_static_line_of_sight()` as a non-mutating static/player cardinal visibility diagnostic. It mirrors the actor LOS helper while preserving active-only filtering, partitioning statics into clear, wall-blocked, door-blocked, same-tile, non-cardinal, inactive, and invalid-position buckets so pickup/render preparation can sanity-check visible static placement without SDL or live mutation. Synthetic headless tests cover every bucket plus null/invalid-player rejection.
 
 Added `wl_summarize_pushwall_line_of_sight()` as a non-mutating pushwall/player cardinal visibility diagnostic. It mirrors door line-of-sight buckets (clear, wall-blocked, door-blocked, same-tile, non-cardinal, invalid marker) so future use/pushwall and presentation seams can inspect whether a marker is directly visible without advancing runtime state.
+
+## Cycle update: runtime path-marker/player line-of-sight summary
+
+Added `wl_summarize_path_marker_line_of_sight` as a non-mutating patrol-marker diagnostic that mirrors the existing actor/static/door/pushwall cardinal visibility buckets. Synthetic tests cover clear cardinal visibility, wall-blocked and door-blocked paths, same-tile, non-cardinal, invalid-marker, null-output, null-model, and invalid-player cases.

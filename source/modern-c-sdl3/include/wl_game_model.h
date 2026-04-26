@@ -668,6 +668,15 @@ typedef struct wl_path_marker_player_adjacency_summary {
     size_t invalid_marker_position_count;
 } wl_path_marker_player_adjacency_summary;
 
+typedef struct wl_path_marker_line_of_sight_summary {
+    size_t clear_cardinal_count;
+    size_t blocked_by_wall_count;
+    size_t blocked_by_door_count;
+    size_t same_tile_count;
+    size_t noncardinal_count;
+    size_t invalid_marker_position_count;
+} wl_path_marker_line_of_sight_summary;
+
 typedef struct wl_path_marker_direction_summary {
     size_t north_count;
     size_t east_count;
@@ -987,6 +996,9 @@ int wl_summarize_path_marker_player_distances(
 int wl_summarize_path_marker_player_adjacency(
     const wl_game_model *model, uint16_t player_x, uint16_t player_y,
     wl_path_marker_player_adjacency_summary *out);
+int wl_summarize_path_marker_line_of_sight(
+    const wl_game_model *model, uint16_t player_x, uint16_t player_y,
+    wl_path_marker_line_of_sight_summary *out);
 int wl_summarize_path_marker_directions(
     const wl_game_model *model, wl_path_marker_direction_summary *out);
 int wl_summarize_path_marker_exits(

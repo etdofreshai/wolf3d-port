@@ -543,6 +543,8 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 
 `wl_summarize_path_marker_player_adjacency` reports same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, distant, and invalid patrol marker buckets relative to the player without mutating AI path state. Synthetic headless coverage pins every bucket for future patrol wake/chase diagnostics.
 
+`wl_summarize_path_marker_line_of_sight` mirrors the actor/static/door/pushwall cardinal visibility buckets for patrol markers, including wall-blocked, door-blocked, same-tile, non-cardinal, and invalid-marker cases. This gives patrol-route diagnostics a deterministic SDL-free player visibility seam.
+
 ## Runtime path-marker direction summary
 
 `wl_summarize_path_marker_directions` reports north/east/south/west/no-direction/invalid patrol-marker direction buckets plus invalid marker coordinates without mutating AI path state. Synthetic headless coverage pins every bucket for future patrol/chase progression diagnostics.
