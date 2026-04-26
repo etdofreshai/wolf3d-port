@@ -639,3 +639,7 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 - `wl_summarize_actor_attack_readiness` now splits actors that are immediately ready to attack into dog bite and ranged-shoot buckets, preserving the aggregate ready count while giving future live AI/HUD presentation a cheap way to distinguish melee bite threats from gunfire in headless tests.
 
 - `wl_summarize_actor_attack_readiness` also splits immediately ready attackers by same-row vs same-column sight lanes, preserving existing ready/bite/shoot buckets while exposing the attack axis for future AI/HUD presentation without re-walking the tilemap.
+
+## Actor distance band diagnostic
+
+`wl_summarize_actor_distance_bands()` buckets runtime actors by Manhattan distance from the player into same-tile, adjacent, near, mid, far, and invalid-position groups. It can restrict the scan to shootable actors, giving future AI/combat/presentation preflight code a compact non-mutating proximity distribution without duplicating nearest/farthest selection logic.

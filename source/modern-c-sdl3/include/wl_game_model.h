@@ -267,6 +267,15 @@ typedef struct wl_actor_player_distance_summary {
     uint16_t farthest_distance;
 } wl_actor_player_distance_summary;
 
+typedef struct wl_actor_distance_band_summary {
+    size_t same_tile_count;
+    size_t adjacent_count;
+    size_t near_count;
+    size_t mid_count;
+    size_t far_count;
+    size_t invalid_position_count;
+} wl_actor_distance_band_summary;
+
 typedef struct wl_actor_engagement_summary {
     size_t threat_count;
     size_t melee_threat_count;
@@ -1184,6 +1193,12 @@ int wl_summarize_actor_player_distances(const wl_game_model *model,
                                         uint16_t player_x, uint16_t player_y,
                                         int shootable_only,
                                         wl_actor_player_distance_summary *out);
+int wl_summarize_actor_distance_bands(const wl_game_model *model,
+                                      uint16_t player_x, uint16_t player_y,
+                                      uint16_t near_distance,
+                                      uint16_t mid_distance,
+                                      int shootable_only,
+                                      wl_actor_distance_band_summary *out);
 int wl_summarize_actor_engagements(const wl_game_model *model,
                                    uint16_t player_x, uint16_t player_y,
                                    uint16_t close_distance,
