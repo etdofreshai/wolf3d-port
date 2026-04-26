@@ -793,6 +793,8 @@ Added `wl_summarize_runtime_tile_quadrants()` as a non-mutating live tilemap dia
 
 `wl_summarize_runtime_player_cardinal_tiles()` narrows that player-local tile diagnostic to the four direct step/use directions. It rejects missing/invalid player spawns, clips at map edges, exposes north/east/south/west tile values with presence flags, and buckets clear floor, solid wall, door marker, pushwall marker, and other marker samples for direct movement/input preflight checks.
 
+`wl_summarize_runtime_player_facing_tile()` adds the matching direction-aware probe for the single tile in front of the player. It preserves no-direction and out-of-bounds as valid no-target states, rejects invalid directions/missing players, and tags the target as clear floor, solid wall, door marker, moving pushwall marker, or other marker so use-button and collision seams can inspect the immediate target without mutating runtime state.
+
 ## Cycle update: runtime static collision summary
 
 Added `wl_summarize_static_collisions()` as a non-mutating static collision/readiness diagnostic. It partitions valid statics into active/inactive blocking, active/inactive bonus, and active/inactive dressing buckets while separately reporting invalid coordinates, giving movement, pickup, and renderer paths a compact SDL-free check for statics that still affect collision or visible pickup state.
