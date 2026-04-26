@@ -2136,6 +2136,25 @@ int wl_summarize_runtime_tile_axes(const wl_game_model *model,
     return 0;
 }
 
+static void summarize_runtime_tile_bucket(uint16_t tile,
+                                          size_t *clear_floor_count,
+                                          size_t *solid_wall_count,
+                                          size_t *door_marker_count,
+                                          size_t *pushwall_marker_count,
+                                          size_t *other_marker_count) {
+    if (tile == 0u) {
+        ++*clear_floor_count;
+    } else if ((tile & 0xc0u) == 0xc0u) {
+        ++*pushwall_marker_count;
+    } else if ((tile & 0x80u) != 0u) {
+        ++*door_marker_count;
+    } else if (tile <= 63u) {
+        ++*solid_wall_count;
+    } else {
+        ++*other_marker_count;
+    }
+}
+
 int wl_summarize_runtime_player_tile_neighborhood(
     const wl_game_model *model,
     wl_runtime_player_tile_neighborhood_summary *out) {
@@ -2157,18 +2176,72 @@ int wl_summarize_runtime_player_tile_neighborhood(
         for (size_t x = min_x; x <= max_x; ++x) {
             const uint16_t tile = model->tilemap[map_index(x, y)];
             ++out->sampled_tile_count;
-            if (tile == 0u) {
-                ++out->clear_floor_count;
-            } else if ((tile & 0xc0u) == 0xc0u) {
-                ++out->pushwall_marker_count;
-            } else if ((tile & 0x80u) != 0u) {
-                ++out->door_marker_count;
-            } else if (tile <= 63u) {
-                ++out->solid_wall_count;
-            } else {
-                ++out->other_marker_count;
-            }
+            summarize_runtime_tile_bucket(tile,
+                                          &out->clear_floor_count,
+                                          &out->solid_wall_count,
+                                          &out->door_marker_count,
+                                          &out->pushwall_marker_count,
+                                          &out->other_marker_count);
         }
+    }
+    return 0;
+}
+
+int wl_summarize_runtime_player_cardinal_tiles(
+    const wl_game_model *model,
+    wl_runtime_player_cardinal_tiles_summary *out) {
+    if (!model || !out || !model->player.present ||
+        model->player.x >= WL_MAP_SIDE || model->player.y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    const size_t player_x = model->player.x;
+    const size_t player_y = model->player.y;
+
+    if (player_y > 0u) {
+        out->has_north_tile = 1u;
+        out->north_tile = model->tilemap[map_index(player_x, player_y - 1u)];
+        ++out->sampled_tile_count;
+        summarize_runtime_tile_bucket(out->north_tile,
+                                      &out->clear_floor_count,
+                                      &out->solid_wall_count,
+                                      &out->door_marker_count,
+                                      &out->pushwall_marker_count,
+                                      &out->other_marker_count);
+    }
+    if (player_x + 1u < WL_MAP_SIDE) {
+        out->has_east_tile = 1u;
+        out->east_tile = model->tilemap[map_index(player_x + 1u, player_y)];
+        ++out->sampled_tile_count;
+        summarize_runtime_tile_bucket(out->east_tile,
+                                      &out->clear_floor_count,
+                                      &out->solid_wall_count,
+                                      &out->door_marker_count,
+                                      &out->pushwall_marker_count,
+                                      &out->other_marker_count);
+    }
+    if (player_y + 1u < WL_MAP_SIDE) {
+        out->has_south_tile = 1u;
+        out->south_tile = model->tilemap[map_index(player_x, player_y + 1u)];
+        ++out->sampled_tile_count;
+        summarize_runtime_tile_bucket(out->south_tile,
+                                      &out->clear_floor_count,
+                                      &out->solid_wall_count,
+                                      &out->door_marker_count,
+                                      &out->pushwall_marker_count,
+                                      &out->other_marker_count);
+    }
+    if (player_x > 0u) {
+        out->has_west_tile = 1u;
+        out->west_tile = model->tilemap[map_index(player_x - 1u, player_y)];
+        ++out->sampled_tile_count;
+        summarize_runtime_tile_bucket(out->west_tile,
+                                      &out->clear_floor_count,
+                                      &out->solid_wall_count,
+                                      &out->door_marker_count,
+                                      &out->pushwall_marker_count,
+                                      &out->other_marker_count);
     }
     return 0;
 }

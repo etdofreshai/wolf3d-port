@@ -211,6 +211,8 @@ Final corpse-frame actor refs now have coverage beyond the guard path. Headless 
 
 `wl_summarize_runtime_tile_center` adds a focused 16x16 center-window diagnostic for the mutable runtime tilemap, splitting clear floor, solid walls, door markers, pushwall markers, and other markers. This gives player-spawn, collision, and presentation work a cheap headless guard for central map-state mutations without scanning the whole map at the call site.
 
+`wl_summarize_runtime_player_cardinal_tiles` complements the 3x3 player-neighborhood diagnostic with just the north/east/south/west runtime tiles. It clips at map edges, reports which cardinal samples exist, and buckets clear floor, solid walls, door markers, pushwall markers, and other markers for movement/input checks that only care about direct step targets.
+
 `wl_select_path_direction` now models the first `SelectPathDir` decision boundary for patrol actors in a headless-friendly way: path markers at the actor tile can replace the current direction, the next tile is checked against the mutable runtime tilemap, blocked/out-of-bounds moves return `WL_DIR_NONE`, and unsupported diagonal marker arrows are preserved in metadata but do not yet produce movement.
 
 
