@@ -3165,6 +3165,25 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_spawn_occupancy.moved_from_spawn_count == 2);
     CHECK(synthetic_spawn_occupancy.max_spawn_stack_count == 3);
 
+    chase_summary_model.actors[1].tile_x = 4;
+    chase_summary_model.actors[1].tile_y = 3;
+    chase_summary_model.actors[2].tile_x = 7;
+    chase_summary_model.actors[2].tile_y = 8;
+    chase_summary_model.actors[3].tile_x = WL_MAP_SIDE;
+    chase_summary_model.actors[3].tile_y = 3;
+    wl_actor_spawn_delta_summary synthetic_spawn_deltas;
+    CHECK(wl_summarize_actor_spawn_deltas(&chase_summary_model,
+                                          &synthetic_spawn_deltas) == 0);
+    CHECK(wl_summarize_actor_spawn_deltas(NULL, &synthetic_spawn_deltas) == -1);
+    CHECK(wl_summarize_actor_spawn_deltas(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_spawn_deltas.at_spawn_count == 1);
+    CHECK(synthetic_spawn_deltas.moved_cardinal_count == 1);
+    CHECK(synthetic_spawn_deltas.moved_diagonal_count == 1);
+    CHECK(synthetic_spawn_deltas.invalid_spawn_position_count == 1);
+    CHECK(synthetic_spawn_deltas.invalid_current_position_count == 1);
+    CHECK(synthetic_spawn_deltas.farthest_moved_actor_index == 2);
+    CHECK(synthetic_spawn_deltas.farthest_manhattan_delta == 4);
+
     memset(chase_summary_model.tilemap, 0, sizeof(chase_summary_model.tilemap));
     chase_summary_model.actors[0].tile_x = 1;
     chase_summary_model.actors[0].tile_y = 1;

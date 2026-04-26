@@ -2544,6 +2544,51 @@ int wl_summarize_actor_spawn_occupancy(const wl_game_model *model,
     return 0;
 }
 
+
+int wl_summarize_actor_spawn_deltas(const wl_game_model *model,
+                                    wl_actor_spawn_delta_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->farthest_moved_actor_index = UINT16_MAX;
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->spawn_x >= WL_MAP_SIDE || actor->spawn_y >= WL_MAP_SIDE) {
+            ++out->invalid_spawn_position_count;
+            continue;
+        }
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_current_position_count;
+            continue;
+        }
+
+        const uint16_t dx = (actor->tile_x > actor->spawn_x)
+                                ? (uint16_t)(actor->tile_x - actor->spawn_x)
+                                : (uint16_t)(actor->spawn_x - actor->tile_x);
+        const uint16_t dy = (actor->tile_y > actor->spawn_y)
+                                ? (uint16_t)(actor->tile_y - actor->spawn_y)
+                                : (uint16_t)(actor->spawn_y - actor->tile_y);
+        const uint16_t distance = (uint16_t)(dx + dy);
+        if (distance == 0) {
+            ++out->at_spawn_count;
+            continue;
+        }
+        if (dx == 0 || dy == 0) {
+            ++out->moved_cardinal_count;
+        } else {
+            ++out->moved_diagonal_count;
+        }
+        if (out->farthest_moved_actor_index == UINT16_MAX ||
+            distance > out->farthest_manhattan_delta) {
+            out->farthest_moved_actor_index = (uint16_t)i;
+            out->farthest_manhattan_delta = distance;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_actor_collision_tiles(const wl_game_model *model,
                                        wl_actor_collision_tile_summary *out) {
     if (!model || !out) {

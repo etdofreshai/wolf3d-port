@@ -770,3 +770,7 @@ Added `wl_summarize_pushwall_line_of_sight()` as a non-mutating pushwall/player 
 ## Cycle update: runtime path-marker/player line-of-sight summary
 
 Added `wl_summarize_path_marker_line_of_sight` as a non-mutating patrol-marker diagnostic that mirrors the existing actor/static/door/pushwall cardinal visibility buckets. Synthetic tests cover clear cardinal visibility, wall-blocked and door-blocked paths, same-tile, non-cardinal, invalid-marker, null-output, null-model, and invalid-player cases.
+
+## Cycle update: actor spawn delta summary
+
+Added `wl_summarize_actor_spawn_deltas()` as a small SDL-free runtime diagnostic for actor movement away from original spawn tiles. It partitions actors into at-spawn, cardinal-moved, diagonal-moved, invalid-spawn, and invalid-current-position buckets, and records the farthest moved actor by Manhattan delta. Synthetic headless coverage pins each bucket and null-argument handling so future patrol/chase progression can sanity-check spawn-to-live drift without mutating actor state.
