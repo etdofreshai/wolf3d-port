@@ -34,6 +34,59 @@ def run(cmd: list[str], *, cwd: Path = REPO, timeout: int | None = None) -> subp
                           stderr=subprocess.STDOUT, timeout=timeout)
 
 
+def parse_retry_delays(value: str) -> list[int]:
+    delays: list[int] = []
+    for item in (value or "").split(","):
+        item = item.strip()
+        if not item:
+            continue
+        try:
+            delay = int(item)
+        except ValueError:
+            raise SystemExit(f"invalid retry delay: {item!r}")
+        if delay < 0:
+            raise SystemExit(f"retry delay must be non-negative: {item!r}")
+        delays.append(delay)
+    return delays
+
+
+def is_retryable_agent_start_failure(returncode: int, output: str) -> bool:
+    if returncode == 0:
+        return False
+    retryable_needles = (
+        "Failed to start CLI",
+        "PluginLoadFailureError",
+        "failed to install bundled runtime deps",
+        "ENOTEMPTY",
+        "EEXIST",
+        "EBUSY",
+        "plugin load failed",
+    )
+    return any(needle in (output or "") for needle in retryable_needles)
+
+
+def run_agent_command_with_retries(cmd: list[str], *, cwd: Path, timeout: int, retry_delays: list[int], log_prefix: Path | None = None) -> tuple[int, str, int, float]:
+    outputs: list[str] = []
+    started = time.time()
+    attempts = max(1, len(retry_delays) + 1)
+    for attempt in range(1, attempts + 1):
+        proc = subprocess.Popen(cmd, cwd=cwd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        out, _ = proc.communicate(timeout=timeout)
+        out = out or ""
+        if log_prefix is not None:
+            log_prefix.parent.mkdir(parents=True, exist_ok=True)
+            log_prefix.with_name(f"{log_prefix.name}-attempt-{attempt}.jsonlog").write_text(out, encoding="utf-8")
+        outputs.append(f"--- attempt {attempt}/{attempts} rc={proc.returncode} ---\n{out}")
+        if proc.returncode == 0:
+            return proc.returncode, "\n".join(outputs), attempt, time.time() - started
+        if attempt >= attempts or not is_retryable_agent_start_failure(proc.returncode, out):
+            return proc.returncode, "\n".join(outputs), attempt, time.time() - started
+        delay = retry_delays[attempt - 1]
+        outputs.append(f"Retrying retryable OpenClaw agent startup failure after {delay}s.")
+        time.sleep(delay)
+    return 1, "\n".join(outputs), attempts, time.time() - started
+
+
 def slug_model(model: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]+", "-", model).strip("-").lower()
 
@@ -221,11 +274,17 @@ Final output: files resolved, verification, final commit/head, or blocker.
             "--message", prompt, "--thinking", args.merge_resolver_thinking,
             "--timeout", str(args.timeout), "--json",
         ]
-        cp = run(cmd, timeout=args.timeout + 180)
-        combined_output.append(cp.stdout or "")
         log_path = LOG_DIR / f"parallel-wave-{wave_id}-{slug_model(model)}-resolver-{attempt}.jsonlog"
-        log_path.write_text(cp.stdout or "", encoding="utf-8")
-        if cp.returncode != 0:
+        returncode, output, cli_attempts, _duration = run_agent_command_with_retries(
+            cmd,
+            cwd=REPO,
+            timeout=args.timeout + 180,
+            retry_delays=args.worker_retry_delays_list,
+            log_prefix=LOG_DIR / f"parallel-wave-{wave_id}-{slug_model(model)}-resolver-{attempt}",
+        )
+        combined_output.append(output)
+        log_path.write_text(output, encoding="utf-8")
+        if returncode != 0:
             continue
         if merge_in_progress():
             combined_output.append("Resolver exited but MERGE_HEAD still exists; trying another resolver if available.")
@@ -269,11 +328,13 @@ def main() -> int:
     ap.add_argument("--merge-resolver-thinking", default="medium", help="thinking level for merge resolver agents")
     ap.add_argument("--push-after-wave", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--cleanup-worktrees", action=argparse.BooleanOptionalAction, default=True)
+    ap.add_argument("--worker-retry-delays", default="5,10,15,30", help="comma-separated seconds to wait before retrying retryable OpenClaw agent startup failures")
     args = ap.parse_args()
 
     args.usage_provider_windows = sup.parse_provider_windows(args.usage_provider_windows)
     args.usage_extra_windows = sup.parse_csv(args.usage_extra_windows)
     args.help_text = sup.openclaw_agent_help()
+    args.worker_retry_delays_list = parse_retry_delays(args.worker_retry_delays)
     excluded = sup.split_models(args.exclude_models)
     args.models_list = sup.filter_models(sup.split_models(args.models), excluded)
     if not args.models_list:
@@ -305,13 +366,32 @@ def main() -> int:
             cmd = ["openclaw", "agent", "--agent", "main", "--session-id", f"wolf3d-wave-{wave_id}-{slug}",
                    "--message", prompt, "--thinking", args.thinking, "--timeout", str(args.timeout), "--json"]
             proc = subprocess.Popen(cmd, cwd=wt, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            workers.append({"model": model, "slug": slug, "branch": branch, "worktree": wt, "proc": proc, "log": log_path, "startedAt": time.time()})
+            workers.append({"model": model, "slug": slug, "branch": branch, "worktree": wt, "cmd": cmd, "proc": proc, "log": log_path, "startedAt": time.time()})
         results = []
         for worker in workers:
             out, _ = worker["proc"].communicate(timeout=args.timeout + 180)
-            worker["log"].write_text(out or "", encoding="utf-8")
+            out = out or ""
+            returncode = int(worker["proc"].returncode or 0)
+            attempts = 1
             duration = time.time() - float(worker.get("startedAt", time.time()))
-            results.append({**worker, "returncode": worker["proc"].returncode, "output": out or "", "duration": duration, "summary": summarize_worker_output(out or "")})
+            combined_output = f"--- attempt 1/{len(args.worker_retry_delays_list) + 1} rc={returncode} ---\n{out}"
+            if is_retryable_agent_start_failure(returncode, out):
+                retry_returncode, retry_output, retry_attempts, retry_duration = run_agent_command_with_retries(
+                    worker["cmd"],
+                    cwd=worker["worktree"],
+                    timeout=args.timeout + 180,
+                    retry_delays=args.worker_retry_delays_list,
+                    log_prefix=worker["log"].with_suffix(""),
+                )
+                combined_output = combined_output + "\n" + retry_output
+                returncode = retry_returncode
+                attempts += retry_attempts
+                duration += retry_duration
+            worker["log"].write_text(combined_output, encoding="utf-8")
+            summary = summarize_worker_output(combined_output)
+            if attempts > 1:
+                summary = f"attempts={attempts}; {summary}"
+            results.append({**worker, "returncode": returncode, "output": combined_output, "duration": duration, "attempts": attempts, "summary": summary})
         merged = []
         conflicts = []
         model_lines = []

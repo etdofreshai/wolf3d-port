@@ -5909,3 +5909,33 @@ Next likely move:
 - Continue the parallel wave runner; merge conflicts will now receive multiple automated repair attempts before stopping.
 
 Blockers: none.
+
+
+## Cycle 2026-04-25 23:41 CDT Worker Startup Retry Backoff
+
+Action taken:
+
+- Added retry/backoff resilience to `scripts/wolf3d_parallel_wave.py` for transient OpenClaw agent startup failures.
+- New option: `--worker-retry-delays`, defaulting to `5,10,15,30` seconds.
+- Retryable failures include OpenClaw CLI/plugin-loader startup errors such as `Failed to start CLI`, `PluginLoadFailureError`, `failed to install bundled runtime deps`, `ENOTEMPTY`, `EEXIST`, `EBUSY`, and `plugin load failed`.
+- Worker attempt logs are preserved with per-attempt log files, and wave summaries include attempt counts when retries happened.
+- Merge resolver agent launches also use the same retry/backoff logic, so resolver startup flakiness should not immediately fail conflict repair.
+- Updated supervisor docs with the retry behavior.
+
+Verification:
+
+```bash
+python3 -m py_compile scripts/wolf3d_parallel_wave.py
+scripts/wolf3d_parallel_wave.py --help
+```
+
+Safety/legal checks:
+
+- Did not modify `source/original/`.
+- Did not add proprietary game data.
+
+Next likely move:
+
+- Push this change and restart the wave runner excluding Opus unless ET says otherwise.
+
+Blockers: none.

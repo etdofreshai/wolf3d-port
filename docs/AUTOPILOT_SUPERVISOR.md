@@ -95,6 +95,7 @@ Behavior:
 - runs `make test` after merge
 - pushes if verification passes
 - reports auto-incrementing wave number, per-model elapsed time, brief per-model work summary, merged commits, issues/conflicts, verification, push status, and final head to Telegram
+- retries retryable OpenClaw CLI/agent startup failures with backoff before treating a worker as failed (default `--worker-retry-delays 5,10,15,30`)
 - when a merge conflicts, asks resolver agents to repair the conflict and run verification before giving up; defaults to up to 3 resolver attempts
 
 If a branch conflicts and the resolver attempts cannot safely fix it, or if verification fails, the wave reports the issue and stops instead of blindly continuing. This is deliberately safer than letting multiple models edit the same checkout.
