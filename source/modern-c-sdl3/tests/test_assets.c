@@ -2713,6 +2713,37 @@ static int check_wl6(const char *dir) {
         CHECK(model_capacity.pushwall_full == 0);
         CHECK(model_capacity.unknown_info_tiles == model.unknown_info_tiles);
 
+        wl_runtime_tile_summary tile_summary;
+        memset(&tile_summary, 0xff, sizeof(tile_summary));
+        CHECK(wl_summarize_runtime_tiles(&model, &tile_summary) == 0);
+        CHECK(wl_summarize_runtime_tiles(NULL, &tile_summary) == -1);
+        CHECK(wl_summarize_runtime_tiles(&model, NULL) == -1);
+        CHECK(tile_summary.clear_floor_count + tile_summary.solid_wall_count +
+                  tile_summary.door_marker_count + tile_summary.moving_pushwall_marker_count +
+                  tile_summary.other_marker_count == WL_MAP_SIDE * WL_MAP_SIDE);
+        CHECK(tile_summary.clear_floor_count > 0);
+        CHECK(tile_summary.solid_wall_count > 0);
+        CHECK(tile_summary.door_marker_count > 0);
+        CHECK(tile_summary.first_solid_wall_tile >= 1);
+        CHECK(tile_summary.first_solid_wall_tile <= tile_summary.last_solid_wall_tile);
+
+        wl_game_model synthetic_tiles;
+        memset(&synthetic_tiles, 0, sizeof(synthetic_tiles));
+        synthetic_tiles.tilemap[(0u)] = 1;
+        synthetic_tiles.tilemap[(1u)] = 63;
+        synthetic_tiles.tilemap[(2u)] = 0x80;
+        synthetic_tiles.tilemap[(3u)] = 0xc0 | 37u;
+        synthetic_tiles.tilemap[(4u)] = 90;
+        wl_runtime_tile_summary synthetic_tile_summary;
+        CHECK(wl_summarize_runtime_tiles(&synthetic_tiles, &synthetic_tile_summary) == 0);
+        CHECK(synthetic_tile_summary.clear_floor_count == WL_MAP_SIDE * WL_MAP_SIDE - 5u);
+        CHECK(synthetic_tile_summary.solid_wall_count == 2);
+        CHECK(synthetic_tile_summary.door_marker_count == 1);
+        CHECK(synthetic_tile_summary.moving_pushwall_marker_count == 1);
+        CHECK(synthetic_tile_summary.other_marker_count == 1);
+        CHECK(synthetic_tile_summary.first_solid_wall_tile == 1);
+        CHECK(synthetic_tile_summary.last_solid_wall_tile == 63);
+
         wl_unknown_info_summary unknown_info;
         memset(&unknown_info, 0xff, sizeof(unknown_info));
         CHECK(wl_summarize_unknown_info_tiles(&model, &unknown_info) == 0);
