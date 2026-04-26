@@ -2297,7 +2297,8 @@ int wl_read_audio_header(const char *path, wl_audio_header *out) {
 int wl_validate_audio_header_offsets(const wl_audio_header *header,
                                      size_t audiot_size) {
     if (!header || header->chunk_count == 0 ||
-        header->chunk_count > WL_AUDIO_MAX_CHUNKS) {
+        header->chunk_count > WL_AUDIO_MAX_CHUNKS ||
+        header->offsets[0] > audiot_size) {
         return -1;
     }
     for (size_t i = 1; i <= header->chunk_count; ++i) {
