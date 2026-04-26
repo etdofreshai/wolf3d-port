@@ -46,6 +46,7 @@ When local Spear data is present under `game-files/base/m1`:
 - `AUDIOHED.SOD`: 1,072 bytes = 268 offsets = 267 chunks plus sentinel.
 - First offsets: `0, 15, 66, 82, 174`.
 - `AUDIOT.SOD`: 328,620 bytes; sentinel offset equals the file size.
+- Range summaries pin the optional SOD PC speaker range as 81/81 non-empty chunks totaling 6,989 bytes (largest chunk 17 at 306 bytes), the AdLib range as 81/81 non-empty chunks totaling 10,607 bytes (largest chunk 119 at 338 bytes), the digitized-sound range as 1/81 non-empty chunks totaling 4 bytes (chunk 242 sentinel/marker), and the music range as 24/24 non-empty chunks totaling 311,020 bytes (largest chunk 258 at 22,578 bytes).
 - Representative chunks:
   - chunk 0: 15 bytes, FNV-1a `0x5971ec53`.
   - chunk 1: 51 bytes, FNV-1a `0xfafa57eb`.

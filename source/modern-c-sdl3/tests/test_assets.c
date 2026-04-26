@@ -6165,6 +6165,7 @@ static int check_audio_optional_sod(const char *dir) {
     char audiohed_path[1024];
     char audiot_path[1024];
     wl_audio_header audio;
+    wl_audio_range_summary audio_range;
     unsigned char chunk_buf[65536];
     size_t chunk_bytes = 0;
     size_t audiohed_size = 0;
@@ -6196,6 +6197,35 @@ static int check_audio_optional_sod(const char *dir) {
     CHECK(wl_file_size(audiot_path, &audiot_size) == 0);
     CHECK(audiot_size == 328620);
     CHECK(audio.offsets[audio.chunk_count] == audiot_size);
+
+    CHECK(wl_summarize_audio_range(&audio, 0, 81, &audio_range) == 0);
+    CHECK(audio_range.non_empty_chunks == 81);
+    CHECK(audio_range.total_bytes == 6989);
+    CHECK(audio_range.first_non_empty_chunk == 0);
+    CHECK(audio_range.last_non_empty_chunk == 80);
+    CHECK(audio_range.largest_chunk == 17);
+    CHECK(audio_range.largest_chunk_bytes == 306);
+    CHECK(wl_summarize_audio_range(&audio, 81, 81, &audio_range) == 0);
+    CHECK(audio_range.non_empty_chunks == 81);
+    CHECK(audio_range.total_bytes == 10607);
+    CHECK(audio_range.first_non_empty_chunk == 81);
+    CHECK(audio_range.last_non_empty_chunk == 161);
+    CHECK(audio_range.largest_chunk == 119);
+    CHECK(audio_range.largest_chunk_bytes == 338);
+    CHECK(wl_summarize_audio_range(&audio, 162, 81, &audio_range) == 0);
+    CHECK(audio_range.non_empty_chunks == 1);
+    CHECK(audio_range.total_bytes == 4);
+    CHECK(audio_range.first_non_empty_chunk == 242);
+    CHECK(audio_range.last_non_empty_chunk == 242);
+    CHECK(audio_range.largest_chunk == 242);
+    CHECK(audio_range.largest_chunk_bytes == 4);
+    CHECK(wl_summarize_audio_range(&audio, 243, 24, &audio_range) == 0);
+    CHECK(audio_range.non_empty_chunks == 24);
+    CHECK(audio_range.total_bytes == 311020);
+    CHECK(audio_range.first_non_empty_chunk == 243);
+    CHECK(audio_range.last_non_empty_chunk == 266);
+    CHECK(audio_range.largest_chunk == 258);
+    CHECK(audio_range.largest_chunk_bytes == 22578);
 
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 0, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
