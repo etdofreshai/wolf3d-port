@@ -161,7 +161,7 @@ The VSWAP sprite-ref seam now receives additional runtime actor classes from map
 
 ## Cycle update: boss-map scene refs
 
-Boss runtime actors now flow through `wl_collect_scene_sprite_refs` with original starting sprite indices for known WL6 boss tiles. The test coverage now includes `Wolf2 Boss`, `Wolf3 Boss`, `Wolf4 Boss`, `Wolf6 Boss`, and `Wolf6 Secret`, asserting scene-ref descriptor hashes instead of committing any decoded boss sprite bytes. `Wolf1 Boss`/`Wolf5 Boss` remain useful follow-ups because their unsupported info tiles still need a small classification pass before zero-unknown model assertions.
+Boss runtime actors now flow through `wl_collect_scene_sprite_refs` with original starting sprite indices for known WL6 boss tiles. The test coverage now includes `Wolf1 Boss`, `Wolf2 Boss`, `Wolf3 Boss`, `Wolf4 Boss`, `Wolf5 Boss`, `Wolf6 Boss`, and `Wolf6 Secret`, asserting scene-ref descriptor hashes and zero unknown info tiles without committing any decoded boss sprite bytes. Later cycles also verified the `Wolf1 Boss`/`Wolf5 Boss` exit-trigger specials, so this note is kept in sync with the broader runtime-model assertions.
 
 
 ## Cycle update: ghost-map scene refs
