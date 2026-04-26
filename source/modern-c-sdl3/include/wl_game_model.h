@@ -538,6 +538,16 @@ typedef struct wl_pushwall_source_tile_summary {
     uint16_t max_source_tile;
 } wl_pushwall_source_tile_summary;
 
+typedef struct wl_path_marker_source_tile_summary {
+    size_t marker_count;
+    size_t unique_source_tile_count;
+    size_t expected_marker_source_count;
+    size_t zero_source_tile_count;
+    size_t unexpected_source_tile_count;
+    uint16_t min_source_tile;
+    uint16_t max_source_tile;
+} wl_path_marker_source_tile_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -755,6 +765,8 @@ int wl_summarize_pushwall_player_adjacency(
     wl_pushwall_player_adjacency_summary *out);
 int wl_summarize_pushwall_source_tiles(const wl_game_model *model,
                                        wl_pushwall_source_tile_summary *out);
+int wl_summarize_path_marker_source_tiles(
+    const wl_game_model *model, wl_path_marker_source_tile_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);

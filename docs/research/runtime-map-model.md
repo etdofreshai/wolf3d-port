@@ -694,3 +694,7 @@ Added `wl_summarize_actor_line_of_sight()` as a non-mutating cardinal line-of-si
 ## Cycle update: runtime pushwall/player adjacency summary
 
 Added `wl_summarize_pushwall_player_adjacency()` as a non-mutating pushwall marker proximity diagnostic. It mirrors the actor/static adjacency helpers for same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, distant, and invalid-marker buckets so future pushwall collision/presentation orchestration can sanity-check player proximity without advancing pushwall state.
+
+## Cycle update: runtime path-marker source-tile summary
+
+Added `wl_summarize_path_marker_source_tiles()` as a non-mutating diagnostic for AI patrol marker provenance. It mirrors the pushwall source-tile helper while treating original info-plane arrow marker tiles `90..97` as expected, and reports unique, zero, unexpected, min, and max source-tile counts. Synthetic headless tests cover duplicate expected arrows, zero/unexpected source tiles, invalid arguments, and empty models.

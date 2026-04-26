@@ -3686,6 +3686,35 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_pushwall_sources.min_source_tile == 0);
     CHECK(synthetic_pushwall_sources.max_source_tile == 0);
 
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.path_marker_count = 5;
+    chase_summary_model.path_markers[0].source_tile = WL_ICONARROWS;
+    chase_summary_model.path_markers[1].source_tile = (uint16_t)(WL_ICONARROWS + 3u);
+    chase_summary_model.path_markers[2].source_tile = (uint16_t)(WL_ICONARROWS + 3u);
+    chase_summary_model.path_markers[3].source_tile = 0;
+    chase_summary_model.path_markers[4].source_tile = 120;
+    wl_path_marker_source_tile_summary synthetic_path_sources;
+    CHECK(wl_summarize_path_marker_source_tiles(&chase_summary_model,
+                                                &synthetic_path_sources) == 0);
+    CHECK(wl_summarize_path_marker_source_tiles(NULL, &synthetic_path_sources) == -1);
+    CHECK(wl_summarize_path_marker_source_tiles(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_path_sources.marker_count == 5);
+    CHECK(synthetic_path_sources.unique_source_tile_count == 4);
+    CHECK(synthetic_path_sources.expected_marker_source_count == 3);
+    CHECK(synthetic_path_sources.zero_source_tile_count == 1);
+    CHECK(synthetic_path_sources.unexpected_source_tile_count == 1);
+    CHECK(synthetic_path_sources.min_source_tile == 0);
+    CHECK(synthetic_path_sources.max_source_tile == 120);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    CHECK(wl_summarize_path_marker_source_tiles(&chase_summary_model,
+                                                &synthetic_path_sources) == 0);
+    CHECK(synthetic_path_sources.marker_count == 0);
+    CHECK(synthetic_path_sources.unique_source_tile_count == 0);
+    CHECK(synthetic_path_sources.min_source_tile == 0);
+    CHECK(synthetic_path_sources.max_source_tile == 0);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];

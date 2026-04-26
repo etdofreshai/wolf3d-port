@@ -1071,6 +1071,51 @@ int wl_collect_spear_scene_sprite_refs(const wl_game_model *model, uint16_t vswa
                                           out_count, 1);
 }
 
+
+int wl_summarize_path_marker_source_tiles(
+    const wl_game_model *model, wl_path_marker_source_tile_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->marker_count = model->path_marker_count;
+    if (model->path_marker_count == 0) {
+        return 0;
+    }
+
+    out->min_source_tile = UINT16_MAX;
+    for (size_t i = 0; i < model->path_marker_count; ++i) {
+        const uint16_t tile = model->path_markers[i].source_tile;
+        if (tile == 0u) {
+            ++out->zero_source_tile_count;
+        } else if (in_range(tile, WL_ICONARROWS, WL_ICONARROWS + 7)) {
+            ++out->expected_marker_source_count;
+        } else {
+            ++out->unexpected_source_tile_count;
+        }
+
+        if (tile < out->min_source_tile) {
+            out->min_source_tile = tile;
+        }
+        if (tile > out->max_source_tile) {
+            out->max_source_tile = tile;
+        }
+
+        int seen = 0;
+        for (size_t j = 0; j < i; ++j) {
+            if (model->path_markers[j].source_tile == tile) {
+                seen = 1;
+                break;
+            }
+        }
+        if (!seen) {
+            ++out->unique_source_tile_count;
+        }
+    }
+    return 0;
+}
+
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir) {
