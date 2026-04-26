@@ -2865,19 +2865,29 @@ static int check_wl6(const char *dir) {
         memset(&synthetic_diagonals, 0, sizeof(synthetic_diagonals));
         synthetic_diagonals.tilemap[((0u * WL_MAP_SIDE) + 0u)] = 1;
         synthetic_diagonals.tilemap[((1u * WL_MAP_SIDE) + 1u)] = 0x80;
+        synthetic_diagonals.tilemap[((2u * WL_MAP_SIDE) + 2u)] = 0xc0 | 7u;
+        synthetic_diagonals.tilemap[((3u * WL_MAP_SIDE) + 3u)] = 90;
         synthetic_diagonals.tilemap[((0u * WL_MAP_SIDE) + 63u)] = 2;
         synthetic_diagonals.tilemap[((1u * WL_MAP_SIDE) + 62u)] = 0xc0 | 7u;
+        synthetic_diagonals.tilemap[((2u * WL_MAP_SIDE) + 61u)] = 0x80;
+        synthetic_diagonals.tilemap[((3u * WL_MAP_SIDE) + 60u)] = 91;
         wl_runtime_tile_diagonal_summary synthetic_diagonal_summary;
         CHECK(wl_summarize_runtime_tile_diagonals(&synthetic_diagonals,
                                                   &synthetic_diagonal_summary) == 0);
         CHECK(synthetic_diagonal_summary.northwest_southeast_solid_wall_count == 1);
-        CHECK(synthetic_diagonal_summary.northwest_southeast_marker_count == 1);
+        CHECK(synthetic_diagonal_summary.northwest_southeast_marker_count == 3);
+        CHECK(synthetic_diagonal_summary.northwest_southeast_door_marker_count == 1);
+        CHECK(synthetic_diagonal_summary.northwest_southeast_pushwall_marker_count == 1);
+        CHECK(synthetic_diagonal_summary.northwest_southeast_other_marker_count == 1);
         CHECK(synthetic_diagonal_summary.northwest_southeast_clear_floor_count ==
-              WL_MAP_SIDE - 2u);
+              WL_MAP_SIDE - 4u);
         CHECK(synthetic_diagonal_summary.northeast_southwest_solid_wall_count == 1);
-        CHECK(synthetic_diagonal_summary.northeast_southwest_marker_count == 1);
+        CHECK(synthetic_diagonal_summary.northeast_southwest_marker_count == 3);
+        CHECK(synthetic_diagonal_summary.northeast_southwest_door_marker_count == 1);
+        CHECK(synthetic_diagonal_summary.northeast_southwest_pushwall_marker_count == 1);
+        CHECK(synthetic_diagonal_summary.northeast_southwest_other_marker_count == 1);
         CHECK(synthetic_diagonal_summary.northeast_southwest_clear_floor_count ==
-              WL_MAP_SIDE - 2u);
+              WL_MAP_SIDE - 4u);
         CHECK(synthetic_diagonal_summary.center_overlap_count == 0);
 
         wl_runtime_tile_axis_summary axis_summary;

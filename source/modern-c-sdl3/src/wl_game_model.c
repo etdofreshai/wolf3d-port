@@ -2083,20 +2083,34 @@ int wl_summarize_runtime_tile_diagonals(
         const uint16_t nw_se_tile = model->tilemap[map_index(i, i)];
         if (nw_se_tile == 0u) {
             ++out->northwest_southeast_clear_floor_count;
+        } else if ((nw_se_tile & 0xc0u) == 0xc0u) {
+            ++out->northwest_southeast_marker_count;
+            ++out->northwest_southeast_pushwall_marker_count;
+        } else if ((nw_se_tile & 0x80u) != 0u) {
+            ++out->northwest_southeast_marker_count;
+            ++out->northwest_southeast_door_marker_count;
         } else if (nw_se_tile <= 63u) {
             ++out->northwest_southeast_solid_wall_count;
         } else {
             ++out->northwest_southeast_marker_count;
+            ++out->northwest_southeast_other_marker_count;
         }
 
         const size_t ne_sw_x = (WL_MAP_SIDE - 1u) - i;
         const uint16_t ne_sw_tile = model->tilemap[map_index(ne_sw_x, i)];
         if (ne_sw_tile == 0u) {
             ++out->northeast_southwest_clear_floor_count;
+        } else if ((ne_sw_tile & 0xc0u) == 0xc0u) {
+            ++out->northeast_southwest_marker_count;
+            ++out->northeast_southwest_pushwall_marker_count;
+        } else if ((ne_sw_tile & 0x80u) != 0u) {
+            ++out->northeast_southwest_marker_count;
+            ++out->northeast_southwest_door_marker_count;
         } else if (ne_sw_tile <= 63u) {
             ++out->northeast_southwest_solid_wall_count;
         } else {
             ++out->northeast_southwest_marker_count;
+            ++out->northeast_southwest_other_marker_count;
         }
     }
 
