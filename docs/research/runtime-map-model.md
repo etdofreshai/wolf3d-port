@@ -726,3 +726,7 @@ Added `wl_summarize_path_marker_chains()` as a non-mutating patrol-marker contin
 ## Cycle update: runtime door/player adjacency summary
 
 Added `wl_summarize_door_player_adjacency()` as a non-mutating door placement diagnostic. It partitions valid door descriptors by same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, distant, and invalid-position buckets relative to a supplied player tile. This mirrors the existing actor/static/pushwall adjacency summaries and gives future use/collision/presentation work a deterministic SDL-free sanity check for doors near the player.
+
+## Cycle update: actor door-blocker summary
+
+Added `wl_summarize_actor_door_blockers()` as a non-mutating actor/door collision diagnostic. It counts actors on runtime door-center tiles, splits shootable versus non-shootable blockers, reports invalid actor positions, and tracks unique/min/max blocked door indices so future close-door collision and AI navigation work can inspect blockers before mutating door state.
