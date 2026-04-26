@@ -5777,6 +5777,7 @@ static int check_audio_wl6(const char *dir) {
     wl_pc_speaker_sound_metadata pc_meta;
     wl_pc_speaker_playback_cursor pc_cursor;
     wl_adlib_sound_metadata adlib_meta;
+    wl_adlib_playback_cursor adlib_cursor;
     wl_sample_playback_window sample_window;
     uint8_t pc_sample = 0;
     uint8_t adlib_instrument_byte = 0;
@@ -5922,6 +5923,24 @@ static int check_audio_wl6(const char *dir) {
     CHECK(wl_describe_adlib_sound(chunk_buf, 22, &adlib_meta) == -1);
     CHECK(wl_get_adlib_instrument_byte(chunk_buf, 21, 0, &adlib_instrument_byte) == -1);
     CHECK(wl_get_adlib_sound_sample(chunk_buf, 22, 0, &adlib_sample) == -1);
+    CHECK(wl_advance_adlib_playback_cursor(chunk_buf, chunk_bytes, 0, 0, &adlib_cursor) == 0);
+    CHECK(adlib_cursor.sample_index == 0);
+    CHECK(adlib_cursor.current_sample == 0x04);
+    CHECK(adlib_cursor.samples_consumed == 0);
+    CHECK(adlib_cursor.completed == 0);
+    CHECK(wl_advance_adlib_playback_cursor(chunk_buf, chunk_bytes, 5, 2, &adlib_cursor) == 0);
+    CHECK(adlib_cursor.sample_index == 7);
+    CHECK(adlib_cursor.current_sample == 0x2e);
+    CHECK(adlib_cursor.samples_consumed == 2);
+    CHECK(adlib_cursor.completed == 0);
+    CHECK(wl_advance_adlib_playback_cursor(chunk_buf, chunk_bytes, 5, 9, &adlib_cursor) == 0);
+    CHECK(adlib_cursor.sample_index == 8);
+    CHECK(adlib_cursor.samples_consumed == 3);
+    CHECK(adlib_cursor.completed == 1);
+    CHECK(wl_advance_adlib_playback_cursor(chunk_buf, chunk_bytes, 8, 0, &adlib_cursor) == 0);
+    CHECK(adlib_cursor.completed == 1);
+    CHECK(wl_advance_adlib_playback_cursor(chunk_buf, chunk_bytes, 8, 1, &adlib_cursor) == -1);
+    CHECK(wl_advance_adlib_playback_cursor(chunk_buf, 22, 0, 1, &adlib_cursor) == -1);
     CHECK(wl_describe_adlib_playback_window(chunk_buf, chunk_bytes, 3, 4,
                                             &sample_window) == 0);
     CHECK(sample_window.start_sample == 3);
