@@ -3112,6 +3112,37 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_facing.invalid_direction_count == 1);
     CHECK(synthetic_facing.invalid_position_count == 1);
 
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.actor_count = 6;
+    chase_summary_model.actors[0].tile_x = 8;
+    chase_summary_model.actors[0].tile_y = 2;
+    chase_summary_model.actors[1].tile_x = 8;
+    chase_summary_model.actors[1].tile_y = 12;
+    chase_summary_model.tilemap[(size_t)9 * WL_MAP_SIDE + 8] = 12;
+    chase_summary_model.actors[2].tile_x = 2;
+    chase_summary_model.actors[2].tile_y = 5;
+    chase_summary_model.tilemap[(size_t)5 * WL_MAP_SIDE + 5] = 0x80u | 4u;
+    chase_summary_model.actors[3].tile_x = 8;
+    chase_summary_model.actors[3].tile_y = 5;
+    chase_summary_model.actors[4].tile_x = 10;
+    chase_summary_model.actors[4].tile_y = 7;
+    chase_summary_model.actors[5].tile_x = WL_MAP_SIDE;
+    chase_summary_model.actors[5].tile_y = 5;
+    wl_actor_line_of_sight_summary synthetic_los;
+    CHECK(wl_summarize_actor_line_of_sight(&chase_summary_model, 8, 5,
+                                           &synthetic_los) == 0);
+    CHECK(wl_summarize_actor_line_of_sight(NULL, 8, 5, &synthetic_los) == -1);
+    CHECK(wl_summarize_actor_line_of_sight(&chase_summary_model, WL_MAP_SIDE, 5,
+                                           &synthetic_los) == -1);
+    CHECK(wl_summarize_actor_line_of_sight(&chase_summary_model, 8, 5,
+                                           NULL) == -1);
+    CHECK(synthetic_los.clear_cardinal_count == 1);
+    CHECK(synthetic_los.blocked_by_wall_count == 1);
+    CHECK(synthetic_los.blocked_by_door_count == 1);
+    CHECK(synthetic_los.same_tile_count == 1);
+    CHECK(synthetic_los.noncardinal_count == 1);
+    CHECK(synthetic_los.invalid_position_count == 1);
+
     chase_summary_model.actor_count = 7;
     chase_summary_model.actors[0].kind = WL_ACTOR_GUARD;
     chase_summary_model.actors[0].shootable = 1;

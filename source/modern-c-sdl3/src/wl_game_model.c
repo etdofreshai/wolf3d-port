@@ -2223,6 +2223,60 @@ int wl_summarize_actor_facing(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_actor_line_of_sight(const wl_game_model *model,
+                                     uint16_t player_x, uint16_t player_y,
+                                     wl_actor_line_of_sight_summary *out) {
+    if (!model || !out || player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+        if (actor->tile_x == player_x && actor->tile_y == player_y) {
+            ++out->same_tile_count;
+            continue;
+        }
+        if (actor->tile_x != player_x && actor->tile_y != player_y) {
+            ++out->noncardinal_count;
+            continue;
+        }
+
+        const int step_x = (actor->tile_x > player_x) - (actor->tile_x < player_x);
+        const int step_y = (actor->tile_y > player_y) - (actor->tile_y < player_y);
+        int x = (int)player_x + step_x;
+        int y = (int)player_y + step_y;
+        int blocked_by_wall = 0;
+        int blocked_by_door = 0;
+        while ((uint16_t)x != actor->tile_x || (uint16_t)y != actor->tile_y) {
+            const uint16_t tile = model->tilemap[map_index((size_t)x, (size_t)y)];
+            if (tile & 0x80u) {
+                blocked_by_door = 1;
+                break;
+            }
+            if (tile != 0) {
+                blocked_by_wall = 1;
+                break;
+            }
+            x += step_x;
+            y += step_y;
+        }
+
+        if (blocked_by_door) {
+            ++out->blocked_by_door_count;
+        } else if (blocked_by_wall) {
+            ++out->blocked_by_wall_count;
+        } else {
+            ++out->clear_cardinal_count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_actor_source_tiles(const wl_game_model *model,
                                     wl_actor_source_tile_summary *out) {
     if (!model || !out) {
