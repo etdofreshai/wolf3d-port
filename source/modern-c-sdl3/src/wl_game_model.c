@@ -2735,6 +2735,50 @@ int wl_summarize_door_locks(const wl_game_model *model,
     return 0;
 }
 
+
+int wl_summarize_door_source_tiles(const wl_game_model *model,
+                                   wl_door_source_tile_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->door_count = model->door_count;
+    if (model->door_count == 0) {
+        return 0;
+    }
+
+    out->min_source_tile = UINT16_MAX;
+    for (size_t i = 0; i < model->door_count; ++i) {
+        const uint16_t tile = model->doors[i].source_tile;
+        if (tile < out->min_source_tile) {
+            out->min_source_tile = tile;
+        }
+        if (tile > out->max_source_tile) {
+            out->max_source_tile = tile;
+        }
+        if (tile < 90u || tile > 101u) {
+            ++out->invalid_source_tile_count;
+        } else if ((tile % 2u) == 0u) {
+            ++out->vertical_source_count;
+        } else {
+            ++out->horizontal_source_count;
+        }
+
+        int seen = 0;
+        for (size_t j = 0; j < i; ++j) {
+            if (model->doors[j].source_tile == tile) {
+                seen = 1;
+                break;
+            }
+        }
+        if (!seen) {
+            ++out->unique_source_tile_count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_pushwall_state(const wl_game_model *model,
                                 wl_pushwall_state_summary *out) {
     if (!model || !out) {

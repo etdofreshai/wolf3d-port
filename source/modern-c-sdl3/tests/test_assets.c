@@ -3447,12 +3447,38 @@ static int check_wl6(const char *dir) {
     CHECK(wl_summarize_door_locks(&chase_summary_model, &synthetic_door_locks) == 0);
     CHECK(synthetic_door_locks.source_lock_mismatch_count == 1);
 
+    wl_door_source_tile_summary synthetic_door_sources;
+    CHECK(wl_summarize_door_source_tiles(&chase_summary_model,
+                                         &synthetic_door_sources) == 0);
+    CHECK(wl_summarize_door_source_tiles(NULL, &synthetic_door_sources) == -1);
+    CHECK(wl_summarize_door_source_tiles(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_door_sources.door_count == 6);
+    CHECK(synthetic_door_sources.unique_source_tile_count == 6);
+    CHECK(synthetic_door_sources.vertical_source_count == 4);
+    CHECK(synthetic_door_sources.horizontal_source_count == 1);
+    CHECK(synthetic_door_sources.invalid_source_tile_count == 1);
+    CHECK(synthetic_door_sources.min_source_tile == 88);
+    CHECK(synthetic_door_sources.max_source_tile == 100);
+
+    chase_summary_model.doors[5].source_tile = 90;
+    CHECK(wl_summarize_door_source_tiles(&chase_summary_model,
+                                         &synthetic_door_sources) == 0);
+    CHECK(synthetic_door_sources.unique_source_tile_count == 5);
+    CHECK(synthetic_door_sources.vertical_source_count == 5);
+    CHECK(synthetic_door_sources.invalid_source_tile_count == 0);
+
     chase_summary_model.door_count = 0;
     CHECK(wl_summarize_door_locks(&chase_summary_model, &synthetic_door_locks) == 0);
     CHECK(synthetic_door_locks.normal_count == 0);
     CHECK(synthetic_door_locks.unique_lock_count == 0);
     CHECK(synthetic_door_locks.min_lock == 0);
     CHECK(synthetic_door_locks.max_lock == 0);
+    CHECK(wl_summarize_door_source_tiles(&chase_summary_model,
+                                         &synthetic_door_sources) == 0);
+    CHECK(synthetic_door_sources.door_count == 0);
+    CHECK(synthetic_door_sources.unique_source_tile_count == 0);
+    CHECK(synthetic_door_sources.min_source_tile == 0);
+    CHECK(synthetic_door_sources.max_source_tile == 0);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.pushwall_count = 5;

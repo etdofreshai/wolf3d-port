@@ -513,3 +513,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 `wl_summarize_pushwall_player_distances` reports nearest/farthest pushwall markers relative to a player tile while accounting for invalid marker coordinates. The helper mirrors the door/static distance diagnostics and gives pushwall collision/presentation work a deterministic SDL-free proximity seam.
 
 `wl_summarize_door_locks` provides an SDL-free diagnostic for door lock metadata before presentation/input glue consumes it. It reports normal, keyed, and elevator/other lock buckets plus unique/min/max lock ids, and detects mismatches between runtime descriptor locks and original door source tiles with synthetic headless coverage.
+
+## Door source tile diagnostic
+
+`wl_summarize_door_source_tiles` adds a small read-only inspection seam for runtime door descriptors. It verifies the original source-tile range used for normal/keyed/elevator doors, partitions vertical versus horizontal source ids, records duplicate/unique source coverage, and reports min/max source bounds. The synthetic headless test covers valid, invalid, duplicate, and empty-door cases without touching `source/original/` or requiring SDL3.
