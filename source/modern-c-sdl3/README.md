@@ -505,3 +505,5 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Runtime pushwall/player distance summary
 
 `wl_summarize_pushwall_player_distances` reports nearest/farthest pushwall markers relative to a player tile while accounting for invalid marker coordinates. The helper mirrors the door/static distance diagnostics and gives pushwall collision/presentation work a deterministic SDL-free proximity seam.
+
+`wl_summarize_door_locks` provides an SDL-free diagnostic for door lock metadata before presentation/input glue consumes it. It reports normal, keyed, and elevator/other lock buckets plus unique/min/max lock ids, and detects mismatches between runtime descriptor locks and original door source tiles with synthetic headless coverage.

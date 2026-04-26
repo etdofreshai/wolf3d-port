@@ -3332,6 +3332,44 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_door_distances.nearest_distance == 0);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.door_count = 6;
+    chase_summary_model.doors[0].source_tile = 90;
+    chase_summary_model.doors[0].lock = 0;
+    chase_summary_model.doors[1].source_tile = 92;
+    chase_summary_model.doors[1].lock = 1;
+    chase_summary_model.doors[2].source_tile = 95;
+    chase_summary_model.doors[2].lock = 2;
+    chase_summary_model.doors[3].source_tile = 98;
+    chase_summary_model.doors[3].lock = 4;
+    chase_summary_model.doors[4].source_tile = 100;
+    chase_summary_model.doors[4].lock = 5;
+    chase_summary_model.doors[5].source_tile = 88;
+    chase_summary_model.doors[5].lock = 7;
+    wl_door_lock_summary synthetic_door_locks;
+    CHECK(wl_summarize_door_locks(&chase_summary_model, &synthetic_door_locks) == 0);
+    CHECK(wl_summarize_door_locks(NULL, &synthetic_door_locks) == -1);
+    CHECK(wl_summarize_door_locks(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_door_locks.normal_count == 1);
+    CHECK(synthetic_door_locks.keyed_count == 3);
+    CHECK(synthetic_door_locks.elevator_count == 2);
+    CHECK(synthetic_door_locks.invalid_source_tile_count == 1);
+    CHECK(synthetic_door_locks.source_lock_mismatch_count == 0);
+    CHECK(synthetic_door_locks.unique_lock_count == 6);
+    CHECK(synthetic_door_locks.min_lock == 0);
+    CHECK(synthetic_door_locks.max_lock == 7);
+
+    chase_summary_model.doors[2].lock = 3;
+    CHECK(wl_summarize_door_locks(&chase_summary_model, &synthetic_door_locks) == 0);
+    CHECK(synthetic_door_locks.source_lock_mismatch_count == 1);
+
+    chase_summary_model.door_count = 0;
+    CHECK(wl_summarize_door_locks(&chase_summary_model, &synthetic_door_locks) == 0);
+    CHECK(synthetic_door_locks.normal_count == 0);
+    CHECK(synthetic_door_locks.unique_lock_count == 0);
+    CHECK(synthetic_door_locks.min_lock == 0);
+    CHECK(synthetic_door_locks.max_lock == 0);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.pushwall_count = 5;
     chase_summary_model.pushwalls[0].x = 2;
     chase_summary_model.pushwalls[0].y = 2;

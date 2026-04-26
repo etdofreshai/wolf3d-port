@@ -670,3 +670,5 @@ Added `wl_summarize_pushwall_state()` as a non-mutating diagnostic for pushwall 
 ## Cycle update: runtime pushwall/player distance summary
 
 Added `wl_summarize_pushwall_player_distances()` as a non-mutating pushwall proximity diagnostic. It reports nearest and farthest pushwall markers from a supplied player tile plus invalid marker coordinates, with synthetic headless tests covering normal, invalid-input, and no-considered-marker cases for future pushwall collision/presentation orchestration.
+
+`wl_summarize_door_locks()` now provides a small non-mutating lock diagnostic for live door descriptors. It partitions normal, keyed, and elevator/other lock ids, tracks unique/min/max lock values, and cross-checks descriptor locks against original door source tiles `90..101` when present. Synthetic headless tests cover expected lock classes, invalid source tiles, descriptor/source mismatches, null arguments, and an empty door set.

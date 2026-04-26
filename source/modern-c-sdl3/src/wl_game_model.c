@@ -2581,6 +2581,58 @@ int wl_summarize_door_player_distances(const wl_game_model *model,
 }
 
 
+static int expected_lock_from_door_source(uint16_t source_tile, uint8_t *out_lock) {
+    if (!out_lock || source_tile < 90u || source_tile > 101u) {
+        return -1;
+    }
+    *out_lock = (uint8_t)((source_tile - ((source_tile % 2u) == 0u ? 90u : 91u)) / 2u);
+    return 0;
+}
+
+int wl_summarize_door_locks(const wl_game_model *model,
+                            wl_door_lock_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    if (model->door_count == 0) {
+        return 0;
+    }
+
+    uint8_t seen[256] = {0};
+    out->min_lock = UINT8_MAX;
+    for (size_t i = 0; i < model->door_count; ++i) {
+        const wl_door_desc *door = &model->doors[i];
+        if (door->lock == 0u) {
+            ++out->normal_count;
+        } else if (door->lock >= 1u && door->lock <= 4u) {
+            ++out->keyed_count;
+        } else {
+            ++out->elevator_count;
+        }
+
+        uint8_t source_lock = 0;
+        if (expected_lock_from_door_source(door->source_tile, &source_lock) != 0) {
+            ++out->invalid_source_tile_count;
+        } else if (source_lock != door->lock) {
+            ++out->source_lock_mismatch_count;
+        }
+
+        if (!seen[door->lock]) {
+            seen[door->lock] = 1;
+            ++out->unique_lock_count;
+        }
+        if (door->lock < out->min_lock) {
+            out->min_lock = door->lock;
+        }
+        if (door->lock > out->max_lock) {
+            out->max_lock = door->lock;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_pushwall_state(const wl_game_model *model,
                                 wl_pushwall_state_summary *out) {
     if (!model || !out) {
