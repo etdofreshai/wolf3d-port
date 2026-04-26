@@ -2046,6 +2046,8 @@ static int check_wl6(const char *dir) {
     CHECK(use_result.tile_after == (37 | 0xc0));
     CHECK(use_result.pushwall_active_before == 0);
     CHECK(use_result.pushwall_active_after == 1);
+    CHECK(use_result.button_held == 1);
+    CHECK(use_result.suppressed_by_button_hold == 0);
     CHECK(use_result.opened == 1);
     CHECK(use_result.pushwall_index == 0);
     CHECK(pickup_state.secret_count == 1);
@@ -2332,6 +2334,20 @@ static int check_wl6(const char *dir) {
     CHECK(pickup_state.play_state == WL_PLAYER_PLAY_COMPLETED);
     CHECK(use_model.tilemap[4 + 4 * WL_MAP_SIDE] == WL_ELEVATORTILE + 1);
 
+    memset(&use_model, 0, sizeof(use_model));
+    CHECK(wl_init_player_gameplay_state(&pickup_state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    use_model.tilemap[4 + 4 * WL_MAP_SIDE] = WL_ELEVATORTILE;
+    CHECK(wl_use_player_facing(&pickup_state, &use_model, use_wall, use_info,
+                               WL_MAP_PLANE_WORDS, &use_motion, WL_DIR_EAST, 1,
+                               &use_result) == 0);
+    CHECK(use_result.kind == WL_USE_NOTHING);
+    CHECK(use_result.button_held == 1);
+    CHECK(use_result.suppressed_by_button_hold == 1);
+    CHECK(use_result.tile_before == WL_ELEVATORTILE);
+    CHECK(use_result.tile_after == WL_ELEVATORTILE);
+    CHECK(pickup_state.play_state == WL_PLAYER_PLAY_RUNNING);
+    CHECK(use_model.tilemap[4 + 4 * WL_MAP_SIDE] == WL_ELEVATORTILE);
+
     memset(use_wall, 0, sizeof(use_wall));
     memset(&use_model, 0, sizeof(use_model));
     CHECK(wl_init_player_gameplay_state(&pickup_state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
@@ -2351,6 +2367,15 @@ static int check_wl6(const char *dir) {
     CHECK(use_result.has_required_key == 0);
     CHECK(use_result.door_action_before == WL_DOOR_CLOSED);
     CHECK(use_result.door_action_after == WL_DOOR_CLOSED);
+    CHECK(use_result.tile_before == 0x80u);
+    CHECK(use_result.tile_after == 0x80u);
+    CHECK(use_model.doors[0].action == WL_DOOR_CLOSED);
+    CHECK(wl_use_player_facing(&pickup_state, &use_model, use_wall, use_info,
+                               WL_MAP_PLANE_WORDS, &use_motion, WL_DIR_EAST, 1,
+                               &use_result) == 0);
+    CHECK(use_result.kind == WL_USE_NOTHING);
+    CHECK(use_result.button_held == 1);
+    CHECK(use_result.suppressed_by_button_hold == 1);
     CHECK(use_result.tile_before == 0x80u);
     CHECK(use_result.tile_after == 0x80u);
     CHECK(use_model.doors[0].action == WL_DOOR_CLOSED);

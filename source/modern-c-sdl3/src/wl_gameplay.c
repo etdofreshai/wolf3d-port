@@ -1479,6 +1479,7 @@ int wl_use_player_facing(wl_player_gameplay_state *state, wl_game_model *model,
     out->door_index = model->door_count;
     out->pushwall_index = model->pushwall_count;
     out->dir = facing;
+    out->button_held = button_held ? 1u : 0u;
     if (use_target_for_facing(motion->tile_x, motion->tile_y, facing,
                               &out->check_x, &out->check_y,
                               &out->elevator_ok) != 0) {
@@ -1510,6 +1511,12 @@ int wl_use_player_facing(wl_player_gameplay_state *state, wl_game_model *model,
     }
 
     uint16_t doornum = model->tilemap[target];
+    if (button_held && ((doornum == WL_ELEVATORTILE && out->elevator_ok) || (doornum & 0x80u))) {
+        out->suppressed_by_button_hold = 1u;
+        out->kind = WL_USE_NOTHING;
+        return 0;
+    }
+
     if (!button_held && doornum == WL_ELEVATORTILE && out->elevator_ok) {
         out->kind = WL_USE_ELEVATOR;
         model->tilemap[target] = (uint16_t)(model->tilemap[target] + 1u);
