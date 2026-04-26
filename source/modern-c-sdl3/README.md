@@ -440,3 +440,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## SDL3 sprite screenshot smoke
 
 `make test-sdl3-present` now emits `build/wolf-sprite-present.bmp` from decoded VSWAP sprite chunk `106` rendered onto a `128x64` indexed canvas. The screenshot and decoded pixels stay ignored; tests pin sprite, canvas, RGBA, and BMP artifact hashes.
+
+## Live player fire tick bridge
+
+`wl_step_live_player_fire_tick` now folds optional player weapon fire into the existing headless live-frame boundary. Tests cover fire-button machinegun ammo consumption, no-ammo fallback to knife, and no-fire frames while preserving normal live tick/palette metadata.

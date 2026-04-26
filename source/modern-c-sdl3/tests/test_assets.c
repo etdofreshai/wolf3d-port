@@ -1748,6 +1748,46 @@ static int check_wl6(const char *dir) {
     CHECK(pickup_state.health == 100);
     CHECK(live_tick_pickup_model.statics[0].active == 0);
 
+    wl_live_player_fire_tick_result live_fire_tick;
+    CHECK(wl_init_player_gameplay_state(&pickup_state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
+    pickup_state.ammo = 3;
+    pickup_state.best_weapon = WL_WEAPON_MACHINEGUN;
+    pickup_state.weapon = WL_WEAPON_PISTOL;
+    pickup_state.chosen_weapon = WL_WEAPON_PISTOL;
+    CHECK(wl_step_live_player_fire_tick(&pickup_state, &live_tick_pickup_model,
+                                        use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                        &live_tick_motion, 0, 0, 0x10000, 0,
+                                        WL_DIR_EAST, 0, 0, 1,
+                                        WL_WEAPON_MACHINEGUN, 1,
+                                        &live_fire_tick) == 0);
+    CHECK(live_fire_tick.fire_attempted == 1);
+    CHECK(live_fire_tick.fire.fired == 1);
+    CHECK(live_fire_tick.fire.consumed_ammo == 1);
+    CHECK(live_fire_tick.fire.ammo_before == 3);
+    CHECK(live_fire_tick.fire.ammo_after == 2);
+    CHECK(live_fire_tick.live.palette.kind == WL_PALETTE_SHIFT_NONE);
+    CHECK(pickup_state.weapon == WL_WEAPON_MACHINEGUN);
+    CHECK(pickup_state.ammo == 2);
+    pickup_state.ammo = 0;
+    CHECK(wl_step_live_player_fire_tick(&pickup_state, &live_tick_pickup_model,
+                                        use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                        &live_tick_motion, 0, 0, 0x10000, 0,
+                                        WL_DIR_EAST, 0, 0, 1,
+                                        WL_WEAPON_PISTOL, 1,
+                                        &live_fire_tick) == 0);
+    CHECK(live_fire_tick.fire_attempted == 1);
+    CHECK(live_fire_tick.fire.no_ammo == 1);
+    CHECK(live_fire_tick.fire.fired_weapon == WL_WEAPON_KNIFE);
+    CHECK(pickup_state.weapon == WL_WEAPON_KNIFE);
+    CHECK(wl_step_live_player_fire_tick(&pickup_state, &live_tick_pickup_model,
+                                        use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                        &live_tick_motion, 0, 0, 0x10000, 0,
+                                        WL_DIR_EAST, 0, 0, 0,
+                                        WL_WEAPON_KNIFE, 1,
+                                        &live_fire_tick) == 0);
+    CHECK(live_fire_tick.fire_attempted == 0);
+    CHECK(live_fire_tick.fire.fired == 0);
+
     memset(use_info, 0, sizeof(use_info));
     memset(&use_model, 0, sizeof(use_model));
     CHECK(wl_init_player_gameplay_state(&pickup_state, 100, 3, 0, WL_EXTRA_POINTS) == 0);

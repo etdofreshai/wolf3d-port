@@ -532,3 +532,7 @@ Live chase movement, shooter attack damage, scene rendering, and present-frame m
 ## Cycle update: player weapon fire/ammo seam
 
 Added `wl_try_player_fire_weapon`, a small deterministic attack-state helper for future live player combat. The seam validates requested weapon availability, consumes one ammo for pistol/machinegun/chaingun shots, leaves knife attacks ammo-free, records no-ammo fallback to knife, and reports unavailable weapon requests without consuming ammo. Headless tests cover chaingun ammo consumption, knife fire, empty-pistol fallback, unavailable chaingun requests, and invalid weapon rejection.
+
+## Cycle update: live player fire tick bridge
+
+Added `wl_step_live_player_fire_tick`, a deterministic live-frame wrapper that combines player motion/use/door/pushwall/palette ticking with the weapon fire/ammo seam. The result reports normal live tick metadata plus an optional fire result, covering fired machinegun ammo consumption, empty-pistol fallback to knife, and no-fire frames without requiring SDL.
