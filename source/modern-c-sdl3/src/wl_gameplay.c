@@ -886,6 +886,30 @@ int wl_try_player_fire_weapon(wl_player_gameplay_state *state,
     return 0;
 }
 
+int wl_try_player_fire_weapon_attack(wl_player_gameplay_state *state,
+                                     wl_weapon_type requested_weapon,
+                                     int32_t attack_tics,
+                                     wl_player_fire_attack_result *out) {
+    if (!state || !out || attack_tics <= 0) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->frame_before = state->attack_frame;
+    out->frame_after = state->attack_frame;
+
+    if (wl_try_player_fire_weapon(state, requested_weapon, &out->fire) != 0) {
+        return -1;
+    }
+
+    if (out->fire.fired) {
+        state->attack_frame = attack_tics;
+        out->frame_after = state->attack_frame;
+        out->attack_started = 1;
+    }
+    return 0;
+}
+
 int wl_step_player_attack_state(wl_player_gameplay_state *state, int32_t tics,
                                 wl_player_attack_step_result *out) {
     if (!state || !out || tics < 0 || state->attack_frame < 0 ||
