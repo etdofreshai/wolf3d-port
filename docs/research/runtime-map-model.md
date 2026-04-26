@@ -714,3 +714,7 @@ Added `wl_summarize_path_marker_exits()` as an SDL-free patrol-marker exit diagn
 ## Cycle update: runtime path-marker/player distance summary
 
 Added `wl_summarize_path_marker_player_distances()` as a non-mutating AI patrol marker proximity diagnostic. It mirrors the pushwall/player distance helper for nearest/farthest valid marker indices, Manhattan distances, invalid marker coordinates, and empty-valid-set behavior so future patrol wake/chase work can inspect marker proximity without advancing actor state.
+
+## Cycle update: runtime path-marker tile occupancy summary
+
+Added `wl_summarize_path_marker_tile_occupancy()` as a non-mutating patrol-marker occupancy diagnostic. It counts valid unique marker tiles, duplicate marker placements, invalid marker coordinates, and total marker descriptors so future patrol-path setup can detect overlapping arrows before mutating actor path state.
