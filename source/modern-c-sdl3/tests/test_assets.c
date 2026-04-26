@@ -3634,6 +3634,52 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_distances.farthest_actor_index == 0);
 
     chase_summary_model.actors[1].shootable = 1;
+    wl_actor_distance_band_summary synthetic_distance_bands;
+    CHECK(wl_summarize_actor_distance_bands(&chase_summary_model, 8, 5, 3, 6, 0,
+                                            &synthetic_distance_bands) == 0);
+    CHECK(wl_summarize_actor_distance_bands(NULL, 8, 5, 3, 6, 0,
+                                            &synthetic_distance_bands) == -1);
+    CHECK(wl_summarize_actor_distance_bands(&chase_summary_model, WL_MAP_SIDE, 5, 3, 6, 0,
+                                            &synthetic_distance_bands) == -1);
+    CHECK(wl_summarize_actor_distance_bands(&chase_summary_model, 8, 5, 0, 6, 0,
+                                            &synthetic_distance_bands) == -1);
+    CHECK(wl_summarize_actor_distance_bands(&chase_summary_model, 8, 5, 4, 3, 0,
+                                            &synthetic_distance_bands) == -1);
+    CHECK(wl_summarize_actor_distance_bands(&chase_summary_model, 8, 5, 3, 6, 0,
+                                            NULL) == -1);
+    CHECK(synthetic_distance_bands.same_tile_count == 0);
+    CHECK(synthetic_distance_bands.adjacent_count == 0);
+    CHECK(synthetic_distance_bands.near_count == 1);
+    CHECK(synthetic_distance_bands.mid_count == 0);
+    CHECK(synthetic_distance_bands.far_count == 1);
+    CHECK(synthetic_distance_bands.invalid_position_count == 1);
+
+    chase_summary_model.actors[1].shootable = 0;
+    CHECK(wl_summarize_actor_distance_bands(&chase_summary_model, 8, 5, 3, 6, 1,
+                                            &synthetic_distance_bands) == 0);
+    CHECK(synthetic_distance_bands.near_count == 1);
+    CHECK(synthetic_distance_bands.far_count == 0);
+    CHECK(synthetic_distance_bands.invalid_position_count == 1);
+
+    chase_summary_model.actors[1].shootable = 1;
+    chase_summary_model.actors[0].tile_x = 8;
+    chase_summary_model.actors[0].tile_y = 5;
+    chase_summary_model.actors[1].tile_x = 9;
+    chase_summary_model.actors[1].tile_y = 5;
+    CHECK(wl_summarize_actor_distance_bands(&chase_summary_model, 8, 5, 3, 6, 0,
+                                            &synthetic_distance_bands) == 0);
+    CHECK(synthetic_distance_bands.same_tile_count == 1);
+    CHECK(synthetic_distance_bands.adjacent_count == 1);
+    CHECK(synthetic_distance_bands.near_count == 0);
+    CHECK(synthetic_distance_bands.mid_count == 0);
+    CHECK(synthetic_distance_bands.far_count == 0);
+    CHECK(synthetic_distance_bands.invalid_position_count == 1);
+    chase_summary_model.actors[0].tile_x = 5;
+    chase_summary_model.actors[0].tile_y = 5;
+    chase_summary_model.actors[1].tile_x = 10;
+    chase_summary_model.actors[1].tile_y = 10;
+
+    chase_summary_model.actors[1].shootable = 1;
     chase_summary_model.actors[1].mode = WL_ACTOR_CHASE;
     chase_summary_model.actors[1].ambush = 1;
     chase_summary_model.actors[2].tile_x = WL_MAP_SIDE;

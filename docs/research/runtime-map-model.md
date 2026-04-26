@@ -817,3 +817,7 @@ Extended `wl_summarize_actor_attack_readiness()` with ready melee-vs-ranged buck
 ## Cycle update: actor attack readiness sight-axis buckets
 
 Extended `wl_summarize_actor_attack_readiness()` with ready horizontal-vs-vertical line-of-sight buckets. Actors that pass the existing active, facing, clear-cardinal-sight checks still increment the aggregate ready count and melee/ranged action buckets, and now also report whether the immediate attack lane is same-row or same-column. Synthetic headless coverage pins one ready dog bite on a horizontal lane and one ready ranged shooter on a vertical lane before deeper live attack presentation uses the diagnostic.
+
+### Actor distance band diagnostic
+
+Added `wl_summarize_actor_distance_bands()` as a headless runtime actor proximity diagnostic. It partitions actors by Manhattan distance from the player into same-tile, adjacent, caller-defined near/mid ranges, far, and invalid-position buckets, with optional shootable-only filtering. Synthetic coverage pins normal range bucketing, same/adjacent boundaries, invalid arguments, and shootable filtering for future AI/combat/presentation preflight work.

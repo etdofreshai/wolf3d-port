@@ -2976,6 +2976,44 @@ int wl_summarize_actor_player_distances(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_actor_distance_bands(const wl_game_model *model,
+                                      uint16_t player_x, uint16_t player_y,
+                                      uint16_t near_distance,
+                                      uint16_t mid_distance,
+                                      int shootable_only,
+                                      wl_actor_distance_band_summary *out) {
+    if (!model || !out || player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE ||
+        near_distance < 1u || mid_distance < near_distance) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (shootable_only && !actor->shootable) {
+            continue;
+        }
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+
+        const uint16_t distance = actor_model_manhattan_distance(actor, player_x, player_y);
+        if (distance == 0u) {
+            ++out->same_tile_count;
+        } else if (distance == 1u) {
+            ++out->adjacent_count;
+        } else if (distance <= near_distance) {
+            ++out->near_count;
+        } else if (distance <= mid_distance) {
+            ++out->mid_count;
+        } else {
+            ++out->far_count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_actor_engagements(const wl_game_model *model,
                                    uint16_t player_x, uint16_t player_y,
                                    uint16_t close_distance,
