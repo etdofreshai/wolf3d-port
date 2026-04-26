@@ -2134,6 +2134,13 @@ int wl_summarize_runtime_tile_axes(const wl_game_model *model,
             ++out->center_row_solid_wall_count;
         } else {
             ++out->center_row_marker_count;
+            if ((row_tile & 0xc0u) == 0xc0u) {
+                ++out->center_row_pushwall_marker_count;
+            } else if ((row_tile & 0x80u) != 0u) {
+                ++out->center_row_door_marker_count;
+            } else {
+                ++out->center_row_other_marker_count;
+            }
         }
 
         const uint16_t column_tile = model->tilemap[map_index(center, i)];
@@ -2143,6 +2150,13 @@ int wl_summarize_runtime_tile_axes(const wl_game_model *model,
             ++out->center_column_solid_wall_count;
         } else {
             ++out->center_column_marker_count;
+            if ((column_tile & 0xc0u) == 0xc0u) {
+                ++out->center_column_pushwall_marker_count;
+            } else if ((column_tile & 0x80u) != 0u) {
+                ++out->center_column_door_marker_count;
+            } else {
+                ++out->center_column_other_marker_count;
+            }
         }
     }
 
