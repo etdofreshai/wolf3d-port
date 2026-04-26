@@ -55,3 +55,7 @@ SOD static traits for type `50` (25-ammo clip) and type `52` (Spear pickup) now 
 ## Cycle update: SOD boss scene sprite refs
 
 Added `wl_collect_spear_scene_sprite_refs()` as an explicit Spear/SOD scene-ref collection seam. It preserves the existing WL6 scene-ref API while using Spear sprite ordinals for shared actors and the source-backed SOD boss/special map tiles: Spectre `106 -> SPR_SPECTRE_W1 (377)`, Angel `107 -> SPR_ANGEL_W1 (385)`, Trans `125 -> SPR_TRANS_W1 (326)`, Uber `142 -> SPR_UBER_W1 (349)`, Wilhelm `143 -> SPR_WILL_W1 (337)`, and Death Knight `161 -> SPR_DEATH_W1 (362)`. A synthetic headless regression verifies those source tiles now produce actor scene refs and that the WL6 collector still intentionally skips them.
+
+## Cycle update: SOD scene refs decode cached sprite surfaces
+
+The optional SOD runtime-model harness now decodes the first and last `Tunnels 1` Spear-aware scene refs through `wl_decode_vswap_sprite_surface_cache()`. This pins a renderer-facing cache hash plus per-surface hashes for real map-derived SOD refs, extending coverage beyond metadata-only scene refs without committing proprietary sprite bytes.

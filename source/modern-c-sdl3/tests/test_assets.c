@@ -6005,6 +6005,9 @@ static int check_optional_sod(const char *dir) {
     CHECK(vs.sprite_start == 134);
     CHECK(vs.sound_start == 555);
 
+    wl_vswap_directory sod_sprite_dirinfo;
+    CHECK(wl_read_vswap_directory(vswap_path, &sod_sprite_dirinfo) == 0);
+
     wl_map_header map0;
     CHECK(wl_read_map_header(gamemaps_path, mh.offsets[0], &map0) == 0);
     CHECK(strcmp(map0.name, "Tunnels 1") == 0);
@@ -6090,6 +6093,26 @@ static int check_optional_sod(const char *dir) {
         CHECK(sod_scene_refs[0].source_index == sod_model_gaps[i].first_spear_scene_source);
         CHECK(sod_scene_refs[sod_scene_ref_count - 1].source_index ==
               sod_model_gaps[i].last_spear_scene_source);
+
+        if (i == 0) {
+            const uint16_t sod_visible_chunks[] = {
+                sod_scene_refs[0].vswap_chunk_index,
+                sod_scene_refs[sod_scene_ref_count - 1].vswap_chunk_index,
+            };
+            unsigned char sod_visible_pixels[2 * WL_MAP_PLANE_WORDS];
+            wl_indexed_surface sod_visible_surfaces[2];
+            CHECK(wl_decode_vswap_sprite_surface_cache(vswap_path, &sod_sprite_dirinfo,
+                                                       sod_visible_chunks, 2, 1,
+                                                       sod_visible_pixels,
+                                                       sizeof(sod_visible_pixels),
+                                                       sod_visible_surfaces) == 0);
+            CHECK(fnv1a_bytes(sod_visible_pixels, sizeof(sod_visible_pixels)) ==
+                  0x40780481);
+            CHECK(fnv1a_bytes(sod_visible_surfaces[0].pixels,
+                              sod_visible_surfaces[0].pixel_count) == 0xe2239470);
+            CHECK(fnv1a_bytes(sod_visible_surfaces[1].pixels,
+                              sod_visible_surfaces[1].pixel_count) == 0xdad93cf4);
+        }
         size_t spear_pillars = 0;
         size_t spear_trucks = 0;
         for (size_t j = 0; j < sod_model.static_count; ++j) {
