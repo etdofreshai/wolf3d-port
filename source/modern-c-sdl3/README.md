@@ -497,3 +497,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Runtime door/player distance summary
 
 `wl_summarize_door_player_distances` reports nearest/farthest door tiles from a player tile, orientation buckets, and invalid door positions without mutating runtime state. Synthetic headless coverage pins empty/invalid behavior for future door-aware AI, collision, and presentation diagnostics.
+
+## Runtime pushwall state summary
+
+`wl_summarize_pushwall_state` reports pushwall marker direction buckets, invalid marker coordinates, and active moving-pushwall metadata/validity without advancing the runtime pushwall. Synthetic headless coverage pins marker direction counts plus active motion marker/position validation for future pushwall AI/collision/presentation checks.

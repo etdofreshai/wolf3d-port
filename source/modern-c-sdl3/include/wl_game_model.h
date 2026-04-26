@@ -434,6 +434,22 @@ typedef struct wl_door_player_distance_summary {
     uint16_t farthest_distance;
 } wl_door_player_distance_summary;
 
+typedef struct wl_pushwall_state_summary {
+    size_t marker_count;
+    size_t invalid_marker_position_count;
+    size_t north_count;
+    size_t east_count;
+    size_t south_count;
+    size_t west_count;
+    size_t invalid_direction_count;
+    uint8_t motion_active;
+    uint8_t motion_marker_valid;
+    uint8_t motion_position_valid;
+    uint16_t motion_tile;
+    uint16_t motion_state;
+    uint16_t motion_pos;
+} wl_pushwall_state_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -626,6 +642,8 @@ int wl_summarize_door_timing(const wl_game_model *model,
 int wl_summarize_door_player_distances(const wl_game_model *model,
                                        uint16_t player_x, uint16_t player_y,
                                        wl_door_player_distance_summary *out);
+int wl_summarize_pushwall_state(const wl_game_model *model,
+                                wl_pushwall_state_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);
