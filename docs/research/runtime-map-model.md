@@ -686,3 +686,7 @@ Added `wl_summarize_pushwall_source_tiles()` as a non-mutating diagnostic for pu
 ## Cycle update: runtime static/player adjacency summary
 
 Added `wl_summarize_static_player_adjacency`, a non-mutating static-object proximity diagnostic for pickup/render readiness. It partitions valid statics into same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, and distant buckets relative to a player tile, while preserving the active-only filter and invalid-coordinate accounting used by the static/player distance helper. Synthetic headless tests cover every bucket plus null, invalid-player, inactive, and invalid-coordinate paths.
+
+## Cycle update: actor line-of-sight summary
+
+Added `wl_summarize_actor_line_of_sight()` as a non-mutating cardinal line-of-sight diagnostic for runtime AI/combat progression. It partitions actors into clear same-row/column visibility, wall-blocked, door-blocked, same-tile, non-cardinal, and invalid-position buckets relative to a supplied player tile, giving future chase/shoot decisions a deterministic SDL-free aggregate before mutating actor state.
