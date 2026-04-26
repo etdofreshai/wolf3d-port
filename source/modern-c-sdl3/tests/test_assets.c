@@ -2809,6 +2809,35 @@ static int check_wl6(const char *dir) {
         CHECK(synthetic_quadrant_summary.southwest_open_count == 1023);
         CHECK(synthetic_quadrant_summary.southeast_open_count == 1023);
 
+        wl_runtime_tile_center_summary center_summary;
+        memset(&center_summary, 0xff, sizeof(center_summary));
+        CHECK(wl_summarize_runtime_tile_center(&model, &center_summary) == 0);
+        CHECK(wl_summarize_runtime_tile_center(NULL, &center_summary) == -1);
+        CHECK(wl_summarize_runtime_tile_center(&model, NULL) == -1);
+        CHECK(center_summary.center_tile_count == 256);
+        CHECK(center_summary.center_solid_wall_count + center_summary.center_clear_floor_count +
+                  center_summary.center_door_marker_count +
+                  center_summary.center_pushwall_marker_count +
+                  center_summary.center_other_marker_count ==
+              center_summary.center_tile_count);
+
+        wl_game_model synthetic_center;
+        memset(&synthetic_center, 0, sizeof(synthetic_center));
+        synthetic_center.tilemap[((24u * WL_MAP_SIDE) + 24u)] = 1;
+        synthetic_center.tilemap[((24u * WL_MAP_SIDE) + 25u)] = 0x80;
+        synthetic_center.tilemap[((24u * WL_MAP_SIDE) + 26u)] = 0xc0 | 7u;
+        synthetic_center.tilemap[((24u * WL_MAP_SIDE) + 27u)] = 90;
+        synthetic_center.tilemap[((23u * WL_MAP_SIDE) + 23u)] = 2;
+        wl_runtime_tile_center_summary synthetic_center_summary;
+        CHECK(wl_summarize_runtime_tile_center(&synthetic_center,
+                                               &synthetic_center_summary) == 0);
+        CHECK(synthetic_center_summary.center_tile_count == 256);
+        CHECK(synthetic_center_summary.center_solid_wall_count == 1);
+        CHECK(synthetic_center_summary.center_door_marker_count == 1);
+        CHECK(synthetic_center_summary.center_pushwall_marker_count == 1);
+        CHECK(synthetic_center_summary.center_other_marker_count == 1);
+        CHECK(synthetic_center_summary.center_clear_floor_count == 252);
+
         wl_unknown_info_summary unknown_info;
         memset(&unknown_info, 0xff, sizeof(unknown_info));
         CHECK(wl_summarize_unknown_info_tiles(&model, &unknown_info) == 0);
