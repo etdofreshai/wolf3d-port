@@ -302,6 +302,17 @@ typedef struct wl_actor_activity_summary {
     size_t invalid_position_count;
 } wl_actor_activity_summary;
 
+typedef struct wl_actor_mode_summary {
+    size_t stand_count;
+    size_t patrol_count;
+    size_t chase_count;
+    size_t inert_count;
+    size_t boss_mode_count;
+    size_t ghost_mode_count;
+    size_t invalid_mode_count;
+    size_t invalid_position_count;
+} wl_actor_mode_summary;
+
 typedef struct wl_actor_tile_occupancy_summary {
     size_t occupied_tile_count;
     size_t stacked_actor_count;
@@ -903,6 +914,8 @@ int wl_summarize_actor_motion(const wl_game_model *model,
                               wl_actor_motion_summary *out);
 int wl_summarize_actor_activity(const wl_game_model *model,
                                 wl_actor_activity_summary *out);
+int wl_summarize_actor_modes(const wl_game_model *model,
+                             wl_actor_mode_summary *out);
 int wl_summarize_actor_tile_occupancy(const wl_game_model *model,
                                       wl_actor_tile_occupancy_summary *out);
 int wl_summarize_actor_spawn_occupancy(const wl_game_model *model,
