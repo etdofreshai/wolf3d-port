@@ -1572,3 +1572,40 @@ int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
     out->dir_after = actor->dir;
     return 0;
 }
+
+int wl_wake_actors_for_chase(wl_game_model *model, uint16_t player_x,
+                             uint16_t player_y, int include_ambush,
+                             int search_forward, wl_actor_wake_all_result *out) {
+    if (!model || !out || player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        wl_actor_desc *actor = &model->actors[i];
+        if (actor->mode == WL_ACTOR_INERT || actor->kind == WL_ACTOR_DEAD_GUARD ||
+            !actor->shootable || actor->tile_x >= WL_MAP_SIDE ||
+            actor->tile_y >= WL_MAP_SIDE) {
+            continue;
+        }
+        if (actor->ambush && !include_ambush) {
+            continue;
+        }
+        ++out->actors_considered;
+        wl_actor_wake_result wake;
+        if (wl_wake_actor_for_chase(model, (uint16_t)i, player_x, player_y,
+                                    search_forward, &wake) != 0) {
+            return -1;
+        }
+        if (wake.woke) {
+            ++out->actors_woke;
+        }
+        if (wake.woke && wake.was_ambush) {
+            ++out->ambush_cleared;
+        }
+        if (wake.chase_dir_selected) {
+            ++out->chase_dir_selected;
+        }
+    }
+    return 0;
+}
