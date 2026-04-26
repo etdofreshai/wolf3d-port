@@ -3197,6 +3197,18 @@ int wl_describe_imf_playback_position(const unsigned char *chunk, size_t chunk_s
     return 0;
 }
 
+int wl_describe_imf_playback_position_from_chunk(const wl_audio_chunk_metadata *metadata,
+                                                 const unsigned char *chunk, size_t chunk_size,
+                                                 uint32_t tick_position,
+                                                 wl_imf_playback_position *out) {
+    if (!metadata || !out || metadata->kind != WL_AUDIO_CHUNK_MUSIC ||
+        metadata->is_empty || metadata->payload_size == 0 ||
+        metadata->payload_size > chunk_size || metadata->payload_offset != sizeof(uint32_t)) {
+        return -1;
+    }
+    return wl_describe_imf_playback_position(chunk, chunk_size, tick_position, out);
+}
+
 int wl_advance_imf_playback_cursor(const unsigned char *chunk, size_t chunk_size,
                                    size_t start_command, uint16_t start_delay_elapsed,
                                    uint32_t tick_delta,
@@ -3268,4 +3280,19 @@ int wl_advance_imf_playback_cursor(const unsigned char *chunk, size_t chunk_size
         out->delay_remaining = command.delay;
     }
     return 0;
+}
+
+int wl_advance_imf_playback_cursor_from_chunk(const wl_audio_chunk_metadata *metadata,
+                                              const unsigned char *chunk, size_t chunk_size,
+                                              size_t start_command,
+                                              uint16_t start_delay_elapsed,
+                                              uint32_t tick_delta,
+                                              wl_imf_playback_cursor *out) {
+    if (!metadata || !out || metadata->kind != WL_AUDIO_CHUNK_MUSIC ||
+        metadata->is_empty || metadata->payload_size == 0 ||
+        metadata->payload_size > chunk_size || metadata->payload_offset != sizeof(uint32_t)) {
+        return -1;
+    }
+    return wl_advance_imf_playback_cursor(chunk, chunk_size, start_command,
+                                          start_delay_elapsed, tick_delta, out);
 }
