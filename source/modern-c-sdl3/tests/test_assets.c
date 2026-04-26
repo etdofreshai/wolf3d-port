@@ -7756,12 +7756,56 @@ static int check_audio_optional_sod(const char *dir) {
     return 0;
 }
 
+
+static int check_spear_boss_scene_refs(void) {
+    wl_game_model model;
+    memset(&model, 0, sizeof(model));
+    const uint16_t source_tiles[] = { 106, 107, 125, 142, 143, 161 };
+    const uint16_t expected_sprites[] = { 377, 385, 326, 349, 337, 362 };
+    const uint16_t vswap_sprite_start = 134;
+    model.actor_count = sizeof(source_tiles) / sizeof(source_tiles[0]);
+    for (size_t i = 0; i < model.actor_count; ++i) {
+        model.actors[i].spawn_x = (uint16_t)(10 + i);
+        model.actors[i].spawn_y = (uint16_t)(20 + i);
+        model.actors[i].tile_x = model.actors[i].spawn_x;
+        model.actors[i].tile_y = model.actors[i].spawn_y;
+        model.actors[i].source_tile = source_tiles[i];
+        model.actors[i].kind = WL_ACTOR_BOSS;
+        model.actors[i].mode = WL_ACTOR_BOSS_MODE;
+        model.actors[i].dir = WL_DIR_SOUTH;
+        model.actors[i].shootable = 1;
+        model.actors[i].counts_for_kill_total = 1;
+    }
+
+    wl_scene_sprite_ref refs[8];
+    size_t ref_count = 0;
+    CHECK(wl_collect_spear_scene_sprite_refs(&model, vswap_sprite_start, refs,
+                                             sizeof(refs) / sizeof(refs[0]),
+                                             &ref_count) == 0);
+    CHECK(ref_count == model.actor_count);
+    for (size_t i = 0; i < ref_count; ++i) {
+        CHECK(refs[i].kind == WL_SCENE_SPRITE_ACTOR);
+        CHECK(refs[i].model_index == i);
+        CHECK(refs[i].source_index == expected_sprites[i]);
+        CHECK(refs[i].vswap_chunk_index == (uint16_t)(vswap_sprite_start + expected_sprites[i]));
+        CHECK(refs[i].world_x == (((uint32_t)(10 + i) << 16) + 0x8000u));
+        CHECK(refs[i].world_y == (((uint32_t)(20 + i) << 16) + 0x8000u));
+    }
+
+    CHECK(wl_collect_scene_sprite_refs(&model, vswap_sprite_start, refs,
+                                       sizeof(refs) / sizeof(refs[0]),
+                                       &ref_count) == 0);
+    CHECK(ref_count == 0);
+    return 0;
+}
+
 int main(void) {
     const char *dir = wl_default_data_dir();
     CHECK(check_gameplay_events() == 0);
     CHECK(check_decode_helpers() == 0);
     CHECK(check_wl6(dir) == 0);
     CHECK(check_optional_sod(dir) == 0);
+    CHECK(check_spear_boss_scene_refs() == 0);
     CHECK(check_audio_wl6(dir) == 0);
     CHECK(check_audio_optional_sod(dir) == 0);
     printf("asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame/audio+sod-audio tests passed for %s\n", dir);
