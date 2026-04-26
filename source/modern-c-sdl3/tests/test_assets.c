@@ -2450,12 +2450,14 @@ static int check_wl6(const char *dir) {
         wl_actor_wake_summary expected_wake_with_ambush;
         wl_actor_patrol_path_summary expected_patrol_paths;
         wl_actor_chase_path_summary expected_chase_paths;
+        wl_actor_attack_summary expected_attacks;
         memset(&expected_flags, 0, sizeof(expected_flags));
         memset(&expected_positions, 0, sizeof(expected_positions));
         memset(&expected_wake_no_ambush, 0, sizeof(expected_wake_no_ambush));
         memset(&expected_wake_with_ambush, 0, sizeof(expected_wake_with_ambush));
         memset(&expected_patrol_paths, 0, sizeof(expected_patrol_paths));
         memset(&expected_chase_paths, 0, sizeof(expected_chase_paths));
+        memset(&expected_attacks, 0, sizeof(expected_attacks));
         for (size_t actor_i = 0; actor_i < model.actor_count; ++actor_i) {
             const wl_actor_desc *actor = &model.actors[actor_i];
             expected_flags.shootable_count += actor->shootable ? 1u : 0u;
@@ -2471,6 +2473,20 @@ static int check_wl6(const char *dir) {
                 (actor->spawn_x >= WL_MAP_SIDE || actor->spawn_y >= WL_MAP_SIDE) ? 1u : 0u;
             expected_positions.tile_out_of_bounds_count +=
                 (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) ? 1u : 0u;
+            if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+                ++expected_attacks.invalid_position_count;
+            } else if (actor->kind == WL_ACTOR_DOG && actor->shootable) {
+                ++expected_attacks.attack_capable_count;
+                ++expected_attacks.bite_count;
+            } else if (actor->shootable &&
+                       (actor->kind == WL_ACTOR_GUARD || actor->kind == WL_ACTOR_OFFICER ||
+                        actor->kind == WL_ACTOR_SS || actor->kind == WL_ACTOR_MUTANT ||
+                        actor->kind == WL_ACTOR_BOSS)) {
+                ++expected_attacks.attack_capable_count;
+                ++expected_attacks.shoot_count;
+            } else {
+                ++expected_attacks.passive_count;
+            }
             if (actor->mode == WL_ACTOR_PATROL) {
                 ++expected_patrol_paths.patrol_count;
                 if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
@@ -2587,6 +2603,18 @@ static int check_wl6(const char *dir) {
         CHECK(chase_paths.chase_count ==
               chase_paths.path_selected_count + chase_paths.path_blocked_count +
                   chase_paths.invalid_position_count);
+        wl_actor_attack_summary attacks;
+        memset(&attacks, 0xff, sizeof(attacks));
+        CHECK(wl_summarize_actor_attacks(&model, &attacks) == 0);
+        CHECK(wl_summarize_actor_attacks(NULL, &attacks) == -1);
+        CHECK(wl_summarize_actor_attacks(&model, NULL) == -1);
+        CHECK(attacks.attack_capable_count == expected_attacks.attack_capable_count);
+        CHECK(attacks.bite_count == expected_attacks.bite_count);
+        CHECK(attacks.shoot_count == expected_attacks.shoot_count);
+        CHECK(attacks.passive_count == expected_attacks.passive_count);
+        CHECK(attacks.invalid_position_count == expected_attacks.invalid_position_count);
+        CHECK(model.actor_count == attacks.attack_capable_count + attacks.passive_count +
+                                   attacks.invalid_position_count);
         CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs,
                                            sizeof(scene_refs) / sizeof(scene_refs[0]),
                                            &scene_ref_count) == 0);
@@ -2624,6 +2652,20 @@ static int check_wl6(const char *dir) {
         chase_summary_model.tilemap[(size_t)(10 + block_dx[block_i]) +
                                     (size_t)(10 + block_dy[block_i]) * WL_MAP_SIDE] = 1;
     }
+    chase_summary_model.actors[0].kind = WL_ACTOR_GUARD;
+    chase_summary_model.actors[0].shootable = 1;
+    chase_summary_model.actors[1].kind = WL_ACTOR_DOG;
+    chase_summary_model.actors[1].shootable = 1;
+    chase_summary_model.actors[2].kind = WL_ACTOR_OFFICER;
+    chase_summary_model.actors[2].shootable = 1;
+    wl_actor_attack_summary synthetic_attacks;
+    CHECK(wl_summarize_actor_attacks(&chase_summary_model, &synthetic_attacks) == 0);
+    CHECK(synthetic_attacks.attack_capable_count == 2);
+    CHECK(synthetic_attacks.shoot_count == 1);
+    CHECK(synthetic_attacks.bite_count == 1);
+    CHECK(synthetic_attacks.passive_count == 0);
+    CHECK(synthetic_attacks.invalid_position_count == 1);
+
     wl_actor_chase_path_summary synthetic_chase_paths;
     CHECK(wl_summarize_actor_chase_paths(&chase_summary_model, 8, 5, 1,
                                          &synthetic_chase_paths) == 0);
