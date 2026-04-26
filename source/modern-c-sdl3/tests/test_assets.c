@@ -1298,6 +1298,53 @@ static int check_wl6(const char *dir) {
     CHECK(model.statics[0].y == 8);
     CHECK(model.statics[0].source_tile == 35);
     CHECK(model.statics[0].blocking == 1);
+
+    unsigned wl6_unknown_tile_counts[512] = {0};
+    size_t wl6_unknown_tile_total = 0;
+    size_t wl6_unknown_tile_unique = 0;
+    size_t wl6_model_build_failures = 0;
+    for (size_t map_index = 0; map_index < 60; ++map_index) {
+        wl_map_header wl6_map;
+        CHECK(wl_read_map_header(gamemaps_path, mh.offsets[map_index], &wl6_map) == 0);
+        CHECK(wl_read_map_plane(gamemaps_path, &wl6_map, 0, mh.rlew_tag,
+                                wall_plane, WL_MAP_PLANE_WORDS) == 0);
+        CHECK(wl_read_map_plane(gamemaps_path, &wl6_map, 1, mh.rlew_tag,
+                                info_plane, WL_MAP_PLANE_WORDS) == 0);
+        if (wl_build_game_model(wall_plane, info_plane, WL_MAP_PLANE_WORDS,
+                                WL_DIFFICULTY_EASY, &model) != 0) {
+            ++wl6_model_build_failures;
+            continue;
+        }
+        if (model.unknown_info_tiles != 0) {
+            CHECK(model.first_unknown_info_tile <
+                  sizeof(wl6_unknown_tile_counts) / sizeof(wl6_unknown_tile_counts[0]));
+            wl6_unknown_tile_counts[model.first_unknown_info_tile] +=
+                (unsigned)model.unknown_info_tiles;
+            wl6_unknown_tile_total += model.unknown_info_tiles;
+        }
+    }
+    for (size_t i = 0; i < sizeof(wl6_unknown_tile_counts) / sizeof(wl6_unknown_tile_counts[0]); ++i) {
+        if (wl6_unknown_tile_counts[i] != 0) {
+            ++wl6_unknown_tile_unique;
+        }
+    }
+    CHECK(wl6_model_build_failures == 2);
+    CHECK(wl6_unknown_tile_total == 0);
+    CHECK(wl6_unknown_tile_unique == 0);
+    CHECK(wl6_unknown_tile_counts[160] == 0);
+    CHECK(wl6_unknown_tile_counts[178] == 0);
+    CHECK(wl6_unknown_tile_counts[179] == 0);
+    CHECK(wl6_unknown_tile_counts[196] == 0);
+    CHECK(wl6_unknown_tile_counts[197] == 0);
+    CHECK(wl6_unknown_tile_counts[214] == 0);
+    CHECK(wl6_unknown_tile_counts[215] == 0);
+
+    CHECK(wl_read_map_plane(gamemaps_path, &map0, 0, mh.rlew_tag,
+                            wall_plane, WL_MAP_PLANE_WORDS) == 0);
+    CHECK(wl_read_map_plane(gamemaps_path, &map0, 1, mh.rlew_tag,
+                            info_plane, WL_MAP_PLANE_WORDS) == 0);
+    CHECK(wl_build_game_model(wall_plane, info_plane, WL_MAP_PLANE_WORDS,
+                              WL_DIFFICULTY_EASY, &model) == 0);
     CHECK(model.path_marker_count == 18);
     CHECK(model.path_markers[0].x == 2);
     CHECK(model.path_markers[0].y == 33);
