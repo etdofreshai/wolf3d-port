@@ -23,9 +23,13 @@ Executable optional assertions now scan all 21 SOD maps and verify the unknown-i
 
 Source-backed SOD boss/special tiles `106` (`SpawnSpectre`), `107` (`SpawnAngel`), `125` (`SpawnTrans`), `142` (`SpawnUber`), `143` (`SpawnWill`), and `161` (`SpawnDeath`) are classified as runtime boss actors. Source-backed SOD static tiles `72..74` now resolve through the original `SpawnStatic(x, y, tile - 23)` path as types `49..51`: marble pillar (`block`), 25-ammo clip (`bonus`), and truck (`block`). Type `52` / `bo_spear` is also modeled for future Spear pickup coverage even though it is not part of the latest unknown histogram.
 
+## Runtime scene coverage
+
+Optional headless assertions now collect scene sprite refs for the representative SOD maps after the static/boss classifications. They pin scene-ref counts and hashes for `Tunnels 1`, `Tunnel Boss`, `Death Knight`, and `Angel of Death`, and explicitly verify Spear static type placements used by the new `72..74` classifications. This proves the newly classified SOD statics/bosses reach renderer-facing source/VSWAP metadata instead of only shrinking unknown counts.
+
 ## Next useful step
 
-Broaden optional SOD runtime scene coverage now that the info-plane gap is closed, especially static pickup/rendering around the `bo_25clip` and eventual `bo_spear` paths.
+Broaden optional SOD pickup/gameplay behavior around the `bo_25clip` and eventual `bo_spear` paths, or route a small SOD scene through cached sprite surfaces/rendering when useful.
 
 ## Verification
 
