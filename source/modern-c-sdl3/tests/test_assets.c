@@ -1750,6 +1750,68 @@ static int check_wl6(const char *dir) {
     CHECK(live_ai_refs[1].source_index == 50);
     CHECK(live_ai_refs[1].world_x == 0x88000u);
     CHECK(live_ai_refs[1].world_y == 0x88000u);
+
+    wl_game_model live_ai_wake_model;
+    memset(&live_ai_wake_model, 0, sizeof(live_ai_wake_model));
+    live_ai_wake_model.actor_count = 2;
+    live_ai_wake_model.actors[0].kind = WL_ACTOR_GUARD;
+    live_ai_wake_model.actors[0].mode = WL_ACTOR_STAND;
+    live_ai_wake_model.actors[0].dir = WL_DIR_WEST;
+    live_ai_wake_model.actors[0].tile_x = 6;
+    live_ai_wake_model.actors[0].tile_y = 3;
+    live_ai_wake_model.actors[0].fine_x = 0x68000u;
+    live_ai_wake_model.actors[0].fine_y = 0x38000u;
+    live_ai_wake_model.actors[0].shootable = 1;
+    live_ai_wake_model.actors[1].kind = WL_ACTOR_OFFICER;
+    live_ai_wake_model.actors[1].mode = WL_ACTOR_PATROL;
+    live_ai_wake_model.actors[1].dir = WL_DIR_SOUTH;
+    live_ai_wake_model.actors[1].tile_x = 7;
+    live_ai_wake_model.actors[1].tile_y = 3;
+    live_ai_wake_model.actors[1].fine_x = 0x78000u;
+    live_ai_wake_model.actors[1].fine_y = 0x38000u;
+    live_ai_wake_model.actors[1].shootable = 1;
+    live_ai_wake_model.actors[1].ambush = 1;
+    wl_player_motion_state live_ai_wake_motion = {0x38000u, 0x38000u, 3, 3};
+    CHECK(wl_step_live_actor_ai_wake_tick(&live_ai_player, &live_ai_wake_model,
+                                          empty_plane, empty_plane,
+                                          WL_MAP_PLANE_WORDS,
+                                          &live_ai_wake_motion,
+                                          0, 0, 0x10000, 0, WL_DIR_EAST,
+                                          0, 0, 0, 1, 0x10000u, 0,
+                                          &live_ai) == 0);
+    CHECK(live_ai.actors_woke == 1);
+    CHECK(live_ai.wake.actors_considered == 1);
+    CHECK(live_ai.wake.actors_woke == 1);
+    CHECK(live_ai.wake.ambush_cleared == 0);
+    CHECK(live_ai.wake.first_woken_actor == 0);
+    CHECK(live_ai.wake.last_woken_actor == 0);
+    CHECK(live_ai_wake_model.actors[0].mode == WL_ACTOR_CHASE);
+    CHECK(live_ai_wake_model.actors[1].mode == WL_ACTOR_PATROL);
+    CHECK(wl_step_live_actor_ai_wake_tick(&live_ai_player, &live_ai_wake_model,
+                                          empty_plane, empty_plane,
+                                          WL_MAP_PLANE_WORDS,
+                                          &live_ai_wake_motion,
+                                          0, 0, 0x10000, 0, WL_DIR_EAST,
+                                          0, 0, 1, 1, 0x10000u, 0,
+                                          &live_ai) == 0);
+    CHECK(live_ai.actors_woke == 1);
+    CHECK(live_ai.wake.actors_considered == 2);
+    CHECK(live_ai.wake.actors_woke == 1);
+    CHECK(live_ai.wake.ambush_cleared == 1);
+    CHECK(live_ai.wake.first_woken_actor == 1);
+    CHECK(live_ai.wake.last_woken_actor == 1);
+    CHECK(live_ai_wake_model.actors[1].mode == WL_ACTOR_CHASE);
+    CHECK(live_ai_wake_model.actors[1].ambush == 0);
+    CHECK(wl_step_live_actor_ai_wake_tick(&live_ai_player, &live_ai_wake_model,
+                                          empty_plane, empty_plane,
+                                          WL_MAP_PLANE_WORDS,
+                                          &live_ai_wake_motion,
+                                          0, 0, 0x10000, 0, WL_DIR_EAST,
+                                          0, 0, 1, 1, 0x10000u, 0,
+                                          &live_ai) == 0);
+    CHECK(live_ai.actors_woke == 0);
+    CHECK(live_ai.wake.first_woken_actor == UINT16_MAX);
+    CHECK(live_ai.wake.last_woken_actor == UINT16_MAX);
     live_ai_model.tilemap[7 + 5 * WL_MAP_SIDE] = 1;
     CHECK(wl_step_live_actor_ai_tick(&live_ai_player, &live_ai_model,
                                      empty_plane, empty_plane,
