@@ -5953,6 +5953,11 @@ static int check_audio_wl6(const char *dir) {
     CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x799f60b1);
     CHECK(wl_describe_audio_chunk(87, chunk_buf, chunk_bytes, &audio_meta) == 0);
     CHECK(audio_meta.kind == WL_AUDIO_CHUNK_ADLIB);
+    CHECK(wl_describe_audio_chunk_with_ranges(87, 87, 87, 87,
+                                              chunk_buf, chunk_bytes, &audio_meta) == 0);
+    CHECK(audio_meta.kind == WL_AUDIO_CHUNK_ADLIB);
+    CHECK(wl_describe_audio_chunk_with_ranges(87, (size_t)-1, 1, 1,
+                                              chunk_buf, chunk_bytes, &audio_meta) == -1);
     CHECK(audio_meta.is_empty == 0);
     CHECK(audio_meta.declared_length == 8);
     CHECK(audio_meta.priority == 1);
@@ -6202,6 +6207,7 @@ static int check_audio_optional_sod(const char *dir) {
     char audiot_path[1024];
     wl_audio_header audio;
     wl_audio_range_summary audio_range;
+    wl_audio_chunk_metadata audio_meta;
     wl_imf_music_metadata imf_meta;
     wl_imf_playback_window imf_window;
     wl_imf_playback_position imf_position;
@@ -6294,6 +6300,14 @@ static int check_audio_optional_sod(const char *dir) {
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 243, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 21730);
+    CHECK(wl_describe_audio_chunk_with_ranges(243, 81, 81, 81,
+                                              chunk_buf, chunk_bytes, &audio_meta) == 0);
+    CHECK(audio_meta.kind == WL_AUDIO_CHUNK_MUSIC);
+    CHECK(audio_meta.declared_length == 21640);
+    CHECK(audio_meta.payload_offset == 4);
+    CHECK(audio_meta.payload_size == 21726);
+    CHECK(wl_describe_audio_chunk(243, chunk_buf, chunk_bytes, &audio_meta) == 0);
+    CHECK(audio_meta.kind == WL_AUDIO_CHUNK_DIGITAL);
     CHECK(wl_describe_imf_music_chunk(chunk_buf, chunk_bytes, &imf_meta) == 0);
     CHECK(imf_meta.declared_bytes == 21640);
     CHECK(imf_meta.command_count == 5410);
