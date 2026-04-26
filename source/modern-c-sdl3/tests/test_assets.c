@@ -2449,11 +2449,13 @@ static int check_wl6(const char *dir) {
         wl_actor_wake_summary expected_wake_no_ambush;
         wl_actor_wake_summary expected_wake_with_ambush;
         wl_actor_patrol_path_summary expected_patrol_paths;
+        wl_actor_chase_path_summary expected_chase_paths;
         memset(&expected_flags, 0, sizeof(expected_flags));
         memset(&expected_positions, 0, sizeof(expected_positions));
         memset(&expected_wake_no_ambush, 0, sizeof(expected_wake_no_ambush));
         memset(&expected_wake_with_ambush, 0, sizeof(expected_wake_with_ambush));
         memset(&expected_patrol_paths, 0, sizeof(expected_patrol_paths));
+        memset(&expected_chase_paths, 0, sizeof(expected_chase_paths));
         for (size_t actor_i = 0; actor_i < model.actor_count; ++actor_i) {
             const wl_actor_desc *actor = &model.actors[actor_i];
             expected_flags.shootable_count += actor->shootable ? 1u : 0u;
@@ -2481,6 +2483,23 @@ static int check_wl6(const char *dir) {
                         ++expected_patrol_paths.path_blocked_count;
                     } else {
                         ++expected_patrol_paths.path_selected_count;
+                    }
+                }
+            }
+            if (actor->mode == WL_ACTOR_CHASE) {
+                ++expected_chase_paths.chase_count;
+                if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE ||
+                    !model.player.present) {
+                    ++expected_chase_paths.invalid_position_count;
+                } else {
+                    wl_actor_chase_dir_result selected;
+                    CHECK(wl_select_chase_direction(&model, actor->tile_x, actor->tile_y,
+                                                    model.player.x, model.player.y,
+                                                    actor->dir, 1, &selected) == 0);
+                    if (!selected.selected) {
+                        ++expected_chase_paths.path_blocked_count;
+                    } else {
+                        ++expected_chase_paths.path_selected_count;
                     }
                 }
             }
@@ -2551,6 +2570,23 @@ static int check_wl6(const char *dir) {
         CHECK(patrol_paths.patrol_count ==
               patrol_paths.path_selected_count + patrol_paths.path_blocked_count +
                   patrol_paths.invalid_position_count);
+        wl_actor_chase_path_summary chase_paths;
+        memset(&chase_paths, 0xff, sizeof(chase_paths));
+        CHECK(wl_summarize_actor_chase_paths(&model, model.player.x, model.player.y,
+                                             1, &chase_paths) == 0);
+        CHECK(wl_summarize_actor_chase_paths(NULL, model.player.x, model.player.y,
+                                             1, &chase_paths) == -1);
+        CHECK(wl_summarize_actor_chase_paths(&model, WL_MAP_SIDE, model.player.y,
+                                             1, &chase_paths) == -1);
+        CHECK(wl_summarize_actor_chase_paths(&model, model.player.x, model.player.y,
+                                             1, NULL) == -1);
+        CHECK(chase_paths.chase_count == expected_chase_paths.chase_count);
+        CHECK(chase_paths.path_selected_count == expected_chase_paths.path_selected_count);
+        CHECK(chase_paths.path_blocked_count == expected_chase_paths.path_blocked_count);
+        CHECK(chase_paths.invalid_position_count == expected_chase_paths.invalid_position_count);
+        CHECK(chase_paths.chase_count ==
+              chase_paths.path_selected_count + chase_paths.path_blocked_count +
+                  chase_paths.invalid_position_count);
         CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs,
                                            sizeof(scene_refs) / sizeof(scene_refs[0]),
                                            &scene_ref_count) == 0);
@@ -2567,6 +2603,34 @@ static int check_wl6(const char *dir) {
     CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs,
                                        sizeof(scene_refs) / sizeof(scene_refs[0]),
                                        &scene_ref_count) == 0);
+
+    wl_game_model chase_summary_model;
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.actor_count = 3;
+    chase_summary_model.actors[0].mode = WL_ACTOR_CHASE;
+    chase_summary_model.actors[0].tile_x = 5;
+    chase_summary_model.actors[0].tile_y = 5;
+    chase_summary_model.actors[0].dir = WL_DIR_NORTH;
+    chase_summary_model.actors[1].mode = WL_ACTOR_CHASE;
+    chase_summary_model.actors[1].tile_x = 10;
+    chase_summary_model.actors[1].tile_y = 10;
+    chase_summary_model.actors[1].dir = WL_DIR_EAST;
+    chase_summary_model.actors[2].mode = WL_ACTOR_CHASE;
+    chase_summary_model.actors[2].tile_x = WL_MAP_SIDE;
+    chase_summary_model.actors[2].tile_y = 12;
+    for (size_t block_i = 0; block_i < 4; ++block_i) {
+        static const int8_t block_dx[4] = {0, 1, 0, -1};
+        static const int8_t block_dy[4] = {-1, 0, 1, 0};
+        chase_summary_model.tilemap[(size_t)(10 + block_dx[block_i]) +
+                                    (size_t)(10 + block_dy[block_i]) * WL_MAP_SIDE] = 1;
+    }
+    wl_actor_chase_path_summary synthetic_chase_paths;
+    CHECK(wl_summarize_actor_chase_paths(&chase_summary_model, 8, 5, 1,
+                                         &synthetic_chase_paths) == 0);
+    CHECK(synthetic_chase_paths.chase_count == 3);
+    CHECK(synthetic_chase_paths.path_selected_count == 1);
+    CHECK(synthetic_chase_paths.path_blocked_count == 1);
+    CHECK(synthetic_chase_paths.invalid_position_count == 1);
 
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
