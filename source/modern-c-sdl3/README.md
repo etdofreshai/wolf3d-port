@@ -448,3 +448,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Actor mode count helper
 
 `wl_count_actors_by_mode` mirrors the actor-kind summary helper for runtime actor modes. The broader WL6 map coverage now verifies mode histograms against the built model data and rejects undersized output capacity, giving future AI/live-tick work a stable headless summary seam.
+
+## Actor flag summary helper
+
+`wl_summarize_actor_flags` reports deterministic aggregate actor flags (shootable, ambush, kill-total, scene override, and inert counts) for a built runtime model. The broader WL6 map coverage now cross-checks those summary counts against actor descriptors and model kill totals, giving live AI/death/render seams a compact headless sanity check before mutating actor state.

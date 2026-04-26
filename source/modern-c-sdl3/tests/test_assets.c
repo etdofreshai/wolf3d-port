@@ -2444,6 +2444,27 @@ static int check_wl6(const char *dir) {
              ++mode_i) {
             CHECK(actor_mode_counts[mode_i] == expected_mode_counts[mode_i]);
         }
+        wl_actor_flag_summary expected_flags;
+        memset(&expected_flags, 0, sizeof(expected_flags));
+        for (size_t actor_i = 0; actor_i < model.actor_count; ++actor_i) {
+            const wl_actor_desc *actor = &model.actors[actor_i];
+            expected_flags.shootable_count += actor->shootable ? 1u : 0u;
+            expected_flags.ambush_count += actor->ambush ? 1u : 0u;
+            expected_flags.kill_total_count += actor->counts_for_kill_total ? 1u : 0u;
+            expected_flags.scene_override_count += actor->scene_source_override ? 1u : 0u;
+            expected_flags.inert_count += actor->mode == WL_ACTOR_INERT ? 1u : 0u;
+        }
+        wl_actor_flag_summary actor_flags;
+        memset(&actor_flags, 0xff, sizeof(actor_flags));
+        CHECK(wl_summarize_actor_flags(&model, &actor_flags) == 0);
+        CHECK(wl_summarize_actor_flags(NULL, &actor_flags) == -1);
+        CHECK(wl_summarize_actor_flags(&model, NULL) == -1);
+        CHECK(actor_flags.shootable_count == expected_flags.shootable_count);
+        CHECK(actor_flags.ambush_count == expected_flags.ambush_count);
+        CHECK(actor_flags.kill_total_count == model.kill_total);
+        CHECK(actor_flags.kill_total_count == expected_flags.kill_total_count);
+        CHECK(actor_flags.scene_override_count == expected_flags.scene_override_count);
+        CHECK(actor_flags.inert_count == expected_flags.inert_count);
         CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs,
                                            sizeof(scene_refs) / sizeof(scene_refs[0]),
                                            &scene_ref_count) == 0);
