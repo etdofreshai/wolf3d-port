@@ -5362,7 +5362,7 @@ static int check_wl6(const char *dir) {
                                                   present_rgba_padded,
                                                   sizeof(present_rgba_padded) - 16u,
                                                   PRESENT_PADDED_PITCH,
-                                                  NULL) == 0);
+                                                  NULL) == -1);
     CHECK(wl_expand_present_frame_to_rgba_pitched(&present_frame,
                                                   present_rgba_padded,
                                                   sizeof(present_rgba_padded) - 16u,
