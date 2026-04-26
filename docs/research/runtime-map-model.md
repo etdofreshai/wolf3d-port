@@ -576,3 +576,8 @@ Added `wl_summarize_actor_flags` as the flag-oriented sibling to the actor kind/
 ## Cycle update: actor position summaries
 
 Added `wl_summarize_actor_positions` as a compact runtime actor-position diagnostic. The broader WL6 map coverage now verifies spawn/current tile bounds, initial patrol movement away from spawn, and zeroed fine-position state for freshly built models, giving future chase/patrol interpolation work a deterministic headless aggregate check before mutating actor coordinates.
+
+
+## Cycle update: actor wake-state summaries
+
+Added `wl_summarize_actor_wake_state` as a compact diagnostic for AI wake eligibility. It partitions actors into immediately wakeable, ambush-waiting, already chasing, and ineligible buckets, with a switch for including ambush actors. The broader WL6 map sweep now cross-checks both ambush-excluded and ambush-included summaries against built actor descriptors, giving future sight/sound wake logic a deterministic headless aggregate check before mutating actor modes.

@@ -2446,8 +2446,12 @@ static int check_wl6(const char *dir) {
         }
         wl_actor_flag_summary expected_flags;
         wl_actor_position_summary expected_positions;
+        wl_actor_wake_summary expected_wake_no_ambush;
+        wl_actor_wake_summary expected_wake_with_ambush;
         memset(&expected_flags, 0, sizeof(expected_flags));
         memset(&expected_positions, 0, sizeof(expected_positions));
+        memset(&expected_wake_no_ambush, 0, sizeof(expected_wake_no_ambush));
+        memset(&expected_wake_with_ambush, 0, sizeof(expected_wake_with_ambush));
         for (size_t actor_i = 0; actor_i < model.actor_count; ++actor_i) {
             const wl_actor_desc *actor = &model.actors[actor_i];
             expected_flags.shootable_count += actor->shootable ? 1u : 0u;
@@ -2463,6 +2467,21 @@ static int check_wl6(const char *dir) {
                 (actor->spawn_x >= WL_MAP_SIDE || actor->spawn_y >= WL_MAP_SIDE) ? 1u : 0u;
             expected_positions.tile_out_of_bounds_count +=
                 (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) ? 1u : 0u;
+            if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE ||
+                actor->mode == WL_ACTOR_INERT || actor->kind == WL_ACTOR_DEAD_GUARD ||
+                !actor->shootable) {
+                ++expected_wake_no_ambush.ineligible_count;
+                ++expected_wake_with_ambush.ineligible_count;
+            } else if (actor->mode == WL_ACTOR_CHASE) {
+                ++expected_wake_no_ambush.already_chasing_count;
+                ++expected_wake_with_ambush.already_chasing_count;
+            } else if (actor->ambush) {
+                ++expected_wake_no_ambush.ambush_waiting_count;
+                ++expected_wake_with_ambush.wakeable_count;
+            } else {
+                ++expected_wake_no_ambush.wakeable_count;
+                ++expected_wake_with_ambush.wakeable_count;
+            }
         }
         wl_actor_flag_summary actor_flags;
         memset(&actor_flags, 0xff, sizeof(actor_flags));
@@ -2487,6 +2506,22 @@ static int check_wl6(const char *dir) {
         CHECK(actor_positions.spawn_out_of_bounds_count == expected_positions.spawn_out_of_bounds_count);
         CHECK(actor_positions.tile_out_of_bounds_count == 0);
         CHECK(actor_positions.tile_out_of_bounds_count == expected_positions.tile_out_of_bounds_count);
+        wl_actor_wake_summary wake_no_ambush;
+        wl_actor_wake_summary wake_with_ambush;
+        memset(&wake_no_ambush, 0xff, sizeof(wake_no_ambush));
+        memset(&wake_with_ambush, 0xff, sizeof(wake_with_ambush));
+        CHECK(wl_summarize_actor_wake_state(&model, 0, &wake_no_ambush) == 0);
+        CHECK(wl_summarize_actor_wake_state(&model, 1, &wake_with_ambush) == 0);
+        CHECK(wl_summarize_actor_wake_state(NULL, 0, &wake_no_ambush) == -1);
+        CHECK(wl_summarize_actor_wake_state(&model, 0, NULL) == -1);
+        CHECK(wake_no_ambush.wakeable_count == expected_wake_no_ambush.wakeable_count);
+        CHECK(wake_no_ambush.ambush_waiting_count == expected_wake_no_ambush.ambush_waiting_count);
+        CHECK(wake_no_ambush.already_chasing_count == expected_wake_no_ambush.already_chasing_count);
+        CHECK(wake_no_ambush.ineligible_count == expected_wake_no_ambush.ineligible_count);
+        CHECK(wake_with_ambush.wakeable_count == expected_wake_with_ambush.wakeable_count);
+        CHECK(wake_with_ambush.ambush_waiting_count == 0);
+        CHECK(wake_with_ambush.already_chasing_count == expected_wake_with_ambush.already_chasing_count);
+        CHECK(wake_with_ambush.ineligible_count == expected_wake_with_ambush.ineligible_count);
         CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs,
                                            sizeof(scene_refs) / sizeof(scene_refs[0]),
                                            &scene_ref_count) == 0);
