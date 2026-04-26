@@ -5414,6 +5414,7 @@ static int check_wl6(const char *dir) {
                                               &synthetic_path_endpoints) == 0);
     CHECK(wl_summarize_path_marker_endpoints(NULL, &synthetic_path_endpoints) == -1);
     CHECK(wl_summarize_path_marker_endpoints(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_path_endpoints.valid_marker_count == 8);
     CHECK(synthetic_path_endpoints.source_marker_count == 5);
     CHECK(synthetic_path_endpoints.sink_marker_count == 3);
     CHECK(synthetic_path_endpoints.isolated_marker_count == 1);
