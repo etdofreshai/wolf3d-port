@@ -86,3 +86,7 @@ The SDL-free presentation helpers now include `wl_expand_present_frame_to_rgba_p
 `wl_clear_present_frame_rgba_padding()` now clears only the per-row padding bytes of a pitched RGBA present-frame buffer after the indexed pixels have been expanded. The helper reuses present-frame layout validation, preserves visible RGBA pixels, rejects undersized padded spans, and no-ops for tight rows. This keeps future SDL3 surface/texture upload paths deterministic when callers need padding bytes initialized before screenshot/hash/presentation handoff.
 
 `wl_present_frame_rgba_required_size()` centralizes the full `pitch * height` span check for pitched RGBA present-frame buffers. Padded upload descriptors and padding-clear validation now share that preflight, while tests cover tight, padded, narrow-pitch, null-output, and oversized-width rejection cases.
+
+## Cycle update: padded RGBA expansion helper
+
+`wl_expand_present_frame_to_rgba_pitched_clear_padding()` now combines indexed present-frame RGBA expansion with deterministic per-row padding initialization. This keeps future SDL3 surface/texture handoff code from duplicating the expand-then-clear sequence when using padded pitches while preserving the same pitch/size validation used by the lower-level helpers.
