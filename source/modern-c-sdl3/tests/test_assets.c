@@ -3715,6 +3715,36 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_path_sources.min_source_tile == 0);
     CHECK(synthetic_path_sources.max_source_tile == 0);
 
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.path_marker_count = 6;
+    chase_summary_model.path_markers[0].x = 10;
+    chase_summary_model.path_markers[0].y = 10;
+    chase_summary_model.path_markers[1].x = 11;
+    chase_summary_model.path_markers[1].y = 10;
+    chase_summary_model.path_markers[2].x = 9;
+    chase_summary_model.path_markers[2].y = 11;
+    chase_summary_model.path_markers[3].x = 10;
+    chase_summary_model.path_markers[3].y = 15;
+    chase_summary_model.path_markers[4].x = 14;
+    chase_summary_model.path_markers[4].y = 13;
+    chase_summary_model.path_markers[5].x = WL_MAP_SIDE;
+    chase_summary_model.path_markers[5].y = 10;
+    wl_path_marker_player_adjacency_summary synthetic_path_adjacency;
+    CHECK(wl_summarize_path_marker_player_adjacency(&chase_summary_model, 10, 10,
+                                                    &synthetic_path_adjacency) == 0);
+    CHECK(wl_summarize_path_marker_player_adjacency(NULL, 10, 10,
+                                                    &synthetic_path_adjacency) == -1);
+    CHECK(wl_summarize_path_marker_player_adjacency(&chase_summary_model, WL_MAP_SIDE, 10,
+                                                    &synthetic_path_adjacency) == -1);
+    CHECK(wl_summarize_path_marker_player_adjacency(&chase_summary_model, 10, 10,
+                                                    NULL) == -1);
+    CHECK(synthetic_path_adjacency.same_tile_count == 1);
+    CHECK(synthetic_path_adjacency.cardinal_adjacent_count == 1);
+    CHECK(synthetic_path_adjacency.diagonal_adjacent_count == 1);
+    CHECK(synthetic_path_adjacency.same_row_or_column_count == 1);
+    CHECK(synthetic_path_adjacency.distant_count == 1);
+    CHECK(synthetic_path_adjacency.invalid_marker_position_count == 1);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
