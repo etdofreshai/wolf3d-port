@@ -252,6 +252,8 @@ typedef struct wl_player_use_result {
     wl_direction dir;
     uint8_t elevator_ok;
     uint8_t locked;
+    uint8_t required_key;
+    uint8_t has_required_key;
     uint8_t opened;
     uint8_t closed;
     uint8_t completed;

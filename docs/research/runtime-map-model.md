@@ -746,3 +746,7 @@ Added `wl_summarize_unknown_info_tiles()` as a compact non-mutating diagnostic f
 ## Cycle update: runtime door tile occupancy summary
 
 Added `wl_summarize_door_tile_occupancy()` as a non-mutating door placement diagnostic. It counts total door descriptors, unique valid door-center tiles, duplicate door centers, and invalid coordinates, giving future door collision/close-door work a deterministic SDL-free sanity check before mutating live door state.
+
+## Cycle update: use-button keyed-door metadata
+
+Extended `wl_player_use_result` with keyed-door metadata for the live use-button seam. Runtime door use now records the zero-based `required_key` for lock ids 1-4 and whether the current player key bit is present, so future HUD/status or SDL3 presentation code can surface locked-door feedback without re-reading door descriptors after dispatch. The existing locked/opened door headless test now pins both missing-key and has-key results.
