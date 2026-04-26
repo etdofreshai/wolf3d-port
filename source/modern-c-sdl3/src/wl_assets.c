@@ -2533,6 +2533,21 @@ int wl_tick_sound_channel(const wl_sound_channel_state *current,
     return 0;
 }
 
+int wl_tick_sound_channel_from_chunk(const wl_sound_channel_state *current,
+                                     const wl_audio_chunk_metadata *metadata,
+                                     const unsigned char *chunk, size_t chunk_size,
+                                     uint32_t sample_delta,
+                                     wl_sound_channel_tick_result *out) {
+    if (!metadata || metadata->is_empty ||
+        (metadata->kind != WL_AUDIO_CHUNK_PC_SPEAKER &&
+         metadata->kind != WL_AUDIO_CHUNK_ADLIB) ||
+        metadata->payload_size == 0 || metadata->payload_size > chunk_size) {
+        return -1;
+    }
+    return wl_tick_sound_channel(current, metadata->kind, chunk, chunk_size,
+                                 sample_delta, out);
+}
+
 static int describe_sample_playback_window(size_t sample_count,
                                            int (*getter)(const unsigned char *, size_t, size_t, uint8_t *),
                                            const unsigned char *chunk, size_t chunk_size,
