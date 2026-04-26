@@ -9,9 +9,9 @@ The existing `wl_build_game_model` path is intentionally WL6-oriented. Running t
 Representative scan results using `MAPHEAD.SOD` / `GAMEMAPS.SOD`:
 
 - `Tunnels 1`: player `32,59`, `17` doors, `147` statics, `8` actors, `8` kill total, `45` treasures, `5` secrets, `2` unknown info tiles.
-- `Tunnel Boss`: player `50,31`, `18` doors, `174` statics, `12` actors, `12` kill total, `42` treasures, `12` secrets, `16` unknown info tiles.
-- `Death Knight`: player `30,41`, `9` doors, `91` statics, `10` actors, `10` kill total, `2` treasures, `1` secret, `40` unknown info tiles.
-- `Angel of Death`: player `31,22`, `1` door, `180` statics, `0` currently-classified actors, `14` treasures, `5` secrets, `121` unknown info tiles.
+- `Tunnel Boss`: player `50,31`, `18` doors, `174` statics, `13` actors, `13` kill total, `42` treasures, `12` secrets, `15` unknown info tiles.
+- `Death Knight`: player `30,41`, `9` doors, `91` statics, `11` actors, `11` kill total, `2` treasures, `1` secret, `39` unknown info tiles.
+- `Angel of Death`: player `31,22`, `1` door, `180` statics, `38` actors, `38` kill total, `14` treasures, `5` secrets, `83` unknown info tiles.
 
 The high unknown counts are expected until SOD-specific actor/boss/static tile constants are added. A naive widening of the WL6 static tile range is unsafe because info tiles `90..97` are already path markers and `98` is the pushwall marker in the current model.
 
@@ -24,18 +24,14 @@ Executable optional assertions now scan all 21 SOD maps and show the remaining u
 - `72`: 380 placements; common SOD decoration/static gap across ordinary and boss maps.
 - `73`: 2 placements; appears in `Castle 1` only, two adjacent placements near the south edge.
 - `74`: 1 placement; appears in `Death Knight` at the boss-room entrance/start area.
-- `106`: 37 placements; dominates `Angel of Death`; this is likely a SOD-specific actor/boss/spawn table entry and should not be guessed as a static.
-- `107`: 1 placement; appears in `Angel of Death` near another `106` placement.
-- `125`: 1 placement; appears in `Tunnel Boss`.
-- `142`: 1 placement; appears in `Castle Boss`.
-- `143`: 1 placement; appears in `Dungeon Boss`.
-- `161`: 1 placement; appears in `Death Knight`.
 
-Recommended classification order: first source-confirm tiles `72..74` because they affect many maps but look static-like; then source-confirm boss/special tiles `106`, `107`, `125`, `142`, `143`, and `161` before changing actor counts. Do not infer these from coordinates alone.
+Source-backed SOD boss/special tiles `106` (`SpawnSpectre`), `107` (`SpawnAngel`), `125` (`SpawnTrans`), `142` (`SpawnUber`), `143` (`SpawnWill`), and `161` (`SpawnDeath`) are now classified as runtime boss actors. The all-map SOD unknown histogram correspondingly drops from `425`/`9` unique unknown placements to `383`/`3`, leaving only the source-static gap tiles `72..74`.
+
+Recommended classification order: source-confirm tiles `72..74` because they affect many maps but look static-like. Do not infer their static traits from coordinates alone.
 
 ## Next useful step
 
-Add explicit SOD info-tile classification tables instead of broadening WL6 ranges. Start with SOD boss maps (`Tunnel Boss`, `Dungeon Boss`, `Castle Boss`, `Death Knight`, `Angel of Death`) and assert unknown counts fall only when source-backed tile mappings are known.
+Source-confirm SOD static tiles `72..74` and add explicit static traits instead of broadening WL6 ranges. Assert the optional SOD unknown histogram reaches zero only when those mappings are known.
 
 ## Verification
 
