@@ -593,3 +593,7 @@ Added `wl_summarize_actor_attacks` as a compact, non-mutating diagnostic for liv
 ## Cycle update: actor scene-source summaries
 
 Added `wl_summarize_actor_scene_sources` as a compact renderer-readiness diagnostic for runtime actor descriptors. It partitions actors into default scene-source mappings, explicit override mappings, and missing scene-source metadata without mutating the model. The broader WL6 map sweep cross-checks the summary against actor descriptors, and synthetic coverage pins default/override/missing buckets before deeper actor render-state transitions.
+
+## Cycle update: actor direction summaries
+
+Added `wl_summarize_actor_directions` as a tiny non-mutating actor-state diagnostic. It reports counts for north/east/south/west/none actor directions and separately counts invalid direction values, giving future patrol/chase/render transitions a compact sanity check before mutating direction state.

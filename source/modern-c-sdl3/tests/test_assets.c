@@ -2759,6 +2759,21 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_engagements.nearest_threat_index == UINT16_MAX);
     CHECK(synthetic_engagements.nearest_threat_distance == 0);
 
+    chase_summary_model.actors[0].dir = WL_DIR_NORTH;
+    chase_summary_model.actors[1].dir = WL_DIR_EAST;
+    chase_summary_model.actors[2].dir = (wl_direction)99;
+    wl_actor_direction_summary synthetic_directions;
+    CHECK(wl_summarize_actor_directions(&chase_summary_model,
+                                        &synthetic_directions) == 0);
+    CHECK(wl_summarize_actor_directions(NULL, &synthetic_directions) == -1);
+    CHECK(wl_summarize_actor_directions(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_directions.direction_counts[WL_DIR_NORTH] == 1);
+    CHECK(synthetic_directions.direction_counts[WL_DIR_EAST] == 1);
+    CHECK(synthetic_directions.direction_counts[WL_DIR_SOUTH] == 0);
+    CHECK(synthetic_directions.direction_counts[WL_DIR_WEST] == 0);
+    CHECK(synthetic_directions.direction_counts[WL_DIR_NONE] == 0);
+    CHECK(synthetic_directions.invalid_direction_count == 1);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
