@@ -79,6 +79,8 @@ The broader WL6 runtime-ref sprite set now also flows through `wl_render_runtime
 
 The use-button result now reports keyed-door requirements directly: `required_key` records the zero-based key bit for locked runtime doors, `has_required_key` shows whether the current player state can open it, and `door_action_before`/`door_action_after` expose the door transition. It also captures the targeted runtime tile value as `tile_before`/`tile_after`, so elevator and pushwall uses expose their immediate tilemap mutation while door uses document that the door-center marker remains stable. Pushwall uses also report `pushwall_active_before`/`pushwall_active_after`, distinguishing a newly started secret wall from a use attempt suppressed by an already moving pushwall. Door/elevator targets record `button_held` and `suppressed_by_button_hold` so live input repeat suppression can be presented without re-running use dispatch. The result also snapshots the target plane words as `wall_plane_value`/`info_plane_value`, preserving source-map context for no-op, elevator, door, and pushwall presentations. This keeps future HUD/status feedback and SDL3 input presentation from re-deriving lock, action, tilemap, plane, pushwall activity, or held-button suppression metadata after the headless use dispatch has already identified the target.
 
+Actor wake results similarly retain actor/player tile coordinates alongside before/after mode and direction, so a future presentation layer can explain chase activation without re-sampling mutable actor state after the wake transition.
+
 
 ## Live tick palette upload
 

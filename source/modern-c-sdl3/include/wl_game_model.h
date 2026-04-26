@@ -192,6 +192,10 @@ typedef struct wl_actor_wake_result {
     wl_actor_mode mode_after;
     wl_direction dir_before;
     wl_direction dir_after;
+    uint16_t actor_tile_x;
+    uint16_t actor_tile_y;
+    uint16_t player_tile_x;
+    uint16_t player_tile_y;
 } wl_actor_wake_result;
 
 typedef struct wl_actor_wake_all_result {

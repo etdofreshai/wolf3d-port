@@ -4814,6 +4814,10 @@ int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
     out->mode_after = actor->mode;
     out->dir_before = actor->dir;
     out->dir_after = actor->dir;
+    out->actor_tile_x = actor->tile_x;
+    out->actor_tile_y = actor->tile_y;
+    out->player_tile_x = player_x;
+    out->player_tile_y = player_y;
     out->was_ambush = actor->ambush ? 1u : 0u;
 
     if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE ||
