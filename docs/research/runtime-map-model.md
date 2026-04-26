@@ -809,3 +809,7 @@ Added `wl_summarize_actor_attack_readiness()` as a small non-mutating bridge bet
 ### Runtime player interaction blocker class metadata
 
 `wl_summarize_runtime_player_interaction()` now carries first map-blocker class flags for solid walls, door markers, moving-pushwall markers, and other runtime markers alongside the existing blocker tile, coordinates, and distance. Synthetic headless coverage pins each blocker class so future input, combat, and HUD/presentation code can distinguish why a player-facing interaction ray is blocked without re-reading or reclassifying the mutable tilemap.
+
+## Cycle update: actor attack readiness action buckets
+
+Extended `wl_summarize_actor_attack_readiness()` with ready melee-vs-ranged buckets. Actors that pass the existing active, facing, and clear cardinal sight checks still increment `ready_to_attack_count`, and now additionally report `ready_bite_count` for dog melee attacks or `ready_shoot_count` for ranged attackers. Synthetic headless coverage pins the dog bite bucket so future live AI attack presentation can distinguish immediate bite threats from gunfire without reclassifying actor kinds at the call site.

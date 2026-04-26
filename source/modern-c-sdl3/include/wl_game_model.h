@@ -438,6 +438,8 @@ typedef struct wl_actor_threat_summary {
 
 typedef struct wl_actor_attack_readiness_summary {
     size_t ready_to_attack_count;
+    size_t ready_bite_count;
+    size_t ready_shoot_count;
     size_t not_shootable_count;
     size_t not_active_count;
     size_t not_facing_player_count;
