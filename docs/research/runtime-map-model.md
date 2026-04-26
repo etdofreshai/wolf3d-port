@@ -646,3 +646,7 @@ Added `wl_summarize_actor_combat_classes()` as a compact non-mutating actor desc
 ## Cycle update: actor threat summary
 
 Added `wl_summarize_actor_threats()` as a compact non-mutating actor-state diagnostic. It partitions shootable actors into immediate active threats, latent stand/patrol threats, ambush latent threats, and inert shootable actors while separately counting non-shootable actors. Synthetic headless coverage pins each bucket before deeper live AI/combat orchestration mutates actor state.
+
+## Cycle update: runtime static state summary
+
+Added `wl_summarize_static_states`, a non-mutating runtime static diagnostic for live pickup/render orchestration. It reports active vs inactive statics, blocking statics, bonus statics, treasure statics, and the active subsets that still affect collision or pickup/render paths. Synthetic headless tests cover active/inactive blocking and bonus/treasure buckets plus null-argument rejection.

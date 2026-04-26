@@ -3155,6 +3155,37 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_threats.inert_shootable_count == 2);
     CHECK(synthetic_threats.nonshootable_count == 1);
 
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.static_count = 4;
+    chase_summary_model.statics[0].active = 1;
+    chase_summary_model.statics[0].blocking = 1;
+    chase_summary_model.statics[0].bonus = 0;
+    chase_summary_model.statics[0].treasure = 0;
+    chase_summary_model.statics[1].active = 1;
+    chase_summary_model.statics[1].blocking = 0;
+    chase_summary_model.statics[1].bonus = 1;
+    chase_summary_model.statics[1].treasure = 1;
+    chase_summary_model.statics[2].active = 0;
+    chase_summary_model.statics[2].blocking = 0;
+    chase_summary_model.statics[2].bonus = 1;
+    chase_summary_model.statics[2].treasure = 1;
+    chase_summary_model.statics[3].active = 0;
+    chase_summary_model.statics[3].blocking = 1;
+    chase_summary_model.statics[3].bonus = 0;
+    chase_summary_model.statics[3].treasure = 0;
+    wl_static_state_summary synthetic_static_states;
+    CHECK(wl_summarize_static_states(&chase_summary_model,
+                                     &synthetic_static_states) == 0);
+    CHECK(wl_summarize_static_states(NULL, &synthetic_static_states) == -1);
+    CHECK(wl_summarize_static_states(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_static_states.active_count == 2);
+    CHECK(synthetic_static_states.inactive_count == 2);
+    CHECK(synthetic_static_states.blocking_count == 2);
+    CHECK(synthetic_static_states.bonus_count == 2);
+    CHECK(synthetic_static_states.treasure_count == 2);
+    CHECK(synthetic_static_states.active_bonus_count == 1);
+    CHECK(synthetic_static_states.active_blocking_count == 1);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
