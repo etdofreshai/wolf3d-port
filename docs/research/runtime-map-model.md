@@ -536,3 +536,9 @@ Added `wl_try_player_fire_weapon`, a small deterministic attack-state helper for
 ## Cycle update: live player fire tick bridge
 
 Added `wl_step_live_player_fire_tick`, a deterministic live-frame wrapper that combines player motion/use/door/pushwall/palette ticking with the weapon fire/ammo seam. The result reports normal live tick metadata plus an optional fire result, covering fired machinegun ammo consumption, empty-pistol fallback to knife, and no-fire frames without requiring SDL.
+
+## Cycle update: player attack-frame tick seam
+
+Added `wl_step_player_attack_state()` as a deterministic SDL-free bridge for player attack state progression. The helper advances `attack_frame` by elapsed tics, reports frame/weapon before and after, clamps completed attacks to frame 0, and restores the chosen non-knife weapon when ammo is available after a temporary knife fallback. `wl_step_live_tick()` now includes this attack-step descriptor alongside motion/use/door/pushwall/palette outputs so future input and combat loops can carry player attack animation state without SDL.
+
+Headless coverage verifies partial advancement, completion with chosen-weapon restoration, empty-ammo completion staying on knife, invalid negative tics rejection, and live-tick attack descriptor propagation.
