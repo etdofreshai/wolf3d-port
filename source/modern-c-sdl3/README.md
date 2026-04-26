@@ -452,3 +452,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Actor flag summary helper
 
 `wl_summarize_actor_flags` reports deterministic aggregate actor flags (shootable, ambush, kill-total, scene override, and inert counts) for a built runtime model. The broader WL6 map coverage now cross-checks those summary counts against actor descriptors and model kill totals, giving live AI/death/render seams a compact headless sanity check before mutating actor state.
+
+## Actor position summary helper
+
+`wl_summarize_actor_positions` reports aggregate actor position state: actors moved from spawn, actors with fine/patrol-position state, and spawn/current tile bounds failures. The broader WL6 map coverage cross-checks the summary against model descriptors and pins initial patrol movement counts for future AI interpolation work.

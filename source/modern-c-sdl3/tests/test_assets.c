@@ -2445,7 +2445,9 @@ static int check_wl6(const char *dir) {
             CHECK(actor_mode_counts[mode_i] == expected_mode_counts[mode_i]);
         }
         wl_actor_flag_summary expected_flags;
+        wl_actor_position_summary expected_positions;
         memset(&expected_flags, 0, sizeof(expected_flags));
+        memset(&expected_positions, 0, sizeof(expected_positions));
         for (size_t actor_i = 0; actor_i < model.actor_count; ++actor_i) {
             const wl_actor_desc *actor = &model.actors[actor_i];
             expected_flags.shootable_count += actor->shootable ? 1u : 0u;
@@ -2453,6 +2455,14 @@ static int check_wl6(const char *dir) {
             expected_flags.kill_total_count += actor->counts_for_kill_total ? 1u : 0u;
             expected_flags.scene_override_count += actor->scene_source_override ? 1u : 0u;
             expected_flags.inert_count += actor->mode == WL_ACTOR_INERT ? 1u : 0u;
+            expected_positions.moved_from_spawn_count +=
+                (actor->tile_x != actor->spawn_x || actor->tile_y != actor->spawn_y) ? 1u : 0u;
+            expected_positions.fine_position_count +=
+                (actor->fine_x != 0 || actor->fine_y != 0 || actor->patrol_remainder != 0) ? 1u : 0u;
+            expected_positions.spawn_out_of_bounds_count +=
+                (actor->spawn_x >= WL_MAP_SIDE || actor->spawn_y >= WL_MAP_SIDE) ? 1u : 0u;
+            expected_positions.tile_out_of_bounds_count +=
+                (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) ? 1u : 0u;
         }
         wl_actor_flag_summary actor_flags;
         memset(&actor_flags, 0xff, sizeof(actor_flags));
@@ -2465,6 +2475,18 @@ static int check_wl6(const char *dir) {
         CHECK(actor_flags.kill_total_count == expected_flags.kill_total_count);
         CHECK(actor_flags.scene_override_count == expected_flags.scene_override_count);
         CHECK(actor_flags.inert_count == expected_flags.inert_count);
+        wl_actor_position_summary actor_positions;
+        memset(&actor_positions, 0xff, sizeof(actor_positions));
+        CHECK(wl_summarize_actor_positions(&model, &actor_positions) == 0);
+        CHECK(wl_summarize_actor_positions(NULL, &actor_positions) == -1);
+        CHECK(wl_summarize_actor_positions(&model, NULL) == -1);
+        CHECK(actor_positions.moved_from_spawn_count == expected_mode_counts[WL_ACTOR_PATROL]);
+        CHECK(actor_positions.moved_from_spawn_count == expected_positions.moved_from_spawn_count);
+        CHECK(actor_positions.fine_position_count == expected_positions.fine_position_count);
+        CHECK(actor_positions.spawn_out_of_bounds_count == 0);
+        CHECK(actor_positions.spawn_out_of_bounds_count == expected_positions.spawn_out_of_bounds_count);
+        CHECK(actor_positions.tile_out_of_bounds_count == 0);
+        CHECK(actor_positions.tile_out_of_bounds_count == expected_positions.tile_out_of_bounds_count);
         CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs,
                                            sizeof(scene_refs) / sizeof(scene_refs[0]),
                                            &scene_ref_count) == 0);
