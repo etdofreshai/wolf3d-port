@@ -17,6 +17,22 @@ The high unknown counts are expected until SOD-specific actor/boss/static tile c
 
 These gap counts are now pinned by optional headless assertions in `source/modern-c-sdl3/tests/test_assets.c::check_optional_sod()`. The model also records a stable unknown-info FNV hash plus the first unknown tile/x/y descriptor for each scanned map, so future SOD classification patches can prove exactly which gap set changed instead of relying on counts alone. The executable coverage uses map index `17` for `Death Knight`; map index `18` is `Secret 1`.
 
+## Follow-up full-map unknown histogram
+
+A local diagnostic scan of all 21 SOD maps shows the remaining unknowns are concentrated in a small set of tile IDs:
+
+- `72`: common SOD decoration/static gap across ordinary and boss maps.
+- `73`: appears in `Castle 1` only, two adjacent placements near the south edge.
+- `74`: appears in `Death Knight` at the boss-room entrance/start area.
+- `106`: dominates `Angel of Death`; this is likely a SOD-specific actor/boss/spawn table entry and should not be guessed as a static.
+- `107`: appears once in `Angel of Death` near another `106` placement.
+- `125`: appears once in `Tunnel Boss`.
+- `142`: appears once in `Castle Boss`.
+- `143`: appears once in `Dungeon Boss`.
+- `161`: appears once in `Death Knight`.
+
+Recommended classification order: first source-confirm tiles `72..74` because they affect many maps but look static-like; then source-confirm boss/special tiles `106`, `107`, `125`, `142`, `143`, and `161` before changing actor counts. Do not infer these from coordinates alone.
+
 ## Next useful step
 
 Add explicit SOD info-tile classification tables instead of broadening WL6 ranges. Start with SOD boss maps (`Tunnel Boss`, `Dungeon Boss`, `Castle Boss`, `Death Knight`, `Angel of Death`) and assert unknown counts fall only when source-backed tile mappings are known.
