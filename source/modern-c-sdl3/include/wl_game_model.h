@@ -358,6 +358,18 @@ typedef struct wl_actor_source_tile_summary {
     uint16_t max_source_tile;
 } wl_actor_source_tile_summary;
 
+typedef struct wl_actor_combat_class_summary {
+    size_t infantry_count;
+    size_t dog_count;
+    size_t boss_count;
+    size_t ghost_count;
+    size_t corpse_count;
+    size_t shootable_count;
+    size_t kill_credit_count;
+    size_t noncombat_count;
+    size_t invalid_kind_count;
+} wl_actor_combat_class_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -533,6 +545,8 @@ int wl_summarize_actor_facing(const wl_game_model *model,
                               wl_actor_facing_summary *out);
 int wl_summarize_actor_source_tiles(const wl_game_model *model,
                                     wl_actor_source_tile_summary *out);
+int wl_summarize_actor_combat_classes(const wl_game_model *model,
+                                      wl_actor_combat_class_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);

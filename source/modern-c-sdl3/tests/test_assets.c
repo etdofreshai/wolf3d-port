@@ -3084,6 +3084,44 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_facing.invalid_direction_count == 1);
     CHECK(synthetic_facing.invalid_position_count == 1);
 
+    chase_summary_model.actor_count = 7;
+    chase_summary_model.actors[0].kind = WL_ACTOR_GUARD;
+    chase_summary_model.actors[0].shootable = 1;
+    chase_summary_model.actors[0].counts_for_kill_total = 1;
+    chase_summary_model.actors[1].kind = WL_ACTOR_SS;
+    chase_summary_model.actors[1].shootable = 1;
+    chase_summary_model.actors[1].counts_for_kill_total = 1;
+    chase_summary_model.actors[2].kind = WL_ACTOR_DOG;
+    chase_summary_model.actors[2].shootable = 1;
+    chase_summary_model.actors[2].counts_for_kill_total = 1;
+    chase_summary_model.actors[3].kind = WL_ACTOR_BOSS;
+    chase_summary_model.actors[3].shootable = 1;
+    chase_summary_model.actors[3].counts_for_kill_total = 1;
+    chase_summary_model.actors[4].kind = WL_ACTOR_GHOST;
+    chase_summary_model.actors[4].shootable = 0;
+    chase_summary_model.actors[4].counts_for_kill_total = 0;
+    chase_summary_model.actors[5].kind = WL_ACTOR_DEAD_GUARD;
+    chase_summary_model.actors[5].shootable = 0;
+    chase_summary_model.actors[5].counts_for_kill_total = 0;
+    chase_summary_model.actors[6].kind = (wl_actor_kind)99;
+    chase_summary_model.actors[6].shootable = 0;
+    chase_summary_model.actors[6].counts_for_kill_total = 1;
+    wl_actor_combat_class_summary synthetic_combat_classes;
+    CHECK(wl_summarize_actor_combat_classes(&chase_summary_model,
+                                            &synthetic_combat_classes) == 0);
+    CHECK(wl_summarize_actor_combat_classes(NULL,
+                                            &synthetic_combat_classes) == -1);
+    CHECK(wl_summarize_actor_combat_classes(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_combat_classes.infantry_count == 2);
+    CHECK(synthetic_combat_classes.dog_count == 1);
+    CHECK(synthetic_combat_classes.boss_count == 1);
+    CHECK(synthetic_combat_classes.ghost_count == 1);
+    CHECK(synthetic_combat_classes.corpse_count == 1);
+    CHECK(synthetic_combat_classes.shootable_count == 4);
+    CHECK(synthetic_combat_classes.kill_credit_count == 5);
+    CHECK(synthetic_combat_classes.noncombat_count == 2);
+    CHECK(synthetic_combat_classes.invalid_kind_count == 1);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
