@@ -1469,6 +1469,41 @@ static int check_wl6(const char *dir) {
     CHECK(path_model.actors[0].fine_y == 0x48000u);
     CHECK(wl_step_chase_actor_tics(&path_model, 0, 8, 4, 1, 0x8000u, -1,
                                    &chase_tic) == -1);
+
+
+    memset(&path_model, 0, sizeof(path_model));
+    path_model.actor_count = 1;
+    path_model.actors[0].kind = WL_ACTOR_GUARD;
+    path_model.actors[0].mode = WL_ACTOR_STAND;
+    path_model.actors[0].dir = WL_DIR_WEST;
+    path_model.actors[0].tile_x = 5;
+    path_model.actors[0].tile_y = 5;
+    path_model.actors[0].fine_x = 0x58000u;
+    path_model.actors[0].fine_y = 0x58000u;
+    path_model.actors[0].patrol_remainder = 0x4000u;
+    path_model.actors[0].ambush = 1;
+    path_model.actors[0].shootable = 1;
+    wl_actor_wake_result wake_result;
+    CHECK(wl_wake_actor_for_chase(&path_model, 0, 8, 4, 1, &wake_result) == 0);
+    CHECK(wake_result.woke == 1);
+    CHECK(wake_result.was_ambush == 1);
+    CHECK(wake_result.chase_dir_selected == 1);
+    CHECK(wake_result.mode_before == WL_ACTOR_STAND);
+    CHECK(wake_result.mode_after == WL_ACTOR_CHASE);
+    CHECK(wake_result.dir_before == WL_DIR_WEST);
+    CHECK(wake_result.dir_after == WL_DIR_NORTH);
+    CHECK(path_model.actors[0].mode == WL_ACTOR_CHASE);
+    CHECK(path_model.actors[0].ambush == 0);
+    CHECK(path_model.actors[0].patrol_remainder == 0);
+    CHECK(path_model.actors[0].tile_x == 5);
+    CHECK(path_model.actors[0].tile_y == 5);
+    CHECK(path_model.actors[0].fine_x == 0x58000u);
+    CHECK(path_model.actors[0].fine_y == 0x58000u);
+    CHECK(wl_wake_actor_for_chase(&path_model, 0, 8, 4, 1, &wake_result) == 0);
+    CHECK(wake_result.woke == 0);
+    CHECK(wake_result.mode_before == WL_ACTOR_CHASE);
+    path_model.actors[0].mode = WL_ACTOR_INERT;
+    CHECK(wl_wake_actor_for_chase(&path_model, 0, 8, 4, 1, &wake_result) == -1);
     memset(&path_model, 0, sizeof(path_model));
     path_model.path_marker_count = 1;
     path_model.path_markers[0].x = 5;

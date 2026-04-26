@@ -1526,3 +1526,49 @@ int wl_step_patrol_actors_tics(wl_game_model *model, uint32_t speed,
     }
     return 0;
 }
+
+int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
+                            uint16_t player_x, uint16_t player_y,
+                            int search_forward, wl_actor_wake_result *out) {
+    if (!model || !out || actor_index >= model->actor_count ||
+        player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    wl_actor_desc *actor = &model->actors[actor_index];
+    out->mode_before = actor->mode;
+    out->mode_after = actor->mode;
+    out->dir_before = actor->dir;
+    out->dir_after = actor->dir;
+    out->was_ambush = actor->ambush ? 1u : 0u;
+
+    if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE ||
+        actor->mode == WL_ACTOR_INERT || actor->kind == WL_ACTOR_DEAD_GUARD ||
+        !actor->shootable) {
+        return -1;
+    }
+
+    if (actor->mode == WL_ACTOR_CHASE) {
+        return 0;
+    }
+
+    actor->mode = WL_ACTOR_CHASE;
+    actor->ambush = 0;
+    actor->patrol_remainder = 0;
+    out->woke = 1;
+    out->mode_after = actor->mode;
+
+    wl_actor_chase_dir_result selected;
+    if (wl_select_chase_direction(model, actor->tile_x, actor->tile_y,
+                                  player_x, player_y, actor->dir,
+                                  search_forward, &selected) != 0) {
+        return -1;
+    }
+    if (selected.selected) {
+        actor->dir = selected.dir;
+        out->chase_dir_selected = 1;
+    }
+    out->dir_after = actor->dir;
+    return 0;
+}

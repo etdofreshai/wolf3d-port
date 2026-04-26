@@ -184,6 +184,16 @@ typedef struct wl_actor_chases_tic_result {
     uint16_t tiles_stepped;
 } wl_actor_chases_tic_result;
 
+typedef struct wl_actor_wake_result {
+    uint8_t woke;
+    uint8_t was_ambush;
+    uint8_t chase_dir_selected;
+    wl_actor_mode mode_before;
+    wl_actor_mode mode_after;
+    wl_direction dir_before;
+    wl_direction dir_after;
+} wl_actor_wake_result;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -338,6 +348,9 @@ int wl_step_chase_actors_tics(wl_game_model *model, uint16_t player_x,
                               uint16_t player_y, int search_forward,
                               uint32_t speed, int32_t tics,
                               wl_actor_chases_tic_result *out);
+int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
+                            uint16_t player_x, uint16_t player_y,
+                            int search_forward, wl_actor_wake_result *out);
 
 #ifdef __cplusplus
 }
