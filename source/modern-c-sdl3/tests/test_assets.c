@@ -3716,6 +3716,46 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_path_sources.max_source_tile == 0);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.path_marker_count = 5;
+    chase_summary_model.path_markers[0].x = 2;
+    chase_summary_model.path_markers[0].y = 2;
+    chase_summary_model.path_markers[1].x = 3;
+    chase_summary_model.path_markers[1].y = 2;
+    chase_summary_model.path_markers[2].x = 4;
+    chase_summary_model.path_markers[2].y = 3;
+    chase_summary_model.path_markers[3].x = 7;
+    chase_summary_model.path_markers[3].y = 2;
+    chase_summary_model.path_markers[4].x = WL_MAP_SIDE;
+    chase_summary_model.path_markers[4].y = 2;
+    wl_path_marker_player_distance_summary synthetic_path_distances;
+    CHECK(wl_summarize_path_marker_player_distances(&chase_summary_model, 3, 2,
+                                                     &synthetic_path_distances) == 0);
+    CHECK(wl_summarize_path_marker_player_distances(NULL, 3, 2,
+                                                     &synthetic_path_distances) == -1);
+    CHECK(wl_summarize_path_marker_player_distances(&chase_summary_model,
+                                                     WL_MAP_SIDE, 2,
+                                                     &synthetic_path_distances) == -1);
+    CHECK(wl_summarize_path_marker_player_distances(&chase_summary_model, 3, 2,
+                                                     NULL) == -1);
+    CHECK(synthetic_path_distances.considered_count == 4);
+    CHECK(synthetic_path_distances.invalid_marker_position_count == 1);
+    CHECK(synthetic_path_distances.nearest_marker_index == 1);
+    CHECK(synthetic_path_distances.farthest_marker_index == 3);
+    CHECK(synthetic_path_distances.nearest_distance == 0);
+    CHECK(synthetic_path_distances.farthest_distance == 4);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.path_marker_count = 1;
+    chase_summary_model.path_markers[0].x = WL_MAP_SIDE;
+    CHECK(wl_summarize_path_marker_player_distances(&chase_summary_model, 3, 2,
+                                                     &synthetic_path_distances) == 0);
+    CHECK(synthetic_path_distances.considered_count == 0);
+    CHECK(synthetic_path_distances.invalid_marker_position_count == 1);
+    CHECK(synthetic_path_distances.nearest_marker_index == UINT16_MAX);
+    CHECK(synthetic_path_distances.farthest_marker_index == UINT16_MAX);
+    CHECK(synthetic_path_distances.nearest_distance == 0);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.path_marker_count = 6;
     chase_summary_model.path_markers[0].x = 10;
     chase_summary_model.path_markers[0].y = 10;
