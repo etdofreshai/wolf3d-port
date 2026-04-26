@@ -21,7 +21,7 @@ SDL3_LIBS := $(shell PKG_CONFIG_PATH="$(SDL3_PKG_CONFIG_PATH)" $(SDL3_PKG_CONFIG
 SDL3_RUN_ENV :=
 endif
 
-.PHONY: all test test-sdl3 test-sdl3-present sdl3-info clean
+.PHONY: all test test-headless test-sdl3 test-sdl3-present sdl3-info clean
 
 all: $(TEST_ASSETS)
 
@@ -31,8 +31,10 @@ $(BUILD_DIR):
 $(TEST_ASSETS): src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c include/wl_assets.h include/wl_map_semantics.h include/wl_game_model.h include/wl_gameplay.h | $(BUILD_DIR)
 	$(CC) $(CPPFLAGS) $(CFLAGS) src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/wl_gameplay.c tests/test_assets.c -o $@
 
-test: $(TEST_ASSETS)
+test-headless: $(TEST_ASSETS)
 	cd ../.. && source/modern-c-sdl3/$(TEST_ASSETS)
+
+test: test-headless
 	$(MAKE) test-sdl3
 
 ifeq ($(HAVE_SDL3),yes)
