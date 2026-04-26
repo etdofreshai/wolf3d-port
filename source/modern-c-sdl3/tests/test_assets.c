@@ -4481,6 +4481,10 @@ static int check_wl6(const char *dir) {
     CHECK(wl_present_frame_rgba_size(&chase_attack_present,
                                      &chase_attack_rgba_size) == 0);
     CHECK(chase_attack_rgba_size == sizeof(chase_attack_rgba));
+    CHECK(wl_expand_present_frame_to_rgba(&chase_attack_present,
+                                          chase_attack_rgba,
+                                          sizeof(chase_attack_rgba) - 1u,
+                                          &chase_attack_rgba_upload) == -1);
     wl_present_frame_descriptor invalid_chase_attack_present = chase_attack_present;
     invalid_chase_attack_present.texture.palette_component_bits = 7;
     CHECK(wl_present_frame_rgba_layout(&invalid_chase_attack_present,
@@ -4488,6 +4492,16 @@ static int check_wl6(const char *dir) {
                                        &chase_attack_rgba_size) == -1);
     CHECK(wl_present_frame_rgba_size(&invalid_chase_attack_present,
                                      &chase_attack_rgba_size) == -1);
+    CHECK(wl_expand_present_frame_to_rgba(&invalid_chase_attack_present,
+                                          chase_attack_rgba,
+                                          sizeof(chase_attack_rgba),
+                                          &chase_attack_rgba_upload) == -1);
+    invalid_chase_attack_present = chase_attack_present;
+    invalid_chase_attack_present.viewport_width =
+        (uint16_t)(chase_attack_present.viewport_width - 1u);
+    CHECK(wl_present_frame_rgba_layout(&invalid_chase_attack_present,
+                                       &chase_attack_rgba_pitch,
+                                       &chase_attack_rgba_size) == -1);
     CHECK(wl_expand_present_frame_to_rgba(&invalid_chase_attack_present,
                                           chase_attack_rgba,
                                           sizeof(chase_attack_rgba),

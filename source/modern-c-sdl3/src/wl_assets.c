@@ -732,8 +732,9 @@ int wl_present_frame_rgba_layout(const wl_present_frame_descriptor *present,
 int wl_expand_present_frame_to_rgba(const wl_present_frame_descriptor *present,
                                     unsigned char *rgba, size_t rgba_size,
                                     wl_texture_upload_descriptor *out) {
+    size_t pitch = 0;
     size_t required = 0;
-    if (!rgba || wl_present_frame_rgba_size(present, &required) != 0 ||
+    if (!rgba || wl_present_frame_rgba_layout(present, &pitch, &required) != 0 ||
         rgba_size < required) {
         return -1;
     }
