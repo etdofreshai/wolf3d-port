@@ -2484,6 +2484,58 @@ int wl_summarize_actor_door_proximity(const wl_game_model *model,
 }
 
 
+int wl_summarize_actor_door_blockers(const wl_game_model *model,
+                                     wl_actor_door_blocker_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->first_blocked_door_index = UINT16_MAX;
+    unsigned char seen[WL_MAX_DOORS];
+    memset(seen, 0, sizeof(seen));
+
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+
+        const uint16_t tile = model->tilemap[map_index(actor->tile_x, actor->tile_y)];
+        if ((tile & 0x80u) == 0) {
+            continue;
+        }
+
+        const uint16_t door_index = (uint16_t)(tile & 0x3fu);
+        ++out->blocking_actor_count;
+        if (actor->shootable) {
+            ++out->shootable_blocker_count;
+        } else {
+            ++out->nonshootable_blocker_count;
+        }
+        if (door_index < WL_MAX_DOORS) {
+            if (out->first_blocked_door_index == UINT16_MAX ||
+                door_index < out->first_blocked_door_index) {
+                out->first_blocked_door_index = door_index;
+            }
+            if (door_index > out->last_blocked_door_index) {
+                out->last_blocked_door_index = door_index;
+            }
+            if (!seen[door_index]) {
+                seen[door_index] = 1;
+                ++out->unique_blocked_door_count;
+            }
+        }
+    }
+
+    if (out->first_blocked_door_index == UINT16_MAX) {
+        out->first_blocked_door_index = 0;
+    }
+    return 0;
+}
+
+
 int wl_summarize_actor_player_adjacency(const wl_game_model *model,
                                         uint16_t player_x, uint16_t player_y,
                                         wl_actor_player_adjacency_summary *out) {

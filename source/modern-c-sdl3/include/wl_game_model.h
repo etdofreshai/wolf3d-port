@@ -335,6 +335,16 @@ typedef struct wl_actor_door_proximity_summary {
     uint16_t last_door_index;
 } wl_actor_door_proximity_summary;
 
+typedef struct wl_actor_door_blocker_summary {
+    size_t blocking_actor_count;
+    size_t shootable_blocker_count;
+    size_t nonshootable_blocker_count;
+    size_t invalid_position_count;
+    size_t unique_blocked_door_count;
+    uint16_t first_blocked_door_index;
+    uint16_t last_blocked_door_index;
+} wl_actor_door_blocker_summary;
+
 typedef struct wl_actor_player_adjacency_summary {
     size_t same_tile_count;
     size_t cardinal_adjacent_count;
@@ -802,6 +812,8 @@ int wl_summarize_actor_collision_tiles(const wl_game_model *model,
                                        wl_actor_collision_tile_summary *out);
 int wl_summarize_actor_door_proximity(const wl_game_model *model,
                                       wl_actor_door_proximity_summary *out);
+int wl_summarize_actor_door_blockers(const wl_game_model *model,
+                                     wl_actor_door_blocker_summary *out);
 int wl_summarize_actor_player_adjacency(const wl_game_model *model,
                                         uint16_t player_x, uint16_t player_y,
                                         wl_actor_player_adjacency_summary *out);

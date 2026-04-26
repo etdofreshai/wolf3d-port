@@ -3108,6 +3108,23 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_door_proximity.first_door_index == 3);
     CHECK(synthetic_door_proximity.last_door_index == 7);
 
+    chase_summary_model.actors[0].shootable = 1;
+    chase_summary_model.actors[1].shootable = 0;
+    chase_summary_model.actors[2].shootable = 1;
+    wl_actor_door_blocker_summary synthetic_door_blockers;
+    CHECK(wl_summarize_actor_door_blockers(&chase_summary_model,
+                                           &synthetic_door_blockers) == 0);
+    CHECK(wl_summarize_actor_door_blockers(NULL,
+                                           &synthetic_door_blockers) == -1);
+    CHECK(wl_summarize_actor_door_blockers(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_door_blockers.blocking_actor_count == 3);
+    CHECK(synthetic_door_blockers.shootable_blocker_count == 2);
+    CHECK(synthetic_door_blockers.nonshootable_blocker_count == 1);
+    CHECK(synthetic_door_blockers.invalid_position_count == 1);
+    CHECK(synthetic_door_blockers.unique_blocked_door_count == 2);
+    CHECK(synthetic_door_blockers.first_blocked_door_index == 3);
+    CHECK(synthetic_door_blockers.last_blocked_door_index == 7);
+
     chase_summary_model.actor_count = 6;
     chase_summary_model.actors[0].tile_x = 8;
     chase_summary_model.actors[0].tile_y = 5;
