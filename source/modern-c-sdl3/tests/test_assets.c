@@ -5035,6 +5035,9 @@ static int check_wl6(const char *dir) {
     wide_present.viewport_width = (uint16_t)WIDE_RGBA_REJECT_WIDTH;
     wide_present.viewport_height = 1;
     CHECK(wl_present_frame_rgba_size(&wide_present, &present_rgba_size) == -1);
+    CHECK(wl_present_frame_rgba_required_size(&wide_present,
+                                              WIDE_RGBA_REJECT_WIDTH * 4u,
+                                              &present_rgba_size) == -1);
     CHECK(wl_describe_present_frame_rgba_upload(&wide_present, wide_rgba,
                                                 WIDE_RGBA_REJECT_WIDTH * 4u,
                                                 &present_rgba_upload) == -1);
@@ -5048,6 +5051,20 @@ static int check_wl6(const char *dir) {
     memset(present_rgba_padded, 0xa5, sizeof(present_rgba_padded));
     size_t padding_per_row = 0;
     size_t total_padding = 0;
+    size_t pitched_required_size = 0;
+    CHECK(wl_present_frame_rgba_required_size(&present_frame,
+                                              PRESENT_PADDED_PITCH,
+                                              &pitched_required_size) == 0);
+    CHECK(pitched_required_size == sizeof(present_rgba_padded));
+    CHECK(wl_present_frame_rgba_required_size(&present_frame, 80u * 4u,
+                                              &pitched_required_size) == 0);
+    CHECK(pitched_required_size == present_rgba_size);
+    CHECK(wl_present_frame_rgba_required_size(&present_frame, 80u * 4u - 1u,
+                                              &pitched_required_size) == -1);
+    CHECK(wl_present_frame_rgba_required_size(&present_frame, PRESENT_PADDED_PITCH,
+                                              NULL) == -1);
+    CHECK(wl_present_frame_rgba_required_size(NULL, PRESENT_PADDED_PITCH,
+                                              &pitched_required_size) == -1);
     CHECK(wl_present_frame_rgba_padding(&present_frame, PRESENT_PADDED_PITCH,
                                         &padding_per_row,
                                         &total_padding) == 0);

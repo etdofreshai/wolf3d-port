@@ -736,24 +736,38 @@ int wl_present_frame_rgba_layout(const wl_present_frame_descriptor *present,
     return 0;
 }
 
+int wl_present_frame_rgba_required_size(const wl_present_frame_descriptor *present,
+                                        size_t rgba_pitch, size_t *out_size) {
+    size_t tight_pitch = 0;
+    size_t tight_size = 0;
+    if (!out_size ||
+        wl_present_frame_rgba_layout(present, &tight_pitch, &tight_size) != 0 ||
+        rgba_pitch < tight_pitch || rgba_pitch > UINT16_MAX) {
+        return -1;
+    }
+    const size_t height = (size_t)present->texture.height;
+    if (height > 0 && rgba_pitch > SIZE_MAX / height) {
+        return -1;
+    }
+    *out_size = rgba_pitch * height;
+    return 0;
+}
+
 int wl_present_frame_rgba_padding(const wl_present_frame_descriptor *present,
                                   size_t rgba_pitch,
                                   size_t *out_padding_per_row,
                                   size_t *out_total_padding) {
     size_t tight_pitch = 0;
     size_t tight_size = 0;
+    size_t required_size = 0;
     if (!out_padding_per_row || !out_total_padding ||
         wl_present_frame_rgba_layout(present, &tight_pitch, &tight_size) != 0 ||
-        rgba_pitch < tight_pitch || rgba_pitch > UINT16_MAX) {
+        wl_present_frame_rgba_required_size(present, rgba_pitch, &required_size) != 0) {
         return -1;
     }
-    const size_t height = (size_t)present->texture.height;
     const size_t padding_per_row = rgba_pitch - tight_pitch;
-    if (height > 0 && padding_per_row > SIZE_MAX / height) {
-        return -1;
-    }
     *out_padding_per_row = padding_per_row;
-    *out_total_padding = padding_per_row * height;
+    *out_total_padding = required_size - tight_size;
     return 0;
 }
 
@@ -767,12 +781,13 @@ int wl_clear_present_frame_rgba_padding(const wl_present_frame_descriptor *prese
         return -1;
     }
     const size_t height = (size_t)present->texture.height;
+    size_t required_size = 0;
+    if (wl_present_frame_rgba_required_size(present, rgba_pitch, &required_size) != 0 ||
+        rgba_size < required_size) {
+        return -1;
+    }
     if (height == 0 || rgba_pitch == tight_pitch) {
         return 0;
-    }
-    if ((height - 1u) > (SIZE_MAX - rgba_pitch) / rgba_pitch ||
-        rgba_size < rgba_pitch * height) {
-        return -1;
     }
     const size_t padding_per_row = rgba_pitch - tight_pitch;
     for (size_t y = 0; y < height; ++y) {
@@ -804,8 +819,9 @@ int wl_describe_present_frame_rgba_upload_pitched(
         rgba_pitch < tight_pitch || rgba_pitch > UINT16_MAX) {
         return -1;
     }
-    const size_t height = (size_t)present->texture.height;
-    if (height > SIZE_MAX / rgba_pitch || rgba_size < rgba_pitch * height) {
+    size_t required_size = 0;
+    if (wl_present_frame_rgba_required_size(present, rgba_pitch, &required_size) != 0 ||
+        rgba_size < required_size) {
         return -1;
     }
     memset(out, 0, sizeof(*out));
@@ -813,7 +829,7 @@ int wl_describe_present_frame_rgba_upload_pitched(
     out->width = present->texture.width;
     out->height = present->texture.height;
     out->pitch = (uint16_t)rgba_pitch;
-    out->pixel_bytes = rgba_pitch * height;
+    out->pixel_bytes = required_size;
     out->pixels = rgba;
     out->palette = NULL;
     out->palette_entries = 0;
