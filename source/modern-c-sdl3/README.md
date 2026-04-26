@@ -488,6 +488,8 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 
 `wl_summarize_static_source_tiles` mirrors the actor source-tile diagnostic for runtime statics, reporting total statics, unique/zero source tiles, and min/max source tile values so SOD/WL6 static classification drift can be caught without mutating the model.
 
+`wl_summarize_static_tile_occupancy` adds a matching static placement diagnostic, reporting occupied map tiles, stacked static descriptors, invalid coordinates, and maximum stack depth without mutating pickup/render state.
+
 ## Runtime static/player distance summary
 
 `wl_summarize_static_player_distances` now gives pickup/render code an SDL-free way to inspect nearest and farthest static objects relative to the player, with active-only filtering and invalid-coordinate accounting covered by synthetic headless tests.
