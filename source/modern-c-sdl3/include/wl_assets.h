@@ -506,6 +506,16 @@ typedef struct wl_adlib_sound_metadata {
     size_t trailing_bytes;
 } wl_adlib_sound_metadata;
 
+typedef struct wl_sample_playback_window {
+    size_t start_sample;
+    size_t samples_available;
+    size_t samples_in_window;
+    size_t next_sample;
+    uint8_t first_sample;
+    uint8_t last_sample;
+    uint8_t completed;
+} wl_sample_playback_window;
+
 typedef struct wl_imf_music_command {
     uint8_t reg;
     uint8_t value;
@@ -571,12 +581,18 @@ int wl_get_pc_speaker_sound_sample(const unsigned char *chunk, size_t chunk_size
 int wl_advance_pc_speaker_playback_cursor(const unsigned char *chunk, size_t chunk_size,
                                           size_t start_sample, uint32_t sample_delta,
                                           wl_pc_speaker_playback_cursor *out);
+int wl_describe_pc_speaker_playback_window(const unsigned char *chunk, size_t chunk_size,
+                                           size_t start_sample, size_t sample_budget,
+                                           wl_sample_playback_window *out);
 int wl_describe_adlib_sound(const unsigned char *chunk, size_t chunk_size,
                             wl_adlib_sound_metadata *out);
 int wl_get_adlib_instrument_byte(const unsigned char *chunk, size_t chunk_size,
                                  size_t instrument_index, uint8_t *out_byte);
 int wl_get_adlib_sound_sample(const unsigned char *chunk, size_t chunk_size,
                               size_t sample_index, uint8_t *out_sample);
+int wl_describe_adlib_playback_window(const unsigned char *chunk, size_t chunk_size,
+                                      size_t start_sample, size_t sample_budget,
+                                      wl_sample_playback_window *out);
 int wl_describe_imf_music_chunk(const unsigned char *chunk, size_t chunk_size,
                                 wl_imf_music_metadata *out);
 int wl_get_imf_music_command(const unsigned char *chunk, size_t chunk_size,

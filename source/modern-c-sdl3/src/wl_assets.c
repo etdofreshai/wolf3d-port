@@ -2272,6 +2272,31 @@ int wl_describe_audio_chunk(size_t chunk_index,
     return 0;
 }
 
+static int describe_sample_playback_window(size_t sample_count,
+                                           int (*getter)(const unsigned char *, size_t, size_t, uint8_t *),
+                                           const unsigned char *chunk, size_t chunk_size,
+                                           size_t start_sample, size_t sample_budget,
+                                           wl_sample_playback_window *out) {
+    size_t remaining;
+    if (!chunk || !getter || !out || start_sample > sample_count) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->start_sample = start_sample;
+    out->samples_available = sample_count - start_sample;
+    remaining = out->samples_available;
+    out->samples_in_window = sample_budget < remaining ? sample_budget : remaining;
+    out->next_sample = start_sample + out->samples_in_window;
+    out->completed = (out->next_sample == sample_count) ? 1u : 0u;
+    if (out->samples_in_window > 0) {
+        if (getter(chunk, chunk_size, start_sample, &out->first_sample) != 0 ||
+            getter(chunk, chunk_size, out->next_sample - 1u, &out->last_sample) != 0) {
+            return -1;
+        }
+    }
+    return 0;
+}
+
 int wl_describe_pc_speaker_sound(const unsigned char *chunk, size_t chunk_size,
                                   wl_pc_speaker_sound_metadata *out) {
     uint32_t sample_count;
@@ -2353,6 +2378,22 @@ int wl_advance_pc_speaker_playback_cursor(const unsigned char *chunk, size_t chu
     return 0;
 }
 
+int wl_describe_pc_speaker_playback_window(const unsigned char *chunk, size_t chunk_size,
+                                           size_t start_sample, size_t sample_budget,
+                                           wl_sample_playback_window *out) {
+    uint32_t sample_count;
+    const size_t payload_offset = sizeof(uint32_t) + sizeof(uint16_t);
+    if (!chunk || chunk_size < payload_offset) {
+        return -1;
+    }
+    sample_count = read_le32(chunk);
+    if ((size_t)sample_count >= chunk_size - payload_offset) {
+        return -1;
+    }
+    return describe_sample_playback_window((size_t)sample_count, wl_get_pc_speaker_sound_sample,
+                                           chunk, chunk_size, start_sample, sample_budget, out);
+}
+
 int wl_describe_adlib_sound(const unsigned char *chunk, size_t chunk_size,
                             wl_adlib_sound_metadata *out) {
     uint32_t sample_count;
@@ -2412,6 +2453,23 @@ int wl_get_adlib_sound_sample(const unsigned char *chunk, size_t chunk_size,
     }
     *out_sample = chunk[data_offset + sample_index];
     return 0;
+}
+
+int wl_describe_adlib_playback_window(const unsigned char *chunk, size_t chunk_size,
+                                      size_t start_sample, size_t sample_budget,
+                                      wl_sample_playback_window *out) {
+    uint32_t sample_count;
+    const size_t common_bytes = sizeof(uint32_t) + sizeof(uint16_t);
+    const size_t data_offset = common_bytes + 16u;
+    if (!chunk || chunk_size < data_offset) {
+        return -1;
+    }
+    sample_count = read_le32(chunk);
+    if ((size_t)sample_count > chunk_size - data_offset) {
+        return -1;
+    }
+    return describe_sample_playback_window((size_t)sample_count, wl_get_adlib_sound_sample,
+                                           chunk, chunk_size, start_sample, sample_budget, out);
 }
 
 int wl_describe_imf_music_chunk(const unsigned char *chunk, size_t chunk_size,
