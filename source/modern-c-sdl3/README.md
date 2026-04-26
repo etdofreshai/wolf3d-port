@@ -443,4 +443,4 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 
 ## Live player fire tick bridge
 
-`wl_step_live_player_fire_tick` now folds optional player weapon fire into the existing headless live-frame boundary. Tests cover fire-button machinegun ammo consumption, active-attack refire suppression via `fire_blocked_by_active_attack`, no-ammo fallback to knife, and no-fire frames while preserving normal live tick/palette metadata.
+`wl_step_live_player_fire_tick` now folds optional player weapon fire into the existing headless live-frame boundary. Tests cover fire-button machinegun ammo consumption, active-attack refire suppression via `fire_blocked_by_active_attack` including the tick where the prior attack finishes, no-ammo fallback to knife, and no-fire frames while preserving normal live tick/palette metadata.
