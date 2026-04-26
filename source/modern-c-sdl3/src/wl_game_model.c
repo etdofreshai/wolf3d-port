@@ -2063,6 +2063,65 @@ int wl_summarize_actor_collision_tiles(const wl_game_model *model,
 }
 
 
+int wl_summarize_actor_door_proximity(const wl_game_model *model,
+                                      wl_actor_door_proximity_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->first_door_index = UINT16_MAX;
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+
+        const uint16_t tile = model->tilemap[map_index(actor->tile_x, actor->tile_y)];
+        if (tile & 0x80u) {
+            const uint16_t door_index = (uint16_t)(tile & 0x3fu);
+            ++out->on_door_tile_count;
+            if (door_index < WL_MAX_DOORS) {
+                if (out->first_door_index == UINT16_MAX ||
+                    door_index < out->first_door_index) {
+                    out->first_door_index = door_index;
+                }
+                if (door_index > out->last_door_index) {
+                    out->last_door_index = door_index;
+                }
+            }
+        } else if (tile & 0x40u) {
+            ++out->door_adjacent_tile_count;
+        } else {
+            ++out->away_from_door_count;
+        }
+    }
+
+    if (out->first_door_index == UINT16_MAX) {
+        out->first_door_index = 0;
+    } else {
+        unsigned char seen[WL_MAX_DOORS];
+        memset(seen, 0, sizeof(seen));
+        for (size_t i = 0; i < model->actor_count; ++i) {
+            const wl_actor_desc *actor = &model->actors[i];
+            if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+                continue;
+            }
+            const uint16_t tile = model->tilemap[map_index(actor->tile_x, actor->tile_y)];
+            if (tile & 0x80u) {
+                const uint16_t door_index = (uint16_t)(tile & 0x3fu);
+                if (door_index < WL_MAX_DOORS && !seen[door_index]) {
+                    seen[door_index] = 1;
+                    ++out->unique_door_tile_count;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+
 int wl_summarize_actor_player_adjacency(const wl_game_model *model,
                                         uint16_t player_x, uint16_t player_y,
                                         wl_actor_player_adjacency_summary *out) {
