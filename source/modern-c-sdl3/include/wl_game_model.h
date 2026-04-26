@@ -282,6 +282,13 @@ typedef struct wl_actor_direction_summary {
     size_t invalid_direction_count;
 } wl_actor_direction_summary;
 
+typedef struct wl_actor_motion_summary {
+    size_t centered_count;
+    size_t offset_count;
+    size_t active_remainder_count;
+    size_t invalid_position_count;
+} wl_actor_motion_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -437,6 +444,8 @@ int wl_summarize_actor_engagements(const wl_game_model *model,
                                    wl_actor_engagement_summary *out);
 int wl_summarize_actor_directions(const wl_game_model *model,
                                   wl_actor_direction_summary *out);
+int wl_summarize_actor_motion(const wl_game_model *model,
+                              wl_actor_motion_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);

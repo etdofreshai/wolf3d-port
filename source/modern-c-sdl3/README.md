@@ -466,3 +466,5 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 `wl_summarize_actor_scene_sources` reports runtime actor scene-source readiness: total actors, default sprite-source mappings, explicit override mappings, and actors missing source metadata. The broader WL6 map sweep cross-checks those buckets against model descriptors, giving renderer-facing actor-state work a small deterministic guardrail.
 
 - `wl_summarize_actor_engagements` now reports both nearest and farthest active threat descriptors for headless actor-state diagnostics.
+
+- Added a headless actor motion summary seam that partitions centered actors, sub-tile offset actors, active movement remainders, and invalid actor positions for runtime state progression diagnostics.
