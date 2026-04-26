@@ -1767,6 +1767,54 @@ int wl_summarize_actor_scene_sources(const wl_game_model *model,
     return 0;
 }
 
+
+int wl_summarize_actor_player_distances(const wl_game_model *model,
+                                        uint16_t player_x, uint16_t player_y,
+                                        int shootable_only,
+                                        wl_actor_player_distance_summary *out) {
+    if (!model || !out || player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->nearest_actor_index = UINT16_MAX;
+    out->farthest_actor_index = UINT16_MAX;
+    out->nearest_distance = UINT16_MAX;
+
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (shootable_only && !actor->shootable) {
+            continue;
+        }
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+
+        const uint16_t dx = (actor->tile_x > player_x)
+                                ? (uint16_t)(actor->tile_x - player_x)
+                                : (uint16_t)(player_x - actor->tile_x);
+        const uint16_t dy = (actor->tile_y > player_y)
+                                ? (uint16_t)(actor->tile_y - player_y)
+                                : (uint16_t)(player_y - actor->tile_y);
+        const uint16_t distance = (uint16_t)(dx + dy);
+        ++out->considered_count;
+        if (distance < out->nearest_distance) {
+            out->nearest_distance = distance;
+            out->nearest_actor_index = (uint16_t)i;
+        }
+        if (out->farthest_actor_index == UINT16_MAX || distance > out->farthest_distance) {
+            out->farthest_distance = distance;
+            out->farthest_actor_index = (uint16_t)i;
+        }
+    }
+
+    if (out->considered_count == 0) {
+        out->nearest_distance = 0;
+    }
+    return 0;
+}
+
 int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
                             uint16_t player_x, uint16_t player_y,
                             int search_forward, wl_actor_wake_result *out) {

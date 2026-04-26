@@ -2706,6 +2706,30 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_chase_paths.path_blocked_count == 1);
     CHECK(synthetic_chase_paths.invalid_position_count == 1);
 
+    wl_actor_player_distance_summary synthetic_distances;
+    CHECK(wl_summarize_actor_player_distances(&chase_summary_model, 8, 5, 0,
+                                              &synthetic_distances) == 0);
+    CHECK(wl_summarize_actor_player_distances(NULL, 8, 5, 0,
+                                              &synthetic_distances) == -1);
+    CHECK(wl_summarize_actor_player_distances(&chase_summary_model, WL_MAP_SIDE, 5, 0,
+                                              &synthetic_distances) == -1);
+    CHECK(wl_summarize_actor_player_distances(&chase_summary_model, 8, 5, 0,
+                                              NULL) == -1);
+    CHECK(synthetic_distances.considered_count == 2);
+    CHECK(synthetic_distances.invalid_position_count == 1);
+    CHECK(synthetic_distances.nearest_actor_index == 0);
+    CHECK(synthetic_distances.nearest_distance == 3);
+    CHECK(synthetic_distances.farthest_actor_index == 1);
+    CHECK(synthetic_distances.farthest_distance == 7);
+
+    chase_summary_model.actors[1].shootable = 0;
+    CHECK(wl_summarize_actor_player_distances(&chase_summary_model, 8, 5, 1,
+                                              &synthetic_distances) == 0);
+    CHECK(synthetic_distances.considered_count == 1);
+    CHECK(synthetic_distances.invalid_position_count == 1);
+    CHECK(synthetic_distances.nearest_actor_index == 0);
+    CHECK(synthetic_distances.farthest_actor_index == 0);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
