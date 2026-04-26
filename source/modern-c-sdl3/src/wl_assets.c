@@ -2272,6 +2272,45 @@ int wl_describe_audio_chunk(size_t chunk_index,
     return 0;
 }
 
+int wl_summarize_audio_range(const wl_audio_header *header,
+                             size_t start_chunk, size_t chunk_count,
+                             wl_audio_range_summary *out) {
+    if (!header || !out || start_chunk > header->chunk_count ||
+        chunk_count > header->chunk_count - start_chunk) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->start_chunk = start_chunk;
+    out->chunk_count = chunk_count;
+    out->first_non_empty_chunk = header->chunk_count;
+    for (size_t i = 0; i < chunk_count; ++i) {
+        size_t chunk_index = start_chunk + i;
+        uint32_t start = header->offsets[chunk_index];
+        uint32_t end = header->offsets[chunk_index + 1u];
+        size_t bytes;
+        if (end < start) {
+            return -1;
+        }
+        bytes = (size_t)(end - start);
+        out->total_bytes += bytes;
+        if (bytes > 0) {
+            ++out->non_empty_chunks;
+            if (out->first_non_empty_chunk == header->chunk_count) {
+                out->first_non_empty_chunk = chunk_index;
+            }
+            out->last_non_empty_chunk = chunk_index;
+            if (bytes > out->largest_chunk_bytes) {
+                out->largest_chunk = chunk_index;
+                out->largest_chunk_bytes = bytes;
+            }
+        }
+    }
+    if (out->non_empty_chunks == 0) {
+        out->first_non_empty_chunk = start_chunk + chunk_count;
+    }
+    return 0;
+}
+
 static int describe_sample_playback_window(size_t sample_count,
                                            int (*getter)(const unsigned char *, size_t, size_t, uint8_t *),
                                            const unsigned char *chunk, size_t chunk_size,
