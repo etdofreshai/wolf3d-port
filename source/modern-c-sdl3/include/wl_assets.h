@@ -524,6 +524,13 @@ typedef struct wl_sound_channel_start_result {
     uint8_t replaced;
 } wl_sound_channel_start_result;
 
+typedef struct wl_sound_channel_tick_result {
+    wl_sound_channel_state state;
+    uint32_t samples_consumed;
+    uint8_t current_sample;
+    uint8_t completed;
+} wl_sound_channel_tick_result;
+
 typedef struct wl_pc_speaker_sound_metadata {
     uint32_t sample_count;
     uint8_t first_sample;
@@ -667,6 +674,11 @@ int wl_start_sound_channel(const wl_sound_channel_state *current,
                            uint16_t candidate_sound_index,
                            uint16_t candidate_priority,
                            wl_sound_channel_start_result *out);
+int wl_tick_sound_channel(const wl_sound_channel_state *current,
+                          wl_audio_chunk_kind kind,
+                          const unsigned char *chunk, size_t chunk_size,
+                          uint32_t sample_delta,
+                          wl_sound_channel_tick_result *out);
 int wl_describe_pc_speaker_sound(const unsigned char *chunk, size_t chunk_size,
                                   wl_pc_speaker_sound_metadata *out);
 int wl_get_pc_speaker_sound_sample(const unsigned char *chunk, size_t chunk_size,
