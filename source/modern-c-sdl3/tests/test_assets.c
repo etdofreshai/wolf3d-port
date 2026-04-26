@@ -3717,6 +3717,28 @@ static int check_wl6(const char *dir) {
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.path_marker_count = 5;
+    chase_summary_model.path_markers[0].x = 4;
+    chase_summary_model.path_markers[0].y = 5;
+    chase_summary_model.path_markers[1].x = 4;
+    chase_summary_model.path_markers[1].y = 5;
+    chase_summary_model.path_markers[2].x = 5;
+    chase_summary_model.path_markers[2].y = 5;
+    chase_summary_model.path_markers[3].x = WL_MAP_SIDE;
+    chase_summary_model.path_markers[3].y = 5;
+    chase_summary_model.path_markers[4].x = 5;
+    chase_summary_model.path_markers[4].y = 5;
+    wl_path_marker_tile_occupancy_summary synthetic_path_occupancy;
+    CHECK(wl_summarize_path_marker_tile_occupancy(&chase_summary_model,
+                                                  &synthetic_path_occupancy) == 0);
+    CHECK(wl_summarize_path_marker_tile_occupancy(NULL, &synthetic_path_occupancy) == -1);
+    CHECK(wl_summarize_path_marker_tile_occupancy(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_path_occupancy.marker_count == 5);
+    CHECK(synthetic_path_occupancy.unique_tile_count == 2);
+    CHECK(synthetic_path_occupancy.duplicate_tile_count == 2);
+    CHECK(synthetic_path_occupancy.invalid_marker_position_count == 1);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.path_marker_count = 5;
     chase_summary_model.path_markers[0].x = 2;
     chase_summary_model.path_markers[0].y = 2;
     chase_summary_model.path_markers[1].x = 3;

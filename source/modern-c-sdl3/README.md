@@ -546,3 +546,5 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Runtime path-marker/player distance summary
 
 `wl_summarize_path_marker_player_distances` reports nearest/farthest patrol markers relative to a player tile while accounting for invalid marker coordinates. Synthetic headless coverage pins valid, invalid-argument, and no-valid-marker behavior for future patrol/chase diagnostics.
+
+`wl_summarize_path_marker_tile_occupancy` provides a small SDL-free patrol-marker diagnostic for total markers, valid unique marker tiles, duplicate placements, and invalid coordinates. This keeps path-arrow setup checks deterministic before deeper patrol/chase state progression.
