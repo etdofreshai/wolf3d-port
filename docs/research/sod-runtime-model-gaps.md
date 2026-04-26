@@ -59,3 +59,7 @@ Added `wl_collect_spear_scene_sprite_refs()` as an explicit Spear/SOD scene-ref 
 ## Cycle update: SOD scene refs decode cached sprite surfaces
 
 The optional SOD runtime-model harness now decodes the first and last `Tunnels 1` Spear-aware scene refs through `wl_decode_vswap_sprite_surface_cache()`. This pins a renderer-facing cache hash plus per-surface hashes for real map-derived SOD refs, extending coverage beyond metadata-only scene refs without committing proprietary sprite bytes.
+
+## Cycle update: SOD boss/ghost map semantics
+
+`wl_classify_map_semantics()` now recognizes the source-backed Spear boss/special info tiles already handled by the runtime model: `107`, `125`, `142`, `143`, and `161` as boss starts, plus Spectre tile `106` as ghost-style starts. Optional SOD representative-map assertions now run the semantics classifier before model construction and verify zero unknown info tiles, keeping map inventory semantics aligned with the SOD runtime model path.

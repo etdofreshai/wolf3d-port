@@ -77,6 +77,30 @@ static int in_range(uint16_t value, uint16_t first, uint16_t last) {
     return value >= first && value <= last;
 }
 
+static int is_boss_info_tile(uint16_t tile) {
+    switch (tile) {
+    case 107: /* SpawnAngel (Spear) */
+    case 125: /* SpawnTrans (Spear) */
+    case 142: /* SpawnUber (Spear) */
+    case 143: /* SpawnWill (Spear) */
+    case 160: /* SpawnFakeHitler */
+    case 161: /* SpawnDeath (Spear) */
+    case 178: /* SpawnHitler */
+    case 179: /* SpawnFat */
+    case 196: /* SpawnSchabbs */
+    case 197: /* SpawnGretel */
+    case 214: /* SpawnBoss */
+    case 215: /* SpawnGift */
+        return 1;
+    default:
+        return 0;
+    }
+}
+
+static int is_ghost_info_tile(uint16_t tile) {
+    return in_range(tile, 224, 227) || tile == 106; /* Spectre is Spear's ghost-style actor. */
+}
+
 static void count_static(wl_map_semantics *out, uint16_t tile) {
     ++out->static_objects;
     switch (wl6_static_kind((uint16_t)(tile - 23))) {
@@ -177,12 +201,11 @@ int wl_classify_map_semantics(const uint16_t *wall_plane, const uint16_t *info_p
             ++out->dog_medium_starts;
         } else if (in_range(tile, 206, 213)) {
             ++out->dog_hard_starts;
-        } else if (tile == 160 || tile == 178 || tile == 179 || tile == 196 || tile == 197 ||
-                   tile == 214 || tile == 215) {
+        } else if (is_boss_info_tile(tile)) {
             ++out->boss_starts;
         } else if (in_range(tile, 216, 223) || in_range(tile, 234, 241) || in_range(tile, 252, 259)) {
             ++out->mutant_starts;
-        } else if (in_range(tile, 224, 227)) {
+        } else if (is_ghost_info_tile(tile)) {
             ++out->ghost_starts;
         } else {
             ++out->unknown_info_tiles;
