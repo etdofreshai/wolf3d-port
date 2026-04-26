@@ -5816,6 +5816,7 @@ static int check_audio_wl6(const char *dir) {
     size_t chunk_bytes = 0;
     wl_audio_chunk_metadata audio_meta;
     wl_audio_range_summary audio_range;
+    wl_sound_priority_decision priority_decision;
     wl_pc_speaker_sound_metadata pc_meta;
     wl_pc_speaker_playback_cursor pc_cursor;
     wl_adlib_sound_metadata adlib_meta;
@@ -5884,6 +5885,19 @@ static int check_audio_wl6(const char *dir) {
     CHECK(audio_range.largest_chunk == 280);
     CHECK(audio_range.largest_chunk_bytes == 22578);
     CHECK(wl_summarize_audio_range(&audio, 288, 1, &audio_range) == -1);
+    CHECK(wl_describe_sound_priority_decision(0, 99, 1, &priority_decision) == 0);
+    CHECK(priority_decision.current_active == 0);
+    CHECK(priority_decision.current_priority == 99);
+    CHECK(priority_decision.candidate_priority == 1);
+    CHECK(priority_decision.should_start == 1);
+    CHECK(wl_describe_sound_priority_decision(1, 4, 3, &priority_decision) == 0);
+    CHECK(priority_decision.should_start == 0);
+    CHECK(wl_describe_sound_priority_decision(1, 4, 4, &priority_decision) == 0);
+    CHECK(priority_decision.should_start == 1);
+    CHECK(wl_describe_sound_priority_decision(1, 4, 5, &priority_decision) == 0);
+    CHECK(priority_decision.should_start == 1);
+    CHECK(wl_describe_sound_priority_decision(2, 4, 5, &priority_decision) == -1);
+    CHECK(wl_describe_sound_priority_decision(1, 4, 5, NULL) == -1);
 
     /* Offsets must be non-decreasing */
     for (size_t i = 1; i <= audio.chunk_count; ++i) {
