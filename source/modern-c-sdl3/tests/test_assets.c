@@ -4734,6 +4734,16 @@ static int check_wl6(const char *dir) {
     CHECK(present_rgba_upload.height == present_frame.viewport_height);
     CHECK(present_rgba_upload.pixel_bytes == sizeof(present_rgba));
     CHECK(present_rgba_upload.palette == NULL);
+    wl_present_frame_descriptor invalid_present_frame = present_frame;
+    invalid_present_frame.viewport_width = (uint16_t)(invalid_present_frame.viewport_width + 1u);
+    CHECK(wl_expand_present_frame_to_rgba(&invalid_present_frame, present_rgba,
+                                          sizeof(present_rgba),
+                                          &present_rgba_upload) == -1);
+    invalid_present_frame = present_frame;
+    invalid_present_frame.viewport_height = (uint16_t)(invalid_present_frame.viewport_height - 1u);
+    CHECK(wl_expand_present_frame_to_rgba(&invalid_present_frame, present_rgba,
+                                          sizeof(present_rgba),
+                                          &present_rgba_upload) == -1);
     CHECK(wl_expand_present_frame_to_rgba(NULL, present_rgba,
                                           sizeof(present_rgba),
                                           &present_rgba_upload) == -1);

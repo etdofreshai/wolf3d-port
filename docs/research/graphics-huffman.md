@@ -473,3 +473,7 @@ The rendered chase attack scene now crosses the presentation boundary with red s
 ## Cycle update: chase attack RGBA presentation expansion
 
 The same live chase-attack present-frame descriptor now expands through the SDL-ready RGBA upload helper in headless tests. The red-shifted 80x128 frame keeps indexed scene hash `0x4a4c3e4f` and asserts RGBA hash `0x5483a51d`, giving future SDL texture uploads a deterministic gameplay-rendered frame without requiring SDL at verification time.
+
+## Cycle update: presentation viewport guard
+
+The SDL-ready RGBA expansion helper now rejects present-frame descriptors whose logical viewport dimensions drift from the underlying upload texture dimensions. Headless tests cover both width and height mismatches so future SDL presentation code cannot silently upload a frame with inconsistent viewport metadata.

@@ -696,6 +696,8 @@ int wl_expand_present_frame_to_rgba(const wl_present_frame_descriptor *present,
     if (!present || !rgba || present->texture.format != WL_TEXTURE_UPLOAD_INDEXED8_RGB_PALETTE ||
         !present->texture.pixels || !present->texture.palette ||
         present->texture.width == 0 || present->texture.height == 0 ||
+        present->viewport_width != present->texture.width ||
+        present->viewport_height != present->texture.height ||
         present->texture.pitch < present->texture.width ||
         present->texture.pixel_bytes <
             (size_t)present->texture.pitch * (size_t)present->texture.height ||
