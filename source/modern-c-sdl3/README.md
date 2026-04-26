@@ -479,3 +479,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 - Runtime model diagnostics include actor combat-class summaries for infantry, dog, boss, ghost, corpse, shootable, kill-credit, noncombat, and invalid-kind buckets before live combat/death/drop mutation.
 
 - `wl_summarize_actor_threats` partitions shootable actors into immediate, latent, ambush-latent, and inert threat buckets while counting non-shootable actors, giving live AI/combat work a small SDL-free state sanity check.
+
+## Runtime static state summary
+
+`wl_summarize_static_states` now provides an SDL-free static-object diagnostic for live pickup/render readiness, partitioning active/inactive, blocking, bonus, treasure, active-bonus, and active-blocking static descriptors with synthetic headless coverage.

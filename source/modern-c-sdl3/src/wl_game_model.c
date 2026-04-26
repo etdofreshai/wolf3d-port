@@ -2346,6 +2346,39 @@ int wl_summarize_actor_directions(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_static_states(const wl_game_model *model,
+                               wl_static_state_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->static_count; ++i) {
+        const wl_static_desc *stat = &model->statics[i];
+        if (stat->active) {
+            ++out->active_count;
+        } else {
+            ++out->inactive_count;
+        }
+        if (stat->blocking) {
+            ++out->blocking_count;
+            if (stat->active) {
+                ++out->active_blocking_count;
+            }
+        }
+        if (stat->bonus) {
+            ++out->bonus_count;
+            if (stat->active) {
+                ++out->active_bonus_count;
+            }
+        }
+        if (stat->treasure) {
+            ++out->treasure_count;
+        }
+    }
+    return 0;
+}
+
 int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
                             uint16_t player_x, uint16_t player_y,
                             int search_forward, wl_actor_wake_result *out) {

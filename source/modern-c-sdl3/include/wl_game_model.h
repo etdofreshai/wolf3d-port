@@ -378,6 +378,16 @@ typedef struct wl_actor_threat_summary {
     size_t nonshootable_count;
 } wl_actor_threat_summary;
 
+typedef struct wl_static_state_summary {
+    size_t active_count;
+    size_t inactive_count;
+    size_t blocking_count;
+    size_t bonus_count;
+    size_t treasure_count;
+    size_t active_bonus_count;
+    size_t active_blocking_count;
+} wl_static_state_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -557,6 +567,8 @@ int wl_summarize_actor_combat_classes(const wl_game_model *model,
                                       wl_actor_combat_class_summary *out);
 int wl_summarize_actor_threats(const wl_game_model *model,
                                wl_actor_threat_summary *out);
+int wl_summarize_static_states(const wl_game_model *model,
+                               wl_static_state_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);
