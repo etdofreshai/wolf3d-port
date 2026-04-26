@@ -612,6 +612,12 @@ typedef struct wl_sample_playback_window {
     uint8_t completed;
 } wl_sample_playback_window;
 
+typedef struct wl_sound_channel_schedule_window_result {
+    wl_sound_channel_schedule_result schedule;
+    wl_sample_playback_window window;
+    uint8_t described;
+} wl_sound_channel_schedule_window_result;
+
 typedef struct wl_sample_playback_position {
     size_t sample_position;
     size_t sample_count;
@@ -746,6 +752,13 @@ int wl_schedule_advance_sound_channel_from_chunk(
     const unsigned char *chunk, size_t chunk_size,
     uint32_t sample_delta,
     wl_sound_channel_schedule_advance_result *out);
+int wl_schedule_describe_sound_channel_window_from_chunk(
+    const wl_sound_channel_state *current,
+    size_t candidate_chunk,
+    const wl_audio_chunk_metadata *metadata,
+    const unsigned char *chunk, size_t chunk_size,
+    size_t sample_budget,
+    wl_sound_channel_schedule_window_result *out);
 int wl_describe_sound_sample_count_from_chunk(const wl_audio_chunk_metadata *metadata,
                                              const unsigned char *chunk, size_t chunk_size,
                                              size_t *out_sample_count);
