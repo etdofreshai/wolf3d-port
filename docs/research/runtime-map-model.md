@@ -634,3 +634,7 @@ Added `wl_summarize_actor_player_adjacency()` as a small non-mutating runtime ac
 ## Cycle update: actor door-proximity summary
 
 Added `wl_summarize_actor_door_proximity()` as a small non-mutating actor placement diagnostic. It partitions actors standing on runtime door tiles, actors on door-adjacent marker tiles, actors away from doors, and invalid positions, while reporting the unique door indices touched by actors. This gives future door-blocking, AI navigation, and close-door collision work a deterministic headless aggregate before mutating live door or actor state.
+
+## Cycle update: actor-facing summary
+
+Added `wl_summarize_actor_facing()` as a non-mutating actor/player-facing diagnostic for runtime AI/chase characterization. It buckets actors into facing-player, facing-away, perpendicular, same-tile, no-direction, invalid-direction, and invalid-position counts relative to a supplied player tile, giving future chase/contact behavior a deterministic SDL-free summary before mutating actor state.

@@ -3003,6 +3003,43 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_adjacency.distant_count == 1);
     CHECK(synthetic_adjacency.invalid_position_count == 1);
 
+    chase_summary_model.actor_count = 7;
+    chase_summary_model.actors[0].tile_x = 7;
+    chase_summary_model.actors[0].tile_y = 5;
+    chase_summary_model.actors[0].dir = WL_DIR_EAST;
+    chase_summary_model.actors[1].tile_x = 9;
+    chase_summary_model.actors[1].tile_y = 5;
+    chase_summary_model.actors[1].dir = WL_DIR_EAST;
+    chase_summary_model.actors[2].tile_x = 8;
+    chase_summary_model.actors[2].tile_y = 3;
+    chase_summary_model.actors[2].dir = WL_DIR_EAST;
+    chase_summary_model.actors[3].tile_x = 8;
+    chase_summary_model.actors[3].tile_y = 5;
+    chase_summary_model.actors[3].dir = WL_DIR_WEST;
+    chase_summary_model.actors[4].tile_x = 3;
+    chase_summary_model.actors[4].tile_y = 9;
+    chase_summary_model.actors[4].dir = WL_DIR_NONE;
+    chase_summary_model.actors[5].tile_x = 4;
+    chase_summary_model.actors[5].tile_y = 4;
+    chase_summary_model.actors[5].dir = (wl_direction)77;
+    chase_summary_model.actors[6].tile_x = WL_MAP_SIDE;
+    chase_summary_model.actors[6].tile_y = 5;
+    chase_summary_model.actors[6].dir = WL_DIR_WEST;
+    wl_actor_facing_summary synthetic_facing;
+    CHECK(wl_summarize_actor_facing(&chase_summary_model, 8, 5,
+                                    &synthetic_facing) == 0);
+    CHECK(wl_summarize_actor_facing(NULL, 8, 5, &synthetic_facing) == -1);
+    CHECK(wl_summarize_actor_facing(&chase_summary_model, WL_MAP_SIDE, 5,
+                                    &synthetic_facing) == -1);
+    CHECK(wl_summarize_actor_facing(&chase_summary_model, 8, 5, NULL) == -1);
+    CHECK(synthetic_facing.facing_player_count == 1);
+    CHECK(synthetic_facing.facing_away_count == 1);
+    CHECK(synthetic_facing.perpendicular_count == 1);
+    CHECK(synthetic_facing.same_tile_count == 1);
+    CHECK(synthetic_facing.no_direction_count == 1);
+    CHECK(synthetic_facing.invalid_direction_count == 1);
+    CHECK(synthetic_facing.invalid_position_count == 1);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];

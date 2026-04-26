@@ -2159,6 +2159,52 @@ int wl_summarize_actor_player_adjacency(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_actor_facing(const wl_game_model *model,
+                              uint16_t player_x, uint16_t player_y,
+                              wl_actor_facing_summary *out) {
+    if (!model || !out || player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+        if ((unsigned)actor->dir >= (WL_DIR_NONE + 1)) {
+            ++out->invalid_direction_count;
+            continue;
+        }
+        if (actor->tile_x == player_x && actor->tile_y == player_y) {
+            ++out->same_tile_count;
+            continue;
+        }
+        if (actor->dir == WL_DIR_NONE) {
+            ++out->no_direction_count;
+            continue;
+        }
+
+        int dx = 0;
+        int dy = 0;
+        if (path_step(actor->dir, &dx, &dy) != 0) {
+            ++out->invalid_direction_count;
+            continue;
+        }
+        const int to_player_x = (player_x > actor->tile_x) - (player_x < actor->tile_x);
+        const int to_player_y = (player_y > actor->tile_y) - (player_y < actor->tile_y);
+        if ((dx != 0 && dx == to_player_x) || (dy != 0 && dy == to_player_y)) {
+            ++out->facing_player_count;
+        } else if ((dx != 0 && dx == -to_player_x) || (dy != 0 && dy == -to_player_y)) {
+            ++out->facing_away_count;
+        } else {
+            ++out->perpendicular_count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_actor_source_tiles(const wl_game_model *model,
                                     wl_actor_source_tile_summary *out) {
     if (!model || !out) {
