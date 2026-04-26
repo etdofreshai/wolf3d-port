@@ -68,6 +68,17 @@ typedef struct wl_player_gameplay_state {
     wl_palette_shift_state palette_shift;
 } wl_player_gameplay_state;
 
+typedef struct wl_player_fire_result {
+    wl_weapon_type requested_weapon;
+    wl_weapon_type fired_weapon;
+    int32_t ammo_before;
+    int32_t ammo_after;
+    uint8_t fired;
+    uint8_t consumed_ammo;
+    uint8_t no_ammo;
+    uint8_t unavailable;
+} wl_player_fire_result;
+
 typedef struct wl_player_damage_result {
     int32_t requested_points;
     int32_t effective_points;
@@ -387,6 +398,9 @@ int wl_award_player_points(wl_player_gameplay_state *state, int32_t points,
                            int32_t *out_thresholds_crossed);
 int wl_give_player_ammo(wl_player_gameplay_state *state, int32_t ammo);
 int wl_give_player_weapon(wl_player_gameplay_state *state, wl_weapon_type weapon);
+int wl_try_player_fire_weapon(wl_player_gameplay_state *state,
+                              wl_weapon_type requested_weapon,
+                              wl_player_fire_result *out);
 int wl_give_player_key(wl_player_gameplay_state *state, uint8_t key);
 int wl_apply_player_bonus(wl_player_gameplay_state *state, wl_bonus_item item,
                           uint8_t *out_picked_up);
