@@ -2867,6 +2867,34 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_motion.offset_count == 1);
     CHECK(synthetic_motion.active_remainder_count == 1);
     CHECK(synthetic_motion.invalid_position_count == 1);
+    CHECK(synthetic_motion.farthest_offset_actor_index == 1);
+    CHECK(synthetic_motion.largest_axis_offset == 1234u);
+    CHECK(synthetic_motion.min_active_remainder == 1234u);
+    CHECK(synthetic_motion.max_active_remainder == 1234u);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.actor_count = 3;
+    chase_summary_model.actors[0].tile_x = 1;
+    chase_summary_model.actors[0].tile_y = 1;
+    chase_summary_model.actors[0].fine_x = ((uint32_t)1u << 16) + 0x8000u + 77u;
+    chase_summary_model.actors[0].fine_y = ((uint32_t)1u << 16) + 0x8000u;
+    chase_summary_model.actors[0].patrol_remainder = 900u;
+    chase_summary_model.actors[1].tile_x = 2;
+    chase_summary_model.actors[1].tile_y = 2;
+    chase_summary_model.actors[1].fine_x = ((uint32_t)2u << 16) + 0x8000u;
+    chase_summary_model.actors[1].fine_y = ((uint32_t)2u << 16) + 0x8000u - 400u;
+    chase_summary_model.actors[1].patrol_remainder = 100u;
+    chase_summary_model.actors[2].tile_x = 3;
+    chase_summary_model.actors[2].tile_y = 3;
+    CHECK(wl_summarize_actor_motion(&chase_summary_model, &synthetic_motion) == 0);
+    CHECK(synthetic_motion.centered_count == 1);
+    CHECK(synthetic_motion.offset_count == 2);
+    CHECK(synthetic_motion.active_remainder_count == 2);
+    CHECK(synthetic_motion.invalid_position_count == 0);
+    CHECK(synthetic_motion.farthest_offset_actor_index == 1);
+    CHECK(synthetic_motion.largest_axis_offset == 400u);
+    CHECK(synthetic_motion.min_active_remainder == 100u);
+    CHECK(synthetic_motion.max_active_remainder == 900u);
 
     chase_summary_model.actors[0].mode = WL_ACTOR_CHASE;
     chase_summary_model.actors[0].kind = WL_ACTOR_GUARD;

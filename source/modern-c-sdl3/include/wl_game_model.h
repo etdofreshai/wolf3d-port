@@ -287,6 +287,10 @@ typedef struct wl_actor_motion_summary {
     size_t offset_count;
     size_t active_remainder_count;
     size_t invalid_position_count;
+    uint16_t farthest_offset_actor_index;
+    uint32_t largest_axis_offset;
+    uint32_t min_active_remainder;
+    uint32_t max_active_remainder;
 } wl_actor_motion_summary;
 
 typedef struct wl_actor_activity_summary {
