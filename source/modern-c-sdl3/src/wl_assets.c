@@ -3636,6 +3636,19 @@ int wl_describe_imf_playback_position(const unsigned char *chunk, size_t chunk_s
     return 0;
 }
 
+int wl_describe_imf_looped_playback_position(const unsigned char *chunk, size_t chunk_size,
+                                             uint32_t tick_position,
+                                             wl_imf_playback_position *out) {
+    wl_imf_music_metadata metadata;
+    if (!out || wl_describe_imf_music_chunk(chunk, chunk_size, &metadata) != 0 ||
+        metadata.total_delay == 0u) {
+        return -1;
+    }
+    return wl_describe_imf_playback_position(chunk, chunk_size,
+                                             tick_position % metadata.total_delay,
+                                             out);
+}
+
 int wl_describe_imf_playback_position_from_chunk(const wl_audio_chunk_metadata *metadata,
                                                  const unsigned char *chunk, size_t chunk_size,
                                                  uint32_t tick_position,

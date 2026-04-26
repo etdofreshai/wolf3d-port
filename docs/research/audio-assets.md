@@ -51,6 +51,7 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 - `wl_get_imf_music_command()` decodes a bounded IMF command `(register, value, delay)` by index for future AdLib playback scheduling without exposing callers to raw byte offsets.
 - `wl_describe_imf_playback_window()` summarizes deterministic IMF command emission from a start index within a tick budget for future SDL3 audio scheduling.
 - `wl_describe_imf_playback_position()` maps an absolute IMF tick position to the active command and delay remainder, giving future SDL3 audio code a deterministic seek/cursor seam.
+- `wl_describe_imf_looped_playback_position()` folds an absolute music tick through the IMF total-delay span before seeking, giving future looping music playback a deterministic wraparound seam.
 - `wl_describe_imf_playback_position_from_chunk()` applies that same seek descriptor from validated music chunk metadata, rejecting sound/digital/empty/impossible descriptors before dispatch.
 - `wl_advance_imf_playback_cursor()` advances a command index plus intra-command elapsed delay by a tick delta, reporting the next command cursor, consumed ticks, completed commands, and completion state for frame-to-frame music playback.
 - `wl_advance_imf_playback_cursor_from_chunk()` applies the cursor advancement from validated music chunk metadata for future music scheduler code that should not duplicate raw chunk checks.
@@ -83,7 +84,7 @@ When local Spear data is present under `game-files/base/m1`:
   - chunk 1: 51 bytes, FNV-1a `0xfafa57eb`.
   - chunk 87: 69 bytes, FNV-1a `0xf0dfcb70`.
   - chunk 174: 0 bytes.
-  - chunk 243: 21,730 bytes; generic SOD range descriptor classifies it as music with declared length 21,640, payload offset 4, and payload size 21,726; IMF command count 5,410, first command `(reg=0, value=0, delay=189)`, last command `(reg=0, value=0, delay=1)`, playback window emits 1 command for 100 ticks, tick-position/cursor advancement at tick 500 lands on command 2 with 303 ticks elapsed and 19,985 remaining; max delay 65,419, zero-delay commands 0, total delay 65,434,029, trailing bytes 86.
+  - chunk 243: 21,730 bytes; generic SOD range descriptor classifies it as music with declared length 21,640, payload offset 4, and payload size 21,726; IMF command count 5,410, first command `(reg=0, value=0, delay=189)`, last command `(reg=0, value=0, delay=1)`, playback window emits 1 command for 100 ticks, tick-position/cursor advancement at tick 500 lands on command 2 with 303 ticks elapsed and 19,985 remaining; looped tick `total_delay + 500` wraps to the same command/remainder; max delay 65,419, zero-delay commands 0, total delay 65,434,029, trailing bytes 86.
   - chunk 261: 13,286 bytes, FNV-1a `0x04a8dbe2`.
   - chunk 266: 6,302 bytes, FNV-1a `0x0fdb4632`.
 
