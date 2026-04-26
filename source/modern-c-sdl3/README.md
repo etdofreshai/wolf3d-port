@@ -609,3 +609,7 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 ## Runtime tile edge summary
 
 `wl_summarize_runtime_tile_edges()` complements the live tilemap bucket summary with a boundary-focused diagnostic. It counts boundary solid walls, clear floor, door markers, moving pushwall markers, other markers, and interior solid walls so future collision/raycast assumptions can quickly verify that loaded maps preserve the expected closed outer wall while still pinning marker classification behavior headlessly.
+
+## Present upload row hashing
+
+`wl_hash_texture_upload_rows` now hashes only meaningful upload row bytes for both indexed and RGBA descriptors, ignoring pitch padding while validating palette metadata for indexed uploads. Headless coverage pins the present-frame indexed hash and a padded RGBA upload hash so future SDL3 texture/surface handoffs can compare frame contents independently of backend pitch alignment.
