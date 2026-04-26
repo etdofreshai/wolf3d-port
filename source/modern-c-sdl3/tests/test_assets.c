@@ -4893,10 +4893,13 @@ static int check_wl6(const char *dir) {
     CHECK(present_frame.palette_shift_kind == WL_PALETTE_SHIFT_NONE);
     CHECK(present_frame.texture.pixels == canvas.pixels);
     CHECK(present_frame.texture.palette == upload_palette);
+    size_t present_rgba_size = 0;
+    CHECK(wl_present_frame_rgba_size(&present_frame, &present_rgba_size) == 0);
+    CHECK(present_rgba_size == 80u * 128u * 4u);
     unsigned char present_rgba[80u * 128u * 4u];
     wl_texture_upload_descriptor present_rgba_upload;
     CHECK(wl_expand_present_frame_to_rgba(&present_frame, present_rgba,
-                                          sizeof(present_rgba),
+                                          present_rgba_size,
                                           &present_rgba_upload) == 0);
     CHECK(present_rgba_upload.format == WL_TEXTURE_UPLOAD_RGBA8888);
     CHECK(present_rgba_upload.width == present_frame.viewport_width);
@@ -4915,6 +4918,15 @@ static int check_wl6(const char *dir) {
                                           &present_rgba_upload) == -1);
     CHECK(wl_expand_present_frame_to_rgba(NULL, present_rgba,
                                           sizeof(present_rgba),
+                                          &present_rgba_upload) == -1);
+    CHECK(wl_present_frame_rgba_size(NULL, &present_rgba_size) == -1);
+    CHECK(wl_present_frame_rgba_size(&present_frame, NULL) == -1);
+    invalid_present_frame = present_frame;
+    invalid_present_frame.texture.palette_entries = 255;
+    CHECK(wl_present_frame_rgba_size(&invalid_present_frame,
+                                     &present_rgba_size) == -1);
+    CHECK(wl_expand_present_frame_to_rgba(&present_frame, present_rgba,
+                                          sizeof(present_rgba) - 1u,
                                           &present_rgba_upload) == -1);
     memset(&present_shift, 0, sizeof(present_shift));
     present_shift.kind = WL_PALETTE_SHIFT_RED;
