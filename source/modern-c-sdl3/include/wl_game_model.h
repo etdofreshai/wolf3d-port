@@ -824,9 +824,15 @@ typedef struct wl_runtime_tile_axis_summary {
     size_t center_row_solid_wall_count;
     size_t center_row_clear_floor_count;
     size_t center_row_marker_count;
+    size_t center_row_door_marker_count;
+    size_t center_row_pushwall_marker_count;
+    size_t center_row_other_marker_count;
     size_t center_column_solid_wall_count;
     size_t center_column_clear_floor_count;
     size_t center_column_marker_count;
+    size_t center_column_door_marker_count;
+    size_t center_column_pushwall_marker_count;
+    size_t center_column_other_marker_count;
     size_t center_tile_overlap_count;
 } wl_runtime_tile_axis_summary;
 

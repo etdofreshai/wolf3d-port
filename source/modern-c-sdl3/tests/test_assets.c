@@ -2917,9 +2917,15 @@ static int check_wl6(const char *dir) {
                                              &synthetic_axis_summary) == 0);
         CHECK(synthetic_axis_summary.center_row_solid_wall_count == 1);
         CHECK(synthetic_axis_summary.center_row_marker_count == 2);
+        CHECK(synthetic_axis_summary.center_row_door_marker_count == 1);
+        CHECK(synthetic_axis_summary.center_row_pushwall_marker_count == 0);
+        CHECK(synthetic_axis_summary.center_row_other_marker_count == 1);
         CHECK(synthetic_axis_summary.center_row_clear_floor_count == WL_MAP_SIDE - 3u);
         CHECK(synthetic_axis_summary.center_column_solid_wall_count == 1);
         CHECK(synthetic_axis_summary.center_column_marker_count == 2);
+        CHECK(synthetic_axis_summary.center_column_door_marker_count == 0);
+        CHECK(synthetic_axis_summary.center_column_pushwall_marker_count == 1);
+        CHECK(synthetic_axis_summary.center_column_other_marker_count == 1);
         CHECK(synthetic_axis_summary.center_column_clear_floor_count ==
               WL_MAP_SIDE - 3u);
         CHECK(synthetic_axis_summary.center_tile_overlap_count == 1);
