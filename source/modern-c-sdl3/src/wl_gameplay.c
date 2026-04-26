@@ -1522,6 +1522,8 @@ int wl_use_player_facing(wl_player_gameplay_state *state, wl_game_model *model,
         }
         out->kind = WL_USE_DOOR;
         out->door_index = door;
+        out->door_action_before = (uint8_t)model->doors[door].action;
+        out->door_action_after = out->door_action_before;
         uint8_t lock = model->doors[door].lock;
         if (lock >= 1u && lock <= 4u) {
             out->required_key = (uint8_t)(lock - 1u);
@@ -1535,11 +1537,13 @@ int wl_use_player_facing(wl_player_gameplay_state *state, wl_game_model *model,
         case WL_DOOR_CLOSED:
         case WL_DOOR_CLOSING:
             model->doors[door].action = WL_DOOR_OPENING;
+            out->door_action_after = (uint8_t)model->doors[door].action;
             out->opened = 1;
             break;
         case WL_DOOR_OPEN:
         case WL_DOOR_OPENING:
             model->doors[door].action = WL_DOOR_CLOSING;
+            out->door_action_after = (uint8_t)model->doors[door].action;
             out->closed = 1;
             break;
         }

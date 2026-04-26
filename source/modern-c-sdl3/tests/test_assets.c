@@ -2333,6 +2333,8 @@ static int check_wl6(const char *dir) {
     CHECK(use_result.locked == 1);
     CHECK(use_result.required_key == 0);
     CHECK(use_result.has_required_key == 0);
+    CHECK(use_result.door_action_before == WL_DOOR_CLOSED);
+    CHECK(use_result.door_action_after == WL_DOOR_CLOSED);
     CHECK(use_model.doors[0].action == WL_DOOR_CLOSED);
     CHECK(wl_give_player_key(&pickup_state, 0) == 0);
     CHECK(wl_use_player_facing(&pickup_state, &use_model, use_wall, use_info,
@@ -2340,11 +2342,15 @@ static int check_wl6(const char *dir) {
                                &use_result) == 0);
     CHECK(use_result.required_key == 0);
     CHECK(use_result.has_required_key == 1);
+    CHECK(use_result.door_action_before == WL_DOOR_CLOSED);
+    CHECK(use_result.door_action_after == WL_DOOR_OPENING);
     CHECK(use_result.opened == 1);
     CHECK(use_model.doors[0].action == WL_DOOR_OPENING);
     CHECK(wl_use_player_facing(&pickup_state, &use_model, use_wall, use_info,
                                WL_MAP_PLANE_WORDS, &use_motion, WL_DIR_EAST, 0,
                                &use_result) == 0);
+    CHECK(use_result.door_action_before == WL_DOOR_OPENING);
+    CHECK(use_result.door_action_after == WL_DOOR_CLOSING);
     CHECK(use_result.closed == 1);
     CHECK(use_model.doors[0].action == WL_DOOR_CLOSING);
 
