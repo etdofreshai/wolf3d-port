@@ -276,6 +276,7 @@ typedef struct wl_live_tick_result {
 typedef struct wl_live_player_fire_tick_result {
     wl_live_tick_result live;
     wl_player_fire_result fire;
+    wl_player_fire_attack_result attack;
     uint8_t fire_attempted;
 } wl_live_player_fire_tick_result;
 

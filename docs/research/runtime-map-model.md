@@ -550,3 +550,7 @@ Added `wl_try_player_fire_weapon_attack()` as a deterministic bridge between the
 ## Cycle update: player fire attack-start seam
 
 Added `wl_start_player_fire_attack()` as an SDL-free helper that combines weapon fire/ammo validation with deterministic attack-frame startup metadata. Accepted knife/pistol/machinegun/chaingun shots now report the previous attack frame and initialize a small weapon-specific attack duration, while no-ammo fallback and unavailable weapons leave the existing attack frame unchanged. Headless tests cover chaingun startup/ammo consumption, empty-pistol fallback, unavailable weapon requests, and invalid weapon rejection.
+
+## Cycle update: live player fire attack-start tick
+
+`wl_step_live_player_fire_tick()` now routes fire-button input through `wl_start_player_fire_attack()` instead of the ammo-only seam. Live fire ticks keep the existing fire-result compatibility field while also exposing attack-start metadata, so a fired machinegun shot consumes ammo and starts the weapon-specific attack frame in the same SDL-free live tick. Empty-ammo fallback remains non-mutating for attack-frame startup. Headless coverage pins fired, fallback, and no-fire cases.
