@@ -2866,6 +2866,38 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_occupancy.invalid_position_count == 1);
     CHECK(synthetic_occupancy.max_stack_count == 3);
 
+    chase_summary_model.actors[0].spawn_x = 2;
+    chase_summary_model.actors[0].spawn_y = 3;
+    chase_summary_model.actors[0].tile_x = 2;
+    chase_summary_model.actors[0].tile_y = 3;
+    chase_summary_model.actors[1].spawn_x = 2;
+    chase_summary_model.actors[1].spawn_y = 3;
+    chase_summary_model.actors[1].tile_x = 4;
+    chase_summary_model.actors[1].tile_y = 3;
+    chase_summary_model.actors[2].spawn_x = 5;
+    chase_summary_model.actors[2].spawn_y = 6;
+    chase_summary_model.actors[2].tile_x = 5;
+    chase_summary_model.actors[2].tile_y = 7;
+    chase_summary_model.actors[3].spawn_x = 2;
+    chase_summary_model.actors[3].spawn_y = 3;
+    chase_summary_model.actors[3].tile_x = 2;
+    chase_summary_model.actors[3].tile_y = 3;
+    chase_summary_model.actors[4].spawn_x = WL_MAP_SIDE;
+    chase_summary_model.actors[4].spawn_y = 8;
+    chase_summary_model.actors[4].tile_x = 9;
+    chase_summary_model.actors[4].tile_y = 8;
+    wl_actor_spawn_occupancy_summary synthetic_spawn_occupancy;
+    CHECK(wl_summarize_actor_spawn_occupancy(&chase_summary_model,
+                                             &synthetic_spawn_occupancy) == 0);
+    CHECK(wl_summarize_actor_spawn_occupancy(NULL,
+                                             &synthetic_spawn_occupancy) == -1);
+    CHECK(wl_summarize_actor_spawn_occupancy(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_spawn_occupancy.occupied_spawn_tile_count == 2);
+    CHECK(synthetic_spawn_occupancy.stacked_spawn_actor_count == 3);
+    CHECK(synthetic_spawn_occupancy.invalid_spawn_position_count == 1);
+    CHECK(synthetic_spawn_occupancy.moved_from_spawn_count == 2);
+    CHECK(synthetic_spawn_occupancy.max_spawn_stack_count == 3);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];

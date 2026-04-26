@@ -614,3 +614,7 @@ Added `wl_summarize_actor_activity()` as a compact SDL-free diagnostic for live 
 ## Cycle update: actor tile occupancy summary
 
 Added `wl_summarize_actor_tile_occupancy()` as a non-mutating runtime actor-state diagnostic. It counts occupied actor tiles, actors sharing stacked tiles, invalid positions, and the maximum stack depth so future collision/AI progression can detect overlapping actor states headlessly before mutating live actors.
+
+## Cycle update: actor spawn occupancy summary
+
+Added `wl_summarize_actor_spawn_occupancy()` as the spawn-tile sibling to live actor tile occupancy. It reports occupied spawn tiles, actors sharing the same original spawn tile, invalid spawn coordinates, moved-from-spawn actors, and maximum spawn stack depth so model diagnostics can distinguish original placement overlap from later live movement.
