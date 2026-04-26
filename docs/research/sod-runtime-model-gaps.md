@@ -63,3 +63,7 @@ The optional SOD runtime-model harness now decodes the first and last `Tunnels 1
 ## Cycle update: SOD boss/ghost map semantics
 
 `wl_classify_map_semantics()` now recognizes the source-backed Spear boss/special info tiles already handled by the runtime model: `107`, `125`, `142`, `143`, and `161` as boss starts, plus Spectre tile `106` as ghost-style starts. Optional SOD representative-map assertions now run the semantics classifier before model construction and verify zero unknown info tiles, keeping map inventory semantics aligned with the SOD runtime model path.
+
+## Cycle update: Representative SOD scene refs decode cached sprite surfaces
+
+The optional SOD runtime-model harness now decodes the first and last Spear-aware scene refs for all representative maps (`Tunnels 1`, `Tunnel Boss`, `Death Knight`, and `Angel of Death`) through `wl_decode_vswap_sprite_surface_cache()`. Each map pins the combined cache pixel hash plus both decoded surface hashes, broadening renderer-facing coverage from the initial `Tunnels 1` smoke to boss/late-map Spear sprite refs without committing proprietary sprite bytes.

@@ -6727,15 +6727,22 @@ static int check_optional_sod(const char *dir) {
         uint16_t last_spear_scene_source;
         size_t spear_pillar_count;
         size_t spear_truck_count;
+        uint32_t spear_cache_pixels_hash;
+        uint32_t first_spear_surface_hash;
+        uint32_t last_spear_surface_hash;
     } sod_model_gaps[] = {
         { 0, "Tunnels 1", 32, 59, 17, 149, 8, 8, 45, 5, 0,
-          0, 0, 0, 0, 0, 0, 0, 157, 0xa407c746, 10, 54, 2, 0 },
+          0, 0, 0, 0, 0, 0, 0, 157, 0xa407c746, 10, 54, 2, 0,
+          0x40780481, 0xe2239470, 0xdad93cf4 },
         { 4, "Tunnel Boss", 50, 31, 18, 189, 13, 13, 42, 12, 0,
-          0, 0, 0, 0, 0, 0, 0, 202, 0xd34f0533, 16, 142, 15, 0 },
+          0, 0, 0, 0, 0, 0, 0, 202, 0xd34f0533, 16, 142, 15, 0,
+          0x2519601a, 0xf32a0fbe, 0xa03736f9 },
         { 17, "Death Knight", 30, 41, 9, 130, 11, 11, 2, 1, 0,
-          0, 0, 0, 0, 0, 0, 0, 141, 0xb464a44e, 28, 191, 38, 1 },
+          0, 0, 0, 0, 0, 0, 0, 141, 0xb464a44e, 28, 191, 38, 1,
+          0xcc6f4a51, 0x66591d57, 0x051cad8f },
         { 20, "Angel of Death", 31, 22, 1, 263, 38, 38, 14, 5, 0,
-          0, 0, 0, 0, 0, 0, 0, 301, 0x7ac8d5a0, 50, 377, 83, 0 },
+          0, 0, 0, 0, 0, 0, 0, 301, 0x7ac8d5a0, 50, 377, 83, 0,
+          0x0452983c, 0xd2171f3d, 0x1a2fb0c4 },
     };
     for (size_t i = 0; i < sizeof(sod_model_gaps) / sizeof(sod_model_gaps[0]); ++i) {
         wl_map_header sod_map;
@@ -6803,7 +6810,7 @@ static int check_optional_sod(const char *dir) {
         CHECK(sod_scene_refs[sod_scene_ref_count - 1].source_index ==
               sod_model_gaps[i].last_spear_scene_source);
 
-        if (i == 0) {
+        {
             const uint16_t sod_visible_chunks[] = {
                 sod_scene_refs[0].vswap_chunk_index,
                 sod_scene_refs[sod_scene_ref_count - 1].vswap_chunk_index,
@@ -6816,11 +6823,13 @@ static int check_optional_sod(const char *dir) {
                                                        sizeof(sod_visible_pixels),
                                                        sod_visible_surfaces) == 0);
             CHECK(fnv1a_bytes(sod_visible_pixels, sizeof(sod_visible_pixels)) ==
-                  0x40780481);
+                  sod_model_gaps[i].spear_cache_pixels_hash);
             CHECK(fnv1a_bytes(sod_visible_surfaces[0].pixels,
-                              sod_visible_surfaces[0].pixel_count) == 0xe2239470);
+                              sod_visible_surfaces[0].pixel_count) ==
+                  sod_model_gaps[i].first_spear_surface_hash);
             CHECK(fnv1a_bytes(sod_visible_surfaces[1].pixels,
-                              sod_visible_surfaces[1].pixel_count) == 0xdad93cf4);
+                              sod_visible_surfaces[1].pixel_count) ==
+                  sod_model_gaps[i].last_spear_surface_hash);
         }
         size_t spear_pillars = 0;
         size_t spear_trucks = 0;
