@@ -6202,6 +6202,10 @@ static int check_audio_optional_sod(const char *dir) {
     char audiot_path[1024];
     wl_audio_header audio;
     wl_audio_range_summary audio_range;
+    wl_imf_music_metadata imf_meta;
+    wl_imf_playback_window imf_window;
+    wl_imf_playback_position imf_position;
+    wl_imf_playback_cursor imf_cursor;
     unsigned char chunk_buf[65536];
     size_t chunk_bytes = 0;
     size_t audiohed_size = 0;
@@ -6286,6 +6290,46 @@ static int check_audio_optional_sod(const char *dir) {
                               &chunk_bytes) == 0);
     CHECK(chunk_bytes == 13286);
     CHECK(fnv1a_bytes(chunk_buf, chunk_bytes) == 0x04a8dbe2);
+
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, 243, chunk_buf, sizeof(chunk_buf),
+                              &chunk_bytes) == 0);
+    CHECK(chunk_bytes == 21730);
+    CHECK(wl_describe_imf_music_chunk(chunk_buf, chunk_bytes, &imf_meta) == 0);
+    CHECK(imf_meta.declared_bytes == 21640);
+    CHECK(imf_meta.command_count == 5410);
+    CHECK(imf_meta.first_register == 0);
+    CHECK(imf_meta.first_value == 0);
+    CHECK(imf_meta.first_delay == 189);
+    CHECK(imf_meta.last_register == 0);
+    CHECK(imf_meta.last_value == 0);
+    CHECK(imf_meta.last_delay == 1);
+    CHECK(imf_meta.max_delay == 65419);
+    CHECK(imf_meta.zero_delay_count == 0);
+    CHECK(imf_meta.total_delay == 65434029);
+    CHECK(imf_meta.trailing_bytes == 86);
+    CHECK(wl_describe_imf_playback_window(chunk_buf, chunk_bytes, 0, 100,
+                                          &imf_window) == 0);
+    CHECK(imf_window.commands_available == 5410);
+    CHECK(imf_window.commands_in_window == 1);
+    CHECK(imf_window.next_command == 1);
+    CHECK(imf_window.elapsed_delay == 189);
+    CHECK(imf_window.completed == 0);
+    CHECK(wl_describe_imf_playback_position(chunk_buf, chunk_bytes, 500,
+                                            &imf_position) == 0);
+    CHECK(imf_position.command_index == 2);
+    CHECK(imf_position.command_delay == 20288);
+    CHECK(imf_position.delay_elapsed == 303);
+    CHECK(imf_position.delay_remaining == 19985);
+    CHECK(imf_position.completed == 0);
+    CHECK(wl_advance_imf_playback_cursor(chunk_buf, chunk_bytes, 0, 0, 500,
+                                         &imf_cursor) == 0);
+    CHECK(imf_cursor.command_index == 2);
+    CHECK(imf_cursor.command_delay == 20288);
+    CHECK(imf_cursor.delay_elapsed == 303);
+    CHECK(imf_cursor.delay_remaining == 19985);
+    CHECK(imf_cursor.ticks_consumed == 500);
+    CHECK(imf_cursor.commands_advanced == 2);
+    CHECK(imf_cursor.completed == 0);
 
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 266, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);

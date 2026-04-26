@@ -53,6 +53,7 @@ When local Spear data is present under `game-files/base/m1`:
   - chunk 1: 51 bytes, FNV-1a `0xfafa57eb`.
   - chunk 87: 69 bytes, FNV-1a `0xf0dfcb70`.
   - chunk 174: 0 bytes.
+  - chunk 243: 21,730 bytes; IMF declared bytes 21,640, command count 5,410, first command `(reg=0, value=0, delay=189)`, last command `(reg=0, value=0, delay=1)`, playback window emits 1 command for 100 ticks, tick-position/cursor advancement at tick 500 lands on command 2 with 303 ticks elapsed and 19,985 remaining; max delay 65,419, zero-delay commands 0, total delay 65,434,029, trailing bytes 86.
   - chunk 261: 13,286 bytes, FNV-1a `0x04a8dbe2`.
   - chunk 266: 6,302 bytes, FNV-1a `0x0fdb4632`.
 
