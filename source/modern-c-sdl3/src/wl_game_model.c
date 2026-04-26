@@ -2394,6 +2394,7 @@ int wl_summarize_actor_threats(const wl_game_model *model,
             break;
         default:
             ++out->inert_shootable_count;
+            ++out->invalid_mode_count;
             break;
         }
     }

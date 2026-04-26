@@ -3213,6 +3213,7 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_threats.ambush_latent_count == 1);
     CHECK(synthetic_threats.inert_shootable_count == 2);
     CHECK(synthetic_threats.nonshootable_count == 1);
+    CHECK(synthetic_threats.invalid_mode_count == 1);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.static_count = 4;

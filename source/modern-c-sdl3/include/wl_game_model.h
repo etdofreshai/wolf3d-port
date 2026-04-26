@@ -389,6 +389,7 @@ typedef struct wl_actor_threat_summary {
     size_t ambush_latent_count;
     size_t inert_shootable_count;
     size_t nonshootable_count;
+    size_t invalid_mode_count;
 } wl_actor_threat_summary;
 
 typedef struct wl_static_state_summary {
