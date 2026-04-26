@@ -2622,6 +2622,28 @@ static int check_wl6(const char *dir) {
                 ++expected_wake_with_ambush.wakeable_count;
             }
         }
+        wl_model_capacity_summary model_capacity;
+        memset(&model_capacity, 0xff, sizeof(model_capacity));
+        CHECK(wl_summarize_model_capacity(&model, &model_capacity) == 0);
+        CHECK(wl_summarize_model_capacity(NULL, &model_capacity) == -1);
+        CHECK(wl_summarize_model_capacity(&model, NULL) == -1);
+        CHECK(model_capacity.door_count == model.door_count);
+        CHECK(model_capacity.static_count == model.static_count);
+        CHECK(model_capacity.actor_count == model.actor_count);
+        CHECK(model_capacity.path_marker_count == model.path_marker_count);
+        CHECK(model_capacity.pushwall_count == model.pushwall_count);
+        CHECK(model_capacity.door_remaining == WL_MAX_DOORS - model.door_count);
+        CHECK(model_capacity.static_remaining == WL_MAX_STATS - model.static_count);
+        CHECK(model_capacity.actor_remaining == WL_MAX_ACTORS - model.actor_count);
+        CHECK(model_capacity.path_marker_remaining == WL_MAX_PATH_MARKERS - model.path_marker_count);
+        CHECK(model_capacity.pushwall_remaining == WL_MAX_PUSHWALLS - model.pushwall_count);
+        CHECK(model_capacity.door_full == 0);
+        CHECK(model_capacity.static_full == 0);
+        CHECK(model_capacity.actor_full == 0);
+        CHECK(model_capacity.path_marker_full == 0);
+        CHECK(model_capacity.pushwall_full == 0);
+        CHECK(model_capacity.unknown_info_tiles == model.unknown_info_tiles);
+
         wl_actor_flag_summary actor_flags;
         memset(&actor_flags, 0xff, sizeof(actor_flags));
         CHECK(wl_summarize_actor_flags(&model, &actor_flags) == 0);

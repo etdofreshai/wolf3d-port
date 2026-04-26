@@ -552,3 +552,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Runtime path-marker chain summary
 
 `wl_summarize_path_marker_chains` follows each patrol marker's outgoing arrow and summarizes linked next-marker continuity as straight, left, right, reverse, or dangling, with no-direction/invalid buckets. Synthetic headless coverage pins every bucket for future patrol path progression work.
+
+## Runtime model capacity summary
+
+`wl_summarize_model_capacity` provides a read-only capacity snapshot for the fixed-size runtime descriptor arrays: doors, statics, actors, path markers, and pushwalls. It reports current counts, remaining slots, full flags, and unknown-info-tile count so future broader-map and boss/Spear classification work can spot descriptor pressure headlessly before adding more mutable runtime behavior.
