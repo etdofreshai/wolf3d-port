@@ -477,3 +477,5 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 `wl_summarize_actor_source_tiles` reports actor source-tile coverage (total actors, unique source tiles, zero-source placeholders, and min/max source tile) as a compact non-mutating diagnostic for checking model construction against map semantics before renderer or AI code consumes actor descriptors. Synthetic headless coverage pins duplicate/zero/min/max behavior and null-argument rejection.
 - Runtime model diagnostics include actor door-proximity summaries for actors on door tiles, door-adjacent marker tiles, away from doors, invalid positions, and unique touched door indices before live door/AI collision mutation.
 - Runtime model diagnostics include actor combat-class summaries for infantry, dog, boss, ghost, corpse, shootable, kill-credit, noncombat, and invalid-kind buckets before live combat/death/drop mutation.
+
+- `wl_summarize_actor_threats` partitions shootable actors into immediate, latent, ambush-latent, and inert threat buckets while counting non-shootable actors, giving live AI/combat work a small SDL-free state sanity check.

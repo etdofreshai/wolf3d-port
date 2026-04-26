@@ -642,3 +642,7 @@ Added `wl_summarize_actor_facing()` as a non-mutating actor/player-facing diagno
 ## Cycle update: actor combat-class summary
 
 Added `wl_summarize_actor_combat_classes()` as a compact non-mutating actor descriptor diagnostic. It groups actors into infantry, dog, boss, ghost, corpse, invalid-kind, shootable, kill-credit, and noncombat buckets so future combat/death/drop orchestration can sanity-check class metadata before mutating live actor state. Synthetic headless coverage pins each bucket and null-argument rejection.
+
+## Cycle update: actor threat summary
+
+Added `wl_summarize_actor_threats()` as a compact non-mutating actor-state diagnostic. It partitions shootable actors into immediate active threats, latent stand/patrol threats, ambush latent threats, and inert shootable actors while separately counting non-shootable actors. Synthetic headless coverage pins each bucket before deeper live AI/combat orchestration mutates actor state.

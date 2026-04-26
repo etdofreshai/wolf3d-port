@@ -2290,6 +2290,44 @@ int wl_summarize_actor_combat_classes(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_actor_threats(const wl_game_model *model,
+                               wl_actor_threat_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (!actor->shootable) {
+            ++out->nonshootable_count;
+            continue;
+        }
+
+        switch (actor->mode) {
+        case WL_ACTOR_CHASE:
+        case WL_ACTOR_BOSS_MODE:
+        case WL_ACTOR_GHOST_MODE:
+            ++out->immediate_threat_count;
+            break;
+        case WL_ACTOR_STAND:
+        case WL_ACTOR_PATROL:
+            ++out->latent_threat_count;
+            if (actor->ambush) {
+                ++out->ambush_latent_count;
+            }
+            break;
+        case WL_ACTOR_INERT:
+            ++out->inert_shootable_count;
+            break;
+        default:
+            ++out->inert_shootable_count;
+            break;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_actor_directions(const wl_game_model *model,
                                   wl_actor_direction_summary *out) {
     if (!model || !out) {
