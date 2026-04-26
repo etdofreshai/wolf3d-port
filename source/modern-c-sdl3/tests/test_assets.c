@@ -1041,6 +1041,31 @@ static int check_gameplay_events(void) {
     CHECK(state.weapon == WL_WEAPON_KNIFE);
     CHECK(wl_step_player_attack_state(&state, -1, &attack_step) == -1);
 
+    wl_player_fire_attack_result fire_attack;
+    state.best_weapon = WL_WEAPON_MACHINEGUN;
+    state.chosen_weapon = WL_WEAPON_PISTOL;
+    state.weapon = WL_WEAPON_PISTOL;
+    state.ammo = 2;
+    state.attack_frame = 0;
+    CHECK(wl_try_player_fire_weapon_attack(&state, WL_WEAPON_MACHINEGUN, 7,
+                                           &fire_attack) == 0);
+    CHECK(fire_attack.fire.fired == 1);
+    CHECK(fire_attack.fire.consumed_ammo == 1);
+    CHECK(fire_attack.attack_started == 1);
+    CHECK(fire_attack.frame_before == 0);
+    CHECK(fire_attack.frame_after == 7);
+    CHECK(state.attack_frame == 7);
+    CHECK(state.ammo == 1);
+    state.ammo = 0;
+    CHECK(wl_try_player_fire_weapon_attack(&state, WL_WEAPON_PISTOL, 7,
+                                           &fire_attack) == 0);
+    CHECK(fire_attack.fire.no_ammo == 1);
+    CHECK(fire_attack.attack_started == 0);
+    CHECK(fire_attack.frame_after == 7);
+    CHECK(state.attack_frame == 7);
+    CHECK(wl_try_player_fire_weapon_attack(&state, WL_WEAPON_KNIFE, 0,
+                                           &fire_attack) == -1);
+
     CHECK(wl_apply_player_bonus(&state, WL_BONUS_FULLHEAL, &picked_up) == 0);
     CHECK(picked_up == 1);
     CHECK(state.health == 100);
