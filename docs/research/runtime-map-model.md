@@ -597,3 +597,7 @@ Added `wl_summarize_actor_scene_sources` as a compact renderer-readiness diagnos
 ## Cycle update: actor direction summaries
 
 Added `wl_summarize_actor_directions` as a tiny non-mutating actor-state diagnostic. It reports counts for north/east/south/west/none actor directions and separately counts invalid direction values, giving future patrol/chase/render transitions a compact sanity check before mutating direction state.
+
+## Cycle update: actor engagement state flags
+
+The actor engagement summary now separates active chase/boss/ghost-mode threats from ambush-flagged threats. This keeps the gameplay/render orchestration seam aware of whether nearby melee/ranged actors are already active or still marked as ambush while remaining SDL-free and test-backed.

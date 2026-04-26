@@ -268,6 +268,8 @@ typedef struct wl_actor_engagement_summary {
     size_t melee_threat_count;
     size_t ranged_threat_count;
     size_t close_threat_count;
+    size_t chasing_threat_count;
+    size_t ambush_threat_count;
     size_t invalid_position_count;
     uint16_t nearest_threat_index;
     uint16_t nearest_threat_distance;

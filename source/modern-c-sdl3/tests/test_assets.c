@@ -2732,6 +2732,7 @@ static int check_wl6(const char *dir) {
 
     chase_summary_model.actors[1].shootable = 1;
     chase_summary_model.actors[1].mode = WL_ACTOR_CHASE;
+    chase_summary_model.actors[1].ambush = 1;
     chase_summary_model.actors[2].tile_x = WL_MAP_SIDE;
     chase_summary_model.actors[2].tile_y = 12;
     wl_actor_engagement_summary synthetic_engagements;
@@ -2747,6 +2748,8 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_engagements.melee_threat_count == 1);
     CHECK(synthetic_engagements.ranged_threat_count == 1);
     CHECK(synthetic_engagements.close_threat_count == 1);
+    CHECK(synthetic_engagements.chasing_threat_count == 2);
+    CHECK(synthetic_engagements.ambush_threat_count == 1);
     CHECK(synthetic_engagements.invalid_position_count == 1);
     CHECK(synthetic_engagements.nearest_threat_index == 0);
     CHECK(synthetic_engagements.nearest_threat_distance == 3);
@@ -2756,6 +2759,8 @@ static int check_wl6(const char *dir) {
     CHECK(wl_summarize_actor_engagements(&chase_summary_model, 8, 5, 4,
                                          &synthetic_engagements) == 0);
     CHECK(synthetic_engagements.threat_count == 0);
+    CHECK(synthetic_engagements.chasing_threat_count == 0);
+    CHECK(synthetic_engagements.ambush_threat_count == 0);
     CHECK(synthetic_engagements.nearest_threat_index == UINT16_MAX);
     CHECK(synthetic_engagements.nearest_threat_distance == 0);
 

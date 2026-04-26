@@ -1857,6 +1857,13 @@ int wl_summarize_actor_engagements(const wl_game_model *model,
         if (distance <= close_distance) {
             ++out->close_threat_count;
         }
+        if (actor->mode == WL_ACTOR_CHASE || actor->mode == WL_ACTOR_BOSS_MODE ||
+            actor->mode == WL_ACTOR_GHOST_MODE) {
+            ++out->chasing_threat_count;
+        }
+        if (actor->ambush) {
+            ++out->ambush_threat_count;
+        }
         if (distance < out->nearest_threat_distance) {
             out->nearest_threat_distance = distance;
             out->nearest_threat_index = (uint16_t)i;
