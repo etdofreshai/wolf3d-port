@@ -6729,6 +6729,30 @@ static int check_optional_sod(const char *dir) {
                                 sod_wall_plane, WL_MAP_PLANE_WORDS) == 0);
         CHECK(wl_read_map_plane(gamemaps_path, &sod_map, 1, mh.rlew_tag,
                                 sod_info_plane, WL_MAP_PLANE_WORDS) == 0);
+        wl_map_semantics sod_semantics;
+        size_t direct_spear_boss_tiles = 0;
+        size_t direct_spear_ghost_tiles = 0;
+        for (size_t tile_i = 0; tile_i < WL_MAP_PLANE_WORDS; ++tile_i) {
+            switch (sod_info_plane[tile_i]) {
+            case 107: /* Angel of Death */
+            case 125: /* Trans Grosse */
+            case 142: /* Ubermutant */
+            case 143: /* Wilhelm */
+            case 161: /* Death Knight */
+                ++direct_spear_boss_tiles;
+                break;
+            case 106: /* Spectre */
+                ++direct_spear_ghost_tiles;
+                break;
+            default:
+                break;
+            }
+        }
+        CHECK(wl_classify_map_semantics(sod_wall_plane, sod_info_plane,
+                                        WL_MAP_PLANE_WORDS, &sod_semantics) == 0);
+        CHECK(sod_semantics.unknown_info_tiles == 0);
+        CHECK(sod_semantics.boss_starts >= direct_spear_boss_tiles);
+        CHECK(sod_semantics.ghost_starts >= direct_spear_ghost_tiles);
         CHECK(wl_build_game_model(sod_wall_plane, sod_info_plane, WL_MAP_PLANE_WORDS,
                                   WL_DIFFICULTY_EASY, &sod_model) == 0);
         CHECK(sod_model.player.present == 1);
