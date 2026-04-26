@@ -1494,11 +1494,13 @@ int wl_use_player_facing(wl_player_gameplay_state *state, wl_game_model *model,
                 break;
             }
         }
+        out->pushwall_active_before = model->pushwall_motion.active ? 1u : 0u;
         wl_pushwall_step_result push_result;
         if (wl_start_pushwall(state, model, out->check_x, out->check_y,
                               facing, &push_result) != 0) {
             return -1;
         }
+        out->pushwall_active_after = model->pushwall_motion.active ? 1u : 0u;
         out->opened = push_result.started;
         out->locked = push_result.blocked;
         return 0;
