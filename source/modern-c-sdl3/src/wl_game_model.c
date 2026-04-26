@@ -1942,6 +1942,9 @@ int wl_step_chase_actors_tics(wl_game_model *model, uint16_t player_x,
         if (step.blocked) {
             ++out->actors_blocked;
         }
+        if (step.leftover_move > 0) {
+            ++out->actors_partial;
+        }
         out->tiles_stepped = (uint16_t)(out->tiles_stepped + step.tiles_stepped);
     }
     return 0;

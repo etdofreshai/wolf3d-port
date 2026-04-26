@@ -1510,6 +1510,28 @@ static int check_wl6(const char *dir) {
     CHECK(wl_step_chase_actor_tics(&path_model, 0, 8, 4, 1, 0x8000u, -1,
                                    &chase_tic) == -1);
 
+    memset(&path_model, 0, sizeof(path_model));
+    path_model.actor_count = 2;
+    path_model.actors[0].kind = WL_ACTOR_GUARD;
+    path_model.actors[0].mode = WL_ACTOR_CHASE;
+    path_model.actors[0].dir = WL_DIR_WEST;
+    path_model.actors[0].tile_x = 5;
+    path_model.actors[0].tile_y = 5;
+    path_model.actors[1].kind = WL_ACTOR_GUARD;
+    path_model.actors[1].mode = WL_ACTOR_CHASE;
+    path_model.actors[1].dir = WL_DIR_EAST;
+    path_model.actors[1].tile_x = 10;
+    path_model.actors[1].tile_y = 5;
+    wl_actor_chases_tic_result chase_tics;
+    CHECK(wl_step_chase_actors_tics(&path_model, 8, 4, 1, 0x8000u, 1,
+                                    &chase_tics) == 0);
+    CHECK(chase_tics.actors_considered == 2);
+    CHECK(chase_tics.actors_stepped == 2);
+    CHECK(chase_tics.actors_blocked == 0);
+    CHECK(chase_tics.actors_partial == 2);
+    CHECK(chase_tics.tiles_stepped == 0);
+    CHECK(path_model.actors[0].patrol_remainder == 0x8000u);
+    CHECK(path_model.actors[1].patrol_remainder == 0x8000u);
 
     memset(&path_model, 0, sizeof(path_model));
     path_model.actor_count = 1;

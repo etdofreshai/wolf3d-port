@@ -833,3 +833,7 @@ Added `wl_summarize_actor_distance_bands()` as a headless runtime actor proximit
 ## Cycle update: path marker isolated endpoints
 
 `wl_summarize_path_marker_endpoints()` now reports isolated path markers: valid markers with no incoming marker links and no valid outgoing marker link. The summary keeps the existing source/sink/branch/link counters while exposing the first isolated marker index and total valid marker count, giving future patrol-route validation a compact way to separate empty/invalid route graphs from disconnected one-tile route fragments before mutating actor AI state.
+
+## Cycle update: chase tick partial-move aggregate
+
+Extended `wl_step_chase_actors_tics()` with an `actors_partial` counter for chase actors that accumulate sub-tile movement without crossing a tile boundary. The existing aggregate still reports considered, stepped, blocked, and full-tile step counts; this extra bucket keeps live AI orchestration aware of interpolation-only movement for future presentation and combat ticks.

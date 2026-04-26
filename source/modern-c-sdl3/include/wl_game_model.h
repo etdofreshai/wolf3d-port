@@ -181,6 +181,7 @@ typedef struct wl_actor_chases_tic_result {
     uint16_t actors_considered;
     uint16_t actors_stepped;
     uint16_t actors_blocked;
+    uint16_t actors_partial;
     uint16_t tiles_stepped;
 } wl_actor_chases_tic_result;
 

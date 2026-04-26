@@ -651,3 +651,7 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 ## Path marker isolated endpoint summary
 
 `wl_summarize_path_marker_endpoints` now reports isolated markers that are both route sources and sinks, plus the first isolated marker index. It also exposes the valid marker count so callers can distinguish empty/invalid route graphs from valid but disconnected route fragments before mutating actor path state.
+
+## Chase tick partial-move aggregate
+
+`wl_step_chase_actors_tics()` now reports `actors_partial` in its aggregate result, separating actors that consumed movement into sub-tile interpolation from actors that completed tile steps or blocked. Synthetic headless coverage pins two chase actors accumulating half-tile movement with zero full tile steps.
