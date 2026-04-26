@@ -263,6 +263,16 @@ typedef struct wl_actor_player_distance_summary {
     uint16_t farthest_distance;
 } wl_actor_player_distance_summary;
 
+typedef struct wl_actor_engagement_summary {
+    size_t threat_count;
+    size_t melee_threat_count;
+    size_t ranged_threat_count;
+    size_t close_threat_count;
+    size_t invalid_position_count;
+    uint16_t nearest_threat_index;
+    uint16_t nearest_threat_distance;
+} wl_actor_engagement_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -412,6 +422,10 @@ int wl_summarize_actor_player_distances(const wl_game_model *model,
                                         uint16_t player_x, uint16_t player_y,
                                         int shootable_only,
                                         wl_actor_player_distance_summary *out);
+int wl_summarize_actor_engagements(const wl_game_model *model,
+                                   uint16_t player_x, uint16_t player_y,
+                                   uint16_t close_distance,
+                                   wl_actor_engagement_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);
