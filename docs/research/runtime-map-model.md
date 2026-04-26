@@ -589,3 +589,7 @@ Added `wl_summarize_actor_patrol_paths` as the patrol-oriented sibling to the ex
 ## Cycle update: actor attack-role summaries
 
 Added `wl_summarize_actor_attacks` as a compact, non-mutating diagnostic for live actor-combat readiness. It partitions valid-position actors into dog bite attackers, shoot-capable actors matching the live combat `actor_can_shoot` kind set, passive/non-attacking actors, and invalid-position actors. The broader WL6 map sweep cross-checks those buckets against each actor descriptor, and a synthetic case pins shoot/bite/invalid handling before deeper live AI attack orchestration mutates actor state.
+
+## Cycle update: actor scene-source summaries
+
+Added `wl_summarize_actor_scene_sources` as a compact renderer-readiness diagnostic for runtime actor descriptors. It partitions actors into default scene-source mappings, explicit override mappings, and missing scene-source metadata without mutating the model. The broader WL6 map sweep cross-checks the summary against actor descriptors, and synthetic coverage pins default/override/missing buckets before deeper actor render-state transitions.

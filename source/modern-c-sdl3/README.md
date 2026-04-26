@@ -460,3 +460,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 `wl_summarize_actor_wake_state` reports whether shootable live actors are immediately wakeable, waiting behind ambush gating, already chasing, or ineligible for wake-up. The same broader WL6 map sweep cross-checks both ambush-excluded and ambush-included views against actor descriptors before any mutating wake pass runs.
 
 `wl_summarize_actor_patrol_paths` reports aggregate patrol path readiness before mutating actor movement: patrol actors with a selected path direction, blocked/no-direction patrol actors, and invalid-position patrol actors. The broader WL6 map sweep verifies the summary against `wl_select_path_direction()` for every patrol actor.
+
+## Actor scene-source summary helper
+
+`wl_summarize_actor_scene_sources` reports runtime actor scene-source readiness: total actors, default sprite-source mappings, explicit override mappings, and actors missing source metadata. The broader WL6 map sweep cross-checks those buckets against model descriptors, giving renderer-facing actor-state work a small deterministic guardrail.
