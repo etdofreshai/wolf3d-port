@@ -727,7 +727,7 @@ Added `wl_summarize_path_marker_chains()` as a non-mutating patrol-marker contin
 
 ## Cycle update: runtime path-marker reciprocal-link summary
 
-Added `wl_summarize_path_marker_reciprocal_links()` as a non-mutating patrol-marker topology diagnostic. It projects each valid marker one tile through its outgoing direction and splits linked markers into reciprocal back-links versus one-way continuations while preserving dangling/no-direction/invalid counters and first-problem indices. This extends the chain continuity seam with a compact headless check for short two-way loops before deeper patrol route progression.
+Added `wl_summarize_path_marker_reciprocal_links()` as a non-mutating patrol-marker topology diagnostic. It projects each valid marker one tile through its outgoing direction, reports total linked marker exits, and splits linked markers into reciprocal back-links versus one-way continuations while preserving dangling/no-direction/invalid counters and first-problem indices. This extends the chain continuity seam with a compact headless check for short two-way loops before deeper patrol route progression.
 
 ## Cycle update: runtime door/player adjacency summary
 
