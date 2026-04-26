@@ -2403,6 +2403,36 @@ int wl_start_sound_channel(const wl_sound_channel_state *current,
     return 0;
 }
 
+int wl_schedule_sound_channel(const wl_sound_channel_state *current,
+                              uint16_t candidate_sound_index,
+                              const wl_audio_chunk_metadata *candidate,
+                              wl_sound_channel_schedule_result *out) {
+    wl_sound_channel_decision decision;
+    if (!current || !candidate || !out || current->active > 1u) {
+        return -1;
+    }
+    if (wl_describe_sound_channel_decision(current->active, current->sound_index,
+                                           current->priority, candidate_sound_index,
+                                           candidate, &decision) != 0) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->state = *current;
+    out->candidate_kind = decision.candidate_kind;
+    out->candidate_priority = decision.candidate_priority;
+    if (!decision.should_start) {
+        out->held = 1u;
+        return 0;
+    }
+    out->started = 1u;
+    out->replaced = current->active ? 1u : 0u;
+    out->state.active = 1u;
+    out->state.sound_index = candidate_sound_index;
+    out->state.priority = candidate->priority;
+    out->state.sample_position = 0;
+    return 0;
+}
+
 int wl_advance_sound_channel(const wl_sound_channel_state *current,
                              size_t sample_count,
                              uint32_t sample_delta,

@@ -524,6 +524,15 @@ typedef struct wl_sound_channel_start_result {
     uint8_t replaced;
 } wl_sound_channel_start_result;
 
+typedef struct wl_sound_channel_schedule_result {
+    wl_sound_channel_state state;
+    wl_audio_chunk_kind candidate_kind;
+    uint16_t candidate_priority;
+    uint8_t started;
+    uint8_t replaced;
+    uint8_t held;
+} wl_sound_channel_schedule_result;
+
 typedef struct wl_sound_channel_advance_result {
     wl_sound_channel_state state;
     uint32_t samples_consumed;
@@ -680,6 +689,10 @@ int wl_start_sound_channel(const wl_sound_channel_state *current,
                            uint16_t candidate_sound_index,
                            uint16_t candidate_priority,
                            wl_sound_channel_start_result *out);
+int wl_schedule_sound_channel(const wl_sound_channel_state *current,
+                              uint16_t candidate_sound_index,
+                              const wl_audio_chunk_metadata *candidate,
+                              wl_sound_channel_schedule_result *out);
 int wl_advance_sound_channel(const wl_sound_channel_state *current,
                              size_t sample_count,
                              uint32_t sample_delta,
