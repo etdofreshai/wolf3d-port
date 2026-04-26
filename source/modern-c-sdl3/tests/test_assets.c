@@ -5870,6 +5870,7 @@ static int check_audio_wl6(const char *dir) {
     wl_sound_channel_schedule_result sound_schedule;
     wl_sound_channel_advance_result sound_advance;
     wl_sound_channel_tick_result sound_tick;
+    wl_sound_channel_schedule_tick_result sound_schedule_tick;
     wl_pc_speaker_sound_metadata pc_meta;
     wl_pc_speaker_playback_cursor pc_cursor;
     wl_adlib_sound_metadata adlib_meta;
@@ -6282,6 +6283,49 @@ static int check_audio_wl6(const char *dir) {
     CHECK(wl_tick_sound_channel(&sound_channel, WL_AUDIO_CHUNK_PC_SPEAKER,
                                 chunk_buf, chunk_bytes, 1, NULL) == -1);
 
+    memset(&sound_channel, 0, sizeof(sound_channel));
+    sound_channel.active = 0;
+    sound_channel.sound_index = 50;
+    sound_channel.priority = 99;
+    sound_channel.sample_position = 4;
+    CHECK(wl_schedule_tick_sound_channel_from_chunk(&sound_channel, 0, &audio_meta,
+                                                    chunk_buf, chunk_bytes, 2,
+                                                    &sound_schedule_tick) == 0);
+    CHECK(sound_schedule_tick.schedule.started == 1);
+    CHECK(sound_schedule_tick.schedule.replaced == 0);
+    CHECK(sound_schedule_tick.schedule.held == 0);
+    CHECK(sound_schedule_tick.ticked == 1);
+    CHECK(sound_schedule_tick.tick.state.active == 1);
+    CHECK(sound_schedule_tick.tick.state.sound_index == 0);
+    CHECK(sound_schedule_tick.tick.state.priority == 1);
+    CHECK(sound_schedule_tick.tick.state.sample_position == 2);
+    CHECK(sound_schedule_tick.tick.samples_consumed == 2);
+    CHECK(sound_schedule_tick.tick.current_sample == 0x82);
+    CHECK(sound_schedule_tick.tick.completed == 0);
+    sound_channel.active = 1;
+    sound_channel.sound_index = 50;
+    sound_channel.priority = 2;
+    sound_channel.sample_position = 4;
+    CHECK(wl_schedule_tick_sound_channel_from_chunk(&sound_channel, 0, &audio_meta,
+                                                    chunk_buf, chunk_bytes, 2,
+                                                    &sound_schedule_tick) == 0);
+    CHECK(sound_schedule_tick.schedule.started == 0);
+    CHECK(sound_schedule_tick.schedule.held == 1);
+    CHECK(sound_schedule_tick.ticked == 0);
+    CHECK(sound_schedule_tick.tick.state.active == 1);
+    CHECK(sound_schedule_tick.tick.state.sound_index == 50);
+    CHECK(sound_schedule_tick.tick.state.priority == 2);
+    CHECK(sound_schedule_tick.tick.state.sample_position == 4);
+    CHECK(wl_schedule_tick_sound_channel_from_chunk(&sound_channel, 70000, &audio_meta,
+                                                    chunk_buf, chunk_bytes, 1,
+                                                    &sound_schedule_tick) == -1);
+    CHECK(wl_schedule_tick_sound_channel_from_chunk(&sound_channel, 0, &audio_meta,
+                                                    chunk_buf, 6, 1,
+                                                    &sound_schedule_tick) == -1);
+    CHECK(wl_schedule_tick_sound_channel_from_chunk(&sound_channel, 0, &audio_meta,
+                                                    chunk_buf, chunk_bytes, 1,
+                                                    NULL) == -1);
+
     /* PC speaker sound 1 (SELECTWPNSND) */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 1, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
@@ -6321,6 +6365,7 @@ static int check_audio_wl6(const char *dir) {
     CHECK(channel_decision.should_start == 1);
     CHECK(channel_decision.next_chunk == 87);
     CHECK(channel_decision.next_priority == 1);
+    memset(&sound_channel, 0, sizeof(sound_channel));
     CHECK(wl_start_sound_channel_from_chunk(&sound_channel, 87, &audio_meta,
                                             &sound_start) == 0);
     CHECK(sound_start.started == 1);
