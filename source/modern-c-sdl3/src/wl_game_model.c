@@ -3356,6 +3356,56 @@ int wl_summarize_door_area_connections(
     return 0;
 }
 
+int wl_summarize_door_area_matrix(
+    const wl_game_model *model, wl_door_area_matrix_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->min_area = UINT8_MAX;
+    for (size_t a = 0; a < WL_NUM_AREAS; ++a) {
+        for (size_t b = 0; b < WL_NUM_AREAS; ++b) {
+            const uint8_t weight = model->door_area_connections[a][b];
+            if (weight == 0) {
+                continue;
+            }
+            ++out->directed_link_count;
+            if (a == b) {
+                ++out->self_link_count;
+            } else if (a < b) {
+                ++out->undirected_link_count;
+                if (model->door_area_connections[b][a] != weight) {
+                    ++out->asymmetric_link_count;
+                }
+            } else if (model->door_area_connections[b][a] == 0) {
+                ++out->undirected_link_count;
+                ++out->asymmetric_link_count;
+            }
+            if (a < out->min_area) {
+                out->min_area = (uint8_t)a;
+            }
+            if (b < out->min_area) {
+                out->min_area = (uint8_t)b;
+            }
+            if (a > out->max_area) {
+                out->max_area = (uint8_t)a;
+            }
+            if (b > out->max_area) {
+                out->max_area = (uint8_t)b;
+            }
+            if (weight > out->max_link_weight) {
+                out->max_link_weight = weight;
+            }
+        }
+    }
+    if (out->directed_link_count == 0) {
+        out->min_area = 0;
+        out->max_area = 0;
+    }
+    return 0;
+}
+
 int wl_summarize_pushwall_state(const wl_game_model *model,
                                 wl_pushwall_state_summary *out) {
     if (!model || !out) {

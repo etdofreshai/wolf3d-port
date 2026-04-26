@@ -732,3 +732,5 @@ Added `wl_summarize_door_player_adjacency()` as a non-mutating door placement di
 Added `wl_summarize_actor_door_blockers()` as a non-mutating actor/door collision diagnostic. It counts actors on runtime door-center tiles, splits shootable versus non-shootable blockers, reports invalid actor positions, and tracks unique/min/max blocked door indices so future close-door collision and AI navigation work can inspect blockers before mutating door state.
 
 Added `wl_summarize_door_area_connections()` as a non-mutating diagnostic for the door area graph built during runtime-model construction. The synthetic headless case pins unique, duplicate, self-connected, invalid, and min/max area descriptors so future door/visibility progression can validate connectivity metadata without touching SDL or map assets.
+
+Added `wl_summarize_door_area_matrix()` to validate the cached door area adjacency matrix independently from the door descriptors. Synthetic coverage pins symmetric, asymmetric, and self-link matrix entries plus min/max area and max weight, keeping the door-connectivity seam headless and deterministic.
