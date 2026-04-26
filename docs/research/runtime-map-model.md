@@ -729,6 +729,10 @@ Added `wl_summarize_path_marker_chains()` as a non-mutating patrol-marker contin
 
 Added `wl_summarize_path_marker_reciprocal_links()` as a non-mutating patrol-marker topology diagnostic. It projects each valid marker one tile through its outgoing direction, reports total linked marker exits, and splits linked markers into reciprocal back-links versus one-way continuations while preserving dangling/no-direction/invalid counters and first-problem indices. This extends the chain continuity seam with a compact headless check for short two-way loops before deeper patrol route progression.
 
+## Cycle update: runtime path-marker endpoint summary
+
+Added `wl_summarize_path_marker_endpoints()` as a non-mutating patrol-route topology diagnostic. It computes incoming links for each path marker, partitions source markers, sink markers, and branch-in markers, and preserves linked/dangling/no-direction/invalid counters so future patrol route progression can detect starts, terminals, and converging marker paths without mutating actor state.
+
 ## Cycle update: runtime door/player adjacency summary
 
 Added `wl_summarize_door_player_adjacency()` as a non-mutating door placement diagnostic. It partitions valid door descriptors by same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, distant, and invalid-position buckets relative to a supplied player tile. This mirrors the existing actor/static/pushwall adjacency summaries and gives future use/collision/presentation work a deterministic SDL-free sanity check for doors near the player.
