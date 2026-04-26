@@ -615,6 +615,8 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 `wl_hash_texture_upload_rows` now hashes only meaningful upload row bytes for both indexed and RGBA descriptors, ignoring pitch padding while validating palette metadata for indexed uploads. Headless coverage pins the present-frame indexed hash and a padded RGBA upload hash so future SDL3 texture/surface handoffs can compare frame contents independently of backend pitch alignment.
 `wl_summarize_runtime_tile_diagonals` adds a small live-tilemap diagonal diagnostic, partitioning the two corner-to-corner diagonals into solid walls, clear floor, and runtime markers. This gives spawn/camera/raycast smoke work a cheap headless guard for diagonal map-state drift without requiring callers to rescan the tilemap.
 
+`wl_summarize_runtime_tile_axes` complements the diagonal check with center row/column buckets for solid walls, clear floor, and markers. The headless coverage verifies real-map totals plus synthetic wall/marker/open cases so future spawn, raycast, and minimap work can cheaply detect crosshair-axis tilemap drift.
+
 ## Runtime static collision summary
 
 `wl_summarize_static_collisions` partitions static descriptors into active/inactive blocking, bonus, and dressing buckets with invalid-coordinate accounting. This keeps player collision and visible pickup preparation inspectable in headless tests without mutating runtime state.
