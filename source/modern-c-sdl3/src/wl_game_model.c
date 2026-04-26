@@ -2589,6 +2589,59 @@ int wl_summarize_actor_spawn_deltas(const wl_game_model *model,
     return 0;
 }
 
+static int marker_is_cardinal_adjacent(const wl_marker_desc *marker,
+                                      uint16_t tile_x, uint16_t tile_y) {
+    const uint16_t dx = (marker->x > tile_x) ? (uint16_t)(marker->x - tile_x)
+                                            : (uint16_t)(tile_x - marker->x);
+    const uint16_t dy = (marker->y > tile_y) ? (uint16_t)(marker->y - tile_y)
+                                            : (uint16_t)(tile_y - marker->y);
+    return (dx + dy) == 1u;
+}
+
+int wl_summarize_actor_path_markers(const wl_game_model *model,
+                                    wl_actor_path_marker_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->mode != WL_ACTOR_PATROL) {
+            continue;
+        }
+        ++out->patrol_actor_count;
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_actor_position_count;
+            continue;
+        }
+
+        int adjacent = 0;
+        int matched = 0;
+        for (size_t j = 0; j < model->path_marker_count; ++j) {
+            const wl_marker_desc *marker = &model->path_markers[j];
+            if (marker->x >= WL_MAP_SIDE || marker->y >= WL_MAP_SIDE) {
+                continue;
+            }
+            if (marker->x == actor->tile_x && marker->y == actor->tile_y) {
+                matched = 1;
+                break;
+            }
+            if (marker_is_cardinal_adjacent(marker, actor->tile_x, actor->tile_y)) {
+                adjacent = 1;
+            }
+        }
+        if (matched) {
+            ++out->on_marker_count;
+        } else if (adjacent) {
+            ++out->adjacent_marker_count;
+        } else {
+            ++out->missing_marker_count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_actor_collision_tiles(const wl_game_model *model,
                                        wl_actor_collision_tile_summary *out) {
     if (!model || !out) {
