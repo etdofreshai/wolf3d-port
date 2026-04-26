@@ -3025,6 +3025,23 @@ int wl_describe_sound_channel_position_from_chunk(const wl_sound_channel_state *
                                                           current->sample_position, out);
 }
 
+int wl_describe_sound_channel_remaining_from_chunk(const wl_sound_channel_state *current,
+                                                   const wl_audio_chunk_metadata *metadata,
+                                                   const unsigned char *chunk, size_t chunk_size,
+                                                   size_t *out_remaining_samples) {
+    size_t sample_count = 0;
+    if (!current || current->active != 1u || !out_remaining_samples) {
+        return -1;
+    }
+    if (wl_describe_sound_sample_count_from_chunk(metadata, chunk, chunk_size,
+                                                  &sample_count) != 0 ||
+        current->sample_position > sample_count) {
+        return -1;
+    }
+    *out_remaining_samples = sample_count - current->sample_position;
+    return 0;
+}
+
 int wl_describe_sound_channel_window_from_chunk(const wl_sound_channel_state *current,
                                                 const wl_audio_chunk_metadata *metadata,
                                                 const unsigned char *chunk, size_t chunk_size,
