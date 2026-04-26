@@ -3533,6 +3533,41 @@ int wl_summarize_static_line_of_sight(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_static_collisions(const wl_game_model *model,
+                                   wl_static_collision_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->static_count; ++i) {
+        const wl_static_desc *stat = &model->statics[i];
+        if (stat->x >= WL_MAP_SIDE || stat->y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+
+        if (stat->blocking) {
+            if (stat->active) {
+                ++out->active_blocking_count;
+            } else {
+                ++out->inactive_blocking_count;
+            }
+        } else if (stat->bonus) {
+            if (stat->active) {
+                ++out->active_bonus_count;
+            } else {
+                ++out->inactive_bonus_count;
+            }
+        } else if (stat->active) {
+            ++out->active_dressing_count;
+        } else {
+            ++out->inactive_dressing_count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_door_states(const wl_game_model *model,
                              wl_door_state_summary *out) {
     if (!model || !out) {

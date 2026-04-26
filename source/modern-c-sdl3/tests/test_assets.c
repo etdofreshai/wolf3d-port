@@ -3852,6 +3852,47 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_static_los.invalid_position_count == 1);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.static_count = 7;
+    chase_summary_model.statics[0].x = 1;
+    chase_summary_model.statics[0].y = 1;
+    chase_summary_model.statics[0].active = 1;
+    chase_summary_model.statics[0].blocking = 1;
+    chase_summary_model.statics[1].x = 2;
+    chase_summary_model.statics[1].y = 1;
+    chase_summary_model.statics[1].active = 0;
+    chase_summary_model.statics[1].blocking = 1;
+    chase_summary_model.statics[2].x = 3;
+    chase_summary_model.statics[2].y = 1;
+    chase_summary_model.statics[2].active = 1;
+    chase_summary_model.statics[2].bonus = 1;
+    chase_summary_model.statics[3].x = 4;
+    chase_summary_model.statics[3].y = 1;
+    chase_summary_model.statics[3].active = 0;
+    chase_summary_model.statics[3].bonus = 1;
+    chase_summary_model.statics[4].x = 5;
+    chase_summary_model.statics[4].y = 1;
+    chase_summary_model.statics[4].active = 1;
+    chase_summary_model.statics[5].x = 6;
+    chase_summary_model.statics[5].y = 1;
+    chase_summary_model.statics[5].active = 0;
+    chase_summary_model.statics[6].x = WL_MAP_SIDE;
+    chase_summary_model.statics[6].y = 1;
+    chase_summary_model.statics[6].active = 1;
+    wl_static_collision_summary synthetic_static_collisions;
+    CHECK(wl_summarize_static_collisions(&chase_summary_model,
+                                         &synthetic_static_collisions) == 0);
+    CHECK(wl_summarize_static_collisions(NULL,
+                                         &synthetic_static_collisions) == -1);
+    CHECK(wl_summarize_static_collisions(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_static_collisions.active_blocking_count == 1);
+    CHECK(synthetic_static_collisions.inactive_blocking_count == 1);
+    CHECK(synthetic_static_collisions.active_bonus_count == 1);
+    CHECK(synthetic_static_collisions.inactive_bonus_count == 1);
+    CHECK(synthetic_static_collisions.active_dressing_count == 1);
+    CHECK(synthetic_static_collisions.inactive_dressing_count == 1);
+    CHECK(synthetic_static_collisions.invalid_position_count == 1);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.door_count = 5;
     chase_summary_model.doors[0].vertical = 1;
     chase_summary_model.doors[0].lock = 0;
