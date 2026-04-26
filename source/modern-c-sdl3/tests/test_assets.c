@@ -6558,13 +6558,13 @@ static int check_audio_wl6(const char *dir) {
     CHECK(sound_schedule_progress_window.schedule.state.sound_index == 50);
     CHECK(sound_schedule_progress_window.schedule.state.sample_position == 4);
     CHECK(wl_schedule_describe_sound_channel_progress_window_from_chunk(
-              &sound_channel, 70000, &audio_meta, chunk_buf, chunk_bytes, 1,
+              &sound_channel, 70000, &audio_meta, chunk_buf, chunk_bytes, 3,
               &sound_schedule_progress_window) == -1);
     CHECK(wl_schedule_describe_sound_channel_progress_window_from_chunk(
-              &sound_channel, 0, &audio_meta, chunk_buf, 6, 1,
+              &sound_channel, 0, &audio_meta, chunk_buf, 6, 3,
               &sound_schedule_progress_window) == -1);
     CHECK(wl_schedule_describe_sound_channel_progress_window_from_chunk(
-              &sound_channel, 0, &audio_meta, chunk_buf, chunk_bytes, 1,
+              &sound_channel, 0, &audio_meta, chunk_buf, chunk_bytes, 3,
               NULL) == -1);
 
 
