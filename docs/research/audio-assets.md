@@ -5,7 +5,7 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 ## Scope
 
 - `wl_read_audio_header()` reads little-endian 32-bit chunk offsets from `AUDIOHED.*`.
-- `wl_validate_audio_header_offsets()` verifies the AUDIOHED offset table is monotonic and bounded by the paired AUDIOT file size before raw chunk reads trust it.
+- `wl_validate_audio_header_offsets()` verifies the AUDIOHED offset table is monotonic and that every offset, including the first data offset and sentinel, is bounded by the paired AUDIOT file size before raw chunk reads trust it.
 - `wl_read_audio_chunk()` copies bounded raw chunk bytes from `AUDIOT.*` using adjacent offsets and rejects tables whose sentinel/offsets point beyond the actual file.
 - `wl_describe_audio_chunk()` classifies the original WL6 chunk ranges and exposes raw size, declared length, sound priority where present, and payload bounds.
 - `wl_describe_audio_chunk_with_ranges()` applies the same descriptor logic to caller-supplied range counts, covering SOD's shorter PC/AdLib/digital tables without hardcoded WL6 cutoffs.
