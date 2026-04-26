@@ -6157,6 +6157,19 @@ static int check_audio_wl6(const char *dir) {
     CHECK(sample_window.completed == 1);
     CHECK(wl_describe_pc_speaker_playback_window(chunk_buf, chunk_bytes, 9, 1,
                                                  &sample_window) == -1);
+    CHECK(wl_describe_sound_playback_window_from_chunk(&audio_meta, chunk_buf,
+                                                       chunk_bytes, 2, 3,
+                                                       &sample_window) == 0);
+    CHECK(sample_window.start_sample == 2);
+    CHECK(sample_window.samples_in_window == 3);
+    CHECK(sample_window.next_sample == 5);
+    CHECK(sample_window.first_sample == 0x82);
+    CHECK(sample_window.last_sample == 0x8a);
+    audio_meta.kind = WL_AUDIO_CHUNK_MUSIC;
+    CHECK(wl_describe_sound_playback_window_from_chunk(&audio_meta, chunk_buf,
+                                                       chunk_bytes, 2, 3,
+                                                       &sample_window) == -1);
+    audio_meta.kind = WL_AUDIO_CHUNK_PC_SPEAKER;
     CHECK(wl_describe_pc_speaker_playback_position(chunk_buf, chunk_bytes, 0,
                                                    &sample_position) == 0);
     CHECK(sample_position.sample_position == 0);
@@ -6401,6 +6414,17 @@ static int check_audio_wl6(const char *dir) {
     CHECK(sample_window.completed == 1);
     CHECK(wl_describe_adlib_playback_window(chunk_buf, chunk_bytes, 9, 1,
                                             &sample_window) == -1);
+    CHECK(wl_describe_sound_playback_window_from_chunk(&audio_meta, chunk_buf,
+                                                       chunk_bytes, 3, 4,
+                                                       &sample_window) == 0);
+    CHECK(sample_window.start_sample == 3);
+    CHECK(sample_window.samples_in_window == 4);
+    CHECK(sample_window.next_sample == 7);
+    CHECK(sample_window.first_sample == 0x35);
+    CHECK(sample_window.last_sample == 0x29);
+    CHECK(wl_describe_sound_playback_window_from_chunk(NULL, chunk_buf,
+                                                       chunk_bytes, 3, 4,
+                                                       &sample_window) == -1);
     CHECK(wl_describe_adlib_playback_position(chunk_buf, chunk_bytes, 0,
                                               &sample_position) == 0);
     CHECK(sample_position.sample_position == 0);

@@ -749,6 +749,10 @@ int wl_describe_adlib_playback_window(const unsigned char *chunk, size_t chunk_s
 int wl_describe_adlib_playback_position(const unsigned char *chunk, size_t chunk_size,
                                         size_t sample_position,
                                         wl_sample_playback_position *out);
+int wl_describe_sound_playback_window_from_chunk(
+    const wl_audio_chunk_metadata *metadata, const unsigned char *chunk,
+    size_t chunk_size, size_t start_sample, size_t sample_budget,
+    wl_sample_playback_window *out);
 int wl_describe_imf_music_chunk(const unsigned char *chunk, size_t chunk_size,
                                 wl_imf_music_metadata *out);
 int wl_get_imf_music_command(const unsigned char *chunk, size_t chunk_size,
