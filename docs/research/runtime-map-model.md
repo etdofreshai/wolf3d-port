@@ -528,3 +528,7 @@ A real `wl_step_live_combat_tick` red damage palette now reaches the SDL-free pr
 ## Cycle update: chase attack scene present descriptor
 
 Live chase movement, shooter attack damage, scene rendering, and present-frame metadata now meet in one deterministic headless path. The chase attack render hash `0x4a4c3e4f` is described with the attack-produced red palette shift.
+
+## Cycle update: player weapon fire/ammo seam
+
+Added `wl_try_player_fire_weapon`, a small deterministic attack-state helper for future live player combat. The seam validates requested weapon availability, consumes one ammo for pistol/machinegun/chaingun shots, leaves knife attacks ammo-free, records no-ammo fallback to knife, and reports unavailable weapon requests without consuming ammo. Headless tests cover chaingun ammo consumption, knife fire, empty-pistol fallback, unavailable chaingun requests, and invalid weapon rejection.

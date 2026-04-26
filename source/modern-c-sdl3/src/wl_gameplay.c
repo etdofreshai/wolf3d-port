@@ -843,6 +843,49 @@ int wl_give_player_weapon(wl_player_gameplay_state *state, wl_weapon_type weapon
     return 0;
 }
 
+int wl_try_player_fire_weapon(wl_player_gameplay_state *state,
+                              wl_weapon_type requested_weapon,
+                              wl_player_fire_result *out) {
+    if (!state || !out || requested_weapon > WL_WEAPON_CHAINGUN ||
+        state->best_weapon > WL_WEAPON_CHAINGUN ||
+        state->weapon > WL_WEAPON_CHAINGUN ||
+        state->chosen_weapon > WL_WEAPON_CHAINGUN ||
+        state->ammo < 0) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->requested_weapon = requested_weapon;
+    out->fired_weapon = state->weapon;
+    out->ammo_before = state->ammo;
+    out->ammo_after = state->ammo;
+
+    if (requested_weapon > state->best_weapon) {
+        out->unavailable = 1;
+        return 0;
+    }
+
+    state->weapon = requested_weapon;
+    state->chosen_weapon = requested_weapon;
+    out->fired_weapon = requested_weapon;
+
+    if (requested_weapon != WL_WEAPON_KNIFE) {
+        if (state->ammo <= 0) {
+            state->weapon = WL_WEAPON_KNIFE;
+            out->fired_weapon = WL_WEAPON_KNIFE;
+            out->no_ammo = 1;
+            out->ammo_after = state->ammo;
+            return 0;
+        }
+        --state->ammo;
+        out->consumed_ammo = 1;
+    }
+
+    out->fired = 1;
+    out->ammo_after = state->ammo;
+    return 0;
+}
+
 int wl_give_player_key(wl_player_gameplay_state *state, uint8_t key) {
     if (!state || key >= 32) {
         return -1;

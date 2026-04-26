@@ -987,6 +987,33 @@ static int check_gameplay_events(void) {
     CHECK(picked_up == 1);
     CHECK(state.best_weapon == WL_WEAPON_CHAINGUN);
     CHECK(state.got_gat_gun == 1);
+
+    wl_player_fire_result fire;
+    state.ammo = 2;
+    CHECK(wl_try_player_fire_weapon(&state, WL_WEAPON_CHAINGUN, &fire) == 0);
+    CHECK(fire.fired == 1);
+    CHECK(fire.consumed_ammo == 1);
+    CHECK(fire.ammo_before == 2);
+    CHECK(fire.ammo_after == 1);
+    CHECK(state.ammo == 1);
+    CHECK(state.weapon == WL_WEAPON_CHAINGUN);
+    CHECK(state.chosen_weapon == WL_WEAPON_CHAINGUN);
+    CHECK(wl_try_player_fire_weapon(&state, WL_WEAPON_KNIFE, &fire) == 0);
+    CHECK(fire.fired == 1);
+    CHECK(fire.consumed_ammo == 0);
+    CHECK(fire.ammo_after == 1);
+    CHECK(state.weapon == WL_WEAPON_KNIFE);
+    state.ammo = 0;
+    CHECK(wl_try_player_fire_weapon(&state, WL_WEAPON_PISTOL, &fire) == 0);
+    CHECK(fire.fired == 0);
+    CHECK(fire.no_ammo == 1);
+    CHECK(fire.fired_weapon == WL_WEAPON_KNIFE);
+    CHECK(state.weapon == WL_WEAPON_KNIFE);
+    state.best_weapon = WL_WEAPON_PISTOL;
+    CHECK(wl_try_player_fire_weapon(&state, WL_WEAPON_CHAINGUN, &fire) == 0);
+    CHECK(fire.unavailable == 1);
+    CHECK(wl_try_player_fire_weapon(&state, (wl_weapon_type)4, &fire) == -1);
+
     CHECK(wl_apply_player_bonus(&state, WL_BONUS_FULLHEAL, &picked_up) == 0);
     CHECK(picked_up == 1);
     CHECK(state.health == 100);
