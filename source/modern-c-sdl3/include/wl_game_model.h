@@ -413,6 +413,16 @@ typedef struct wl_door_state_summary {
     uint16_t max_position;
 } wl_door_state_summary;
 
+typedef struct wl_door_timing_summary {
+    size_t waiting_count;
+    size_t countdown_count;
+    size_t overdue_count;
+    size_t moving_with_countdown_count;
+    size_t open_with_countdown_count;
+    int32_t min_ticcount;
+    int32_t max_ticcount;
+} wl_door_timing_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -600,6 +610,8 @@ int wl_summarize_static_player_distances(const wl_game_model *model,
                                          wl_static_player_distance_summary *out);
 int wl_summarize_door_states(const wl_game_model *model,
                              wl_door_state_summary *out);
+int wl_summarize_door_timing(const wl_game_model *model,
+                             wl_door_timing_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);

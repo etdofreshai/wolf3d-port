@@ -658,3 +658,7 @@ Added `wl_summarize_static_player_distances`, a non-mutating static-object diagn
 ## Cycle update: runtime door state summary
 
 Added `wl_summarize_door_states()` as a compact non-mutating diagnostic for live door progression. It partitions door descriptors by orientation, lock state, action state, moving/partial-open state, invalid action values, and maximum door position, giving future collision/presentation orchestration a deterministic headless sanity check before mutating door state.
+
+## Cycle update: runtime door timing summary
+
+Added `wl_summarize_door_timing()` as a companion non-mutating diagnostic for live door ticcounts. It buckets waiting, positive countdown, overdue, moving-with-countdown, and open-with-countdown doors while reporting min/max ticcount bounds, giving future door progression and SDL presentation code a deterministic headless timing sanity check.

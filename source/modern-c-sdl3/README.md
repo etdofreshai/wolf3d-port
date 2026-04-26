@@ -491,3 +491,5 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Runtime door state summary
 
 `wl_summarize_door_states` provides an SDL-free live-door diagnostic for presentation and collision work, partitioning vertical/horizontal doors, locked/unlocked doors, open/closed/opening/closing actions, moving and partially-open doors, invalid action values, and maximum door position with synthetic headless coverage.
+
+`wl_summarize_door_timing` complements that state snapshot with non-mutating ticcount buckets for waiting, countdown, overdue, moving-with-countdown, and open-with-countdown doors, plus min/max ticcount bounds. This gives future door orchestration and presentation seams a deterministic way to sanity-check live timing metadata without advancing the door state.
