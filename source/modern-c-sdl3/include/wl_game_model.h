@@ -935,6 +935,10 @@ typedef struct wl_runtime_player_interaction_summary {
     uint16_t map_blocking_x;
     uint16_t map_blocking_y;
     uint16_t map_blocking_distance;
+    uint8_t map_blocking_solid_wall;
+    uint8_t map_blocking_door_marker;
+    uint8_t map_blocking_pushwall_marker;
+    uint8_t map_blocking_other_marker;
 } wl_runtime_player_interaction_summary;
 
 typedef struct wl_model_capacity_summary {
