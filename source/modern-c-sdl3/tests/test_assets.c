@@ -6210,6 +6210,21 @@ static int check_audio_wl6(const char *dir) {
     sound_channel.active = 1;
     sound_channel.sound_index = 0;
     sound_channel.priority = 1;
+    sound_channel.sample_position = 7;
+    CHECK(wl_describe_sound_channel_position_from_chunk(&sound_channel, &audio_meta,
+                                                        chunk_buf, chunk_bytes,
+                                                        &sample_position) == 0);
+    CHECK(sample_position.sample_position == 7);
+    CHECK(sample_position.current_sample == 0x84);
+    CHECK(sample_position.completed == 0);
+    sound_channel.active = 0;
+    CHECK(wl_describe_sound_channel_position_from_chunk(&sound_channel, &audio_meta,
+                                                        chunk_buf, chunk_bytes,
+                                                        &sample_position) == -1);
+
+    sound_channel.active = 1;
+    sound_channel.sound_index = 0;
+    sound_channel.priority = 1;
     sound_channel.sample_position = 6;
     CHECK(wl_advance_sound_channel_from_chunk(&sound_channel, &audio_meta,
                                               chunk_buf, chunk_bytes, 3,
@@ -6475,6 +6490,20 @@ static int check_audio_wl6(const char *dir) {
     CHECK(sample_position.sample_count == 8);
     CHECK(sample_position.current_sample == 0x2e);
     CHECK(sample_position.completed == 0);
+    sound_channel.active = 1;
+    sound_channel.sound_index = 87;
+    sound_channel.priority = 1;
+    sound_channel.sample_position = 7;
+    CHECK(wl_describe_sound_channel_position_from_chunk(&sound_channel, &audio_meta,
+                                                        chunk_buf, chunk_bytes,
+                                                        &sample_position) == 0);
+    CHECK(sample_position.sample_count == 8);
+    CHECK(sample_position.current_sample == 0x2e);
+    CHECK(sample_position.completed == 0);
+    sound_channel.active = 2;
+    CHECK(wl_describe_sound_channel_position_from_chunk(&sound_channel, &audio_meta,
+                                                        chunk_buf, chunk_bytes,
+                                                        &sample_position) == -1);
     sound_channel.active = 1;
     sound_channel.sound_index = 87;
     sound_channel.priority = 1;
