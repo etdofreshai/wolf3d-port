@@ -552,6 +552,12 @@ typedef struct wl_sound_channel_schedule_tick_result {
     uint8_t ticked;
 } wl_sound_channel_schedule_tick_result;
 
+typedef struct wl_sound_channel_schedule_advance_result {
+    wl_sound_channel_schedule_result schedule;
+    wl_sound_channel_advance_result advance;
+    uint8_t advanced;
+} wl_sound_channel_schedule_advance_result;
+
 typedef struct wl_pc_speaker_sound_metadata {
     uint32_t sample_count;
     uint8_t first_sample;
@@ -733,6 +739,13 @@ int wl_schedule_tick_sound_channel_from_chunk(
     const unsigned char *chunk, size_t chunk_size,
     uint32_t sample_delta,
     wl_sound_channel_schedule_tick_result *out);
+int wl_schedule_advance_sound_channel_from_chunk(
+    const wl_sound_channel_state *current,
+    size_t candidate_chunk,
+    const wl_audio_chunk_metadata *metadata,
+    const unsigned char *chunk, size_t chunk_size,
+    uint32_t sample_delta,
+    wl_sound_channel_schedule_advance_result *out);
 int wl_describe_sound_sample_count_from_chunk(const wl_audio_chunk_metadata *metadata,
                                              const unsigned char *chunk, size_t chunk_size,
                                              size_t *out_sample_count);

@@ -2610,6 +2610,40 @@ int wl_schedule_tick_sound_channel_from_chunk(
     return 0;
 }
 
+int wl_schedule_advance_sound_channel_from_chunk(
+    const wl_sound_channel_state *current,
+    size_t candidate_chunk,
+    const wl_audio_chunk_metadata *metadata,
+    const unsigned char *chunk, size_t chunk_size,
+    uint32_t sample_delta,
+    wl_sound_channel_schedule_advance_result *out) {
+    wl_sound_channel_schedule_result schedule;
+    wl_sound_channel_advance_result advance;
+    if (!out || !chunk || !metadata || metadata->is_empty ||
+        (metadata->kind != WL_AUDIO_CHUNK_PC_SPEAKER &&
+         metadata->kind != WL_AUDIO_CHUNK_ADLIB) ||
+        metadata->payload_size == 0 || metadata->payload_size > chunk_size) {
+        return -1;
+    }
+    if (wl_schedule_sound_channel_from_chunk(current, candidate_chunk, metadata,
+                                             &schedule) != 0) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->schedule = schedule;
+    if (schedule.held) {
+        out->advance.state = schedule.state;
+        return 0;
+    }
+    if (wl_advance_sound_channel_from_chunk(&schedule.state, metadata, chunk,
+                                            chunk_size, sample_delta, &advance) != 0) {
+        return -1;
+    }
+    out->advance = advance;
+    out->advanced = 1u;
+    return 0;
+}
+
 static int describe_sample_playback_window(size_t sample_count,
                                            int (*getter)(const unsigned char *, size_t, size_t, uint8_t *),
                                            const unsigned char *chunk, size_t chunk_size,
