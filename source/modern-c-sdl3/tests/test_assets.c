@@ -1860,6 +1860,32 @@ static int check_wl6(const char *dir) {
     CHECK(live_ai.actors_woke == 0);
     CHECK(live_ai.wake.first_woken_actor == UINT16_MAX);
     CHECK(live_ai.wake.last_woken_actor == UINT16_MAX);
+
+    wl_game_model live_ai_reverse_search_model;
+    memset(&live_ai_reverse_search_model, 0, sizeof(live_ai_reverse_search_model));
+    live_ai_reverse_search_model.actor_count = 1;
+    live_ai_reverse_search_model.actors[0].kind = WL_ACTOR_GUARD;
+    live_ai_reverse_search_model.actors[0].mode = WL_ACTOR_CHASE;
+    live_ai_reverse_search_model.actors[0].dir = WL_DIR_NONE;
+    live_ai_reverse_search_model.actors[0].tile_x = 5;
+    live_ai_reverse_search_model.actors[0].tile_y = 5;
+    live_ai_reverse_search_model.actors[0].fine_x = 0x58000u;
+    live_ai_reverse_search_model.actors[0].fine_y = 0x58000u;
+    wl_player_motion_state live_ai_reverse_search_motion = {0x58000u, 0x58000u, 5, 5};
+    CHECK(wl_step_live_actor_ai_wake_tick(&live_ai_player,
+                                          &live_ai_reverse_search_model,
+                                          empty_plane, empty_plane,
+                                          WL_MAP_PLANE_WORDS,
+                                          &live_ai_reverse_search_motion,
+                                          0, 0, 0x10000, 0, WL_DIR_EAST,
+                                          0, 0, 1, 0, 0x10000u, 1,
+                                          &live_ai) == 0);
+    CHECK(live_ai.chases_stepped == 1);
+    CHECK(live_ai.chases.tiles_stepped == 1);
+    CHECK(live_ai_reverse_search_model.actors[0].dir == WL_DIR_WEST);
+    CHECK(live_ai_reverse_search_model.actors[0].tile_x == 4);
+    CHECK(live_ai_reverse_search_model.actors[0].tile_y == 5);
+
     live_ai_model.tilemap[7 + 5 * WL_MAP_SIDE] = 1;
     CHECK(wl_step_live_actor_ai_tick(&live_ai_player, &live_ai_model,
                                      empty_plane, empty_plane,
