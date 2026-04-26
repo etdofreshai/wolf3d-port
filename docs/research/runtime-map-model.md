@@ -786,3 +786,4 @@ Added `wl_summarize_runtime_tile_edges()` as a non-mutating live tilemap boundar
 ### Runtime tile quadrant summary diagnostic
 
 Added `wl_summarize_runtime_tile_quadrants()` as a non-mutating live tilemap diagnostic that partitions solid-wall and open-floor counts across the four 32x32 map quadrants. Real WL6 model coverage cross-checks the quadrant totals against the full runtime tile summary, and synthetic coverage pins one wall/open distribution per quadrant for future spawn, renderer, and collision locality checks.
+`wl_summarize_runtime_tile_diagonals` adds a small live-tilemap diagonal diagnostic, partitioning the two corner-to-corner diagonals into solid walls, clear floor, and runtime markers. This gives spawn/camera/raycast smoke work a cheap headless guard for diagonal map-state drift without requiring callers to rescan the tilemap.

@@ -2838,6 +2838,40 @@ static int check_wl6(const char *dir) {
         CHECK(synthetic_center_summary.center_other_marker_count == 1);
         CHECK(synthetic_center_summary.center_clear_floor_count == 252);
 
+        wl_runtime_tile_diagonal_summary diagonal_summary;
+        memset(&diagonal_summary, 0xff, sizeof(diagonal_summary));
+        CHECK(wl_summarize_runtime_tile_diagonals(&model, &diagonal_summary) == 0);
+        CHECK(wl_summarize_runtime_tile_diagonals(NULL, &diagonal_summary) == -1);
+        CHECK(wl_summarize_runtime_tile_diagonals(&model, NULL) == -1);
+        CHECK(diagonal_summary.northwest_southeast_solid_wall_count +
+                  diagonal_summary.northwest_southeast_clear_floor_count +
+                  diagonal_summary.northwest_southeast_marker_count ==
+              WL_MAP_SIDE);
+        CHECK(diagonal_summary.northeast_southwest_solid_wall_count +
+                  diagonal_summary.northeast_southwest_clear_floor_count +
+                  diagonal_summary.northeast_southwest_marker_count ==
+              WL_MAP_SIDE);
+        CHECK(diagonal_summary.center_overlap_count == 0);
+
+        wl_game_model synthetic_diagonals;
+        memset(&synthetic_diagonals, 0, sizeof(synthetic_diagonals));
+        synthetic_diagonals.tilemap[((0u * WL_MAP_SIDE) + 0u)] = 1;
+        synthetic_diagonals.tilemap[((1u * WL_MAP_SIDE) + 1u)] = 0x80;
+        synthetic_diagonals.tilemap[((0u * WL_MAP_SIDE) + 63u)] = 2;
+        synthetic_diagonals.tilemap[((1u * WL_MAP_SIDE) + 62u)] = 0xc0 | 7u;
+        wl_runtime_tile_diagonal_summary synthetic_diagonal_summary;
+        CHECK(wl_summarize_runtime_tile_diagonals(&synthetic_diagonals,
+                                                  &synthetic_diagonal_summary) == 0);
+        CHECK(synthetic_diagonal_summary.northwest_southeast_solid_wall_count == 1);
+        CHECK(synthetic_diagonal_summary.northwest_southeast_marker_count == 1);
+        CHECK(synthetic_diagonal_summary.northwest_southeast_clear_floor_count ==
+              WL_MAP_SIDE - 2u);
+        CHECK(synthetic_diagonal_summary.northeast_southwest_solid_wall_count == 1);
+        CHECK(synthetic_diagonal_summary.northeast_southwest_marker_count == 1);
+        CHECK(synthetic_diagonal_summary.northeast_southwest_clear_floor_count ==
+              WL_MAP_SIDE - 2u);
+        CHECK(synthetic_diagonal_summary.center_overlap_count == 0);
+
         wl_unknown_info_summary unknown_info;
         memset(&unknown_info, 0xff, sizeof(unknown_info));
         CHECK(wl_summarize_unknown_info_tiles(&model, &unknown_info) == 0);

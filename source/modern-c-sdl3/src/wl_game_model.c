@@ -2071,6 +2071,39 @@ int wl_summarize_runtime_tile_center(const wl_game_model *model,
     return 0;
 }
 
+
+int wl_summarize_runtime_tile_diagonals(
+    const wl_game_model *model, wl_runtime_tile_diagonal_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < WL_MAP_SIDE; ++i) {
+        const uint16_t nw_se_tile = model->tilemap[map_index(i, i)];
+        if (nw_se_tile == 0u) {
+            ++out->northwest_southeast_clear_floor_count;
+        } else if (nw_se_tile <= 63u) {
+            ++out->northwest_southeast_solid_wall_count;
+        } else {
+            ++out->northwest_southeast_marker_count;
+        }
+
+        const size_t ne_sw_x = (WL_MAP_SIDE - 1u) - i;
+        const uint16_t ne_sw_tile = model->tilemap[map_index(ne_sw_x, i)];
+        if (ne_sw_tile == 0u) {
+            ++out->northeast_southwest_clear_floor_count;
+        } else if (ne_sw_tile <= 63u) {
+            ++out->northeast_southwest_solid_wall_count;
+        } else {
+            ++out->northeast_southwest_marker_count;
+        }
+    }
+
+    out->center_overlap_count = (WL_MAP_SIDE % 2u) != 0u ? 1u : 0u;
+    return 0;
+}
+
 int wl_summarize_model_capacity(const wl_game_model *model,
                                 wl_model_capacity_summary *out) {
     if (!model || !out) {
