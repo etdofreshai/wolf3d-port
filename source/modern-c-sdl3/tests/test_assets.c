@@ -4253,6 +4253,19 @@ static int check_wl6(const char *dir) {
           red_shift_palettes +
               (size_t)chase_attack_present.palette_shift_index *
                   sizeof(upload_palette));
+    unsigned char chase_attack_rgba[80u * 128u * 4u];
+    wl_texture_upload_descriptor chase_attack_rgba_upload;
+    CHECK(wl_expand_present_frame_to_rgba(&chase_attack_present,
+                                          chase_attack_rgba,
+                                          sizeof(chase_attack_rgba),
+                                          &chase_attack_rgba_upload) == 0);
+    CHECK(chase_attack_rgba_upload.format == WL_TEXTURE_UPLOAD_RGBA8888);
+    CHECK(chase_attack_rgba_upload.width == chase_attack_present.viewport_width);
+    CHECK(chase_attack_rgba_upload.height == chase_attack_present.viewport_height);
+    CHECK(chase_attack_rgba_upload.pixel_bytes == sizeof(chase_attack_rgba));
+    CHECK(chase_attack_rgba_upload.pixels == chase_attack_rgba);
+    CHECK(chase_attack_rgba_upload.palette == NULL);
+    CHECK(fnv1a_bytes(chase_attack_rgba, sizeof(chase_attack_rgba)) == 0x5483a51du);
 
     wl_game_model dog_chase_combat_model;
     memset(&dog_chase_combat_model, 0, sizeof(dog_chase_combat_model));

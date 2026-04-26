@@ -469,3 +469,7 @@ The present-frame boundary now verifies a live combat-produced red shift, select
 ## Cycle update: chase attack scene present descriptor
 
 The rendered chase attack scene now crosses the presentation boundary with red shift metadata, preserving the indexed scene hash `0x4a4c3e4f` while selecting the shifted upload palette.
+
+## Cycle update: chase attack RGBA presentation expansion
+
+The same live chase-attack present-frame descriptor now expands through the SDL-ready RGBA upload helper in headless tests. The red-shifted 80x128 frame keeps indexed scene hash `0x4a4c3e4f` and asserts RGBA hash `0x5483a51d`, giving future SDL texture uploads a deterministic gameplay-rendered frame without requiring SDL at verification time.
