@@ -514,12 +514,47 @@ static uint16_t static_type_to_sprite_index(uint16_t type) {
     return table[type];
 }
 
-static uint16_t actor_to_sprite_index(const wl_actor_desc *actor) {
+static uint16_t actor_to_sprite_index(const wl_actor_desc *actor, int spear) {
     if (!actor) {
         return UINT16_MAX;
     }
     if (actor->scene_source_override) {
         return actor->scene_source_index;
+    }
+    if (spear) {
+        switch (actor->kind) {
+        case WL_ACTOR_GUARD:
+            return (actor->mode == WL_ACTOR_PATROL || actor->mode == WL_ACTOR_CHASE) ? 62 : 54; /* SPEAR SPR_GRD_W1_1 / SPR_GRD_S_1 */
+        case WL_ACTOR_OFFICER:
+            return (actor->mode == WL_ACTOR_PATROL || actor->mode == WL_ACTOR_CHASE) ? 250 : 242; /* SPEAR SPR_OFC_W1_1 / SPR_OFC_S_1 */
+        case WL_ACTOR_SS:
+            return (actor->mode == WL_ACTOR_PATROL || actor->mode == WL_ACTOR_CHASE) ? 150 : 142; /* SPEAR SPR_SS_W1_1 / SPR_SS_S_1 */
+        case WL_ACTOR_DOG:
+            return 103; /* SPEAR SPR_DOG_W1_1 */
+        case WL_ACTOR_MUTANT:
+            return (actor->mode == WL_ACTOR_PATROL || actor->mode == WL_ACTOR_CHASE) ? 199 : 191; /* SPEAR SPR_MUT_W1_1 / SPR_MUT_S_1 */
+        case WL_ACTOR_DEAD_GUARD:
+            return 99; /* SPEAR SPR_GRD_DEAD */
+        case WL_ACTOR_BOSS:
+            switch (actor->source_tile) {
+            case 106:
+                return 377; /* SPEAR SPR_SPECTRE_W1 */
+            case 107:
+                return 385; /* SPEAR SPR_ANGEL_W1 */
+            case 125:
+                return 326; /* SPEAR SPR_TRANS_W1 */
+            case 142:
+                return 349; /* SPEAR SPR_UBER_W1 */
+            case 143:
+                return 337; /* SPEAR SPR_WILL_W1 */
+            case 161:
+                return 362; /* SPEAR SPR_DEATH_W1 */
+            default:
+                return UINT16_MAX;
+            }
+        case WL_ACTOR_GHOST:
+            return UINT16_MAX;
+        }
     }
     switch (actor->kind) {
     case WL_ACTOR_GUARD:
@@ -944,9 +979,9 @@ int wl_render_runtime_door_camera_scene_view(const wl_game_model *model,
     return 0;
 }
 
-int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_sprite_start,
-                                 wl_scene_sprite_ref *refs, size_t max_refs,
-                                 size_t *out_count) {
+static int collect_scene_sprite_refs_impl(const wl_game_model *model, uint16_t vswap_sprite_start,
+                                          wl_scene_sprite_ref *refs, size_t max_refs,
+                                          size_t *out_count, int spear) {
     if (!model || !refs || !out_count) {
         return -1;
     }
@@ -973,7 +1008,7 @@ int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_spri
     }
 
     for (size_t i = 0; i < model->actor_count; ++i) {
-        uint16_t sprite = actor_to_sprite_index(&model->actors[i]);
+        uint16_t sprite = actor_to_sprite_index(&model->actors[i], spear);
         if (sprite == UINT16_MAX) {
             continue;
         }
@@ -1019,6 +1054,21 @@ static int path_step(wl_direction dir, int *dx, int *dy) {
     default:
         return -1;
     }
+}
+
+
+int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_sprite_start,
+                                 wl_scene_sprite_ref *refs, size_t max_refs,
+                                 size_t *out_count) {
+    return collect_scene_sprite_refs_impl(model, vswap_sprite_start, refs, max_refs,
+                                          out_count, 0);
+}
+
+int wl_collect_spear_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_sprite_start,
+                                       wl_scene_sprite_ref *refs, size_t max_refs,
+                                       size_t *out_count) {
+    return collect_scene_sprite_refs_impl(model, vswap_sprite_start, refs, max_refs,
+                                          out_count, 1);
 }
 
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,

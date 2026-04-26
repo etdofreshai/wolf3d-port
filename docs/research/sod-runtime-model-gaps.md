@@ -47,3 +47,7 @@ asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame/aud
 ## Cycle update: SOD bonus pickup mapping
 
 SOD static traits for type `50` (25-ammo clip) and type `52` (Spear pickup) now feed the same gameplay pickup seam as WL6 statics: type `50` maps to `WL_BONUS_25CLIP` with ammo capped at 99, and type `52` maps to `WL_BONUS_SPEAR` / level completion. Headless regression coverage uses synthetic active SOD statics so optional SOD classification can safely drive live pickup/removal later.
+
+## Cycle update: SOD boss scene sprite refs
+
+Added `wl_collect_spear_scene_sprite_refs()` as an explicit Spear/SOD scene-ref collection seam. It preserves the existing WL6 scene-ref API while using Spear sprite ordinals for shared actors and the source-backed SOD boss/special map tiles: Spectre `106 -> SPR_SPECTRE_W1 (377)`, Angel `107 -> SPR_ANGEL_W1 (385)`, Trans `125 -> SPR_TRANS_W1 (326)`, Uber `142 -> SPR_UBER_W1 (349)`, Wilhelm `143 -> SPR_WILL_W1 (337)`, and Death Knight `161 -> SPR_DEATH_W1 (362)`. A synthetic headless regression verifies those source tiles now produce actor scene refs and that the WL6 collector still intentionally skips them.
