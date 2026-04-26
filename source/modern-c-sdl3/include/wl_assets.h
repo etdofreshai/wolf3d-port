@@ -440,6 +440,8 @@ int wl_present_frame_rgba_size(const wl_present_frame_descriptor *present,
                                size_t *out_size);
 int wl_present_frame_rgba_layout(const wl_present_frame_descriptor *present,
                                  size_t *out_pitch, size_t *out_size);
+int wl_present_frame_rgba_required_size(const wl_present_frame_descriptor *present,
+                                        size_t rgba_pitch, size_t *out_size);
 int wl_present_frame_rgba_padding(const wl_present_frame_descriptor *present,
                                   size_t rgba_pitch,
                                   size_t *out_padding_per_row,
