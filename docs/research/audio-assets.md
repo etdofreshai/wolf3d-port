@@ -12,11 +12,13 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 - `wl_get_pc_speaker_sound_sample()` decodes a bounded PC speaker sample byte by index so future SDL3/audio playback code can advance through sound data without raw offset math.
 - `wl_advance_pc_speaker_playback_cursor()` advances a PC speaker sample index by a frame/sample delta, reporting the next sample, consumed samples, and completion state for frame-to-frame sound playback.
 - `wl_describe_pc_speaker_playback_window()` summarizes a bounded PC speaker sample window from a start index and sample budget for deterministic future mixer steps.
+- `wl_describe_pc_speaker_playback_position()` maps an absolute PC speaker sample position to the current sample or completed state without advancing mutable playback state.
 - `wl_describe_adlib_sound()` validates AdLib sound chunks by the original common header plus 16-byte instrument block and exposes first/last instrument and sample bytes for future OPL playback seams.
 - `wl_get_adlib_instrument_byte()` decodes a bounded 16-byte AdLib instrument byte by index so future OPL setup code can consume operators without raw offset math.
 - `wl_get_adlib_sound_sample()` decodes a bounded AdLib sound sample byte by index so future OPL playback code can advance through sound data without raw offset math.
 - `wl_advance_adlib_playback_cursor()` advances an AdLib sample index by a frame/sample delta, reporting the next sample, consumed samples, and completion state while matching the PC speaker cursor contract for future shared mixer scheduling.
 - `wl_describe_adlib_playback_window()` summarizes a bounded AdLib sample window from a start index and sample budget for deterministic future OPL/mixer steps.
+- `wl_describe_adlib_playback_position()` maps an absolute AdLib sample position to the current sample or completed state, matching the PC speaker position descriptor contract.
 - `wl_describe_imf_music_chunk()` validates IMF music chunks by their declared byte count and summarizes command count, first/last commands, maximum and zero-delay counts, total delay ticks, and trailing AUDIOT bytes.
 - `wl_get_imf_music_command()` decodes a bounded IMF command `(register, value, delay)` by index for future AdLib playback scheduling without exposing callers to raw byte offsets.
 - `wl_describe_imf_playback_window()` summarizes deterministic IMF command emission from a start index within a tick budget for future SDL3 audio scheduling.
