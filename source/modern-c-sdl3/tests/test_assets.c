@@ -5864,6 +5864,7 @@ static int check_audio_wl6(const char *dir) {
     wl_audio_chunk_metadata audio_meta;
     wl_audio_range_summary audio_range;
     wl_sound_priority_decision priority_decision;
+    wl_sound_channel_decision channel_decision;
     wl_pc_speaker_sound_metadata pc_meta;
     wl_pc_speaker_playback_cursor pc_cursor;
     wl_adlib_sound_metadata adlib_meta;
@@ -5971,6 +5972,30 @@ static int check_audio_wl6(const char *dir) {
     CHECK(audio_meta.priority == 1);
     CHECK(audio_meta.payload_offset == 6);
     CHECK(audio_meta.payload_size == 9);
+    CHECK(wl_describe_sound_channel_decision(0, 50, 99, 0, &audio_meta,
+                                             &channel_decision) == 0);
+    CHECK(channel_decision.current_active == 0);
+    CHECK(channel_decision.current_chunk == 50);
+    CHECK(channel_decision.current_priority == 99);
+    CHECK(channel_decision.candidate_chunk == 0);
+    CHECK(channel_decision.candidate_kind == WL_AUDIO_CHUNK_PC_SPEAKER);
+    CHECK(channel_decision.candidate_priority == 1);
+    CHECK(channel_decision.should_start == 1);
+    CHECK(channel_decision.next_active == 1);
+    CHECK(channel_decision.next_chunk == 0);
+    CHECK(channel_decision.next_priority == 1);
+    CHECK(wl_describe_sound_channel_decision(1, 50, 2, 0, &audio_meta,
+                                             &channel_decision) == 0);
+    CHECK(channel_decision.should_start == 0);
+    CHECK(channel_decision.next_active == 1);
+    CHECK(channel_decision.next_chunk == 50);
+    CHECK(channel_decision.next_priority == 2);
+    CHECK(wl_describe_sound_channel_decision(2, 50, 2, 0, &audio_meta,
+                                             &channel_decision) == -1);
+    CHECK(wl_describe_sound_channel_decision(1, 50, 2, 0, NULL,
+                                             &channel_decision) == -1);
+    CHECK(wl_describe_sound_channel_decision(1, 50, 2, 0, &audio_meta,
+                                             NULL) == -1);
     CHECK(wl_describe_pc_speaker_sound(chunk_buf, chunk_bytes, &pc_meta) == 0);
     CHECK(pc_meta.sample_count == 8);
     CHECK(pc_meta.first_sample == 0x83);
@@ -6065,6 +6090,12 @@ static int check_audio_wl6(const char *dir) {
     CHECK(audio_meta.priority == 1);
     CHECK(audio_meta.payload_offset == 6);
     CHECK(audio_meta.payload_size == 35);
+    CHECK(wl_describe_sound_channel_decision(1, 50, 1, 87, &audio_meta,
+                                             &channel_decision) == 0);
+    CHECK(channel_decision.candidate_kind == WL_AUDIO_CHUNK_ADLIB);
+    CHECK(channel_decision.should_start == 1);
+    CHECK(channel_decision.next_chunk == 87);
+    CHECK(channel_decision.next_priority == 1);
     CHECK(wl_describe_adlib_sound(chunk_buf, chunk_bytes, &adlib_meta) == 0);
     CHECK(adlib_meta.sample_count == 8);
     CHECK(adlib_meta.priority == 1);
