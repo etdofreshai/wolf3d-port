@@ -2428,6 +2428,22 @@ static int check_wl6(const char *dir) {
         CHECK(actor_kind_counts[WL_ACTOR_MUTANT] == model_maps[i].mutant_count);
         CHECK(actor_kind_counts[WL_ACTOR_BOSS] == model_maps[i].boss_count);
         CHECK(actor_kind_counts[WL_ACTOR_GHOST] == model_maps[i].ghost_count);
+        size_t actor_mode_counts[WL_ACTOR_GHOST_MODE + 1] = { 321, 321, 321,
+                                                              321, 321, 321 };
+        size_t expected_mode_counts[WL_ACTOR_GHOST_MODE + 1] = { 0 };
+        for (size_t actor_i = 0; actor_i < model.actor_count; ++actor_i) {
+            CHECK((size_t)model.actors[actor_i].mode <
+                  sizeof(expected_mode_counts) / sizeof(expected_mode_counts[0]));
+            ++expected_mode_counts[model.actors[actor_i].mode];
+        }
+        CHECK(wl_count_actors_by_mode(&model, actor_mode_counts,
+                                      sizeof(actor_mode_counts) / sizeof(actor_mode_counts[0])) == 0);
+        CHECK(wl_count_actors_by_mode(&model, actor_mode_counts, WL_ACTOR_GHOST_MODE) == -1);
+        for (size_t mode_i = 0;
+             mode_i < sizeof(actor_mode_counts) / sizeof(actor_mode_counts[0]);
+             ++mode_i) {
+            CHECK(actor_mode_counts[mode_i] == expected_mode_counts[mode_i]);
+        }
         CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs,
                                            sizeof(scene_refs) / sizeof(scene_refs[0]),
                                            &scene_ref_count) == 0);

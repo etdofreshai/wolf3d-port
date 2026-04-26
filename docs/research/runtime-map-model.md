@@ -566,3 +566,7 @@ Added `wl_wake_actors_for_chase()` as a deterministic batch helper for alerting 
 ## Cycle update: live actor wake AI tick
 
 Added `wl_step_live_actor_ai_wake_tick()` as an opt-in live AI orchestration seam that runs the normal live player tick, wakes eligible shootable actors at the current player tile, then advances patrol/chase actor movement. The existing `wl_step_live_actor_ai_tick()` remains wake-free for tests that need isolated patrol/chase progression, while both paths share the same implementation and return wake diagnostics (`actors_woke`, counts, and first/last woken actor indexes). Headless coverage verifies non-ambush wake, later ambush-inclusive wake, and sentinel indexes when no additional actors wake.
+
+## Cycle update: actor mode summaries
+
+Added `wl_count_actors_by_mode` as a small runtime model summary helper alongside `wl_count_actors_by_kind`. The broader WL6 boss/secret/map coverage now validates mode histograms against model actor descriptors and covers undersized output rejection, keeping actor state-progression summaries deterministic before deeper AI/live-frame integration.
