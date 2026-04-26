@@ -2416,11 +2416,11 @@ static int check_wl6(const char *dir) {
         CHECK(model.secret_total == model_maps[i].secret_total);
         CHECK(model.path_marker_count == model_maps[i].path_marker_count);
         CHECK(model.unknown_info_tiles == 0);
-        size_t actor_kind_counts[WL_ACTOR_DEAD_GUARD + 1] = { 0 };
-        for (size_t actor_index = 0; actor_index < model.actor_count; ++actor_index) {
-            CHECK(model.actors[actor_index].kind <= WL_ACTOR_DEAD_GUARD);
-            ++actor_kind_counts[model.actors[actor_index].kind];
-        }
+        size_t actor_kind_counts[WL_ACTOR_DEAD_GUARD + 1] = { 123, 123, 123, 123,
+                                                              123, 123, 123, 123 };
+        CHECK(wl_count_actors_by_kind(&model, actor_kind_counts,
+                                      sizeof(actor_kind_counts) / sizeof(actor_kind_counts[0])) == 0);
+        CHECK(wl_count_actors_by_kind(&model, actor_kind_counts, WL_ACTOR_DEAD_GUARD) == -1);
         CHECK(actor_kind_counts[WL_ACTOR_GUARD] == model_maps[i].guard_count);
         CHECK(actor_kind_counts[WL_ACTOR_OFFICER] == model_maps[i].officer_count);
         CHECK(actor_kind_counts[WL_ACTOR_SS] == model_maps[i].ss_count);
