@@ -432,6 +432,17 @@ typedef struct wl_actor_threat_summary {
     size_t invalid_mode_count;
 } wl_actor_threat_summary;
 
+typedef struct wl_actor_attack_readiness_summary {
+    size_t ready_to_attack_count;
+    size_t not_shootable_count;
+    size_t not_active_count;
+    size_t not_facing_player_count;
+    size_t no_clear_cardinal_sight_count;
+    size_t same_tile_count;
+    size_t invalid_direction_count;
+    size_t invalid_position_count;
+} wl_actor_attack_readiness_summary;
+
 typedef struct wl_static_state_summary {
     size_t active_count;
     size_t inactive_count;
@@ -1124,6 +1135,9 @@ int wl_summarize_actor_combat_classes(const wl_game_model *model,
                                       wl_actor_combat_class_summary *out);
 int wl_summarize_actor_threats(const wl_game_model *model,
                                wl_actor_threat_summary *out);
+int wl_summarize_actor_attack_readiness(const wl_game_model *model,
+                                        uint16_t player_x, uint16_t player_y,
+                                        wl_actor_attack_readiness_summary *out);
 int wl_summarize_static_states(const wl_game_model *model,
                                wl_static_state_summary *out);
 int wl_summarize_static_source_tiles(const wl_game_model *model,

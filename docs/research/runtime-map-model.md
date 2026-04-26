@@ -800,3 +800,7 @@ Added `wl_summarize_runtime_tile_quadrants()` as a non-mutating live tilemap dia
 Added `wl_summarize_static_collisions()` as a non-mutating static collision/readiness diagnostic. It partitions valid statics into active/inactive blocking, active/inactive bonus, and active/inactive dressing buckets while separately reporting invalid coordinates, giving movement, pickup, and renderer paths a compact SDL-free check for statics that still affect collision or visible pickup state.
 
 - Player-facing run summaries now characterize the clear-floor corridor from the player to the first live tile blocker or map edge, reusing door/pushwall/wall/other buckets for headless gameplay/render preflight coverage.
+
+### Actor attack readiness diagnostic
+
+Added `wl_summarize_actor_attack_readiness()` as a small non-mutating bridge between actor state, direction, and cardinal line-of-sight. It counts shootable active actors that are facing the player with an unobstructed row/column path as ready-to-attack, while separately bucketing non-shootable actors, inactive modes, actors not facing the player, blocked/non-cardinal sight, same-tile actors, invalid directions, and invalid positions. Synthetic headless coverage pins every bucket before this logic is folded into deeper live AI attack ticks.
