@@ -2044,6 +2044,8 @@ static int check_wl6(const char *dir) {
     CHECK(use_result.dir == WL_DIR_EAST);
     CHECK(use_result.tile_before == 37);
     CHECK(use_result.tile_after == (37 | 0xc0));
+    CHECK(use_result.wall_plane_value == 0);
+    CHECK(use_result.info_plane_value == WL_PUSHABLETILE);
     CHECK(use_result.pushwall_active_before == 0);
     CHECK(use_result.pushwall_active_after == 1);
     CHECK(use_result.button_held == 1);
@@ -2322,6 +2324,7 @@ static int check_wl6(const char *dir) {
     CHECK(wl_init_player_gameplay_state(&pickup_state, 100, 3, 0, WL_EXTRA_POINTS) == 0);
     use_model.tilemap[4 + 4 * WL_MAP_SIDE] = WL_ELEVATORTILE;
     use_wall[3 + 4 * WL_MAP_SIDE] = WL_ALTELEVATORTILE;
+    use_wall[4 + 4 * WL_MAP_SIDE] = 21;
     CHECK(wl_use_player_facing(&pickup_state, &use_model, use_wall, use_info,
                                WL_MAP_PLANE_WORDS, &use_motion, WL_DIR_EAST, 0,
                                &use_result) == 0);
@@ -2329,6 +2332,8 @@ static int check_wl6(const char *dir) {
     CHECK(use_result.elevator_ok == 1);
     CHECK(use_result.tile_before == WL_ELEVATORTILE);
     CHECK(use_result.tile_after == WL_ELEVATORTILE + 1);
+    CHECK(use_result.wall_plane_value == 21);
+    CHECK(use_result.info_plane_value == 0);
     CHECK(use_result.completed == 1);
     CHECK(use_result.secret_level == 1);
     CHECK(pickup_state.play_state == WL_PLAYER_PLAY_COMPLETED);
@@ -2369,6 +2374,8 @@ static int check_wl6(const char *dir) {
     CHECK(use_result.door_action_after == WL_DOOR_CLOSED);
     CHECK(use_result.tile_before == 0x80u);
     CHECK(use_result.tile_after == 0x80u);
+    CHECK(use_result.wall_plane_value == 0);
+    CHECK(use_result.info_plane_value == 0);
     CHECK(use_model.doors[0].action == WL_DOOR_CLOSED);
     CHECK(wl_use_player_facing(&pickup_state, &use_model, use_wall, use_info,
                                WL_MAP_PLANE_WORDS, &use_motion, WL_DIR_EAST, 1,
