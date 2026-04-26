@@ -328,6 +328,16 @@ typedef struct wl_actor_spawn_occupancy_summary {
     size_t max_spawn_stack_count;
 } wl_actor_spawn_occupancy_summary;
 
+typedef struct wl_actor_spawn_delta_summary {
+    size_t at_spawn_count;
+    size_t moved_cardinal_count;
+    size_t moved_diagonal_count;
+    size_t invalid_spawn_position_count;
+    size_t invalid_current_position_count;
+    uint16_t farthest_moved_actor_index;
+    uint16_t farthest_manhattan_delta;
+} wl_actor_spawn_delta_summary;
+
 typedef struct wl_actor_collision_tile_summary {
     size_t open_tile_count;
     size_t wall_tile_count;
@@ -920,6 +930,8 @@ int wl_summarize_actor_tile_occupancy(const wl_game_model *model,
                                       wl_actor_tile_occupancy_summary *out);
 int wl_summarize_actor_spawn_occupancy(const wl_game_model *model,
                                        wl_actor_spawn_occupancy_summary *out);
+int wl_summarize_actor_spawn_deltas(const wl_game_model *model,
+                                    wl_actor_spawn_delta_summary *out);
 int wl_summarize_actor_collision_tiles(const wl_game_model *model,
                                        wl_actor_collision_tile_summary *out);
 int wl_summarize_actor_door_proximity(const wl_game_model *model,

@@ -593,3 +593,5 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 `wl_summarize_door_line_of_sight` applies the same non-mutating cardinal blocker diagnostic to runtime door descriptors. It reports clear, wall-blocked, door-blocked, same-tile, non-cardinal, and invalid door positions so door-aware AI/presentation work can sanity-check direct player-to-door visibility without advancing live door state or requiring SDL3.
 
 `wl_summarize_pushwall_line_of_sight` reports clear, wall-blocked, door-blocked, same-tile, non-cardinal, and invalid pushwall marker sight-line buckets relative to the player without mutating runtime pushwall state. Synthetic headless coverage mirrors the door line-of-sight diagnostic for future pushwall interaction/render checks.
+
+- `wl_summarize_actor_spawn_deltas` reports whether live actors remain on their spawn tile, moved along a cardinal line, moved diagonally, or carry invalid spawn/current coordinates, plus the farthest moved actor by Manhattan delta. This gives chase/patrol progression tests a compact non-mutating sanity check for spawn-to-runtime drift.
