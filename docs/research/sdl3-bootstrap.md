@@ -70,3 +70,7 @@ The SDL3 present smoke now routes a fuller two-wall WL6 atlas through the screen
 ## SDL3 sprite screenshot seam
 
 The SDL3 present smoke now routes sprite-bearing output through the screenshot seam. It decodes VSWAP sprite chunk `106`, verifies sprite hash `0x918ed728`, renders it onto a `128x64` indexed canvas with hash `0xb7087e58`, expands to RGBA hash `0x6159f78f`, and saves ignored `build/wolf-sprite-present.bmp` with size/hash `32906` / `0xbaeda862`.
+
+## Pitched RGBA presentation upload seam
+
+The SDL-free presentation helpers now include `wl_expand_present_frame_to_rgba_pitched()`, which expands a `wl_present_frame_descriptor` into caller-provided RGBA rows with an explicit destination pitch. This keeps the deterministic indexed/palette path usable for SDL surfaces or textures that expose row padding instead of requiring tightly packed `width * 4` rows. The existing tight `wl_expand_present_frame_to_rgba()` path delegates through the pitched helper, and headless tests verify padded rows preserve their sentinel bytes while visible pixels match the tight upload.
