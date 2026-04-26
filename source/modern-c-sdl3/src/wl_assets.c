@@ -2297,6 +2297,44 @@ static int describe_sample_playback_window(size_t sample_count,
     return 0;
 }
 
+
+static int advance_sample_playback_cursor(size_t sample_count,
+                                          int (*getter)(const unsigned char *, size_t, size_t, uint8_t *),
+                                          const unsigned char *chunk, size_t chunk_size,
+                                          size_t start_sample, uint32_t sample_delta,
+                                          size_t *out_sample_index, uint32_t *out_consumed,
+                                          uint8_t *out_current_sample, uint8_t *out_completed) {
+    size_t next_sample;
+    uint32_t consumed;
+    if (!getter || !chunk || !out_sample_index || !out_consumed || !out_current_sample ||
+        !out_completed || start_sample > sample_count) {
+        return -1;
+    }
+    *out_sample_index = start_sample;
+    *out_consumed = 0;
+    *out_current_sample = 0;
+    *out_completed = 0;
+    if (start_sample == sample_count) {
+        *out_completed = 1u;
+        return (sample_delta == 0u) ? 0 : -1;
+    }
+    consumed = sample_delta;
+    if ((uint64_t)start_sample + (uint64_t)consumed > (uint64_t)sample_count) {
+        consumed = (uint32_t)(sample_count - start_sample);
+    }
+    next_sample = start_sample + (size_t)consumed;
+    *out_sample_index = next_sample;
+    *out_consumed = consumed;
+    if (next_sample >= sample_count) {
+        *out_completed = 1u;
+        return 0;
+    }
+    if (getter(chunk, chunk_size, next_sample, out_current_sample) != 0) {
+        return -1;
+    }
+    return 0;
+}
+
 int wl_describe_pc_speaker_sound(const unsigned char *chunk, size_t chunk_size,
                                   wl_pc_speaker_sound_metadata *out) {
     uint32_t sample_count;
@@ -2345,37 +2383,19 @@ int wl_advance_pc_speaker_playback_cursor(const unsigned char *chunk, size_t chu
                                           size_t start_sample, uint32_t sample_delta,
                                           wl_pc_speaker_playback_cursor *out) {
     uint32_t sample_count;
-    size_t next_sample;
-    uint32_t consumed;
     const size_t payload_offset = sizeof(uint32_t) + sizeof(uint16_t);
     if (!chunk || !out || chunk_size < payload_offset) {
         return -1;
     }
     memset(out, 0, sizeof(*out));
     sample_count = read_le32(chunk);
-    if ((size_t)sample_count >= chunk_size - payload_offset || start_sample > (size_t)sample_count) {
+    if ((size_t)sample_count >= chunk_size - payload_offset) {
         return -1;
     }
-    if (start_sample == (size_t)sample_count) {
-        out->sample_index = start_sample;
-        out->completed = 1u;
-        return (sample_delta == 0u) ? 0 : -1;
-    }
-    consumed = sample_delta;
-    if ((uint64_t)start_sample + (uint64_t)consumed > (uint64_t)sample_count) {
-        consumed = (uint32_t)((size_t)sample_count - start_sample);
-    }
-    next_sample = start_sample + (size_t)consumed;
-    out->sample_index = next_sample;
-    out->samples_consumed = consumed;
-    if (next_sample >= (size_t)sample_count) {
-        out->completed = 1u;
-        return 0;
-    }
-    if (wl_get_pc_speaker_sound_sample(chunk, chunk_size, next_sample, &out->current_sample) != 0) {
-        return -1;
-    }
-    return 0;
+    return advance_sample_playback_cursor((size_t)sample_count, wl_get_pc_speaker_sound_sample,
+                                          chunk, chunk_size, start_sample, sample_delta,
+                                          &out->sample_index, &out->samples_consumed,
+                                          &out->current_sample, &out->completed);
 }
 
 int wl_describe_pc_speaker_playback_window(const unsigned char *chunk, size_t chunk_size,
@@ -2459,8 +2479,6 @@ int wl_advance_adlib_playback_cursor(const unsigned char *chunk, size_t chunk_si
                                      size_t start_sample, uint32_t sample_delta,
                                      wl_adlib_playback_cursor *out) {
     uint32_t sample_count;
-    size_t next_sample;
-    uint32_t consumed;
     const size_t common_bytes = sizeof(uint32_t) + sizeof(uint16_t);
     const size_t data_offset = common_bytes + 16u;
     if (!chunk || !out || chunk_size < data_offset) {
@@ -2468,29 +2486,13 @@ int wl_advance_adlib_playback_cursor(const unsigned char *chunk, size_t chunk_si
     }
     memset(out, 0, sizeof(*out));
     sample_count = read_le32(chunk);
-    if ((size_t)sample_count > chunk_size - data_offset || start_sample > (size_t)sample_count) {
+    if ((size_t)sample_count > chunk_size - data_offset) {
         return -1;
     }
-    if (start_sample == (size_t)sample_count) {
-        out->sample_index = start_sample;
-        out->completed = 1u;
-        return (sample_delta == 0u) ? 0 : -1;
-    }
-    consumed = sample_delta;
-    if ((uint64_t)start_sample + (uint64_t)consumed > (uint64_t)sample_count) {
-        consumed = (uint32_t)((size_t)sample_count - start_sample);
-    }
-    next_sample = start_sample + (size_t)consumed;
-    out->sample_index = next_sample;
-    out->samples_consumed = consumed;
-    if (next_sample >= (size_t)sample_count) {
-        out->completed = 1u;
-        return 0;
-    }
-    if (wl_get_adlib_sound_sample(chunk, chunk_size, next_sample, &out->current_sample) != 0) {
-        return -1;
-    }
-    return 0;
+    return advance_sample_playback_cursor((size_t)sample_count, wl_get_adlib_sound_sample,
+                                          chunk, chunk_size, start_sample, sample_delta,
+                                          &out->sample_index, &out->samples_consumed,
+                                          &out->current_sample, &out->completed);
 }
 
 int wl_describe_adlib_playback_window(const unsigned char *chunk, size_t chunk_size,
