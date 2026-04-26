@@ -467,4 +467,4 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 
 - `wl_summarize_actor_engagements` now reports both nearest and farthest active threat descriptors for headless actor-state diagnostics.
 
-- Added a headless actor motion summary seam that partitions centered actors, sub-tile offset actors, active movement remainders, and invalid actor positions for runtime state progression diagnostics.
+- Added a headless actor motion summary seam that partitions centered actors, sub-tile offset actors, active movement remainders, and invalid actor positions for runtime state progression diagnostics.- Added `wl_summarize_actor_tile_occupancy` to report occupied actor tiles, stacked actors, invalid positions, and max stack depth for headless collision/progression diagnostics.

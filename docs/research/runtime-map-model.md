@@ -607,3 +607,6 @@ The actor engagement summary now separates active chase/boss/ghost-mode threats 
 Extended `wl_actor_engagement_summary` with the farthest active threat index and Manhattan tile distance, complementing the existing nearest-threat fields. The SDL-free synthetic coverage now pins nearest/farthest threat selection and the no-threat sentinel reset, giving future AI/audio/render orchestration a compact threat-distance range without mutating actor state.
 
 - Added a headless actor motion summary seam that partitions centered actors, sub-tile offset actors, active movement remainders, and invalid actor positions for runtime state progression diagnostics.
+## Cycle update: actor tile occupancy summary
+
+Added `wl_summarize_actor_tile_occupancy` as a non-mutating runtime actor-state diagnostic. It counts occupied actor tiles, actors sharing stacked tiles, invalid positions, and the maximum stack depth so future collision/AI progression can detect overlapping actor states headlessly before mutating live actors.
