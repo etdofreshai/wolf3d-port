@@ -2872,6 +2872,40 @@ static int check_wl6(const char *dir) {
               WL_MAP_SIDE - 2u);
         CHECK(synthetic_diagonal_summary.center_overlap_count == 0);
 
+        wl_runtime_tile_axis_summary axis_summary;
+        memset(&axis_summary, 0xff, sizeof(axis_summary));
+        CHECK(wl_summarize_runtime_tile_axes(&model, &axis_summary) == 0);
+        CHECK(wl_summarize_runtime_tile_axes(NULL, &axis_summary) == -1);
+        CHECK(wl_summarize_runtime_tile_axes(&model, NULL) == -1);
+        CHECK(axis_summary.center_row_solid_wall_count +
+                  axis_summary.center_row_clear_floor_count +
+                  axis_summary.center_row_marker_count ==
+              WL_MAP_SIDE);
+        CHECK(axis_summary.center_column_solid_wall_count +
+                  axis_summary.center_column_clear_floor_count +
+                  axis_summary.center_column_marker_count ==
+              WL_MAP_SIDE);
+        CHECK(axis_summary.center_tile_overlap_count == 1);
+
+        wl_game_model synthetic_axes;
+        memset(&synthetic_axes, 0, sizeof(synthetic_axes));
+        synthetic_axes.tilemap[((32u * WL_MAP_SIDE) + 0u)] = 1;
+        synthetic_axes.tilemap[((32u * WL_MAP_SIDE) + 1u)] = 0x80;
+        synthetic_axes.tilemap[((0u * WL_MAP_SIDE) + 32u)] = 2;
+        synthetic_axes.tilemap[((1u * WL_MAP_SIDE) + 32u)] = 0xc0 | 7u;
+        synthetic_axes.tilemap[((32u * WL_MAP_SIDE) + 32u)] = 99;
+        wl_runtime_tile_axis_summary synthetic_axis_summary;
+        CHECK(wl_summarize_runtime_tile_axes(&synthetic_axes,
+                                             &synthetic_axis_summary) == 0);
+        CHECK(synthetic_axis_summary.center_row_solid_wall_count == 1);
+        CHECK(synthetic_axis_summary.center_row_marker_count == 2);
+        CHECK(synthetic_axis_summary.center_row_clear_floor_count == WL_MAP_SIDE - 3u);
+        CHECK(synthetic_axis_summary.center_column_solid_wall_count == 1);
+        CHECK(synthetic_axis_summary.center_column_marker_count == 2);
+        CHECK(synthetic_axis_summary.center_column_clear_floor_count ==
+              WL_MAP_SIDE - 3u);
+        CHECK(synthetic_axis_summary.center_tile_overlap_count == 1);
+
         wl_unknown_info_summary unknown_info;
         memset(&unknown_info, 0xff, sizeof(unknown_info));
         CHECK(wl_summarize_unknown_info_tiles(&model, &unknown_info) == 0);

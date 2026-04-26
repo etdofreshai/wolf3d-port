@@ -2104,6 +2104,38 @@ int wl_summarize_runtime_tile_diagonals(
     return 0;
 }
 
+int wl_summarize_runtime_tile_axes(const wl_game_model *model,
+                                   wl_runtime_tile_axis_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    const size_t center = WL_MAP_SIDE / 2u;
+    for (size_t i = 0; i < WL_MAP_SIDE; ++i) {
+        const uint16_t row_tile = model->tilemap[map_index(i, center)];
+        if (row_tile == 0u) {
+            ++out->center_row_clear_floor_count;
+        } else if (row_tile <= 63u) {
+            ++out->center_row_solid_wall_count;
+        } else {
+            ++out->center_row_marker_count;
+        }
+
+        const uint16_t column_tile = model->tilemap[map_index(center, i)];
+        if (column_tile == 0u) {
+            ++out->center_column_clear_floor_count;
+        } else if (column_tile <= 63u) {
+            ++out->center_column_solid_wall_count;
+        } else {
+            ++out->center_column_marker_count;
+        }
+    }
+
+    out->center_tile_overlap_count = 1u;
+    return 0;
+}
+
 int wl_summarize_model_capacity(const wl_game_model *model,
                                 wl_model_capacity_summary *out) {
     if (!model || !out) {
