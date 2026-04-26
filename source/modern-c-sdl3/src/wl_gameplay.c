@@ -1856,9 +1856,11 @@ int wl_step_live_player_fire_tick(wl_player_gameplay_state *state,
         return -1;
     }
     if (fire_button) {
-        if (wl_try_player_fire_weapon(state, requested_weapon, &out->fire) != 0) {
+        if (wl_start_player_fire_attack(state, requested_weapon,
+                                        &out->fire_attack) != 0) {
             return -1;
         }
+        out->fire = out->fire_attack.fire;
         out->fire_attempted = 1;
     }
     return 0;

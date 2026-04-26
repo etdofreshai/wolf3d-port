@@ -1847,9 +1847,14 @@ static int check_wl6(const char *dir) {
     CHECK(live_fire_tick.fire.consumed_ammo == 1);
     CHECK(live_fire_tick.fire.ammo_before == 3);
     CHECK(live_fire_tick.fire.ammo_after == 2);
+    CHECK(live_fire_tick.fire_attack.attack_started == 1);
+    CHECK(live_fire_tick.fire_attack.attack_frame_before == 0);
+    CHECK(live_fire_tick.fire_attack.attack_frame_after == 3);
     CHECK(live_fire_tick.live.palette.kind == WL_PALETTE_SHIFT_NONE);
     CHECK(pickup_state.weapon == WL_WEAPON_MACHINEGUN);
+    CHECK(pickup_state.attack_frame == 3);
     CHECK(pickup_state.ammo == 2);
+    pickup_state.attack_frame = 7;
     pickup_state.ammo = 0;
     CHECK(wl_step_live_player_fire_tick(&pickup_state, &live_tick_pickup_model,
                                         use_wall, use_info, WL_MAP_PLANE_WORDS,
@@ -1860,7 +1865,11 @@ static int check_wl6(const char *dir) {
     CHECK(live_fire_tick.fire_attempted == 1);
     CHECK(live_fire_tick.fire.no_ammo == 1);
     CHECK(live_fire_tick.fire.fired_weapon == WL_WEAPON_KNIFE);
+    CHECK(live_fire_tick.fire_attack.attack_started == 0);
+    CHECK(live_fire_tick.fire_attack.attack_frame_before == 6);
+    CHECK(live_fire_tick.fire_attack.attack_frame_after == 6);
     CHECK(pickup_state.weapon == WL_WEAPON_KNIFE);
+    CHECK(pickup_state.attack_frame == 6);
     CHECK(wl_step_live_player_fire_tick(&pickup_state, &live_tick_pickup_model,
                                         use_wall, use_info, WL_MAP_PLANE_WORDS,
                                         &live_tick_motion, 0, 0, 0x10000, 0,
@@ -1869,6 +1878,7 @@ static int check_wl6(const char *dir) {
                                         &live_fire_tick) == 0);
     CHECK(live_fire_tick.fire_attempted == 0);
     CHECK(live_fire_tick.fire.fired == 0);
+    CHECK(live_fire_tick.fire_attack.attack_started == 0);
 
     memset(use_info, 0, sizeof(use_info));
     memset(&use_model, 0, sizeof(use_model));
