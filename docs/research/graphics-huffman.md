@@ -477,3 +477,7 @@ The same live chase-attack present-frame descriptor now expands through the SDL-
 ## Cycle update: presentation viewport guard
 
 The SDL-ready RGBA expansion helper now rejects present-frame descriptors whose logical viewport dimensions drift from the underlying upload texture dimensions. Headless tests cover both width and height mismatches so future SDL presentation code cannot silently upload a frame with inconsistent viewport metadata.
+
+## Cycle update: present-frame RGBA size preflight
+
+Presentation descriptors now expose `wl_present_frame_rgba_size()` so future SDL3 callers can validate descriptor consistency and allocate the exact RGBA upload buffer before expansion. Headless tests cover valid size calculation, invalid descriptors, and undersized output buffers without requiring SDL.

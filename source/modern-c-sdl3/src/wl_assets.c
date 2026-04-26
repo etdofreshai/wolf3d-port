@@ -690,10 +690,10 @@ int wl_describe_present_frame(const wl_indexed_surface *surface,
     return 0;
 }
 
-int wl_expand_present_frame_to_rgba(const wl_present_frame_descriptor *present,
-                                    unsigned char *rgba, size_t rgba_size,
-                                    wl_texture_upload_descriptor *out) {
-    if (!present || !rgba || present->texture.format != WL_TEXTURE_UPLOAD_INDEXED8_RGB_PALETTE ||
+int wl_present_frame_rgba_size(const wl_present_frame_descriptor *present,
+                               size_t *out_size) {
+    if (!present || !out_size ||
+        present->texture.format != WL_TEXTURE_UPLOAD_INDEXED8_RGB_PALETTE ||
         !present->texture.pixels || !present->texture.palette ||
         present->texture.width == 0 || present->texture.height == 0 ||
         present->viewport_width != present->texture.width ||
@@ -702,6 +702,23 @@ int wl_expand_present_frame_to_rgba(const wl_present_frame_descriptor *present,
         present->texture.pixel_bytes <
             (size_t)present->texture.pitch * (size_t)present->texture.height ||
         present->texture.palette_entries < 256u) {
+        return -1;
+    }
+
+    const size_t pixels = (size_t)present->texture.width * (size_t)present->texture.height;
+    if (pixels > SIZE_MAX / 4u) {
+        return -1;
+    }
+    *out_size = pixels * 4u;
+    return 0;
+}
+
+int wl_expand_present_frame_to_rgba(const wl_present_frame_descriptor *present,
+                                    unsigned char *rgba, size_t rgba_size,
+                                    wl_texture_upload_descriptor *out) {
+    size_t required = 0;
+    if (!rgba || wl_present_frame_rgba_size(present, &required) != 0 ||
+        rgba_size < required) {
         return -1;
     }
 
