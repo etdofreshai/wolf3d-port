@@ -1,5 +1,7 @@
 # Autopilot Supervisor
 
+For reusable/non-Wolf3D projects, see `docs/PROJECT_AUTOPILOT.md` and `scripts/project_autopilot_supervisor.py`. That generic runner accepts `--project-name`, `--project-slug`, `--project-goal`, markers, context files, protected paths, and verification focus so the same long-running autopilot pattern can be reused for projects like ETL.
+
 `scripts/wolf3d_autopilot_supervisor.py` is the repo-local headless Linux loop runner.
 
 It is intentionally simple:
