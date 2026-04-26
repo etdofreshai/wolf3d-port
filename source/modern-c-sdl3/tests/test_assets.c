@@ -3237,6 +3237,34 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_static_sources.min_source_tile == 0);
     CHECK(synthetic_static_sources.max_source_tile == 0);
 
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.static_count = 5;
+    chase_summary_model.statics[0].x = 2;
+    chase_summary_model.statics[0].y = 3;
+    chase_summary_model.statics[1].x = 2;
+    chase_summary_model.statics[1].y = 3;
+    chase_summary_model.statics[2].x = 4;
+    chase_summary_model.statics[2].y = 5;
+    chase_summary_model.statics[3].x = 2;
+    chase_summary_model.statics[3].y = 3;
+    chase_summary_model.statics[4].x = WL_MAP_SIDE;
+    chase_summary_model.statics[4].y = 1;
+    wl_static_tile_occupancy_summary synthetic_static_occupancy;
+    CHECK(wl_summarize_static_tile_occupancy(&chase_summary_model,
+                                             &synthetic_static_occupancy) == 0);
+    CHECK(wl_summarize_static_tile_occupancy(NULL, &synthetic_static_occupancy) == -1);
+    CHECK(wl_summarize_static_tile_occupancy(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_static_occupancy.occupied_tile_count == 2);
+    CHECK(synthetic_static_occupancy.stacked_static_count == 3);
+    CHECK(synthetic_static_occupancy.invalid_position_count == 1);
+    CHECK(synthetic_static_occupancy.max_stack_depth == 3);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    CHECK(wl_summarize_static_tile_occupancy(&chase_summary_model,
+                                             &synthetic_static_occupancy) == 0);
+    CHECK(synthetic_static_occupancy.occupied_tile_count == 0);
+    CHECK(synthetic_static_occupancy.max_stack_depth == 0);
+
     chase_summary_model.static_count = 4;
     chase_summary_model.statics[0].active = 1;
     chase_summary_model.statics[1].active = 1;

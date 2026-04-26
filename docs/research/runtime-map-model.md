@@ -655,6 +655,8 @@ Added `wl_summarize_static_states`, a non-mutating runtime static diagnostic for
 
 Added `wl_summarize_static_source_tiles`, a compact static-classification diagnostic matching the existing actor source-tile summary shape. It reports total statics, unique source-tile ids, zero-source placeholders, and min/max source tiles without mutating runtime state, giving SOD/WL6 static classification and scene-ref work a cheap pre-render sanity check. Synthetic headless tests cover duplicates, zero source tiles, empty models, and null-argument rejection.
 
+Added `wl_summarize_static_tile_occupancy`, mirroring the actor tile-occupancy diagnostic for static descriptors. It reports occupied static tiles, stacked static descriptors, invalid coordinates, and maximum stack depth so pickup/render collision seams can spot overlapping statics before mutating active state. Synthetic headless coverage pins stacked, singleton, invalid, and empty-model behavior.
+
 ## Cycle update: runtime static/player distance summary
 
 Added `wl_summarize_static_player_distances`, a non-mutating static-object diagnostic that mirrors the actor/player distance seam for pickup and render preparation. It reports nearest/farthest static descriptors by tile Manhattan distance, invalid static coordinates, and inactive statics skipped when callers request active-only coverage. Synthetic headless tests cover all result fields, null/invalid-player rejection, active-only filtering, and the no-considered-static sentinel case.

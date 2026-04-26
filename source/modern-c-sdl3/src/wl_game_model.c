@@ -2436,6 +2436,51 @@ int wl_summarize_static_source_tiles(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_static_tile_occupancy(const wl_game_model *model,
+                                       wl_static_tile_occupancy_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->static_count; ++i) {
+        const wl_static_desc *stat = &model->statics[i];
+        if (stat->x >= WL_MAP_SIDE || stat->y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+
+        uint16_t depth = 1;
+        int first_on_tile = 1;
+        for (size_t j = 0; j < model->static_count; ++j) {
+            if (i == j) {
+                continue;
+            }
+            const wl_static_desc *other = &model->statics[j];
+            if (other->x >= WL_MAP_SIDE || other->y >= WL_MAP_SIDE) {
+                continue;
+            }
+            if (other->x == stat->x && other->y == stat->y) {
+                ++depth;
+                if (j < i) {
+                    first_on_tile = 0;
+                }
+            }
+        }
+
+        if (first_on_tile) {
+            ++out->occupied_tile_count;
+            if (depth > out->max_stack_depth) {
+                out->max_stack_depth = depth;
+            }
+        }
+        if (depth > 1) {
+            ++out->stacked_static_count;
+        }
+    }
+    return 0;
+}
+
 
 static uint16_t tile_manhattan_distance(uint16_t x, uint16_t y,
                                         uint16_t player_x,

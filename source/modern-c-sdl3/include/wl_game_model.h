@@ -400,6 +400,13 @@ typedef struct wl_static_source_tile_summary {
     uint16_t max_source_tile;
 } wl_static_source_tile_summary;
 
+typedef struct wl_static_tile_occupancy_summary {
+    size_t occupied_tile_count;
+    size_t stacked_static_count;
+    size_t invalid_position_count;
+    uint16_t max_stack_depth;
+} wl_static_tile_occupancy_summary;
+
 typedef struct wl_static_player_distance_summary {
     size_t considered_count;
     size_t inactive_count;
@@ -665,6 +672,8 @@ int wl_summarize_static_states(const wl_game_model *model,
                                wl_static_state_summary *out);
 int wl_summarize_static_source_tiles(const wl_game_model *model,
                                      wl_static_source_tile_summary *out);
+int wl_summarize_static_tile_occupancy(const wl_game_model *model,
+                                       wl_static_tile_occupancy_summary *out);
 int wl_summarize_static_player_distances(const wl_game_model *model,
                                          uint16_t player_x, uint16_t player_y,
                                          int active_only,
