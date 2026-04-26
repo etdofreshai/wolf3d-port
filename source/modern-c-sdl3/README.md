@@ -479,7 +479,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 - Runtime model diagnostics include actor door-proximity summaries for actors on door tiles, door-adjacent marker tiles, away from doors, invalid positions, and unique touched door indices before live door/AI collision mutation.
 - Runtime model diagnostics include actor combat-class summaries for infantry, dog, boss, ghost, corpse, shootable, kill-credit, noncombat, and invalid-kind buckets before live combat/death/drop mutation.
 
-- `wl_summarize_actor_threats` partitions shootable actors into immediate, latent, ambush-latent, and inert threat buckets while counting non-shootable actors, giving live AI/combat work a small SDL-free state sanity check.
+- `wl_summarize_actor_threats` partitions shootable actors into immediate, latent, ambush-latent, and inert threat buckets while counting non-shootable actors and flagging unknown shootable actor modes, giving live AI/combat work a small SDL-free state sanity check.
 
 ## Runtime static state summary
 
