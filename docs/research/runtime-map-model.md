@@ -742,3 +742,7 @@ Added `wl_summarize_pushwall_motion_path()` as a non-mutating diagnostic for the
 ## Cycle update: unknown info-tile summary
 
 Added `wl_summarize_unknown_info_tiles()` as a compact non-mutating diagnostic for runtime-model classification gaps. It copies the recorded unknown info-plane count/hash plus first/last unknown tile coordinates and exposes a boolean presence flag, so full-map sweeps and future boss/SOD classification work can report exact gap metadata without reading merge-hot autopilot state.
+
+## Cycle update: runtime door tile occupancy summary
+
+Added `wl_summarize_door_tile_occupancy()` as a non-mutating door placement diagnostic. It counts total door descriptors, unique valid door-center tiles, duplicate door centers, and invalid coordinates, giving future door collision/close-door work a deterministic SDL-free sanity check before mutating live door state.

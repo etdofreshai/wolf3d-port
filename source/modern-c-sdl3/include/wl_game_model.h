@@ -513,6 +513,13 @@ typedef struct wl_door_source_tile_summary {
     uint16_t max_source_tile;
 } wl_door_source_tile_summary;
 
+typedef struct wl_door_tile_occupancy_summary {
+    size_t door_count;
+    size_t unique_tile_count;
+    size_t duplicate_tile_count;
+    size_t invalid_position_count;
+} wl_door_tile_occupancy_summary;
+
 typedef struct wl_door_area_connection_summary {
     size_t door_count;
     size_t connection_count;
@@ -912,6 +919,8 @@ int wl_summarize_door_locks(const wl_game_model *model,
                             wl_door_lock_summary *out);
 int wl_summarize_door_source_tiles(const wl_game_model *model,
                                    wl_door_source_tile_summary *out);
+int wl_summarize_door_tile_occupancy(const wl_game_model *model,
+                                     wl_door_tile_occupancy_summary *out);
 int wl_summarize_door_area_connections(
     const wl_game_model *model, wl_door_area_connection_summary *out);
 int wl_summarize_door_area_matrix(

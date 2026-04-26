@@ -3680,6 +3680,36 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_door_sources.max_source_tile == 0);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.door_count = 5;
+    chase_summary_model.doors[0].x = 4;
+    chase_summary_model.doors[0].y = 5;
+    chase_summary_model.doors[1].x = 4;
+    chase_summary_model.doors[1].y = 5;
+    chase_summary_model.doors[2].x = 5;
+    chase_summary_model.doors[2].y = 5;
+    chase_summary_model.doors[3].x = WL_MAP_SIDE;
+    chase_summary_model.doors[3].y = 5;
+    chase_summary_model.doors[4].x = 5;
+    chase_summary_model.doors[4].y = 5;
+    wl_door_tile_occupancy_summary synthetic_door_occupancy;
+    CHECK(wl_summarize_door_tile_occupancy(&chase_summary_model,
+                                           &synthetic_door_occupancy) == 0);
+    CHECK(wl_summarize_door_tile_occupancy(NULL, &synthetic_door_occupancy) == -1);
+    CHECK(wl_summarize_door_tile_occupancy(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_door_occupancy.door_count == 5);
+    CHECK(synthetic_door_occupancy.unique_tile_count == 2);
+    CHECK(synthetic_door_occupancy.duplicate_tile_count == 2);
+    CHECK(synthetic_door_occupancy.invalid_position_count == 1);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    CHECK(wl_summarize_door_tile_occupancy(&chase_summary_model,
+                                           &synthetic_door_occupancy) == 0);
+    CHECK(synthetic_door_occupancy.door_count == 0);
+    CHECK(synthetic_door_occupancy.unique_tile_count == 0);
+    CHECK(synthetic_door_occupancy.duplicate_tile_count == 0);
+    CHECK(synthetic_door_occupancy.invalid_position_count == 0);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.door_count = 6;
     chase_summary_model.doors[0].area1 = 2;
     chase_summary_model.doors[0].area2 = 3;

@@ -3356,6 +3356,39 @@ int wl_summarize_door_source_tiles(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_door_tile_occupancy(const wl_game_model *model,
+                                     wl_door_tile_occupancy_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->door_count = model->door_count;
+    for (size_t i = 0; i < model->door_count; ++i) {
+        const wl_door_desc *door = &model->doors[i];
+        if (door->x >= WL_MAP_SIDE || door->y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+
+        int seen = 0;
+        for (size_t j = 0; j < i; ++j) {
+            const wl_door_desc *prior = &model->doors[j];
+            if (prior->x < WL_MAP_SIDE && prior->y < WL_MAP_SIDE &&
+                prior->x == door->x && prior->y == door->y) {
+                seen = 1;
+                break;
+            }
+        }
+        if (seen) {
+            ++out->duplicate_tile_count;
+        } else {
+            ++out->unique_tile_count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_door_area_connections(
     const wl_game_model *model, wl_door_area_connection_summary *out) {
     if (!model || !out) {
