@@ -813,3 +813,7 @@ Added `wl_summarize_actor_attack_readiness()` as a small non-mutating bridge bet
 ## Cycle update: actor attack readiness action buckets
 
 Extended `wl_summarize_actor_attack_readiness()` with ready melee-vs-ranged buckets. Actors that pass the existing active, facing, and clear cardinal sight checks still increment `ready_to_attack_count`, and now additionally report `ready_bite_count` for dog melee attacks or `ready_shoot_count` for ranged attackers. Synthetic headless coverage pins the dog bite bucket so future live AI attack presentation can distinguish immediate bite threats from gunfire without reclassifying actor kinds at the call site.
+
+## Cycle update: actor attack readiness sight-axis buckets
+
+Extended `wl_summarize_actor_attack_readiness()` with ready horizontal-vs-vertical line-of-sight buckets. Actors that pass the existing active, facing, clear-cardinal-sight checks still increment the aggregate ready count and melee/ranged action buckets, and now also report whether the immediate attack lane is same-row or same-column. Synthetic headless coverage pins one ready dog bite on a horizontal lane and one ready ranged shooter on a vertical lane before deeper live attack presentation uses the diagnostic.

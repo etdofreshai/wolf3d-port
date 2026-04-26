@@ -4192,7 +4192,7 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_threats.invalid_mode_count == 1);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
-    chase_summary_model.actor_count = 8;
+    chase_summary_model.actor_count = 9;
     for (size_t i = 0; i < chase_summary_model.actor_count; ++i) {
         chase_summary_model.actors[i].shootable = 1;
         chase_summary_model.actors[i].mode = WL_ACTOR_CHASE;
@@ -4218,6 +4218,10 @@ static int check_wl6(const char *dir) {
     chase_summary_model.actors[6].dir = WL_DIR_EAST;
     chase_summary_model.actors[7].tile_x = WL_MAP_SIDE;
     chase_summary_model.actors[7].tile_y = 5;
+    chase_summary_model.actors[8].kind = WL_ACTOR_GUARD;
+    chase_summary_model.actors[8].tile_x = 8;
+    chase_summary_model.actors[8].tile_y = 2;
+    chase_summary_model.actors[8].dir = WL_DIR_SOUTH;
     wl_actor_attack_readiness_summary synthetic_attack_ready;
     CHECK(wl_summarize_actor_attack_readiness(&chase_summary_model, 8, 5,
                                               &synthetic_attack_ready) == 0);
@@ -4227,9 +4231,11 @@ static int check_wl6(const char *dir) {
                                               &synthetic_attack_ready) == -1);
     CHECK(wl_summarize_actor_attack_readiness(&chase_summary_model, 8, 5,
                                               NULL) == -1);
-    CHECK(synthetic_attack_ready.ready_to_attack_count == 1);
+    CHECK(synthetic_attack_ready.ready_to_attack_count == 2);
     CHECK(synthetic_attack_ready.ready_bite_count == 1);
-    CHECK(synthetic_attack_ready.ready_shoot_count == 0);
+    CHECK(synthetic_attack_ready.ready_shoot_count == 1);
+    CHECK(synthetic_attack_ready.ready_horizontal_sight_count == 1);
+    CHECK(synthetic_attack_ready.ready_vertical_sight_count == 1);
     CHECK(synthetic_attack_ready.not_shootable_count == 1);
     CHECK(synthetic_attack_ready.not_active_count == 1);
     CHECK(synthetic_attack_ready.not_facing_player_count == 1);
