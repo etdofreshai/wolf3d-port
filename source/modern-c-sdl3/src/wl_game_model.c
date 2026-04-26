@@ -1891,6 +1891,7 @@ int wl_summarize_actor_motion(const wl_game_model *model,
     }
 
     memset(out, 0, sizeof(*out));
+    out->farthest_offset_actor_index = UINT16_MAX;
     for (size_t i = 0; i < model->actor_count; ++i) {
         const wl_actor_desc *actor = &model->actors[i];
         if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
@@ -1906,9 +1907,26 @@ int wl_summarize_actor_motion(const wl_game_model *model,
         if (is_centered) {
             ++out->centered_count;
         } else {
+            const uint32_t dx = actor->fine_x > centered_x ?
+                                    actor->fine_x - centered_x : centered_x - actor->fine_x;
+            const uint32_t dy = actor->fine_y > centered_y ?
+                                    actor->fine_y - centered_y : centered_y - actor->fine_y;
+            const uint32_t axis_offset = dx > dy ? dx : dy;
             ++out->offset_count;
+            if (out->farthest_offset_actor_index == UINT16_MAX ||
+                axis_offset > out->largest_axis_offset) {
+                out->farthest_offset_actor_index = (uint16_t)i;
+                out->largest_axis_offset = axis_offset;
+            }
         }
         if (actor->patrol_remainder != 0u) {
+            if (out->active_remainder_count == 0u ||
+                actor->patrol_remainder < out->min_active_remainder) {
+                out->min_active_remainder = actor->patrol_remainder;
+            }
+            if (actor->patrol_remainder > out->max_active_remainder) {
+                out->max_active_remainder = actor->patrol_remainder;
+            }
             ++out->active_remainder_count;
         }
     }
