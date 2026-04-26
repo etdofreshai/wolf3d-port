@@ -392,6 +392,14 @@ typedef struct wl_static_state_summary {
     size_t active_blocking_count;
 } wl_static_state_summary;
 
+typedef struct wl_static_source_tile_summary {
+    size_t static_count;
+    size_t unique_source_tile_count;
+    size_t zero_source_tile_count;
+    uint16_t min_source_tile;
+    uint16_t max_source_tile;
+} wl_static_source_tile_summary;
+
 typedef struct wl_static_player_distance_summary {
     size_t considered_count;
     size_t inactive_count;
@@ -655,6 +663,8 @@ int wl_summarize_actor_threats(const wl_game_model *model,
                                wl_actor_threat_summary *out);
 int wl_summarize_static_states(const wl_game_model *model,
                                wl_static_state_summary *out);
+int wl_summarize_static_source_tiles(const wl_game_model *model,
+                                     wl_static_source_tile_summary *out);
 int wl_summarize_static_player_distances(const wl_game_model *model,
                                          uint16_t player_x, uint16_t player_y,
                                          int active_only,

@@ -651,6 +651,10 @@ Added `wl_summarize_actor_threats()` as a compact non-mutating actor-state diagn
 
 Added `wl_summarize_static_states`, a non-mutating runtime static diagnostic for live pickup/render orchestration. It reports active vs inactive statics, blocking statics, bonus statics, treasure statics, and the active subsets that still affect collision or pickup/render paths. Synthetic headless tests cover active/inactive blocking and bonus/treasure buckets plus null-argument rejection.
 
+## Cycle update: runtime static source-tile summary
+
+Added `wl_summarize_static_source_tiles`, a compact static-classification diagnostic matching the existing actor source-tile summary shape. It reports total statics, unique source-tile ids, zero-source placeholders, and min/max source tiles without mutating runtime state, giving SOD/WL6 static classification and scene-ref work a cheap pre-render sanity check. Synthetic headless tests cover duplicates, zero source tiles, empty models, and null-argument rejection.
+
 ## Cycle update: runtime static/player distance summary
 
 Added `wl_summarize_static_player_distances`, a non-mutating static-object diagnostic that mirrors the actor/player distance seam for pickup and render preparation. It reports nearest/farthest static descriptors by tile Manhattan distance, invalid static coordinates, and inactive statics skipped when callers request active-only coverage. Synthetic headless tests cover all result fields, null/invalid-player rejection, active-only filtering, and the no-considered-static sentinel case.

@@ -3214,6 +3214,35 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_static_states.active_bonus_count == 1);
     CHECK(synthetic_static_states.active_blocking_count == 1);
 
+    chase_summary_model.statics[0].source_tile = 0;
+    chase_summary_model.statics[1].source_tile = 29;
+    chase_summary_model.statics[2].source_tile = 29;
+    chase_summary_model.statics[3].source_tile = 124;
+    wl_static_source_tile_summary synthetic_static_sources;
+    CHECK(wl_summarize_static_source_tiles(&chase_summary_model,
+                                           &synthetic_static_sources) == 0);
+    CHECK(wl_summarize_static_source_tiles(NULL, &synthetic_static_sources) == -1);
+    CHECK(wl_summarize_static_source_tiles(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_static_sources.static_count == 4);
+    CHECK(synthetic_static_sources.unique_source_tile_count == 3);
+    CHECK(synthetic_static_sources.zero_source_tile_count == 1);
+    CHECK(synthetic_static_sources.min_source_tile == 0);
+    CHECK(synthetic_static_sources.max_source_tile == 124);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    CHECK(wl_summarize_static_source_tiles(&chase_summary_model,
+                                           &synthetic_static_sources) == 0);
+    CHECK(synthetic_static_sources.static_count == 0);
+    CHECK(synthetic_static_sources.unique_source_tile_count == 0);
+    CHECK(synthetic_static_sources.min_source_tile == 0);
+    CHECK(synthetic_static_sources.max_source_tile == 0);
+
+    chase_summary_model.static_count = 4;
+    chase_summary_model.statics[0].active = 1;
+    chase_summary_model.statics[1].active = 1;
+    chase_summary_model.statics[2].active = 0;
+    chase_summary_model.statics[3].active = 0;
+
     chase_summary_model.statics[0].x = 10;
     chase_summary_model.statics[0].y = 10;
     chase_summary_model.statics[1].x = 8;
