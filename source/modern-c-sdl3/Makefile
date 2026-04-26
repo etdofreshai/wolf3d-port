@@ -33,6 +33,7 @@ $(TEST_ASSETS): src/wl_assets.c src/wl_map_semantics.c src/wl_game_model.c src/w
 
 test: $(TEST_ASSETS)
 	cd ../.. && source/modern-c-sdl3/$(TEST_ASSETS)
+	$(MAKE) test-sdl3
 
 ifeq ($(HAVE_SDL3),yes)
 $(TEST_SDL3): tests/test_sdl3_smoke.c | $(BUILD_DIR)
