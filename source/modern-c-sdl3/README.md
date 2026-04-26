@@ -574,3 +574,7 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 ## Runtime unknown info-tile summary
 
 `wl_summarize_unknown_info_tiles()` exposes the runtime model's recorded unknown info-plane classification metadata as a small SDL-free diagnostic: count, hash, first/last tile coordinates, and a presence flag. This keeps future boss/SOD classification sweeps testable without depending on autopilot state files.
+
+## Runtime door tile occupancy summary
+
+`wl_summarize_door_tile_occupancy` reports total, unique, duplicate, and invalid door descriptor positions without mutating runtime state. This mirrors the static/path-marker/pushwall occupancy diagnostics and gives future door collision or close-door logic a deterministic headless check for overlapping or out-of-bounds door centers.
