@@ -662,3 +662,7 @@ Added `wl_summarize_door_states()` as a compact non-mutating diagnostic for live
 ## Cycle update: runtime door timing summary
 
 Added `wl_summarize_door_timing()` as a companion non-mutating diagnostic for live door ticcounts. It buckets waiting, positive countdown, overdue, moving-with-countdown, and open-with-countdown doors while reporting min/max ticcount bounds, giving future door progression and SDL presentation code a deterministic headless timing sanity check.
+
+## Cycle update: runtime pushwall state summary
+
+Added `wl_summarize_pushwall_state()` as a non-mutating diagnostic for pushwall markers and active moving-pushwall metadata. It reports marker direction buckets, invalid marker coordinates, active motion tile/state/pos, and whether the active motion references an in-range marker and map coordinate. Synthetic headless tests cover direction buckets, invalid markers, valid active motion, and stale active-motion references without requiring SDL.

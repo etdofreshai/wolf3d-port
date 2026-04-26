@@ -2574,6 +2574,53 @@ int wl_summarize_door_player_distances(const wl_game_model *model,
     return 0;
 }
 
+
+int wl_summarize_pushwall_state(const wl_game_model *model,
+                                wl_pushwall_state_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->marker_count = model->pushwall_count;
+    for (size_t i = 0; i < model->pushwall_count; ++i) {
+        const wl_marker_desc *marker = &model->pushwalls[i];
+        if (marker->x >= WL_MAP_SIDE || marker->y >= WL_MAP_SIDE) {
+            ++out->invalid_marker_position_count;
+        }
+        switch (marker->dir) {
+        case WL_DIR_NORTH:
+            ++out->north_count;
+            break;
+        case WL_DIR_EAST:
+            ++out->east_count;
+            break;
+        case WL_DIR_SOUTH:
+            ++out->south_count;
+            break;
+        case WL_DIR_WEST:
+            ++out->west_count;
+            break;
+        default:
+            ++out->invalid_direction_count;
+            break;
+        }
+    }
+
+    out->motion_active = model->pushwall_motion.active ? 1u : 0u;
+    out->motion_tile = model->pushwall_motion.tile;
+    out->motion_state = model->pushwall_motion.state;
+    out->motion_pos = model->pushwall_motion.pos;
+    if (model->pushwall_motion.active) {
+        out->motion_marker_valid =
+            model->pushwall_motion.marker_index < model->pushwall_count ? 1u : 0u;
+        out->motion_position_valid =
+            (model->pushwall_motion.x < WL_MAP_SIDE &&
+             model->pushwall_motion.y < WL_MAP_SIDE) ? 1u : 0u;
+    }
+    return 0;
+}
+
 int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
                             uint16_t player_x, uint16_t player_y,
                             int search_forward, wl_actor_wake_result *out) {
