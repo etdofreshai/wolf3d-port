@@ -598,4 +598,4 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 
 ## Runtime actor/path-marker summary
 
-`wl_summarize_actor_path_markers` reports patrol actors that are directly on a path marker, cardinal-adjacent to one, missing nearby marker guidance, or carrying invalid current coordinates. This gives patrol/chase progression work a compact non-mutating check that live actor positions still line up with the map-derived patrol route graph.
+`wl_summarize_actor_path_markers` reports patrol actors that are directly on a path marker, cardinal-adjacent or diagonal-adjacent to one, missing nearby marker guidance, or carrying invalid current coordinates. This gives patrol/chase progression work a compact non-mutating check that live actor positions still line up with the map-derived patrol route graph.

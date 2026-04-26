@@ -342,6 +342,7 @@ typedef struct wl_actor_path_marker_summary {
     size_t patrol_actor_count;
     size_t on_marker_count;
     size_t adjacent_marker_count;
+    size_t diagonal_marker_count;
     size_t missing_marker_count;
     size_t invalid_actor_position_count;
 } wl_actor_path_marker_summary;

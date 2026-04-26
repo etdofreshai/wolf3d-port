@@ -2589,13 +2589,22 @@ int wl_summarize_actor_spawn_deltas(const wl_game_model *model,
     return 0;
 }
 
+static uint16_t marker_axis_delta(uint16_t a, uint16_t b) {
+    return (a > b) ? (uint16_t)(a - b) : (uint16_t)(b - a);
+}
+
 static int marker_is_cardinal_adjacent(const wl_marker_desc *marker,
                                       uint16_t tile_x, uint16_t tile_y) {
-    const uint16_t dx = (marker->x > tile_x) ? (uint16_t)(marker->x - tile_x)
-                                            : (uint16_t)(tile_x - marker->x);
-    const uint16_t dy = (marker->y > tile_y) ? (uint16_t)(marker->y - tile_y)
-                                            : (uint16_t)(tile_y - marker->y);
+    const uint16_t dx = marker_axis_delta(marker->x, tile_x);
+    const uint16_t dy = marker_axis_delta(marker->y, tile_y);
     return (dx + dy) == 1u;
+}
+
+static int marker_is_diagonal_adjacent(const wl_marker_desc *marker,
+                                       uint16_t tile_x, uint16_t tile_y) {
+    const uint16_t dx = marker_axis_delta(marker->x, tile_x);
+    const uint16_t dy = marker_axis_delta(marker->y, tile_y);
+    return dx == 1u && dy == 1u;
 }
 
 int wl_summarize_actor_path_markers(const wl_game_model *model,
@@ -2617,6 +2626,7 @@ int wl_summarize_actor_path_markers(const wl_game_model *model,
         }
 
         int adjacent = 0;
+        int diagonal = 0;
         int matched = 0;
         for (size_t j = 0; j < model->path_marker_count; ++j) {
             const wl_marker_desc *marker = &model->path_markers[j];
@@ -2629,12 +2639,16 @@ int wl_summarize_actor_path_markers(const wl_game_model *model,
             }
             if (marker_is_cardinal_adjacent(marker, actor->tile_x, actor->tile_y)) {
                 adjacent = 1;
+            } else if (marker_is_diagonal_adjacent(marker, actor->tile_x, actor->tile_y)) {
+                diagonal = 1;
             }
         }
         if (matched) {
             ++out->on_marker_count;
         } else if (adjacent) {
             ++out->adjacent_marker_count;
+        } else if (diagonal) {
+            ++out->diagonal_marker_count;
         } else {
             ++out->missing_marker_count;
         }
