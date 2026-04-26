@@ -3291,6 +3291,46 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_door_timing.min_ticcount == 0);
     CHECK(synthetic_door_timing.max_ticcount == 0);
 
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.door_count = 4;
+    chase_summary_model.doors[0].x = 10;
+    chase_summary_model.doors[0].y = 10;
+    chase_summary_model.doors[0].vertical = 1;
+    chase_summary_model.doors[1].x = 12;
+    chase_summary_model.doors[1].y = 10;
+    chase_summary_model.doors[1].vertical = 0;
+    chase_summary_model.doors[2].x = 3;
+    chase_summary_model.doors[2].y = 4;
+    chase_summary_model.doors[2].vertical = 1;
+    chase_summary_model.doors[3].x = WL_MAP_SIDE;
+    chase_summary_model.doors[3].y = 4;
+    wl_door_player_distance_summary synthetic_door_distances;
+    CHECK(wl_summarize_door_player_distances(&chase_summary_model, 10, 10,
+                                             &synthetic_door_distances) == 0);
+    CHECK(wl_summarize_door_player_distances(NULL, 10, 10,
+                                             &synthetic_door_distances) == -1);
+    CHECK(wl_summarize_door_player_distances(&chase_summary_model, WL_MAP_SIDE, 10,
+                                             &synthetic_door_distances) == -1);
+    CHECK(wl_summarize_door_player_distances(&chase_summary_model, 10, 10, NULL) == -1);
+    CHECK(synthetic_door_distances.considered_count == 3);
+    CHECK(synthetic_door_distances.invalid_position_count == 1);
+    CHECK(synthetic_door_distances.vertical_count == 2);
+    CHECK(synthetic_door_distances.horizontal_count == 1);
+    CHECK(synthetic_door_distances.nearest_door_index == 0);
+    CHECK(synthetic_door_distances.farthest_door_index == 2);
+    CHECK(synthetic_door_distances.nearest_distance == 0);
+    CHECK(synthetic_door_distances.farthest_distance == 13);
+
+    chase_summary_model.door_count = 1;
+    chase_summary_model.doors[0].x = WL_MAP_SIDE;
+    CHECK(wl_summarize_door_player_distances(&chase_summary_model, 10, 10,
+                                             &synthetic_door_distances) == 0);
+    CHECK(synthetic_door_distances.considered_count == 0);
+    CHECK(synthetic_door_distances.invalid_position_count == 1);
+    CHECK(synthetic_door_distances.nearest_door_index == UINT16_MAX);
+    CHECK(synthetic_door_distances.farthest_door_index == UINT16_MAX);
+    CHECK(synthetic_door_distances.nearest_distance == 0);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
