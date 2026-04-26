@@ -487,6 +487,16 @@ typedef struct wl_static_line_of_sight_summary {
     size_t invalid_position_count;
 } wl_static_line_of_sight_summary;
 
+typedef struct wl_static_collision_summary {
+    size_t active_blocking_count;
+    size_t inactive_blocking_count;
+    size_t active_bonus_count;
+    size_t inactive_bonus_count;
+    size_t active_dressing_count;
+    size_t inactive_dressing_count;
+    size_t invalid_position_count;
+} wl_static_collision_summary;
+
 typedef struct wl_door_state_summary {
     size_t vertical_count;
     size_t horizontal_count;
@@ -1042,6 +1052,8 @@ int wl_summarize_static_line_of_sight(const wl_game_model *model,
                                       uint16_t player_x, uint16_t player_y,
                                       int active_only,
                                       wl_static_line_of_sight_summary *out);
+int wl_summarize_static_collisions(const wl_game_model *model,
+                                   wl_static_collision_summary *out);
 int wl_summarize_door_states(const wl_game_model *model,
                              wl_door_state_summary *out);
 int wl_summarize_door_timing(const wl_game_model *model,

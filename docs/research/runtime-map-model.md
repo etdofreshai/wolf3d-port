@@ -787,3 +787,7 @@ Added `wl_summarize_runtime_tile_edges()` as a non-mutating live tilemap boundar
 
 Added `wl_summarize_runtime_tile_quadrants()` as a non-mutating live tilemap diagnostic that partitions solid-wall and open-floor counts across the four 32x32 map quadrants. Real WL6 model coverage cross-checks the quadrant totals against the full runtime tile summary, and synthetic coverage pins one wall/open distribution per quadrant for future spawn, renderer, and collision locality checks.
 `wl_summarize_runtime_tile_diagonals` adds a small live-tilemap diagonal diagnostic, partitioning the two corner-to-corner diagonals into solid walls, clear floor, and runtime markers. This gives spawn/camera/raycast smoke work a cheap headless guard for diagonal map-state drift without requiring callers to rescan the tilemap.
+
+## Cycle update: runtime static collision summary
+
+Added `wl_summarize_static_collisions()` as a non-mutating static collision/readiness diagnostic. It partitions valid statics into active/inactive blocking, active/inactive bonus, and active/inactive dressing buckets while separately reporting invalid coordinates, giving movement, pickup, and renderer paths a compact SDL-free check for statics that still affect collision or visible pickup state.
