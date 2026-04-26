@@ -5046,6 +5046,28 @@ static int check_wl6(const char *dir) {
     enum { PRESENT_PADDED_PITCH = 80u * 4u + 16u };
     unsigned char present_rgba_padded[PRESENT_PADDED_PITCH * 128u];
     memset(present_rgba_padded, 0xa5, sizeof(present_rgba_padded));
+    size_t padding_per_row = 0;
+    size_t total_padding = 0;
+    CHECK(wl_present_frame_rgba_padding(&present_frame, PRESENT_PADDED_PITCH,
+                                        &padding_per_row,
+                                        &total_padding) == 0);
+    CHECK(padding_per_row == 16u);
+    CHECK(total_padding == 16u * 128u);
+    CHECK(wl_present_frame_rgba_padding(&present_frame, 80u * 4u,
+                                        &padding_per_row,
+                                        &total_padding) == 0);
+    CHECK(padding_per_row == 0);
+    CHECK(total_padding == 0);
+    CHECK(wl_present_frame_rgba_padding(&present_frame, 80u * 4u - 1u,
+                                        &padding_per_row,
+                                        &total_padding) == -1);
+    CHECK(wl_present_frame_rgba_padding(&present_frame, PRESENT_PADDED_PITCH,
+                                        NULL, &total_padding) == -1);
+    CHECK(wl_present_frame_rgba_padding(&present_frame, PRESENT_PADDED_PITCH,
+                                        &padding_per_row, NULL) == -1);
+    CHECK(wl_present_frame_rgba_padding(NULL, PRESENT_PADDED_PITCH,
+                                        &padding_per_row,
+                                        &total_padding) == -1);
     wl_texture_upload_descriptor present_rgba_padded_upload;
     CHECK(wl_expand_present_frame_to_rgba_pitched(&present_frame,
                                                   present_rgba_padded,

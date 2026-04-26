@@ -78,3 +78,5 @@ The SDL-free presentation helpers now include `wl_expand_present_frame_to_rgba_p
 ## Pitched RGBA upload descriptor seam
 
 `wl_describe_present_frame_rgba_upload_pitched()` now describes caller-owned RGBA buffers with explicit row pitch after validating the same present-frame layout constraints used by expansion. The pitched expansion helper delegates descriptor creation through it, so future SDL3 surface/texture handoff paths can preflight padded rows and upload metadata without duplicating pitch/size checks. The descriptor path now requires the caller buffer to cover the full `pitch * height` span it reports in `pixel_bytes`; expansion without an output descriptor may still use the smaller last-visible-row minimum when callers intentionally omit trailing row padding from the accessible buffer.
+
+`wl_present_frame_rgba_padding()` reports the per-row and total padding implied by a caller-provided RGBA pitch after the same present-frame layout validation. This gives future SDL3 surface/texture paths a tiny SDL-free preflight for distinguishing visible bytes from row padding before deciding whether to preserve, clear, or upload padded spans.
