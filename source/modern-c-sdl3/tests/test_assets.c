@@ -1864,11 +1864,11 @@ static int check_wl6(const char *dir) {
                                         &live_fire_tick) == 0);
     CHECK(live_fire_tick.fire_attempted == 1);
     CHECK(live_fire_tick.fire.no_ammo == 1);
-    CHECK(live_fire_tick.fire.fired_weapon == WL_WEAPON_KNIFE);
+    CHECK(live_fire_tick.fire.fired_weapon == WL_WEAPON_MACHINEGUN);
     CHECK(live_fire_tick.fire_attack.attack_started == 0);
     CHECK(live_fire_tick.fire_attack.attack_frame_before == 6);
     CHECK(live_fire_tick.fire_attack.attack_frame_after == 6);
-    CHECK(pickup_state.weapon == WL_WEAPON_KNIFE);
+    CHECK(pickup_state.weapon == WL_WEAPON_MACHINEGUN);
     CHECK(pickup_state.attack_frame == 6);
     pickup_state.attack_frame = 3;
     pickup_state.ammo = 2;

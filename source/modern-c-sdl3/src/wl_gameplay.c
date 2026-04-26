@@ -1857,8 +1857,7 @@ int wl_step_live_player_fire_tick(wl_player_gameplay_state *state,
     }
     if (fire_button) {
         out->fire_attempted = 1;
-        if (state->attack_frame > 0 &&
-            (requested_weapon == WL_WEAPON_KNIFE || state->ammo > 0)) {
+        if (state->attack_frame > 0) {
             out->fire_attack.frame_before = state->attack_frame;
             out->fire_attack.frame_after = state->attack_frame;
             out->fire_attack.attack_frame_before = state->attack_frame;
@@ -1867,6 +1866,9 @@ int wl_step_live_player_fire_tick(wl_player_gameplay_state *state,
             out->fire_attack.fire.fired_weapon = state->weapon;
             out->fire_attack.fire.ammo_before = state->ammo;
             out->fire_attack.fire.ammo_after = state->ammo;
+            if (requested_weapon != WL_WEAPON_KNIFE && state->ammo <= 0) {
+                out->fire_attack.fire.no_ammo = 1;
+            }
             out->fire = out->fire_attack.fire;
         } else {
             if (wl_start_player_fire_attack(state, requested_weapon,
