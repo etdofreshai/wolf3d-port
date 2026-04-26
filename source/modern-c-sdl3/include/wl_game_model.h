@@ -779,6 +779,7 @@ typedef struct wl_path_marker_chain_summary {
 } wl_path_marker_chain_summary;
 
 typedef struct wl_path_marker_reciprocal_summary {
+    size_t linked_marker_count;
     size_t reciprocal_link_count;
     size_t one_way_link_count;
     size_t dangling_exit_count;

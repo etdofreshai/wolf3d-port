@@ -1513,6 +1513,7 @@ int wl_summarize_path_marker_reciprocal_links(
             continue;
         }
 
+        ++out->linked_marker_count;
         if (model->path_markers[next_index].dir == opposite_dir(marker->dir)) {
             ++out->reciprocal_link_count;
         } else {

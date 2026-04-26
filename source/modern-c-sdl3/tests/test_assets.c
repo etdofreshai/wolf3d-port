@@ -5388,6 +5388,7 @@ static int check_wl6(const char *dir) {
                                                      &synthetic_path_reciprocal) == -1);
     CHECK(wl_summarize_path_marker_reciprocal_links(&chase_summary_model,
                                                      NULL) == -1);
+    CHECK(synthetic_path_reciprocal.linked_marker_count == 3);
     CHECK(synthetic_path_reciprocal.reciprocal_link_count == 2);
     CHECK(synthetic_path_reciprocal.one_way_link_count == 1);
     CHECK(synthetic_path_reciprocal.dangling_exit_count == 2);
