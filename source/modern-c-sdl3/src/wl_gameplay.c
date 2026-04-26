@@ -886,6 +886,48 @@ int wl_try_player_fire_weapon(wl_player_gameplay_state *state,
     return 0;
 }
 
+static int32_t wl_player_weapon_attack_frame_tics(wl_weapon_type weapon) {
+    switch (weapon) {
+    case WL_WEAPON_KNIFE:
+        return 5;
+    case WL_WEAPON_PISTOL:
+        return 4;
+    case WL_WEAPON_MACHINEGUN:
+        return 3;
+    case WL_WEAPON_CHAINGUN:
+        return 2;
+    default:
+        return -1;
+    }
+}
+
+int wl_start_player_fire_attack(wl_player_gameplay_state *state,
+                                wl_weapon_type requested_weapon,
+                                wl_player_fire_attack_result *out) {
+    if (!state || !out || requested_weapon > WL_WEAPON_CHAINGUN) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->attack_frame_before = state->attack_frame;
+
+    if (wl_try_player_fire_weapon(state, requested_weapon, &out->fire) != 0) {
+        return -1;
+    }
+
+    if (out->fire.fired) {
+        const int32_t attack_tics = wl_player_weapon_attack_frame_tics(out->fire.fired_weapon);
+        if (attack_tics <= 0) {
+            return -1;
+        }
+        state->attack_frame = attack_tics;
+        out->attack_started = 1;
+    }
+
+    out->attack_frame_after = state->attack_frame;
+    return 0;
+}
+
 int wl_step_player_attack_state(wl_player_gameplay_state *state, int32_t tics,
                                 wl_player_attack_step_result *out) {
     if (!state || !out || tics < 0 || state->attack_frame < 0 ||
