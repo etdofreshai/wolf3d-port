@@ -487,3 +487,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Runtime static/player distance summary
 
 `wl_summarize_static_player_distances` now gives pickup/render code an SDL-free way to inspect nearest and farthest static objects relative to the player, with active-only filtering and invalid-coordinate accounting covered by synthetic headless tests.
+
+## Runtime door state summary
+
+`wl_summarize_door_states` provides an SDL-free live-door diagnostic for presentation and collision work, partitioning vertical/horizontal doors, locked/unlocked doors, open/closed/opening/closing actions, moving and partially-open doors, invalid action values, and maximum door position with synthetic headless coverage.
