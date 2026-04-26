@@ -330,6 +330,16 @@ typedef struct wl_actor_player_adjacency_summary {
     size_t invalid_position_count;
 } wl_actor_player_adjacency_summary;
 
+typedef struct wl_actor_facing_summary {
+    size_t facing_player_count;
+    size_t facing_away_count;
+    size_t perpendicular_count;
+    size_t same_tile_count;
+    size_t no_direction_count;
+    size_t invalid_direction_count;
+    size_t invalid_position_count;
+} wl_actor_facing_summary;
+
 typedef struct wl_actor_source_tile_summary {
     size_t actor_count;
     size_t unique_source_tile_count;
@@ -506,6 +516,9 @@ int wl_summarize_actor_collision_tiles(const wl_game_model *model,
 int wl_summarize_actor_player_adjacency(const wl_game_model *model,
                                         uint16_t player_x, uint16_t player_y,
                                         wl_actor_player_adjacency_summary *out);
+int wl_summarize_actor_facing(const wl_game_model *model,
+                              uint16_t player_x, uint16_t player_y,
+                              wl_actor_facing_summary *out);
 int wl_summarize_actor_source_tiles(const wl_game_model *model,
                                     wl_actor_source_tile_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,

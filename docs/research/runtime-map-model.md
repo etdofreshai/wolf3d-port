@@ -630,3 +630,5 @@ Added `wl_summarize_actor_collision_tiles()` as a small non-mutating actor place
 ## Cycle update: actor/player adjacency summary
 
 Added `wl_summarize_actor_player_adjacency()` as a small non-mutating runtime actor-state diagnostic. It partitions actors by same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, distant, and invalid-position buckets relative to a supplied player tile, giving future bite/chase/contact-damage ticks a deterministic headless proximity check before mutating actor AI state.
+
+- Added actor-facing summary diagnostics for headless AI/chase-state characterization.
