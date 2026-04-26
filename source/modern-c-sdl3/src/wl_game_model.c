@@ -279,6 +279,9 @@ static void record_unknown_info_tile(wl_game_model *out, size_t x, size_t y, uin
         out->first_unknown_info_y = (uint16_t)y;
         out->unknown_info_hash = 2166136261u;
     }
+    out->last_unknown_info_tile = tile;
+    out->last_unknown_info_x = (uint16_t)x;
+    out->last_unknown_info_y = (uint16_t)y;
     out->unknown_info_hash = fnv1a_u16(out->unknown_info_hash, tile);
     out->unknown_info_hash = fnv1a_u16(out->unknown_info_hash, (uint16_t)x);
     out->unknown_info_hash = fnv1a_u16(out->unknown_info_hash, (uint16_t)y);

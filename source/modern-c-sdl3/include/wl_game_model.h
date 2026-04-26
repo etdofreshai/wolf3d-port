@@ -228,6 +228,9 @@ typedef struct wl_game_model {
     uint16_t first_unknown_info_tile;
     uint16_t first_unknown_info_x;
     uint16_t first_unknown_info_y;
+    uint16_t last_unknown_info_tile;
+    uint16_t last_unknown_info_x;
+    uint16_t last_unknown_info_y;
 } wl_game_model;
 
 int wl_build_game_model(const uint16_t *wall_plane, const uint16_t *info_plane,

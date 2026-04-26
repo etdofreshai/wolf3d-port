@@ -15,7 +15,7 @@ Representative scan results using `MAPHEAD.SOD` / `GAMEMAPS.SOD`:
 
 The high unknown counts are expected until SOD-specific actor/boss/static tile constants are added. A naive widening of the WL6 static tile range is unsafe because info tiles `90..97` are already path markers and `98` is the pushwall marker in the current model.
 
-These gap counts are now pinned by optional headless assertions in `source/modern-c-sdl3/tests/test_assets.c::check_optional_sod()`. The model also records a stable unknown-info FNV hash plus the first unknown tile/x/y descriptor for each scanned map, so future SOD classification patches can prove exactly which gap set changed instead of relying on counts alone. The executable coverage uses map index `17` for `Death Knight`; map index `18` is `Secret 1`.
+These gap counts are now pinned by optional headless assertions in `source/modern-c-sdl3/tests/test_assets.c::check_optional_sod()`. The model also records a stable unknown-info FNV hash plus first and last unknown tile/x/y descriptors for each scanned map, so future SOD classification patches can prove exactly which gap set changed instead of relying on counts alone. The executable coverage uses map index `17` for `Death Knight`; map index `18` is `Secret 1`.
 
 ## Next useful step
 

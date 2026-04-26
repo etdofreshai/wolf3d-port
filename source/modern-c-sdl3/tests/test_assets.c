@@ -5505,15 +5505,18 @@ static int check_optional_sod(const char *dir) {
         uint16_t first_unknown_tile;
         uint16_t first_unknown_x;
         uint16_t first_unknown_y;
+        uint16_t last_unknown_tile;
+        uint16_t last_unknown_x;
+        uint16_t last_unknown_y;
     } sod_model_gaps[] = {
         { 0, "Tunnels 1", 32, 59, 17, 147, 8, 8, 45, 5, 2,
-          0xb5ca2d63u, 72, 32, 32 },
+          0xb5ca2d63u, 72, 32, 32, 72, 56, 62 },
         { 4, "Tunnel Boss", 50, 31, 18, 174, 12, 12, 42, 12, 16,
-          0x2a9e682au, 72, 2, 28 },
+          0x2a9e682au, 72, 2, 28, 72, 6, 45 },
         { 17, "Death Knight", 30, 41, 9, 91, 10, 10, 2, 1, 40,
-          0x8803e780u, 74, 31, 22 },
+          0x8803e780u, 74, 31, 22, 72, 32, 42 },
         { 20, "Angel of Death", 31, 22, 1, 180, 0, 0, 14, 5, 121,
-          0x21c1edb6u, 72, 4, 1 },
+          0x21c1edb6u, 72, 4, 1, 106, 39, 62 },
     };
     for (size_t i = 0; i < sizeof(sod_model_gaps) / sizeof(sod_model_gaps[0]); ++i) {
         wl_map_header sod_map;
@@ -5540,6 +5543,9 @@ static int check_optional_sod(const char *dir) {
         CHECK(sod_model.first_unknown_info_tile == sod_model_gaps[i].first_unknown_tile);
         CHECK(sod_model.first_unknown_info_x == sod_model_gaps[i].first_unknown_x);
         CHECK(sod_model.first_unknown_info_y == sod_model_gaps[i].first_unknown_y);
+        CHECK(sod_model.last_unknown_info_tile == sod_model_gaps[i].last_unknown_tile);
+        CHECK(sod_model.last_unknown_info_x == sod_model_gaps[i].last_unknown_x);
+        CHECK(sod_model.last_unknown_info_y == sod_model_gaps[i].last_unknown_y);
     }
 
     wl_graphics_header gh;
