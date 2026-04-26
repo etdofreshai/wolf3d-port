@@ -1486,6 +1486,8 @@ int wl_use_player_facing(wl_player_gameplay_state *state, wl_game_model *model,
     }
 
     size_t target = gameplay_map_index(out->check_x, out->check_y);
+    out->tile_before = model->tilemap[target];
+    out->tile_after = out->tile_before;
     if (info_plane[target] == WL_PUSHABLETILE) {
         out->kind = WL_USE_PUSHWALL;
         for (size_t i = 0; i < model->pushwall_count; ++i) {
@@ -1501,6 +1503,7 @@ int wl_use_player_facing(wl_player_gameplay_state *state, wl_game_model *model,
             return -1;
         }
         out->pushwall_active_after = model->pushwall_motion.active ? 1u : 0u;
+        out->tile_after = model->tilemap[target];
         out->opened = push_result.started;
         out->locked = push_result.blocked;
         return 0;
@@ -1510,6 +1513,7 @@ int wl_use_player_facing(wl_player_gameplay_state *state, wl_game_model *model,
     if (!button_held && doornum == WL_ELEVATORTILE && out->elevator_ok) {
         out->kind = WL_USE_ELEVATOR;
         model->tilemap[target] = (uint16_t)(model->tilemap[target] + 1u);
+        out->tile_after = model->tilemap[target];
         state->play_state = WL_PLAYER_PLAY_COMPLETED;
         out->completed = 1;
         out->secret_level = wall_plane[gameplay_map_index(motion->tile_x, motion->tile_y)] ==

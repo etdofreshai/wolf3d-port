@@ -2042,6 +2042,8 @@ static int check_wl6(const char *dir) {
     CHECK(use_result.check_x == 4);
     CHECK(use_result.check_y == 4);
     CHECK(use_result.dir == WL_DIR_EAST);
+    CHECK(use_result.tile_before == 37);
+    CHECK(use_result.tile_after == (37 | 0xc0));
     CHECK(use_result.pushwall_active_before == 0);
     CHECK(use_result.pushwall_active_after == 1);
     CHECK(use_result.opened == 1);
@@ -2060,6 +2062,8 @@ static int check_wl6(const char *dir) {
     CHECK(use_result.kind == WL_USE_PUSHWALL);
     CHECK(use_result.pushwall_active_before == 1);
     CHECK(use_result.pushwall_active_after == 1);
+    CHECK(use_result.tile_before == (37 | 0xc0));
+    CHECK(use_result.tile_after == (37 | 0xc0));
     CHECK(use_result.opened == 0);
     CHECK(pickup_state.secret_count == 1);
 
@@ -2321,6 +2325,8 @@ static int check_wl6(const char *dir) {
                                &use_result) == 0);
     CHECK(use_result.kind == WL_USE_ELEVATOR);
     CHECK(use_result.elevator_ok == 1);
+    CHECK(use_result.tile_before == WL_ELEVATORTILE);
+    CHECK(use_result.tile_after == WL_ELEVATORTILE + 1);
     CHECK(use_result.completed == 1);
     CHECK(use_result.secret_level == 1);
     CHECK(pickup_state.play_state == WL_PLAYER_PLAY_COMPLETED);
@@ -2345,6 +2351,8 @@ static int check_wl6(const char *dir) {
     CHECK(use_result.has_required_key == 0);
     CHECK(use_result.door_action_before == WL_DOOR_CLOSED);
     CHECK(use_result.door_action_after == WL_DOOR_CLOSED);
+    CHECK(use_result.tile_before == 0x80u);
+    CHECK(use_result.tile_after == 0x80u);
     CHECK(use_model.doors[0].action == WL_DOOR_CLOSED);
     CHECK(wl_give_player_key(&pickup_state, 0) == 0);
     CHECK(wl_use_player_facing(&pickup_state, &use_model, use_wall, use_info,
@@ -2354,6 +2362,8 @@ static int check_wl6(const char *dir) {
     CHECK(use_result.has_required_key == 1);
     CHECK(use_result.door_action_before == WL_DOOR_CLOSED);
     CHECK(use_result.door_action_after == WL_DOOR_OPENING);
+    CHECK(use_result.tile_before == 0x80u);
+    CHECK(use_result.tile_after == 0x80u);
     CHECK(use_result.opened == 1);
     CHECK(use_model.doors[0].action == WL_DOOR_OPENING);
     CHECK(wl_use_player_facing(&pickup_state, &use_model, use_wall, use_info,
