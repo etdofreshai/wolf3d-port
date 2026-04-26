@@ -594,6 +594,15 @@ typedef struct wl_pushwall_player_adjacency_summary {
     size_t invalid_marker_position_count;
 } wl_pushwall_player_adjacency_summary;
 
+typedef struct wl_pushwall_line_of_sight_summary {
+    size_t clear_cardinal_count;
+    size_t blocked_by_wall_count;
+    size_t blocked_by_door_count;
+    size_t same_tile_count;
+    size_t noncardinal_count;
+    size_t invalid_marker_position_count;
+} wl_pushwall_line_of_sight_summary;
+
 typedef struct wl_pushwall_motion_path_summary {
     uint8_t active;
     uint8_t current_position_valid;
@@ -959,6 +968,9 @@ int wl_summarize_pushwall_player_distances(const wl_game_model *model,
 int wl_summarize_pushwall_player_adjacency(
     const wl_game_model *model, uint16_t player_x, uint16_t player_y,
     wl_pushwall_player_adjacency_summary *out);
+int wl_summarize_pushwall_line_of_sight(
+    const wl_game_model *model, uint16_t player_x, uint16_t player_y,
+    wl_pushwall_line_of_sight_summary *out);
 int wl_summarize_pushwall_motion_path(
     const wl_game_model *model, wl_pushwall_motion_path_summary *out);
 int wl_summarize_pushwall_source_tiles(const wl_game_model *model,

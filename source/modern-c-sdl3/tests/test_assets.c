@@ -4014,6 +4014,38 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_pushwall_adjacency.distant_count == 1);
     CHECK(synthetic_pushwall_adjacency.invalid_marker_position_count == 1);
 
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.pushwall_count = 6;
+    chase_summary_model.pushwalls[0].x = 10;
+    chase_summary_model.pushwalls[0].y = 10;
+    chase_summary_model.pushwalls[1].x = 14;
+    chase_summary_model.pushwalls[1].y = 10;
+    chase_summary_model.pushwalls[2].x = 10;
+    chase_summary_model.pushwalls[2].y = 14;
+    chase_summary_model.pushwalls[3].x = 6;
+    chase_summary_model.pushwalls[3].y = 10;
+    chase_summary_model.pushwalls[4].x = 13;
+    chase_summary_model.pushwalls[4].y = 13;
+    chase_summary_model.pushwalls[5].x = WL_MAP_SIDE;
+    chase_summary_model.pushwalls[5].y = 1;
+    chase_summary_model.tilemap[10 * WL_MAP_SIDE + 12] = 1;
+    chase_summary_model.tilemap[12 * WL_MAP_SIDE + 10] = 0x80u;
+    wl_pushwall_line_of_sight_summary synthetic_pushwall_los;
+    CHECK(wl_summarize_pushwall_line_of_sight(&chase_summary_model, 10, 10,
+                                               &synthetic_pushwall_los) == 0);
+    CHECK(wl_summarize_pushwall_line_of_sight(NULL, 10, 10,
+                                               &synthetic_pushwall_los) == -1);
+    CHECK(wl_summarize_pushwall_line_of_sight(&chase_summary_model, WL_MAP_SIDE, 10,
+                                               &synthetic_pushwall_los) == -1);
+    CHECK(wl_summarize_pushwall_line_of_sight(&chase_summary_model, 10, 10, NULL) == -1);
+    CHECK(synthetic_pushwall_los.clear_cardinal_count == 1);
+    CHECK(synthetic_pushwall_los.blocked_by_wall_count == 1);
+    CHECK(synthetic_pushwall_los.blocked_by_door_count == 1);
+    CHECK(synthetic_pushwall_los.same_tile_count == 1);
+    CHECK(synthetic_pushwall_los.noncardinal_count == 1);
+    CHECK(synthetic_pushwall_los.invalid_marker_position_count == 1);
+
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.pushwall_motion.active = 1;
     chase_summary_model.pushwall_motion.x = 7;
