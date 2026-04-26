@@ -532,3 +532,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Runtime pushwall/player adjacency summary
 
 `wl_summarize_pushwall_player_adjacency` reports same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, distant, and invalid pushwall marker buckets relative to the player without mutating pushwall state. Synthetic headless coverage pins every bucket for future pushwall collision/presentation work.
+
+## Runtime path-marker/player adjacency summary
+
+`wl_summarize_path_marker_player_adjacency` reports same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, distant, and invalid patrol marker buckets relative to the player without mutating AI path state. Synthetic headless coverage pins every bucket for future patrol wake/chase diagnostics.

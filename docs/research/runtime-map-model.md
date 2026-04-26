@@ -698,3 +698,7 @@ Added `wl_summarize_pushwall_player_adjacency()` as a non-mutating pushwall mark
 ## Cycle update: runtime path-marker source-tile summary
 
 Added `wl_summarize_path_marker_source_tiles()` as a non-mutating diagnostic for AI patrol marker provenance. It mirrors the pushwall source-tile helper while treating original info-plane arrow marker tiles `90..97` as expected, and reports unique, zero, unexpected, min, and max source-tile counts. Synthetic headless tests cover duplicate expected arrows, zero/unexpected source tiles, invalid arguments, and empty models.
+
+## Cycle update: runtime path-marker/player adjacency summary
+
+Added `wl_summarize_path_marker_player_adjacency()` as a non-mutating AI patrol marker proximity diagnostic. It mirrors the pushwall/player adjacency helper for same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, distant, and invalid-marker buckets so patrol/chase orchestration can sanity-check player proximity to path arrows without mutating actor or marker state.
