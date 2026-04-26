@@ -904,6 +904,9 @@ typedef struct wl_runtime_player_interaction_summary {
     uint16_t nearest_kind;
     uint16_t nearest_index;
     uint16_t nearest_distance;
+    uint16_t nearest_source_tile;
+    uint32_t nearest_world_x;
+    uint32_t nearest_world_y;
     uint8_t has_nearest;
     uint8_t nearest_is_actor;
     uint8_t nearest_is_static;
