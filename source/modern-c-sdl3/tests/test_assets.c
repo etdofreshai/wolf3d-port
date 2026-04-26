@@ -3261,15 +3261,24 @@ static int check_wl6(const char *dir) {
         synthetic_player_neighborhood.player.x = 2;
         synthetic_player_neighborhood.player.y = 2;
         synthetic_player_neighborhood.player.dir = WL_DIR_EAST;
-        synthetic_player_neighborhood.actor_count = 1;
+        synthetic_player_neighborhood.actor_count = 2;
         synthetic_player_neighborhood.actors[0].tile_x = 5;
         synthetic_player_neighborhood.actors[0].tile_y = 2;
         synthetic_player_neighborhood.actors[0].shootable = 1;
-        synthetic_player_neighborhood.static_count = 1;
+        synthetic_player_neighborhood.actors[1].tile_x = WL_MAP_SIDE;
+        synthetic_player_neighborhood.actors[1].tile_y = 2;
+        synthetic_player_neighborhood.actors[1].shootable = 1;
+        synthetic_player_neighborhood.static_count = 3;
         synthetic_player_neighborhood.statics[0].x = 4;
         synthetic_player_neighborhood.statics[0].y = 2;
         synthetic_player_neighborhood.statics[0].active = 1;
         synthetic_player_neighborhood.statics[0].bonus = 1;
+        synthetic_player_neighborhood.statics[1].x = 3;
+        synthetic_player_neighborhood.statics[1].y = 2;
+        synthetic_player_neighborhood.statics[1].active = 0;
+        synthetic_player_neighborhood.statics[2].x = 2;
+        synthetic_player_neighborhood.statics[2].y = WL_MAP_SIDE;
+        synthetic_player_neighborhood.statics[2].active = 1;
         CHECK(wl_summarize_runtime_player_interaction(
                   &synthetic_player_neighborhood, &interaction) == 0);
         CHECK(interaction.has_nearest == 1u);
@@ -3279,6 +3288,9 @@ static int check_wl6(const char *dir) {
         CHECK(interaction.bonus_static_count_ahead == 1u);
         CHECK(interaction.blocked_actor_count == 0u);
         CHECK(interaction.blocked_static_count == 0u);
+        CHECK(interaction.invalid_actor_position_count == 1u);
+        CHECK(interaction.inactive_static_count == 1u);
+        CHECK(interaction.invalid_static_position_count == 1u);
         CHECK(interaction.nearest_is_static == 1u);
         CHECK(interaction.nearest_is_actor == 0u);
         CHECK(interaction.nearest_kind == 2u);
@@ -3295,6 +3307,9 @@ static int check_wl6(const char *dir) {
         CHECK(interaction.static_count_ahead == 0u);
         CHECK(interaction.blocked_actor_count == 1u);
         CHECK(interaction.blocked_static_count == 1u);
+        CHECK(interaction.invalid_actor_position_count == 1u);
+        CHECK(interaction.inactive_static_count == 1u);
+        CHECK(interaction.invalid_static_position_count == 1u);
         CHECK(interaction.has_map_blocking_tile == 1u);
         CHECK(interaction.map_blocked_before_nearest == 0u);
         CHECK(interaction.map_blocking_tile == 1u);

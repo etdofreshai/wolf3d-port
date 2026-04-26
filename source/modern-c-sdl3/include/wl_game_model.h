@@ -917,6 +917,9 @@ typedef struct wl_runtime_player_interaction_summary {
     size_t bonus_static_count_ahead;
     size_t blocked_actor_count;
     size_t blocked_static_count;
+    size_t invalid_actor_position_count;
+    size_t inactive_static_count;
+    size_t invalid_static_position_count;
     uint8_t map_blocked_before_nearest;
     uint8_t has_map_blocking_tile;
     uint16_t map_blocking_tile;
