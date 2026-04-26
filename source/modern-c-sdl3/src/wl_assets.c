@@ -617,7 +617,14 @@ int wl_expand_indexed_surface_to_rgba(const wl_indexed_surface *surface,
         return -1;
     }
 
-    size_t required = (size_t)surface->width * (size_t)surface->height * 4u;
+    if ((size_t)surface->width > (size_t)UINT16_MAX / 4u) {
+        return -1;
+    }
+    const size_t pitch = (size_t)surface->width * 4u;
+    if ((size_t)surface->height > SIZE_MAX / pitch) {
+        return -1;
+    }
+    size_t required = pitch * (size_t)surface->height;
     if (rgba_size < required) {
         return -1;
     }
@@ -640,7 +647,7 @@ int wl_expand_indexed_surface_to_rgba(const wl_indexed_surface *surface,
         out->format = WL_TEXTURE_UPLOAD_RGBA8888;
         out->width = surface->width;
         out->height = surface->height;
-        out->pitch = (uint16_t)(surface->width * 4u);
+        out->pitch = (uint16_t)pitch;
         out->pixel_bytes = required;
         out->pixels = rgba;
         out->palette = NULL;
