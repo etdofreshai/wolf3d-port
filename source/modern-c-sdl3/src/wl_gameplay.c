@@ -886,6 +886,41 @@ int wl_try_player_fire_weapon(wl_player_gameplay_state *state,
     return 0;
 }
 
+int wl_step_player_attack_state(wl_player_gameplay_state *state, int32_t tics,
+                                wl_player_attack_step_result *out) {
+    if (!state || !out || tics < 0 || state->attack_frame < 0 ||
+        state->weapon > WL_WEAPON_CHAINGUN ||
+        state->chosen_weapon > WL_WEAPON_CHAINGUN) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->frame_before = state->attack_frame;
+    out->frame_after = state->attack_frame;
+    out->weapon_before = state->weapon;
+    out->weapon_after = state->weapon;
+
+    if (state->attack_frame == 0 || tics == 0) {
+        return 0;
+    }
+
+    out->advanced = 1;
+    state->attack_frame -= tics;
+    if (state->attack_frame <= 0) {
+        state->attack_frame = 0;
+        out->finished = 1;
+        if (state->ammo > 0 && state->weapon == WL_WEAPON_KNIFE &&
+            state->chosen_weapon != WL_WEAPON_KNIFE) {
+            state->weapon = state->chosen_weapon;
+            out->restored_chosen_weapon = 1;
+        }
+    }
+
+    out->frame_after = state->attack_frame;
+    out->weapon_after = state->weapon;
+    return 0;
+}
+
 int wl_give_player_key(wl_player_gameplay_state *state, uint8_t key) {
     if (!state || key >= 32) {
         return -1;
@@ -1725,6 +1760,9 @@ int wl_step_live_tick(wl_player_gameplay_state *state, wl_game_model *model,
         return -1;
     }
     if (wl_step_pushwall(model, tics, &out->pushwall) != 0) {
+        return -1;
+    }
+    if (wl_step_player_attack_state(state, tics, &out->attack) != 0) {
         return -1;
     }
     if (wl_update_palette_shift_state(&state->palette_shift, tics,

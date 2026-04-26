@@ -1014,6 +1014,33 @@ static int check_gameplay_events(void) {
     CHECK(fire.unavailable == 1);
     CHECK(wl_try_player_fire_weapon(&state, (wl_weapon_type)4, &fire) == -1);
 
+    wl_player_attack_step_result attack_step;
+    state.best_weapon = WL_WEAPON_CHAINGUN;
+    state.chosen_weapon = WL_WEAPON_CHAINGUN;
+    state.weapon = WL_WEAPON_KNIFE;
+    state.ammo = 4;
+    state.attack_frame = 6;
+    CHECK(wl_step_player_attack_state(&state, 2, &attack_step) == 0);
+    CHECK(attack_step.advanced == 1);
+    CHECK(attack_step.finished == 0);
+    CHECK(attack_step.frame_before == 6);
+    CHECK(attack_step.frame_after == 4);
+    CHECK(state.weapon == WL_WEAPON_KNIFE);
+    CHECK(wl_step_player_attack_state(&state, 6, &attack_step) == 0);
+    CHECK(attack_step.finished == 1);
+    CHECK(attack_step.restored_chosen_weapon == 1);
+    CHECK(attack_step.frame_after == 0);
+    CHECK(state.attack_frame == 0);
+    CHECK(state.weapon == WL_WEAPON_CHAINGUN);
+    state.attack_frame = 3;
+    state.weapon = WL_WEAPON_KNIFE;
+    state.ammo = 0;
+    CHECK(wl_step_player_attack_state(&state, 3, &attack_step) == 0);
+    CHECK(attack_step.finished == 1);
+    CHECK(attack_step.restored_chosen_weapon == 0);
+    CHECK(state.weapon == WL_WEAPON_KNIFE);
+    CHECK(wl_step_player_attack_state(&state, -1, &attack_step) == -1);
+
     CHECK(wl_apply_player_bonus(&state, WL_BONUS_FULLHEAL, &picked_up) == 0);
     CHECK(picked_up == 1);
     CHECK(state.health == 100);
@@ -2269,10 +2296,20 @@ static int check_wl6(const char *dir) {
     live_tick_motion.tile_x = 3;
     live_tick_motion.tile_y = 4;
     CHECK(wl_init_player_gameplay_state(&pickup_state, 90, 3, 0, WL_EXTRA_POINTS) == 0);
+    pickup_state.best_weapon = WL_WEAPON_MACHINEGUN;
+    pickup_state.chosen_weapon = WL_WEAPON_MACHINEGUN;
+    pickup_state.weapon = WL_WEAPON_KNIFE;
+    pickup_state.ammo = 3;
+    pickup_state.attack_frame = 2;
     CHECK(wl_step_live_tick(&pickup_state, &live_tick_pickup_model,
                             use_wall, use_info, WL_MAP_PLANE_WORDS,
                             &live_tick_motion, 0x1000, 0, 0x10000, 0,
                             WL_DIR_EAST, 0, 0, 1, &live_tick) == 0);
+    CHECK(live_tick.attack.advanced == 1);
+    CHECK(live_tick.attack.frame_before == 2);
+    CHECK(live_tick.attack.frame_after == 1);
+    CHECK(live_tick.attack.finished == 0);
+    CHECK(pickup_state.attack_frame == 1);
     CHECK(live_tick.palette.kind == WL_PALETTE_SHIFT_WHITE);
     CHECK(wl_describe_palette_shifted_texture_upload(
               &fade_sample_surface, &live_tick.palette, upload_palette,
