@@ -5416,6 +5416,7 @@ static int check_wl6(const char *dir) {
     CHECK(wl_summarize_path_marker_endpoints(&chase_summary_model, NULL) == -1);
     CHECK(synthetic_path_endpoints.source_marker_count == 5);
     CHECK(synthetic_path_endpoints.sink_marker_count == 3);
+    CHECK(synthetic_path_endpoints.isolated_marker_count == 1);
     CHECK(synthetic_path_endpoints.branch_in_marker_count == 1);
     CHECK(synthetic_path_endpoints.linked_exit_count == 4);
     CHECK(synthetic_path_endpoints.dangling_exit_count == 1);
@@ -5424,6 +5425,7 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_path_endpoints.invalid_marker_position_count == 1);
     CHECK(synthetic_path_endpoints.first_source_marker_index == 0);
     CHECK(synthetic_path_endpoints.first_sink_marker_index == 2);
+    CHECK(synthetic_path_endpoints.first_isolated_marker_index == 6);
     CHECK(synthetic_path_endpoints.first_branch_in_marker_index == 5);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));

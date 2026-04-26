@@ -1537,6 +1537,7 @@ int wl_summarize_path_marker_endpoints(
     memset(out, 0, sizeof(*out));
     out->first_source_marker_index = UINT16_MAX;
     out->first_sink_marker_index = UINT16_MAX;
+    out->first_isolated_marker_index = UINT16_MAX;
     out->first_branch_in_marker_index = UINT16_MAX;
 
     for (size_t i = 0; i < model->path_marker_count; ++i) {
@@ -1579,7 +1580,8 @@ int wl_summarize_path_marker_endpoints(
         if (marker->x >= WL_MAP_SIDE || marker->y >= WL_MAP_SIDE) {
             continue;
         }
-        if (incoming_counts[i] == 0) {
+        const int is_source = incoming_counts[i] == 0;
+        if (is_source) {
             ++out->source_marker_count;
             if (out->first_source_marker_index == UINT16_MAX) {
                 out->first_source_marker_index = (uint16_t)i;
@@ -1591,26 +1593,35 @@ int wl_summarize_path_marker_endpoints(
             }
         }
 
+        int is_sink = 0;
         if (marker->dir == WL_DIR_NONE) {
+            is_sink = 1;
+        } else {
+            int dx = 0;
+            int dy = 0;
+            if (path_step(marker->dir, &dx, &dy) != 0) {
+                continue;
+            }
+            const int next_x = (int)marker->x + dx;
+            const int next_y = (int)marker->y + dy;
+            if (next_x < 0 || next_y < 0 || next_x >= WL_MAP_SIDE ||
+                next_y >= WL_MAP_SIDE ||
+                !find_path_marker_at(model, (uint16_t)next_x, (uint16_t)next_y,
+                                     NULL)) {
+                is_sink = 1;
+            }
+        }
+
+        if (is_sink) {
             ++out->sink_marker_count;
             if (out->first_sink_marker_index == UINT16_MAX) {
                 out->first_sink_marker_index = (uint16_t)i;
             }
-            continue;
-        }
-        int dx = 0;
-        int dy = 0;
-        if (path_step(marker->dir, &dx, &dy) != 0) {
-            continue;
-        }
-        const int next_x = (int)marker->x + dx;
-        const int next_y = (int)marker->y + dy;
-        if (next_x < 0 || next_y < 0 || next_x >= WL_MAP_SIDE ||
-            next_y >= WL_MAP_SIDE ||
-            !find_path_marker_at(model, (uint16_t)next_x, (uint16_t)next_y, NULL)) {
-            ++out->sink_marker_count;
-            if (out->first_sink_marker_index == UINT16_MAX) {
-                out->first_sink_marker_index = (uint16_t)i;
+            if (is_source) {
+                ++out->isolated_marker_count;
+                if (out->first_isolated_marker_index == UINT16_MAX) {
+                    out->first_isolated_marker_index = (uint16_t)i;
+                }
             }
         }
     }
