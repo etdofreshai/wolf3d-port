@@ -3121,6 +3121,41 @@ int wl_summarize_door_player_distances(const wl_game_model *model,
 }
 
 
+int wl_summarize_door_player_adjacency(const wl_game_model *model,
+                                       uint16_t player_x, uint16_t player_y,
+                                       wl_door_player_adjacency_summary *out) {
+    if (!model || !out || player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->door_count; ++i) {
+        const wl_door_desc *door = &model->doors[i];
+        if (door->x >= WL_MAP_SIDE || door->y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+
+        const uint16_t dx = (door->x >= player_x) ? (uint16_t)(door->x - player_x)
+                                                  : (uint16_t)(player_x - door->x);
+        const uint16_t dy = (door->y >= player_y) ? (uint16_t)(door->y - player_y)
+                                                  : (uint16_t)(player_y - door->y);
+        if (dx == 0 && dy == 0) {
+            ++out->same_tile_count;
+        } else if (dx + dy == 1) {
+            ++out->cardinal_adjacent_count;
+        } else if (dx == 1 && dy == 1) {
+            ++out->diagonal_adjacent_count;
+        } else if (dx == 0 || dy == 0) {
+            ++out->same_row_or_column_count;
+        } else {
+            ++out->distant_count;
+        }
+    }
+    return 0;
+}
+
+
 static int expected_lock_from_door_source(uint16_t source_tile, uint8_t *out_lock) {
     if (!out_lock || source_tile < 90u || source_tile > 101u) {
         return -1;
