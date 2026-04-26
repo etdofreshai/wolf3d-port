@@ -5030,6 +5030,16 @@ static int check_wl6(const char *dir) {
                                                   sizeof(present_rgba_padded) - 17u,
                                                   PRESENT_PADDED_PITCH,
                                                   &present_rgba_padded_upload) == -1);
+    CHECK(wl_expand_present_frame_to_rgba_pitched(&present_frame,
+                                                  present_rgba_padded,
+                                                  sizeof(present_rgba_padded) - 16u,
+                                                  PRESENT_PADDED_PITCH,
+                                                  NULL) == 0);
+    CHECK(wl_expand_present_frame_to_rgba_pitched(&present_frame,
+                                                  present_rgba_padded,
+                                                  sizeof(present_rgba_padded) - 16u,
+                                                  PRESENT_PADDED_PITCH,
+                                                  &present_rgba_padded_upload) == -1);
     wl_texture_upload_descriptor described_rgba_upload;
     CHECK(wl_describe_present_frame_rgba_upload(&present_frame, present_rgba,
                                                 present_rgba_size,
@@ -5077,6 +5087,9 @@ static int check_wl6(const char *dir) {
               80u * 4u - 1u, &described_padded_rgba_upload) == -1);
     CHECK(wl_describe_present_frame_rgba_upload_pitched(
               &present_frame, present_rgba_padded, sizeof(present_rgba_padded) - 17u,
+              PRESENT_PADDED_PITCH, &described_padded_rgba_upload) == -1);
+    CHECK(wl_describe_present_frame_rgba_upload_pitched(
+              &present_frame, present_rgba_padded, sizeof(present_rgba_padded) - 16u,
               PRESENT_PADDED_PITCH, &described_padded_rgba_upload) == -1);
     CHECK(wl_describe_present_frame_rgba_upload_pitched(
               &present_frame, present_rgba_padded, sizeof(present_rgba_padded),
