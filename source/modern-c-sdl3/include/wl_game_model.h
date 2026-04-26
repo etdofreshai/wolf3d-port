@@ -778,6 +778,17 @@ typedef struct wl_path_marker_chain_summary {
     uint16_t first_dangling_marker_index;
 } wl_path_marker_chain_summary;
 
+typedef struct wl_path_marker_reciprocal_summary {
+    size_t reciprocal_link_count;
+    size_t one_way_link_count;
+    size_t dangling_exit_count;
+    size_t no_direction_count;
+    size_t invalid_direction_count;
+    size_t invalid_marker_position_count;
+    uint16_t first_one_way_marker_index;
+    uint16_t first_dangling_marker_index;
+} wl_path_marker_reciprocal_summary;
+
 typedef struct wl_runtime_tile_summary {
     size_t clear_floor_count;
     size_t solid_wall_count;
@@ -1323,6 +1334,8 @@ int wl_summarize_path_marker_exits(
     const wl_game_model *model, wl_path_marker_exit_summary *out);
 int wl_summarize_path_marker_chains(
     const wl_game_model *model, wl_path_marker_chain_summary *out);
+int wl_summarize_path_marker_reciprocal_links(
+    const wl_game_model *model, wl_path_marker_reciprocal_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);

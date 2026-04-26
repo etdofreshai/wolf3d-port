@@ -215,6 +215,8 @@ Final corpse-frame actor refs now have coverage beyond the guard path. Headless 
 
 `wl_summarize_runtime_player_cardinal_tiles` complements the 3x3 player-neighborhood diagnostic with just the north/east/south/west runtime tiles. It clips at map edges, reports which cardinal samples exist, and buckets clear floor, solid walls, door markers, pushwall markers, and other markers for movement/input checks that only care about direct step targets.
 
+`wl_summarize_path_marker_reciprocal_links` complements the path-marker chain diagnostics by distinguishing reciprocal two-marker back-links from one-way continuations, dangling exits, no-direction markers, and invalid marker metadata. This is SDL-free coverage for patrol-route topology before deeper mutable actor path progression.
+
 `wl_select_path_direction` now models the first `SelectPathDir` decision boundary for patrol actors in a headless-friendly way: path markers at the actor tile can replace the current direction, the next tile is checked against the mutable runtime tilemap, blocked/out-of-bounds moves return `WL_DIR_NONE`, and unsupported diagonal marker arrows are preserved in metadata but do not yet produce movement.
 
 

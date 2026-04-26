@@ -1472,6 +1472,59 @@ int wl_summarize_path_marker_chains(
     return 0;
 }
 
+int wl_summarize_path_marker_reciprocal_links(
+    const wl_game_model *model, wl_path_marker_reciprocal_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->first_one_way_marker_index = UINT16_MAX;
+    out->first_dangling_marker_index = UINT16_MAX;
+    for (size_t i = 0; i < model->path_marker_count; ++i) {
+        const wl_marker_desc *marker = &model->path_markers[i];
+        if (marker->x >= WL_MAP_SIDE || marker->y >= WL_MAP_SIDE) {
+            ++out->invalid_marker_position_count;
+            continue;
+        }
+        if (marker->dir == WL_DIR_NONE) {
+            ++out->no_direction_count;
+            continue;
+        }
+
+        int dx = 0;
+        int dy = 0;
+        if (path_step(marker->dir, &dx, &dy) != 0) {
+            ++out->invalid_direction_count;
+            continue;
+        }
+
+        const int next_x = (int)marker->x + dx;
+        const int next_y = (int)marker->y + dy;
+        size_t next_index = 0;
+        if (next_x < 0 || next_y < 0 || next_x >= WL_MAP_SIDE ||
+            next_y >= WL_MAP_SIDE ||
+            !find_path_marker_at(model, (uint16_t)next_x, (uint16_t)next_y,
+                                 &next_index)) {
+            ++out->dangling_exit_count;
+            if (out->first_dangling_marker_index == UINT16_MAX) {
+                out->first_dangling_marker_index = (uint16_t)i;
+            }
+            continue;
+        }
+
+        if (model->path_markers[next_index].dir == opposite_dir(marker->dir)) {
+            ++out->reciprocal_link_count;
+        } else {
+            ++out->one_way_link_count;
+            if (out->first_one_way_marker_index == UINT16_MAX) {
+                out->first_one_way_marker_index = (uint16_t)i;
+            }
+        }
+    }
+    return 0;
+}
+
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir) {
