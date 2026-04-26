@@ -846,10 +846,9 @@ int wl_expand_present_frame_to_rgba_pitched(
         rgba_pitch < tight_pitch || rgba_pitch > UINT16_MAX) {
         return -1;
     }
-    const size_t height = (size_t)present->texture.height;
-    if (height != 0 &&
-        ((height - 1u) > (SIZE_MAX - tight_pitch) / rgba_pitch ||
-         rgba_size < rgba_pitch * (height - 1u) + tight_pitch)) {
+    size_t required_size = 0;
+    if (wl_present_frame_rgba_required_size(present, rgba_pitch, &required_size) != 0 ||
+        rgba_size < required_size) {
         return -1;
     }
 
