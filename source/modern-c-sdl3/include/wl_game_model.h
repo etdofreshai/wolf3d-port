@@ -557,6 +557,16 @@ typedef struct wl_path_marker_player_adjacency_summary {
     size_t invalid_marker_position_count;
 } wl_path_marker_player_adjacency_summary;
 
+typedef struct wl_path_marker_direction_summary {
+    size_t north_count;
+    size_t east_count;
+    size_t south_count;
+    size_t west_count;
+    size_t no_direction_count;
+    size_t invalid_direction_count;
+    size_t invalid_marker_position_count;
+} wl_path_marker_direction_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -779,6 +789,8 @@ int wl_summarize_path_marker_source_tiles(
 int wl_summarize_path_marker_player_adjacency(
     const wl_game_model *model, uint16_t player_x, uint16_t player_y,
     wl_path_marker_player_adjacency_summary *out);
+int wl_summarize_path_marker_directions(
+    const wl_game_model *model, wl_path_marker_direction_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);

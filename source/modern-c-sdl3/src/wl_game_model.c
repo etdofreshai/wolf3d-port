@@ -1150,6 +1150,43 @@ int wl_summarize_path_marker_player_adjacency(
     return 0;
 }
 
+int wl_summarize_path_marker_directions(
+    const wl_game_model *model, wl_path_marker_direction_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->path_marker_count; ++i) {
+        const wl_marker_desc *marker = &model->path_markers[i];
+        if (marker->x >= WL_MAP_SIDE || marker->y >= WL_MAP_SIDE) {
+            ++out->invalid_marker_position_count;
+        }
+
+        switch (marker->dir) {
+            case WL_DIR_NORTH:
+                ++out->north_count;
+                break;
+            case WL_DIR_EAST:
+                ++out->east_count;
+                break;
+            case WL_DIR_SOUTH:
+                ++out->south_count;
+                break;
+            case WL_DIR_WEST:
+                ++out->west_count;
+                break;
+            case WL_DIR_NONE:
+                ++out->no_direction_count;
+                break;
+            default:
+                ++out->invalid_direction_count;
+                break;
+        }
+    }
+    return 0;
+}
+
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir) {
