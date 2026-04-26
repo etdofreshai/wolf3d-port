@@ -819,6 +819,23 @@ typedef struct wl_runtime_player_tile_neighborhood_summary {
     uint16_t player_tile;
 } wl_runtime_player_tile_neighborhood_summary;
 
+typedef struct wl_runtime_player_cardinal_tiles_summary {
+    size_t sampled_tile_count;
+    size_t clear_floor_count;
+    size_t solid_wall_count;
+    size_t door_marker_count;
+    size_t pushwall_marker_count;
+    size_t other_marker_count;
+    uint16_t north_tile;
+    uint16_t east_tile;
+    uint16_t south_tile;
+    uint16_t west_tile;
+    uint8_t has_north_tile;
+    uint8_t has_east_tile;
+    uint8_t has_south_tile;
+    uint8_t has_west_tile;
+} wl_runtime_player_cardinal_tiles_summary;
+
 typedef struct wl_model_capacity_summary {
     size_t door_count;
     size_t static_count;
@@ -990,6 +1007,9 @@ int wl_summarize_runtime_tile_axes(const wl_game_model *model,
 int wl_summarize_runtime_player_tile_neighborhood(
     const wl_game_model *model,
     wl_runtime_player_tile_neighborhood_summary *out);
+int wl_summarize_runtime_player_cardinal_tiles(
+    const wl_game_model *model,
+    wl_runtime_player_cardinal_tiles_summary *out);
 int wl_summarize_model_capacity(const wl_game_model *model,
                                 wl_model_capacity_summary *out);
 int wl_summarize_unknown_info_tiles(const wl_game_model *model,

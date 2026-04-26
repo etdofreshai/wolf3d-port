@@ -791,6 +791,8 @@ Added `wl_summarize_runtime_tile_quadrants()` as a non-mutating live tilemap dia
 
 `wl_summarize_runtime_player_tile_neighborhood()` adds a player-centered 3x3 runtime tile diagnostic. It rejects missing/invalid player spawns, clips at map edges, reports the player tile, and buckets nearby clear floor, solid wall, door marker, pushwall marker, and other marker tiles. Real WL6 coverage plus synthetic center/edge cases pin the seam for future movement, collision, and presentation checks.
 
+`wl_summarize_runtime_player_cardinal_tiles()` narrows that player-local tile diagnostic to the four direct step/use directions. It rejects missing/invalid player spawns, clips at map edges, exposes north/east/south/west tile values with presence flags, and buckets clear floor, solid wall, door marker, pushwall marker, and other marker samples for direct movement/input preflight checks.
+
 ## Cycle update: runtime static collision summary
 
 Added `wl_summarize_static_collisions()` as a non-mutating static collision/readiness diagnostic. It partitions valid statics into active/inactive blocking, active/inactive bonus, and active/inactive dressing buckets while separately reporting invalid coordinates, giving movement, pickup, and renderer paths a compact SDL-free check for statics that still affect collision or visible pickup state.

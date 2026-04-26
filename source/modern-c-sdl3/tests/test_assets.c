@@ -2952,6 +2952,60 @@ static int check_wl6(const char *dir) {
         CHECK(wl_summarize_runtime_player_tile_neighborhood(
                   &synthetic_player_neighborhood, &synthetic_player_summary) == -1);
 
+        wl_runtime_player_cardinal_tiles_summary player_cardinals;
+        memset(&player_cardinals, 0xff, sizeof(player_cardinals));
+        CHECK(wl_summarize_runtime_player_cardinal_tiles(
+                  &model, &player_cardinals) == 0);
+        CHECK(wl_summarize_runtime_player_cardinal_tiles(
+                  NULL, &player_cardinals) == -1);
+        CHECK(wl_summarize_runtime_player_cardinal_tiles(
+                  &model, NULL) == -1);
+        CHECK(player_cardinals.sampled_tile_count == 4u);
+        CHECK(player_cardinals.clear_floor_count +
+                  player_cardinals.solid_wall_count +
+                  player_cardinals.door_marker_count +
+                  player_cardinals.pushwall_marker_count +
+                  player_cardinals.other_marker_count ==
+              player_cardinals.sampled_tile_count);
+        CHECK(player_cardinals.has_north_tile == 1u);
+        CHECK(player_cardinals.has_east_tile == 1u);
+        CHECK(player_cardinals.has_south_tile == 1u);
+        CHECK(player_cardinals.has_west_tile == 1u);
+
+        memset(&synthetic_player_neighborhood, 0, sizeof(synthetic_player_neighborhood));
+        synthetic_player_neighborhood.player.present = 1;
+        synthetic_player_neighborhood.player.x = 1;
+        synthetic_player_neighborhood.player.y = 1;
+        synthetic_player_neighborhood.tilemap[(0u * WL_MAP_SIDE) + 1u] = 1;
+        synthetic_player_neighborhood.tilemap[(1u * WL_MAP_SIDE) + 2u] = 0x80;
+        synthetic_player_neighborhood.tilemap[(2u * WL_MAP_SIDE) + 1u] = 0xc0 | 5u;
+        synthetic_player_neighborhood.tilemap[(1u * WL_MAP_SIDE) + 0u] = 99;
+        wl_runtime_player_cardinal_tiles_summary synthetic_cardinals;
+        CHECK(wl_summarize_runtime_player_cardinal_tiles(
+                  &synthetic_player_neighborhood, &synthetic_cardinals) == 0);
+        CHECK(synthetic_cardinals.sampled_tile_count == 4u);
+        CHECK(synthetic_cardinals.solid_wall_count == 1u);
+        CHECK(synthetic_cardinals.door_marker_count == 1u);
+        CHECK(synthetic_cardinals.pushwall_marker_count == 1u);
+        CHECK(synthetic_cardinals.other_marker_count == 1u);
+        CHECK(synthetic_cardinals.clear_floor_count == 0u);
+        CHECK(synthetic_cardinals.north_tile == 1u);
+        CHECK(synthetic_cardinals.east_tile == 0x80u);
+        CHECK(synthetic_cardinals.south_tile == (uint16_t)(0xc0u | 5u));
+        CHECK(synthetic_cardinals.west_tile == 99u);
+        synthetic_player_neighborhood.player.x = 0;
+        synthetic_player_neighborhood.player.y = 0;
+        CHECK(wl_summarize_runtime_player_cardinal_tiles(
+                  &synthetic_player_neighborhood, &synthetic_cardinals) == 0);
+        CHECK(synthetic_cardinals.sampled_tile_count == 2u);
+        CHECK(synthetic_cardinals.has_north_tile == 0u);
+        CHECK(synthetic_cardinals.has_west_tile == 0u);
+        CHECK(synthetic_cardinals.has_east_tile == 1u);
+        CHECK(synthetic_cardinals.has_south_tile == 1u);
+        synthetic_player_neighborhood.player.present = 0;
+        CHECK(wl_summarize_runtime_player_cardinal_tiles(
+                  &synthetic_player_neighborhood, &synthetic_cardinals) == -1);
+
         wl_unknown_info_summary unknown_info;
         memset(&unknown_info, 0xff, sizeof(unknown_info));
         CHECK(wl_summarize_unknown_info_tiles(&model, &unknown_info) == 0);
