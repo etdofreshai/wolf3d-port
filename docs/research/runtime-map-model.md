@@ -782,3 +782,7 @@ Added `wl_summarize_runtime_tiles()` as a small non-mutating live tilemap diagno
 ### Runtime tile edge summary diagnostic
 
 Added `wl_summarize_runtime_tile_edges()` as a non-mutating live tilemap boundary diagnostic. It partitions only the map edge into solid walls, clear floor, door markers, moving pushwall markers, and other markers, while separately counting interior solid walls. Real WL6 map coverage pins map-0 boundary bucket totals and synthetic coverage pins each boundary marker bucket for future collision/raycast checks.
+
+### Runtime tile quadrant summary diagnostic
+
+Added `wl_summarize_runtime_tile_quadrants()` as a non-mutating live tilemap diagnostic that partitions solid-wall and open-floor counts across the four 32x32 map quadrants. Real WL6 model coverage cross-checks the quadrant totals against the full runtime tile summary, and synthetic coverage pins one wall/open distribution per quadrant for future spawn, renderer, and collision locality checks.

@@ -2004,6 +2004,44 @@ int wl_summarize_runtime_tile_edges(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_runtime_tile_quadrants(const wl_game_model *model,
+                                        wl_runtime_tile_quadrant_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t y = 0; y < WL_MAP_SIDE; ++y) {
+        for (size_t x = 0; x < WL_MAP_SIDE; ++x) {
+            const uint16_t tile = model->tilemap[map_index(x, y)];
+            const int east = x >= (WL_MAP_SIDE / 2u);
+            const int south = y >= (WL_MAP_SIDE / 2u);
+            size_t *solid_bucket = NULL;
+            size_t *open_bucket = NULL;
+            if (!south && !east) {
+                solid_bucket = &out->northwest_solid_wall_count;
+                open_bucket = &out->northwest_open_count;
+            } else if (!south && east) {
+                solid_bucket = &out->northeast_solid_wall_count;
+                open_bucket = &out->northeast_open_count;
+            } else if (south && !east) {
+                solid_bucket = &out->southwest_solid_wall_count;
+                open_bucket = &out->southwest_open_count;
+            } else {
+                solid_bucket = &out->southeast_solid_wall_count;
+                open_bucket = &out->southeast_open_count;
+            }
+
+            if (tile > 0u && tile <= 63u) {
+                ++(*solid_bucket);
+            } else if (tile == 0u) {
+                ++(*open_bucket);
+            }
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_model_capacity(const wl_game_model *model,
                                 wl_model_capacity_summary *out) {
     if (!model || !out) {
