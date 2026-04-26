@@ -5729,14 +5729,14 @@ static int check_optional_sod(const char *dir) {
         uint16_t last_unknown_x;
         uint16_t last_unknown_y;
     } sod_model_gaps[] = {
-        { 0, "Tunnels 1", 32, 59, 17, 147, 8, 8, 45, 5, 2,
-          0xb5ca2d63u, 72, 32, 32, 72, 56, 62 },
-        { 4, "Tunnel Boss", 50, 31, 18, 174, 13, 13, 42, 12, 15,
-          0x9f48cfb6u, 72, 2, 28, 72, 6, 45 },
-        { 17, "Death Knight", 30, 41, 9, 91, 11, 11, 2, 1, 39,
-          0xdabb8759u, 74, 31, 22, 72, 32, 42 },
-        { 20, "Angel of Death", 31, 22, 1, 180, 38, 38, 14, 5, 83,
-          0xf57704f5u, 72, 4, 1, 72, 38, 62 },
+        { 0, "Tunnels 1", 32, 59, 17, 149, 8, 8, 45, 5, 0,
+          0, 0, 0, 0, 0, 0, 0 },
+        { 4, "Tunnel Boss", 50, 31, 18, 189, 13, 13, 42, 12, 0,
+          0, 0, 0, 0, 0, 0, 0 },
+        { 17, "Death Knight", 30, 41, 9, 130, 11, 11, 2, 1, 0,
+          0, 0, 0, 0, 0, 0, 0 },
+        { 20, "Angel of Death", 31, 22, 1, 263, 38, 38, 14, 5, 0,
+          0, 0, 0, 0, 0, 0, 0 },
     };
     for (size_t i = 0; i < sizeof(sod_model_gaps) / sizeof(sod_model_gaps[0]); ++i) {
         wl_map_header sod_map;
@@ -5803,11 +5803,11 @@ static int check_optional_sod(const char *dir) {
             ++unknown_tile_unique;
         }
     }
-    CHECK(unknown_tile_total == 383);
-    CHECK(unknown_tile_unique == 3);
-    CHECK(unknown_tile_counts[72] == 380);
-    CHECK(unknown_tile_counts[73] == 2);
-    CHECK(unknown_tile_counts[74] == 1);
+    CHECK(unknown_tile_total == 0);
+    CHECK(unknown_tile_unique == 0);
+    CHECK(unknown_tile_counts[72] == 0);
+    CHECK(unknown_tile_counts[73] == 0);
+    CHECK(unknown_tile_counts[74] == 0);
     CHECK(unknown_tile_counts[106] == 0);
     CHECK(unknown_tile_counts[107] == 0);
     CHECK(unknown_tile_counts[125] == 0);

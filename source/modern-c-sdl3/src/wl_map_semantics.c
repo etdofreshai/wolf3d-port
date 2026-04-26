@@ -61,6 +61,10 @@ static wl_static_kind wl6_static_kind(uint16_t type) {
         WL_STATIC_BLOCK,    /* 46 spears */
         WL_STATIC_DRESSING, /* 47 vines */
         WL_STATIC_BONUS,    /* 48 clip2 */
+        WL_STATIC_BLOCK,    /* 49 marble pillar (Spear) */
+        WL_STATIC_BONUS,    /* 50 25-ammo clip (Spear) */
+        WL_STATIC_BLOCK,    /* 51 truck (Spear) */
+        WL_STATIC_BONUS,    /* 52 Spear of Destiny pickup (Spear) */
     };
 
     if (type >= sizeof(kinds) / sizeof(kinds[0])) {
