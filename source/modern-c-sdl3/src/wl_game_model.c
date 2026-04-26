@@ -2499,6 +2499,9 @@ int wl_summarize_runtime_player_interaction(
     out->map_blocking_tile = run.first_blocking_tile;
     out->map_blocking_x = run.first_blocking_x;
     out->map_blocking_y = run.first_blocking_y;
+    out->map_blocking_distance = run.has_blocking_tile
+                                     ? (uint16_t)run.traversed_tile_count
+                                     : 0u;
     out->actor_count_ahead = actors.actor_count_ahead;
     out->shootable_actor_count_ahead = actors.shootable_count_ahead;
     out->static_count_ahead = statics.static_count_ahead;
