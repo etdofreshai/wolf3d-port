@@ -750,3 +750,7 @@ Added `wl_summarize_door_tile_occupancy()` as a non-mutating door placement diag
 ## Cycle update: use-button keyed-door metadata
 
 Extended `wl_player_use_result` with keyed-door metadata for the live use-button seam. Runtime door use now records the zero-based `required_key` for lock ids 1-4, whether the current player key bit is present, and door action before/after metadata, so future HUD/status or SDL3 presentation code can surface locked-door and open/close feedback without re-reading door descriptors after dispatch. The existing locked/opened/closing door headless test now pins missing-key, has-key, and action-transition results.
+
+## Cycle update: use-button pushwall activity metadata
+
+Extended `wl_player_use_result` with `pushwall_active_before` and `pushwall_active_after` for the headless use-button seam. Pushwall use now distinguishes a freshly started secret wall from a repeated use while another pushwall motion is already active, giving future HUD/status and SDL3 input feedback a deterministic way to report suppressed push attempts without re-reading mutable model state after dispatch.

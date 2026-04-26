@@ -2042,6 +2042,8 @@ static int check_wl6(const char *dir) {
     CHECK(use_result.check_x == 4);
     CHECK(use_result.check_y == 4);
     CHECK(use_result.dir == WL_DIR_EAST);
+    CHECK(use_result.pushwall_active_before == 0);
+    CHECK(use_result.pushwall_active_after == 1);
     CHECK(use_result.opened == 1);
     CHECK(use_result.pushwall_index == 0);
     CHECK(pickup_state.secret_count == 1);
@@ -2052,6 +2054,14 @@ static int check_wl6(const char *dir) {
     CHECK(use_model.pushwall_motion.y == 4);
     CHECK(use_model.tilemap[4 + 4 * WL_MAP_SIDE] == (37 | 0xc0));
     CHECK(use_model.tilemap[5 + 4 * WL_MAP_SIDE] == 37);
+    CHECK(wl_use_player_facing(&pickup_state, &use_model, use_wall, use_info,
+                               WL_MAP_PLANE_WORDS, &use_motion, WL_DIR_EAST, 1,
+                               &use_result) == 0);
+    CHECK(use_result.kind == WL_USE_PUSHWALL);
+    CHECK(use_result.pushwall_active_before == 1);
+    CHECK(use_result.pushwall_active_after == 1);
+    CHECK(use_result.opened == 0);
+    CHECK(pickup_state.secret_count == 1);
 
     wl_pushwall_step_result push_step;
     CHECK(wl_step_pushwall(&use_model, 126, &push_step) == 0);
