@@ -1581,6 +1581,8 @@ int wl_wake_actors_for_chase(wl_game_model *model, uint16_t player_x,
     }
 
     memset(out, 0, sizeof(*out));
+    out->first_woken_actor = UINT16_MAX;
+    out->last_woken_actor = UINT16_MAX;
     for (size_t i = 0; i < model->actor_count; ++i) {
         wl_actor_desc *actor = &model->actors[i];
         if (actor->mode == WL_ACTOR_INERT || actor->kind == WL_ACTOR_DEAD_GUARD ||
@@ -1599,6 +1601,10 @@ int wl_wake_actors_for_chase(wl_game_model *model, uint16_t player_x,
         }
         if (wake.woke) {
             ++out->actors_woke;
+            if (out->first_woken_actor == UINT16_MAX) {
+                out->first_woken_actor = (uint16_t)i;
+            }
+            out->last_woken_actor = (uint16_t)i;
         }
         if (wake.woke && wake.was_ambush) {
             ++out->ambush_cleared;

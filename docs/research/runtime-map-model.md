@@ -561,4 +561,4 @@ The WL6 model harness now sweeps all 60 gameplay map slots and asserts that ever
 
 ## Cycle update: aggregate actor wake transition
 
-Added `wl_wake_actors_for_chase()` as a deterministic batch helper for alerting eligible shootable actors into chase mode. The helper can exclude ambush actors for sight/sound-sensitive wake paths or include them for explicit all-alert events, skips inert/dead/invalid actors, preserves already-chasing actors, and reports considered/woken/ambush-cleared/direction-selected counts for future live AI orchestration.
+Added `wl_wake_actors_for_chase()` as a deterministic batch helper for alerting eligible shootable actors into chase mode. The helper can exclude ambush actors for sight/sound-sensitive wake paths or include them for explicit all-alert events, skips inert/dead/invalid actors, preserves already-chasing actors, and reports considered/woken/ambush-cleared/direction-selected counts plus first/last woken actor indexes for future live AI orchestration diagnostics.
