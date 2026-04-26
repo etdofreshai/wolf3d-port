@@ -2481,6 +2481,45 @@ int wl_summarize_door_states(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_door_timing(const wl_game_model *model,
+                             wl_door_timing_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    if (model->door_count == 0) {
+        return 0;
+    }
+
+    out->min_ticcount = model->doors[0].ticcount;
+    out->max_ticcount = model->doors[0].ticcount;
+    for (size_t i = 0; i < model->door_count; ++i) {
+        const wl_door_desc *door = &model->doors[i];
+        if (door->ticcount == 0) {
+            ++out->waiting_count;
+        } else if (door->ticcount > 0) {
+            ++out->countdown_count;
+            if (door->action == WL_DOOR_OPENING || door->action == WL_DOOR_CLOSING) {
+                ++out->moving_with_countdown_count;
+            }
+            if (door->action == WL_DOOR_OPEN) {
+                ++out->open_with_countdown_count;
+            }
+        } else {
+            ++out->overdue_count;
+        }
+
+        if (door->ticcount < out->min_ticcount) {
+            out->min_ticcount = door->ticcount;
+        }
+        if (door->ticcount > out->max_ticcount) {
+            out->max_ticcount = door->ticcount;
+        }
+    }
+    return 0;
+}
+
 int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
                             uint16_t player_x, uint16_t player_y,
                             int search_forward, wl_actor_wake_result *out) {

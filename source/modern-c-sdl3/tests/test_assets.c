@@ -3268,6 +3268,29 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_door_states.invalid_action_count == 1);
     CHECK(synthetic_door_states.max_position == 0xffff);
 
+    chase_summary_model.doors[0].ticcount = 0;
+    chase_summary_model.doors[1].ticcount = 70;
+    chase_summary_model.doors[2].ticcount = 12;
+    chase_summary_model.doors[3].ticcount = 210;
+    chase_summary_model.doors[4].ticcount = -3;
+    wl_door_timing_summary synthetic_door_timing;
+    CHECK(wl_summarize_door_timing(&chase_summary_model, &synthetic_door_timing) == 0);
+    CHECK(wl_summarize_door_timing(NULL, &synthetic_door_timing) == -1);
+    CHECK(wl_summarize_door_timing(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_door_timing.waiting_count == 1);
+    CHECK(synthetic_door_timing.countdown_count == 3);
+    CHECK(synthetic_door_timing.overdue_count == 1);
+    CHECK(synthetic_door_timing.moving_with_countdown_count == 2);
+    CHECK(synthetic_door_timing.open_with_countdown_count == 1);
+    CHECK(synthetic_door_timing.min_ticcount == -3);
+    CHECK(synthetic_door_timing.max_ticcount == 210);
+
+    chase_summary_model.door_count = 0;
+    CHECK(wl_summarize_door_timing(&chase_summary_model, &synthetic_door_timing) == 0);
+    CHECK(synthetic_door_timing.waiting_count == 0);
+    CHECK(synthetic_door_timing.min_ticcount == 0);
+    CHECK(synthetic_door_timing.max_ticcount == 0);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
