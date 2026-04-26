@@ -5814,13 +5814,33 @@ static int check_audio_wl6(const char *dir) {
     CHECK(audio_range.last_non_empty_chunk == 86);
     CHECK(audio_range.largest_chunk == 50);
     CHECK(audio_range.largest_chunk_bytes == 313);
+    CHECK(wl_summarize_audio_range(&audio, 87, 87, &audio_range) == 0);
+    CHECK(audio_range.start_chunk == 87);
+    CHECK(audio_range.chunk_count == 87);
+    CHECK(audio_range.non_empty_chunks == 87);
+    CHECK(audio_range.total_bytes == 12969);
+    CHECK(audio_range.first_non_empty_chunk == 87);
+    CHECK(audio_range.last_non_empty_chunk == 173);
+    CHECK(audio_range.largest_chunk == 137);
+    CHECK(audio_range.largest_chunk_bytes == 339);
     CHECK(wl_summarize_audio_range(&audio, 174, 87, &audio_range) == 0);
+    CHECK(audio_range.start_chunk == 174);
+    CHECK(audio_range.chunk_count == 87);
     CHECK(audio_range.non_empty_chunks == 1);
     CHECK(audio_range.total_bytes == 4);
     CHECK(audio_range.first_non_empty_chunk == 260);
     CHECK(audio_range.last_non_empty_chunk == 260);
     CHECK(audio_range.largest_chunk == 260);
     CHECK(audio_range.largest_chunk_bytes == 4);
+    CHECK(wl_summarize_audio_range(&audio, 261, 27, &audio_range) == 0);
+    CHECK(audio_range.start_chunk == 261);
+    CHECK(audio_range.chunk_count == 27);
+    CHECK(audio_range.non_empty_chunks == 27);
+    CHECK(audio_range.total_bytes == 297250);
+    CHECK(audio_range.first_non_empty_chunk == 261);
+    CHECK(audio_range.last_non_empty_chunk == 287);
+    CHECK(audio_range.largest_chunk == 280);
+    CHECK(audio_range.largest_chunk_bytes == 22578);
     CHECK(wl_summarize_audio_range(&audio, 288, 1, &audio_range) == -1);
 
     /* Offsets must be non-decreasing */

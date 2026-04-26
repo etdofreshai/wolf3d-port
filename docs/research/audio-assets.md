@@ -30,7 +30,7 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 - `AUDIOHED.WL6`: 1,156 bytes = 289 offsets = 288 chunks plus sentinel.
 - First offsets: `0, 15, 28, 44, 102`.
 - `AUDIOT.WL6`: 320,209 bytes; sentinel offset is within the file and equals the observed file end.
-- Range summaries pin the WL6 PC speaker range as 87/87 non-empty chunks totaling 9,986 bytes (largest chunk 50 at 313 bytes) and the digitized-sound range as 1/87 non-empty chunks totaling 4 bytes (chunk 260 sentinel/marker).
+- Range summaries pin the WL6 PC speaker range as 87/87 non-empty chunks totaling 9,986 bytes (largest chunk 50 at 313 bytes), the AdLib range as 87/87 non-empty chunks totaling 12,969 bytes (largest chunk 137 at 339 bytes), the digitized-sound range as 1/87 non-empty chunks totaling 4 bytes (chunk 260 sentinel/marker), and the music range as 27/27 non-empty chunks totaling 297,250 bytes (largest chunk 280 at 22,578 bytes).
 - Representative chunks:
   - chunk 0: 15 bytes, FNV-1a `0x5971ec53`; PC speaker sample count 8, first/last samples `0x83`/`0x84`, bounded sample accessor first/last bytes `0x83`/`0x84`, playback cursor covers zero-delta, last-sample, clamped completion, completed no-op, and invalid completed-delta states; playback windows cover mid-sound samples 2..4 and completion from sample 7; terminator `0x00`, trailing bytes 0.
   - chunk 1: 13 bytes, FNV-1a `0x21985d89`; PC speaker sample count 6, first/last samples `0x2f`/`0x2f`, bounded sample accessor last byte `0x2f`, terminator `0x00`.
