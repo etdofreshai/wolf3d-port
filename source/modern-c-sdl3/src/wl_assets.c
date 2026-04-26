@@ -2861,6 +2861,25 @@ int wl_describe_adlib_playback_position(const unsigned char *chunk, size_t chunk
                                              chunk, chunk_size, sample_position, out);
 }
 
+int wl_describe_sound_playback_position_from_chunk(const wl_audio_chunk_metadata *metadata,
+                                                   const unsigned char *chunk, size_t chunk_size,
+                                                   size_t sample_position,
+                                                   wl_sample_playback_position *out) {
+    if (!metadata || metadata->is_empty ||
+        metadata->payload_size == 0 || metadata->payload_size > chunk_size) {
+        return -1;
+    }
+    if (metadata->kind == WL_AUDIO_CHUNK_PC_SPEAKER) {
+        return wl_describe_pc_speaker_playback_position(chunk, chunk_size,
+                                                        sample_position, out);
+    }
+    if (metadata->kind == WL_AUDIO_CHUNK_ADLIB) {
+        return wl_describe_adlib_playback_position(chunk, chunk_size,
+                                                   sample_position, out);
+    }
+    return -1;
+}
+
 int wl_describe_imf_music_chunk(const unsigned char *chunk, size_t chunk_size,
                                 wl_imf_music_metadata *out) {
     uint64_t total_delay = 0;
