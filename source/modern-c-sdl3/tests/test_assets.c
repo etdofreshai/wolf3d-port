@@ -4269,6 +4269,38 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_path_adjacency.invalid_marker_position_count == 1);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.path_marker_count = 6;
+    chase_summary_model.path_markers[0].x = 8;
+    chase_summary_model.path_markers[0].y = 10;
+    chase_summary_model.path_markers[1].x = 10;
+    chase_summary_model.path_markers[1].y = 14;
+    chase_summary_model.path_markers[2].x = 13;
+    chase_summary_model.path_markers[2].y = 10;
+    chase_summary_model.path_markers[3].x = 10;
+    chase_summary_model.path_markers[3].y = 10;
+    chase_summary_model.path_markers[4].x = 13;
+    chase_summary_model.path_markers[4].y = 13;
+    chase_summary_model.path_markers[5].x = WL_MAP_SIDE;
+    chase_summary_model.path_markers[5].y = 10;
+    chase_summary_model.tilemap[10 * WL_MAP_SIDE + 11] = 1;
+    chase_summary_model.tilemap[11 * WL_MAP_SIDE + 10] = 0x80;
+    wl_path_marker_line_of_sight_summary synthetic_path_los;
+    CHECK(wl_summarize_path_marker_line_of_sight(&chase_summary_model, 10, 10,
+                                                 &synthetic_path_los) == 0);
+    CHECK(wl_summarize_path_marker_line_of_sight(NULL, 10, 10,
+                                                 &synthetic_path_los) == -1);
+    CHECK(wl_summarize_path_marker_line_of_sight(&chase_summary_model, WL_MAP_SIDE, 10,
+                                                 &synthetic_path_los) == -1);
+    CHECK(wl_summarize_path_marker_line_of_sight(&chase_summary_model, 10, 10,
+                                                 NULL) == -1);
+    CHECK(synthetic_path_los.clear_cardinal_count == 1);
+    CHECK(synthetic_path_los.blocked_by_wall_count == 1);
+    CHECK(synthetic_path_los.blocked_by_door_count == 1);
+    CHECK(synthetic_path_los.same_tile_count == 1);
+    CHECK(synthetic_path_los.noncardinal_count == 1);
+    CHECK(synthetic_path_los.invalid_marker_position_count == 1);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.path_marker_count = 7;
     chase_summary_model.path_markers[0].x = 1;
     chase_summary_model.path_markers[0].y = 1;
