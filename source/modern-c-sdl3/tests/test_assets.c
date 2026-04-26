@@ -3554,6 +3554,33 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_pushwall_distances.farthest_pushwall_index == UINT16_MAX);
     CHECK(synthetic_pushwall_distances.nearest_distance == 0);
 
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.pushwall_count = 4;
+    chase_summary_model.pushwalls[0].source_tile = 98;
+    chase_summary_model.pushwalls[1].source_tile = 98;
+    chase_summary_model.pushwalls[2].source_tile = 0;
+    chase_summary_model.pushwalls[3].source_tile = 120;
+    wl_pushwall_source_tile_summary synthetic_pushwall_sources;
+    CHECK(wl_summarize_pushwall_source_tiles(&chase_summary_model,
+                                             &synthetic_pushwall_sources) == 0);
+    CHECK(wl_summarize_pushwall_source_tiles(NULL, &synthetic_pushwall_sources) == -1);
+    CHECK(wl_summarize_pushwall_source_tiles(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_pushwall_sources.marker_count == 4);
+    CHECK(synthetic_pushwall_sources.unique_source_tile_count == 3);
+    CHECK(synthetic_pushwall_sources.expected_marker_source_count == 2);
+    CHECK(synthetic_pushwall_sources.zero_source_tile_count == 1);
+    CHECK(synthetic_pushwall_sources.unexpected_source_tile_count == 1);
+    CHECK(synthetic_pushwall_sources.min_source_tile == 0);
+    CHECK(synthetic_pushwall_sources.max_source_tile == 120);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    CHECK(wl_summarize_pushwall_source_tiles(&chase_summary_model,
+                                             &synthetic_pushwall_sources) == 0);
+    CHECK(synthetic_pushwall_sources.marker_count == 0);
+    CHECK(synthetic_pushwall_sources.unique_source_tile_count == 0);
+    CHECK(synthetic_pushwall_sources.min_source_tile == 0);
+    CHECK(synthetic_pushwall_sources.max_source_tile == 0);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
