@@ -5986,21 +5986,21 @@ static int check_optional_sod(const char *dir) {
         uint16_t last_unknown_tile;
         uint16_t last_unknown_x;
         uint16_t last_unknown_y;
-        size_t scene_ref_count;
-        uint32_t scene_ref_hash;
-        uint16_t first_scene_source;
-        uint16_t last_scene_source;
+        size_t spear_scene_ref_count;
+        uint32_t spear_scene_ref_hash;
+        uint16_t first_spear_scene_source;
+        uint16_t last_spear_scene_source;
         size_t spear_pillar_count;
         size_t spear_truck_count;
     } sod_model_gaps[] = {
         { 0, "Tunnels 1", 32, 59, 17, 149, 8, 8, 45, 5, 0,
-          0, 0, 0, 0, 0, 0, 0, 157, 0x44715246, 10, 50, 2, 0 },
+          0, 0, 0, 0, 0, 0, 0, 157, 0xa407c746, 10, 54, 2, 0 },
         { 4, "Tunnel Boss", 50, 31, 18, 189, 13, 13, 42, 12, 0,
-          0, 0, 0, 0, 0, 0, 0, 201, 0x1262857c, 16, 138, 15, 0 },
+          0, 0, 0, 0, 0, 0, 0, 202, 0xd34f0533, 16, 142, 15, 0 },
         { 17, "Death Knight", 30, 41, 9, 130, 11, 11, 2, 1, 0,
-          0, 0, 0, 0, 0, 0, 0, 140, 0xac7a93d1, 28, 187, 38, 1 },
+          0, 0, 0, 0, 0, 0, 0, 141, 0xb464a44e, 28, 191, 38, 1 },
         { 20, "Angel of Death", 31, 22, 1, 263, 38, 38, 14, 5, 0,
-          0, 0, 0, 0, 0, 0, 0, 263, 0x9b3f417e, 50, 35, 83, 0 },
+          0, 0, 0, 0, 0, 0, 0, 301, 0x7ac8d5a0, 50, 377, 83, 0 },
     };
     for (size_t i = 0; i < sizeof(sod_model_gaps) / sizeof(sod_model_gaps[0]); ++i) {
         wl_map_header sod_map;
@@ -6033,16 +6033,16 @@ static int check_optional_sod(const char *dir) {
 
         wl_scene_sprite_ref sod_scene_refs[WL_MAX_STATS + WL_MAX_ACTORS];
         size_t sod_scene_ref_count = 0;
-        CHECK(wl_collect_scene_sprite_refs(&sod_model, vs.sprite_start,
-                                           sod_scene_refs,
+        CHECK(wl_collect_spear_scene_sprite_refs(&sod_model, vs.sprite_start,
+                                                 sod_scene_refs,
                                            sizeof(sod_scene_refs) / sizeof(sod_scene_refs[0]),
                                            &sod_scene_ref_count) == 0);
-        CHECK(sod_scene_ref_count == sod_model_gaps[i].scene_ref_count);
+        CHECK(sod_scene_ref_count == sod_model_gaps[i].spear_scene_ref_count);
         CHECK(fnv1a_scene_sprite_refs(sod_scene_refs, sod_scene_ref_count) ==
-              sod_model_gaps[i].scene_ref_hash);
-        CHECK(sod_scene_refs[0].source_index == sod_model_gaps[i].first_scene_source);
+              sod_model_gaps[i].spear_scene_ref_hash);
+        CHECK(sod_scene_refs[0].source_index == sod_model_gaps[i].first_spear_scene_source);
         CHECK(sod_scene_refs[sod_scene_ref_count - 1].source_index ==
-              sod_model_gaps[i].last_scene_source);
+              sod_model_gaps[i].last_spear_scene_source);
         size_t spear_pillars = 0;
         size_t spear_trucks = 0;
         for (size_t j = 0; j < sod_model.static_count; ++j) {
