@@ -388,6 +388,16 @@ typedef struct wl_static_state_summary {
     size_t active_blocking_count;
 } wl_static_state_summary;
 
+typedef struct wl_static_player_distance_summary {
+    size_t considered_count;
+    size_t inactive_count;
+    size_t invalid_position_count;
+    uint16_t nearest_static_index;
+    uint16_t farthest_static_index;
+    uint16_t nearest_distance;
+    uint16_t farthest_distance;
+} wl_static_player_distance_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -569,6 +579,10 @@ int wl_summarize_actor_threats(const wl_game_model *model,
                                wl_actor_threat_summary *out);
 int wl_summarize_static_states(const wl_game_model *model,
                                wl_static_state_summary *out);
+int wl_summarize_static_player_distances(const wl_game_model *model,
+                                         uint16_t player_x, uint16_t player_y,
+                                         int active_only,
+                                         wl_static_player_distance_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);
