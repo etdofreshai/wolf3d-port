@@ -3025,6 +3025,19 @@ int wl_describe_sound_channel_position_from_chunk(const wl_sound_channel_state *
                                                           current->sample_position, out);
 }
 
+int wl_describe_sound_channel_window_from_chunk(const wl_sound_channel_state *current,
+                                                const wl_audio_chunk_metadata *metadata,
+                                                const unsigned char *chunk, size_t chunk_size,
+                                                size_t sample_budget,
+                                                wl_sample_playback_window *out) {
+    if (!current || current->active != 1u) {
+        return -1;
+    }
+    return wl_describe_sound_playback_window_from_chunk(metadata, chunk, chunk_size,
+                                                        current->sample_position,
+                                                        sample_budget, out);
+}
+
 int wl_describe_sound_playback_window_from_chunk(
     const wl_audio_chunk_metadata *metadata, const unsigned char *chunk,
     size_t chunk_size, size_t start_sample, size_t sample_budget,

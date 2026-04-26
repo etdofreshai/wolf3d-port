@@ -6219,10 +6219,23 @@ static int check_audio_wl6(const char *dir) {
     CHECK(sample_position.sample_position == 7);
     CHECK(sample_position.current_sample == 0x84);
     CHECK(sample_position.completed == 0);
+    CHECK(wl_describe_sound_channel_window_from_chunk(&sound_channel, &audio_meta,
+                                                      chunk_buf, chunk_bytes, 4,
+                                                      &sample_window) == 0);
+    CHECK(sample_window.start_sample == 7);
+    CHECK(sample_window.samples_available == 1);
+    CHECK(sample_window.samples_in_window == 1);
+    CHECK(sample_window.next_sample == 8);
+    CHECK(sample_window.first_sample == 0x84);
+    CHECK(sample_window.last_sample == 0x84);
+    CHECK(sample_window.completed == 1);
     sound_channel.active = 0;
     CHECK(wl_describe_sound_channel_position_from_chunk(&sound_channel, &audio_meta,
                                                         chunk_buf, chunk_bytes,
                                                         &sample_position) == -1);
+    CHECK(wl_describe_sound_channel_window_from_chunk(&sound_channel, &audio_meta,
+                                                      chunk_buf, chunk_bytes, 1,
+                                                      &sample_window) == -1);
 
     sound_channel.active = 1;
     sound_channel.sound_index = 0;

@@ -757,6 +757,11 @@ int wl_describe_sound_channel_position_from_chunk(const wl_sound_channel_state *
                                                   const wl_audio_chunk_metadata *metadata,
                                                   const unsigned char *chunk, size_t chunk_size,
                                                   wl_sample_playback_position *out);
+int wl_describe_sound_channel_window_from_chunk(const wl_sound_channel_state *current,
+                                                const wl_audio_chunk_metadata *metadata,
+                                                const unsigned char *chunk, size_t chunk_size,
+                                                size_t sample_budget,
+                                                wl_sample_playback_window *out);
 int wl_describe_pc_speaker_sound(const unsigned char *chunk, size_t chunk_size,
                                   wl_pc_speaker_sound_metadata *out);
 int wl_get_pc_speaker_sound_sample(const unsigned char *chunk, size_t chunk_size,
