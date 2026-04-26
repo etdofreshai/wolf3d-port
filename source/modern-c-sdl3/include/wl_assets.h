@@ -444,6 +444,9 @@ int wl_present_frame_rgba_padding(const wl_present_frame_descriptor *present,
                                   size_t rgba_pitch,
                                   size_t *out_padding_per_row,
                                   size_t *out_total_padding);
+int wl_clear_present_frame_rgba_padding(const wl_present_frame_descriptor *present,
+                                        unsigned char *rgba, size_t rgba_size,
+                                        size_t rgba_pitch, unsigned char value);
 int wl_describe_present_frame_rgba_upload(const wl_present_frame_descriptor *present,
                                           unsigned char *rgba, size_t rgba_size,
                                           wl_texture_upload_descriptor *out);

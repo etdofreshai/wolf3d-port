@@ -757,6 +757,30 @@ int wl_present_frame_rgba_padding(const wl_present_frame_descriptor *present,
     return 0;
 }
 
+int wl_clear_present_frame_rgba_padding(const wl_present_frame_descriptor *present,
+                                        unsigned char *rgba, size_t rgba_size,
+                                        size_t rgba_pitch, unsigned char value) {
+    size_t tight_pitch = 0;
+    size_t tight_size = 0;
+    if (!rgba || wl_present_frame_rgba_layout(present, &tight_pitch, &tight_size) != 0 ||
+        rgba_pitch < tight_pitch || rgba_pitch > UINT16_MAX) {
+        return -1;
+    }
+    const size_t height = (size_t)present->texture.height;
+    if (height == 0 || rgba_pitch == tight_pitch) {
+        return 0;
+    }
+    if ((height - 1u) > (SIZE_MAX - rgba_pitch) / rgba_pitch ||
+        rgba_size < rgba_pitch * height) {
+        return -1;
+    }
+    const size_t padding_per_row = rgba_pitch - tight_pitch;
+    for (size_t y = 0; y < height; ++y) {
+        memset(rgba + y * rgba_pitch + tight_pitch, value, padding_per_row);
+    }
+    return 0;
+}
+
 int wl_describe_present_frame_rgba_upload(const wl_present_frame_descriptor *present,
                                           unsigned char *rgba, size_t rgba_size,
                                           wl_texture_upload_descriptor *out) {
