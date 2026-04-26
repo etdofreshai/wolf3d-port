@@ -1670,6 +1670,23 @@ int wl_summarize_actor_patrol_paths(const wl_game_model *model,
     return 0;
 }
 
+
+static int actor_model_can_shoot(const wl_actor_desc *actor) {
+    if (!actor || !actor->shootable) {
+        return 0;
+    }
+    switch (actor->kind) {
+    case WL_ACTOR_GUARD:
+    case WL_ACTOR_OFFICER:
+    case WL_ACTOR_SS:
+    case WL_ACTOR_MUTANT:
+    case WL_ACTOR_BOSS:
+        return 1;
+    default:
+        return 0;
+    }
+}
+
 int wl_summarize_actor_chase_paths(const wl_game_model *model,
                                    uint16_t player_x, uint16_t player_y,
                                    int search_forward,
@@ -1698,6 +1715,32 @@ int wl_summarize_actor_chase_paths(const wl_game_model *model,
             ++out->path_blocked_count;
         } else {
             ++out->path_selected_count;
+        }
+    }
+    return 0;
+}
+
+int wl_summarize_actor_attacks(const wl_game_model *model,
+                               wl_actor_attack_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+        if (actor->kind == WL_ACTOR_DOG && actor->shootable) {
+            ++out->attack_capable_count;
+            ++out->bite_count;
+        } else if (actor_model_can_shoot(actor)) {
+            ++out->attack_capable_count;
+            ++out->shoot_count;
+        } else {
+            ++out->passive_count;
         }
     }
     return 0;

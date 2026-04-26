@@ -585,3 +585,7 @@ Added `wl_summarize_actor_wake_state` as a compact diagnostic for AI wake eligib
 ## Cycle update: actor patrol-path summaries
 
 Added `wl_summarize_actor_patrol_paths` as the patrol-oriented sibling to the existing actor aggregate helpers. It counts patrol actors with a selected path direction, patrol actors blocked/no-directed at their current tile, and patrol actors with invalid positions, letting future AI ticks verify path readiness without mutating actor state. The broader WL6 map sweep cross-checks the summary against `wl_select_path_direction()` for each patrol actor.
+
+## Cycle update: actor attack-role summaries
+
+Added `wl_summarize_actor_attacks` as a compact, non-mutating diagnostic for live actor-combat readiness. It partitions valid-position actors into dog bite attackers, shoot-capable actors matching the live combat `actor_can_shoot` kind set, passive/non-attacking actors, and invalid-position actors. The broader WL6 map sweep cross-checks those buckets against each actor descriptor, and a synthetic case pins shoot/bite/invalid handling before deeper live AI attack orchestration mutates actor state.

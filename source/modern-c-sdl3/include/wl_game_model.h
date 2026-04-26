@@ -239,6 +239,14 @@ typedef struct wl_actor_chase_path_summary {
     size_t invalid_position_count;
 } wl_actor_chase_path_summary;
 
+typedef struct wl_actor_attack_summary {
+    size_t attack_capable_count;
+    size_t bite_count;
+    size_t shoot_count;
+    size_t passive_count;
+    size_t invalid_position_count;
+} wl_actor_attack_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -380,6 +388,8 @@ int wl_summarize_actor_chase_paths(const wl_game_model *model,
                                    uint16_t player_x, uint16_t player_y,
                                    int search_forward,
                                    wl_actor_chase_path_summary *out);
+int wl_summarize_actor_attacks(const wl_game_model *model,
+                               wl_actor_attack_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);
