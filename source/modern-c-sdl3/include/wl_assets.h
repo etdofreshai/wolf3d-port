@@ -625,6 +625,17 @@ typedef struct wl_sample_playback_position {
     uint8_t completed;
 } wl_sample_playback_position;
 
+typedef struct wl_sound_channel_progress {
+    size_t sound_index;
+    uint16_t priority;
+    wl_audio_chunk_kind kind;
+    size_t sample_position;
+    size_t sample_count;
+    size_t remaining_samples;
+    uint8_t current_sample;
+    uint8_t completed;
+} wl_sound_channel_progress;
+
 typedef struct wl_imf_music_command {
     uint8_t reg;
     uint8_t value;
@@ -774,6 +785,10 @@ int wl_describe_sound_channel_remaining_from_chunk(const wl_sound_channel_state 
                                                    const wl_audio_chunk_metadata *metadata,
                                                    const unsigned char *chunk, size_t chunk_size,
                                                    size_t *out_remaining_samples);
+int wl_describe_sound_channel_progress_from_chunk(const wl_sound_channel_state *current,
+                                                  const wl_audio_chunk_metadata *metadata,
+                                                  const unsigned char *chunk, size_t chunk_size,
+                                                  wl_sound_channel_progress *out);
 int wl_describe_sound_channel_window_from_chunk(const wl_sound_channel_state *current,
                                                 const wl_audio_chunk_metadata *metadata,
                                                 const unsigned char *chunk, size_t chunk_size,
