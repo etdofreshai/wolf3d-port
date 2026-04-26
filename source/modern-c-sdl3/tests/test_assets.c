@@ -5372,6 +5372,32 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_path_chains.first_dangling_marker_index == 1);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.path_marker_count = 8;
+    chase_summary_model.path_markers[0] = (wl_marker_desc){10, 10, WL_ICONARROWS, WL_DIR_EAST};
+    chase_summary_model.path_markers[1] = (wl_marker_desc){11, 10, WL_ICONARROWS, WL_DIR_WEST};
+    chase_summary_model.path_markers[2] = (wl_marker_desc){20, 20, WL_ICONARROWS, WL_DIR_EAST};
+    chase_summary_model.path_markers[3] = (wl_marker_desc){21, 20, WL_ICONARROWS, WL_DIR_EAST};
+    chase_summary_model.path_markers[4] = (wl_marker_desc){30, 30, WL_ICONARROWS, WL_DIR_NORTH};
+    chase_summary_model.path_markers[5] = (wl_marker_desc){31, 31, WL_ICONARROWS, WL_DIR_NONE};
+    chase_summary_model.path_markers[6] = (wl_marker_desc){32, 32, WL_ICONARROWS, (wl_direction)99};
+    chase_summary_model.path_markers[7] = (wl_marker_desc){WL_MAP_SIDE, 1, WL_ICONARROWS, WL_DIR_WEST};
+    wl_path_marker_reciprocal_summary synthetic_path_reciprocal;
+    CHECK(wl_summarize_path_marker_reciprocal_links(&chase_summary_model,
+                                                     &synthetic_path_reciprocal) == 0);
+    CHECK(wl_summarize_path_marker_reciprocal_links(NULL,
+                                                     &synthetic_path_reciprocal) == -1);
+    CHECK(wl_summarize_path_marker_reciprocal_links(&chase_summary_model,
+                                                     NULL) == -1);
+    CHECK(synthetic_path_reciprocal.reciprocal_link_count == 2);
+    CHECK(synthetic_path_reciprocal.one_way_link_count == 1);
+    CHECK(synthetic_path_reciprocal.dangling_exit_count == 2);
+    CHECK(synthetic_path_reciprocal.no_direction_count == 1);
+    CHECK(synthetic_path_reciprocal.invalid_direction_count == 1);
+    CHECK(synthetic_path_reciprocal.invalid_marker_position_count == 1);
+    CHECK(synthetic_path_reciprocal.first_one_way_marker_index == 2);
+    CHECK(synthetic_path_reciprocal.first_dangling_marker_index == 3);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.unknown_info_tiles = 2;
     chase_summary_model.unknown_info_hash = 0x12345678u;
     chase_summary_model.first_unknown_info_tile = 178;
