@@ -542,3 +542,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 `wl_summarize_path_marker_directions` reports north/east/south/west/no-direction/invalid patrol-marker direction buckets plus invalid marker coordinates without mutating AI path state. Synthetic headless coverage pins every bucket for future patrol/chase progression diagnostics.
 
 `wl_summarize_path_marker_exits` adds a non-mutating patrol-marker diagnostic that checks each marker's directed next tile against the live tilemap and reports open, blocked, out-of-bounds, no-direction, invalid-direction, and invalid-marker counts for headless AI path validation.
+
+## Runtime path-marker/player distance summary
+
+`wl_summarize_path_marker_player_distances` reports nearest/farthest patrol markers relative to a player tile while accounting for invalid marker coordinates. Synthetic headless coverage pins valid, invalid-argument, and no-valid-marker behavior for future patrol/chase diagnostics.

@@ -548,6 +548,15 @@ typedef struct wl_path_marker_source_tile_summary {
     uint16_t max_source_tile;
 } wl_path_marker_source_tile_summary;
 
+typedef struct wl_path_marker_player_distance_summary {
+    size_t considered_count;
+    size_t invalid_marker_position_count;
+    uint16_t nearest_marker_index;
+    uint16_t farthest_marker_index;
+    uint16_t nearest_distance;
+    uint16_t farthest_distance;
+} wl_path_marker_player_distance_summary;
+
 typedef struct wl_path_marker_player_adjacency_summary {
     size_t same_tile_count;
     size_t cardinal_adjacent_count;
@@ -795,6 +804,9 @@ int wl_summarize_pushwall_source_tiles(const wl_game_model *model,
                                        wl_pushwall_source_tile_summary *out);
 int wl_summarize_path_marker_source_tiles(
     const wl_game_model *model, wl_path_marker_source_tile_summary *out);
+int wl_summarize_path_marker_player_distances(
+    const wl_game_model *model, uint16_t player_x, uint16_t player_y,
+    wl_path_marker_player_distance_summary *out);
 int wl_summarize_path_marker_player_adjacency(
     const wl_game_model *model, uint16_t player_x, uint16_t player_y,
     wl_path_marker_player_adjacency_summary *out);

@@ -11,6 +11,10 @@ static size_t map_index(size_t x, size_t y) {
     return y * WL_MAP_SIDE + x;
 }
 
+static uint16_t marker_model_manhattan_distance(const wl_marker_desc *marker,
+                                                uint16_t player_x,
+                                                uint16_t player_y);
+
 static int static_traits(uint16_t type, int *blocking, int *bonus, int *treasure) {
     static const unsigned char traits[] = {
         0,       /* 0 puddle */
@@ -1112,6 +1116,43 @@ int wl_summarize_path_marker_source_tiles(
         if (!seen) {
             ++out->unique_source_tile_count;
         }
+    }
+    return 0;
+}
+
+int wl_summarize_path_marker_player_distances(
+    const wl_game_model *model, uint16_t player_x, uint16_t player_y,
+    wl_path_marker_player_distance_summary *out) {
+    if (!model || !out || player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->nearest_marker_index = UINT16_MAX;
+    out->farthest_marker_index = UINT16_MAX;
+    out->nearest_distance = UINT16_MAX;
+
+    for (size_t i = 0; i < model->path_marker_count; ++i) {
+        const wl_marker_desc *marker = &model->path_markers[i];
+        if (marker->x >= WL_MAP_SIDE || marker->y >= WL_MAP_SIDE) {
+            ++out->invalid_marker_position_count;
+            continue;
+        }
+
+        const uint16_t distance = marker_model_manhattan_distance(marker, player_x, player_y);
+        ++out->considered_count;
+        if (distance < out->nearest_distance) {
+            out->nearest_distance = distance;
+            out->nearest_marker_index = (uint16_t)i;
+        }
+        if (out->farthest_marker_index == UINT16_MAX || distance > out->farthest_distance) {
+            out->farthest_distance = distance;
+            out->farthest_marker_index = (uint16_t)i;
+        }
+    }
+
+    if (out->considered_count == 0) {
+        out->nearest_distance = 0;
     }
     return 0;
 }
