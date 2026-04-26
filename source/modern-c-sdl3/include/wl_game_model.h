@@ -849,6 +849,21 @@ typedef struct wl_runtime_player_facing_tile_summary {
     uint8_t other_marker;
 } wl_runtime_player_facing_tile_summary;
 
+typedef struct wl_runtime_player_facing_run_summary {
+    wl_direction direction;
+    size_t clear_floor_count;
+    size_t traversed_tile_count;
+    uint16_t first_blocking_tile;
+    uint16_t first_blocking_x;
+    uint16_t first_blocking_y;
+    uint8_t has_blocking_tile;
+    uint8_t hit_map_edge;
+    uint8_t solid_wall;
+    uint8_t door_marker;
+    uint8_t pushwall_marker;
+    uint8_t other_marker;
+} wl_runtime_player_facing_run_summary;
+
 typedef struct wl_model_capacity_summary {
     size_t door_count;
     size_t static_count;
@@ -1025,6 +1040,8 @@ int wl_summarize_runtime_player_cardinal_tiles(
     wl_runtime_player_cardinal_tiles_summary *out);
 int wl_summarize_runtime_player_facing_tile(
     const wl_game_model *model, wl_runtime_player_facing_tile_summary *out);
+int wl_summarize_runtime_player_facing_run(
+    const wl_game_model *model, wl_runtime_player_facing_run_summary *out);
 int wl_summarize_model_capacity(const wl_game_model *model,
                                 wl_model_capacity_summary *out);
 int wl_summarize_unknown_info_tiles(const wl_game_model *model,

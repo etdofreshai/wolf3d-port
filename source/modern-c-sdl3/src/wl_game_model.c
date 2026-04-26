@@ -2290,6 +2290,58 @@ int wl_summarize_runtime_player_facing_tile(
     return 0;
 }
 
+
+int wl_summarize_runtime_player_facing_run(
+    const wl_game_model *model, wl_runtime_player_facing_run_summary *out) {
+    if (!model || !out || !model->player.present ||
+        model->player.x >= WL_MAP_SIDE || model->player.y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->direction = model->player.dir;
+    if (model->player.dir == WL_DIR_NONE) {
+        return 0;
+    }
+
+    int dx = 0;
+    int dy = 0;
+    if (path_step(model->player.dir, &dx, &dy) != 0) {
+        return -1;
+    }
+
+    int tx = (int)model->player.x + dx;
+    int ty = (int)model->player.y + dy;
+    while (tx >= 0 && ty >= 0 && tx < (int)WL_MAP_SIDE && ty < (int)WL_MAP_SIDE) {
+        const uint16_t tile = model->tilemap[map_index((size_t)tx, (size_t)ty)];
+        ++out->traversed_tile_count;
+        if (tile == 0u) {
+            ++out->clear_floor_count;
+            tx += dx;
+            ty += dy;
+            continue;
+        }
+
+        out->has_blocking_tile = 1u;
+        out->first_blocking_tile = tile;
+        out->first_blocking_x = (uint16_t)tx;
+        out->first_blocking_y = (uint16_t)ty;
+        if ((tile & 0xc0u) == 0xc0u) {
+            out->pushwall_marker = 1u;
+        } else if ((tile & 0x80u) != 0u) {
+            out->door_marker = 1u;
+        } else if (tile <= 63u) {
+            out->solid_wall = 1u;
+        } else {
+            out->other_marker = 1u;
+        }
+        return 0;
+    }
+
+    out->hit_map_edge = 1u;
+    return 0;
+}
+
 int wl_summarize_model_capacity(const wl_game_model *model,
                                 wl_model_capacity_summary *out) {
     if (!model || !out) {
