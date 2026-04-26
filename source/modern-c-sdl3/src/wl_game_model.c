@@ -2506,6 +2506,9 @@ int wl_summarize_runtime_player_interaction(
     out->bonus_static_count_ahead = statics.bonus_count_ahead;
     out->blocked_actor_count = actors.blocked_actor_count;
     out->blocked_static_count = statics.blocked_static_count;
+    out->invalid_actor_position_count = actors.invalid_actor_position_count;
+    out->inactive_static_count = statics.inactive_count;
+    out->invalid_static_position_count = statics.invalid_static_position_count;
 
     uint16_t nearest_distance = UINT16_MAX;
     if (actors.has_first_actor) {
