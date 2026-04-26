@@ -278,6 +278,7 @@ typedef struct wl_live_player_fire_tick_result {
     wl_player_fire_result fire;
     wl_player_fire_attack_result fire_attack;
     uint8_t fire_attempted;
+    uint8_t fire_blocked_by_active_attack;
 } wl_live_player_fire_tick_result;
 
 typedef struct wl_live_projectile_tick_result {

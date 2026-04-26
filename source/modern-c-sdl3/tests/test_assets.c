@@ -1843,6 +1843,7 @@ static int check_wl6(const char *dir) {
                                         WL_WEAPON_MACHINEGUN, 1,
                                         &live_fire_tick) == 0);
     CHECK(live_fire_tick.fire_attempted == 1);
+    CHECK(live_fire_tick.fire_blocked_by_active_attack == 0);
     CHECK(live_fire_tick.fire.fired == 1);
     CHECK(live_fire_tick.fire.consumed_ammo == 1);
     CHECK(live_fire_tick.fire.ammo_before == 3);
@@ -1863,6 +1864,7 @@ static int check_wl6(const char *dir) {
                                         WL_WEAPON_PISTOL, 1,
                                         &live_fire_tick) == 0);
     CHECK(live_fire_tick.fire_attempted == 1);
+    CHECK(live_fire_tick.fire_blocked_by_active_attack == 1);
     CHECK(live_fire_tick.fire.no_ammo == 1);
     CHECK(live_fire_tick.fire.fired_weapon == WL_WEAPON_MACHINEGUN);
     CHECK(live_fire_tick.fire_attack.attack_started == 0);
@@ -1881,6 +1883,7 @@ static int check_wl6(const char *dir) {
                                         WL_WEAPON_PISTOL, 1,
                                         &live_fire_tick) == 0);
     CHECK(live_fire_tick.fire_attempted == 1);
+    CHECK(live_fire_tick.fire_blocked_by_active_attack == 1);
     CHECK(live_fire_tick.live.attack.advanced == 1);
     CHECK(live_fire_tick.live.attack.frame_before == 3);
     CHECK(live_fire_tick.live.attack.frame_after == 2);
@@ -1900,6 +1903,7 @@ static int check_wl6(const char *dir) {
                                         WL_WEAPON_KNIFE, 1,
                                         &live_fire_tick) == 0);
     CHECK(live_fire_tick.fire_attempted == 0);
+    CHECK(live_fire_tick.fire_blocked_by_active_attack == 0);
     CHECK(live_fire_tick.fire.fired == 0);
     CHECK(live_fire_tick.fire_attack.attack_started == 0);
 
