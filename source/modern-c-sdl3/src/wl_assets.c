@@ -2403,6 +2403,37 @@ int wl_start_sound_channel(const wl_sound_channel_state *current,
     return 0;
 }
 
+int wl_advance_sound_channel(const wl_sound_channel_state *current,
+                             size_t sample_count,
+                             uint32_t sample_delta,
+                             wl_sound_channel_advance_result *out) {
+    wl_sound_channel_state state;
+    size_t remaining;
+    if (!current || !out || current->active > 1u) {
+        return -1;
+    }
+    state = *current;
+    if (state.active && state.sample_position > sample_count) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->state = state;
+    if (!state.active) {
+        return 0;
+    }
+    remaining = sample_count - state.sample_position;
+    if ((size_t)sample_delta < remaining) {
+        out->samples_consumed = sample_delta;
+        out->state.sample_position += (size_t)sample_delta;
+        return 0;
+    }
+    out->samples_consumed = (uint32_t)remaining;
+    out->completed = 1u;
+    out->state.active = 0;
+    out->state.sample_position = sample_count;
+    return 0;
+}
+
 static int describe_sample_playback_window(size_t sample_count,
                                            int (*getter)(const unsigned char *, size_t, size_t, uint8_t *),
                                            const unsigned char *chunk, size_t chunk_size,
