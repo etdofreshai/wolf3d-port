@@ -6453,6 +6453,23 @@ static int check_audio_wl6(const char *dir) {
     CHECK(adlib_regs.mode == 0xd5);
     CHECK(wl_describe_adlib_instrument_registers(chunk_buf, 21, &adlib_regs) == -1);
     CHECK(wl_describe_adlib_instrument_registers(chunk_buf, chunk_bytes, NULL) == -1);
+    CHECK(wl_describe_adlib_instrument_registers_from_chunk(&audio_meta, chunk_buf,
+                                                            chunk_bytes,
+                                                            &adlib_regs) == 0);
+    CHECK(adlib_regs.modulator_regs[0] == 0x20);
+    CHECK(adlib_regs.modulator_values[0] == 0x70);
+    CHECK(adlib_regs.carrier_regs[0] == 0x23);
+    CHECK(adlib_regs.carrier_values[0] == 0x75);
+    CHECK(adlib_regs.feedback_value == 0x01);
+    CHECK(adlib_regs.voice == 0x32);
+    audio_meta.kind = WL_AUDIO_CHUNK_PC_SPEAKER;
+    CHECK(wl_describe_adlib_instrument_registers_from_chunk(&audio_meta, chunk_buf,
+                                                            chunk_bytes,
+                                                            &adlib_regs) == -1);
+    audio_meta.kind = WL_AUDIO_CHUNK_ADLIB;
+    CHECK(wl_describe_adlib_instrument_registers_from_chunk(&audio_meta, chunk_buf,
+                                                            21,
+                                                            &adlib_regs) == -1);
     CHECK(wl_get_adlib_sound_sample(chunk_buf, chunk_bytes, 0, &adlib_sample) == 0);
     CHECK(adlib_sample == 0x04);
     CHECK(wl_get_adlib_sound_sample(chunk_buf, chunk_bytes, 7, &adlib_sample) == 0);

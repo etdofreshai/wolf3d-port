@@ -761,6 +761,10 @@ int wl_describe_adlib_sound(const unsigned char *chunk, size_t chunk_size,
                             wl_adlib_sound_metadata *out);
 int wl_describe_adlib_instrument_registers(const unsigned char *chunk, size_t chunk_size,
                                            wl_adlib_instrument_registers *out);
+int wl_describe_adlib_instrument_registers_from_chunk(
+    const wl_audio_chunk_metadata *metadata,
+    const unsigned char *chunk, size_t chunk_size,
+    wl_adlib_instrument_registers *out);
 int wl_get_adlib_instrument_byte(const unsigned char *chunk, size_t chunk_size,
                                  size_t instrument_index, uint8_t *out_byte);
 int wl_get_adlib_sound_sample(const unsigned char *chunk, size_t chunk_size,
