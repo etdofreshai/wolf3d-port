@@ -10,6 +10,7 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 - `wl_describe_audio_chunk_with_ranges()` applies the same descriptor logic to caller-supplied range counts, covering SOD's shorter PC/AdLib/digital tables without hardcoded WL6 cutoffs.
 - `wl_summarize_audio_range()` summarizes AUDIOHED offset ranges without reading AUDIOT payloads, giving future audio schedulers quick counts/byte totals for PC speaker, AdLib, digital, and music ranges.
 - `wl_describe_sound_priority_decision()` captures the single-channel sound arbitration rule for future SDL3/audio playback: start when no sound is active, or when the candidate priority is at least the active sound priority.
+- `wl_start_sound_channel()` applies that arbitration to a tiny deterministic active-sound state: rejected lower-priority candidates preserve the active sound/sample position, while accepted candidates replace the sound index, priority, and reset playback to sample 0.
 - `wl_describe_pc_speaker_sound()` validates the PC speaker declared sample count and exposes first/last sample bytes, the terminating sentinel, and any trailing bytes.
 - `wl_get_pc_speaker_sound_sample()` decodes a bounded PC speaker sample byte by index so future SDL3/audio playback code can advance through sound data without raw offset math.
 - `wl_advance_pc_speaker_playback_cursor()` advances a PC speaker sample index by a frame/sample delta, reporting the next sample, consumed samples, and completion state for frame-to-frame sound playback.
@@ -34,7 +35,7 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 - First offsets: `0, 15, 28, 44, 102`.
 - `AUDIOT.WL6`: 320,209 bytes; sentinel offset is within the file and equals the observed file end.
 - Range summaries pin the WL6 PC speaker range as 87/87 non-empty chunks totaling 9,986 bytes (largest chunk 50 at 313 bytes), the AdLib range as 87/87 non-empty chunks totaling 12,969 bytes (largest chunk 137 at 339 bytes), the digitized-sound range as 1/87 non-empty chunks totaling 4 bytes (chunk 260 sentinel/marker), and the music range as 27/27 non-empty chunks totaling 297,250 bytes (largest chunk 280 at 22,578 bytes).
-- Priority arbitration is pinned headlessly for inactive sounds, lower-priority rejection, equal-priority replacement, higher-priority replacement, and invalid active-state/null-output rejection.
+- Priority arbitration is pinned headlessly for inactive sounds, lower-priority rejection, equal-priority replacement, higher-priority replacement, and invalid active-state/null-output rejection; channel-start state coverage also pins inactive start, lower-priority state preservation, equal-priority replacement, sample-position reset, and invalid input handling.
 - Representative chunks:
   - chunk 0: 15 bytes, FNV-1a `0x5971ec53`; PC speaker sample count 8, first/last samples `0x83`/`0x84`, bounded sample accessor first/last bytes `0x83`/`0x84`, playback cursor covers zero-delta, last-sample, clamped completion, completed no-op, and invalid completed-delta states; playback windows cover mid-sound samples 2..4 and completion from sample 7; terminator `0x00`, trailing bytes 0.
   - chunk 1: 13 bytes, FNV-1a `0x21985d89`; PC speaker sample count 6, first/last samples `0x2f`/`0x2f`, bounded sample accessor last byte `0x2f`, terminator `0x00`.

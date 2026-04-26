@@ -2343,6 +2343,32 @@ int wl_describe_sound_priority_decision(uint8_t current_active,
     return 0;
 }
 
+int wl_start_sound_channel(const wl_sound_channel_state *current,
+                           uint16_t candidate_sound_index,
+                           uint16_t candidate_priority,
+                           wl_sound_channel_start_result *out) {
+    wl_sound_priority_decision decision;
+    if (!current || !out || current->active > 1u) {
+        return -1;
+    }
+    if (wl_describe_sound_priority_decision(current->active, current->priority,
+                                            candidate_priority, &decision) != 0) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->state = *current;
+    if (!decision.should_start) {
+        return 0;
+    }
+    out->started = 1u;
+    out->replaced = current->active ? 1u : 0u;
+    out->state.active = 1u;
+    out->state.sound_index = candidate_sound_index;
+    out->state.priority = candidate_priority;
+    out->state.sample_position = 0;
+    return 0;
+}
+
 static int describe_sample_playback_window(size_t sample_count,
                                            int (*getter)(const unsigned char *, size_t, size_t, uint8_t *),
                                            const unsigned char *chunk, size_t chunk_size,

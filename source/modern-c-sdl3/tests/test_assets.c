@@ -5864,6 +5864,8 @@ static int check_audio_wl6(const char *dir) {
     wl_audio_chunk_metadata audio_meta;
     wl_audio_range_summary audio_range;
     wl_sound_priority_decision priority_decision;
+    wl_sound_channel_state sound_channel;
+    wl_sound_channel_start_result sound_start;
     wl_pc_speaker_sound_metadata pc_meta;
     wl_pc_speaker_playback_cursor pc_cursor;
     wl_adlib_sound_metadata adlib_meta;
@@ -5945,6 +5947,41 @@ static int check_audio_wl6(const char *dir) {
     CHECK(priority_decision.should_start == 1);
     CHECK(wl_describe_sound_priority_decision(2, 4, 5, &priority_decision) == -1);
     CHECK(wl_describe_sound_priority_decision(1, 4, 5, NULL) == -1);
+
+    memset(&sound_channel, 0, sizeof(sound_channel));
+    sound_channel.active = 0;
+    sound_channel.sound_index = 12;
+    sound_channel.priority = 99;
+    sound_channel.sample_position = 5;
+    CHECK(wl_start_sound_channel(&sound_channel, 1, 1, &sound_start) == 0);
+    CHECK(sound_start.started == 1);
+    CHECK(sound_start.replaced == 0);
+    CHECK(sound_start.state.active == 1);
+    CHECK(sound_start.state.sound_index == 1);
+    CHECK(sound_start.state.priority == 1);
+    CHECK(sound_start.state.sample_position == 0);
+
+    sound_channel = sound_start.state;
+    sound_channel.sample_position = 7;
+    CHECK(wl_start_sound_channel(&sound_channel, 2, 0, &sound_start) == 0);
+    CHECK(sound_start.started == 0);
+    CHECK(sound_start.replaced == 0);
+    CHECK(sound_start.state.active == 1);
+    CHECK(sound_start.state.sound_index == 1);
+    CHECK(sound_start.state.priority == 1);
+    CHECK(sound_start.state.sample_position == 7);
+
+    CHECK(wl_start_sound_channel(&sound_channel, 3, 1, &sound_start) == 0);
+    CHECK(sound_start.started == 1);
+    CHECK(sound_start.replaced == 1);
+    CHECK(sound_start.state.active == 1);
+    CHECK(sound_start.state.sound_index == 3);
+    CHECK(sound_start.state.priority == 1);
+    CHECK(sound_start.state.sample_position == 0);
+    CHECK(wl_start_sound_channel(NULL, 4, 5, &sound_start) == -1);
+    CHECK(wl_start_sound_channel(&sound_channel, 4, 5, NULL) == -1);
+    sound_channel.active = 2;
+    CHECK(wl_start_sound_channel(&sound_channel, 4, 5, &sound_start) == -1);
 
     /* Offsets must be non-decreasing */
     for (size_t i = 1; i <= audio.chunk_count; ++i) {
