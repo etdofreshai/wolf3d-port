@@ -2845,6 +2845,27 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_activity.boss_or_ghost_count == 1);
     CHECK(synthetic_activity.invalid_position_count == 0);
 
+    chase_summary_model.actors[0].tile_x = 7;
+    chase_summary_model.actors[0].tile_y = 8;
+    chase_summary_model.actors[1].tile_x = 7;
+    chase_summary_model.actors[1].tile_y = 8;
+    chase_summary_model.actors[2].tile_x = 9;
+    chase_summary_model.actors[2].tile_y = 8;
+    chase_summary_model.actors[3].tile_x = 7;
+    chase_summary_model.actors[3].tile_y = 8;
+    chase_summary_model.actors[4].tile_x = WL_MAP_SIDE;
+    chase_summary_model.actors[4].tile_y = 8;
+    chase_summary_model.actor_count = 5;
+    wl_actor_tile_occupancy_summary synthetic_occupancy;
+    CHECK(wl_summarize_actor_tile_occupancy(&chase_summary_model,
+                                            &synthetic_occupancy) == 0);
+    CHECK(wl_summarize_actor_tile_occupancy(NULL, &synthetic_occupancy) == -1);
+    CHECK(wl_summarize_actor_tile_occupancy(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_occupancy.occupied_tile_count == 2);
+    CHECK(synthetic_occupancy.stacked_actor_count == 3);
+    CHECK(synthetic_occupancy.invalid_position_count == 1);
+    CHECK(synthetic_occupancy.max_stack_count == 3);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
