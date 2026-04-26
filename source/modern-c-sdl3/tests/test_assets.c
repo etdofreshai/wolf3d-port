@@ -5875,6 +5875,7 @@ static int check_audio_wl6(const char *dir) {
     wl_sound_channel_schedule_window_result sound_schedule_window;
     wl_sound_channel_schedule_position_result sound_schedule_position;
     wl_sound_channel_schedule_progress_result sound_schedule_progress;
+    wl_sound_channel_schedule_progress_window_result sound_schedule_progress_window;
     wl_pc_speaker_sound_metadata pc_meta;
     wl_pc_speaker_playback_cursor pc_cursor;
     wl_adlib_sound_metadata adlib_meta;
@@ -6522,6 +6523,41 @@ static int check_audio_wl6(const char *dir) {
               &sound_schedule_progress) == -1);
     CHECK(wl_schedule_describe_sound_channel_progress_from_chunk(
               &sound_channel, 0, &audio_meta, chunk_buf, chunk_bytes,
+              NULL) == -1);
+
+    memset(&sound_channel, 0, sizeof(sound_channel));
+    CHECK(wl_schedule_describe_sound_channel_progress_window_from_chunk(
+              &sound_channel, 0, &audio_meta, chunk_buf, chunk_bytes, 3,
+              &sound_schedule_progress_window) == 0);
+    CHECK(sound_schedule_progress_window.schedule.started == 1);
+    CHECK(sound_schedule_progress_window.schedule.held == 0);
+    CHECK(sound_schedule_progress_window.described == 1);
+    CHECK(sound_schedule_progress_window.progress_window.progress.sound_index == 0);
+    CHECK(sound_schedule_progress_window.progress_window.progress.remaining_samples == 8);
+    CHECK(sound_schedule_progress_window.progress_window.window.start_sample == 0);
+    CHECK(sound_schedule_progress_window.progress_window.window.samples_in_window == 3);
+    CHECK(sound_schedule_progress_window.progress_window.window.next_sample == 3);
+    CHECK(sound_schedule_progress_window.progress_window.window.first_sample == 0x83);
+    CHECK(sound_schedule_progress_window.progress_window.window.last_sample == 0x82);
+    CHECK(sound_schedule_progress_window.progress_window.window.completed == 0);
+    sound_channel.active = 1;
+    sound_channel.sound_index = 50;
+    sound_channel.priority = 2;
+    sound_channel.sample_position = 4;
+    CHECK(wl_schedule_describe_sound_channel_progress_window_from_chunk(
+              &sound_channel, 0, &audio_meta, chunk_buf, chunk_bytes, 3,
+              &sound_schedule_progress_window) == 0);
+    CHECK(sound_schedule_progress_window.schedule.held == 1);
+    CHECK(sound_schedule_progress_window.described == 0);
+    CHECK(sound_schedule_progress_window.schedule.state.sound_index == 50);
+    CHECK(wl_schedule_describe_sound_channel_progress_window_from_chunk(
+              &sound_channel, 70000, &audio_meta, chunk_buf, chunk_bytes, 3,
+              &sound_schedule_progress_window) == -1);
+    CHECK(wl_schedule_describe_sound_channel_progress_window_from_chunk(
+              &sound_channel, 0, &audio_meta, chunk_buf, 6, 3,
+              &sound_schedule_progress_window) == -1);
+    CHECK(wl_schedule_describe_sound_channel_progress_window_from_chunk(
+              &sound_channel, 0, &audio_meta, chunk_buf, chunk_bytes, 3,
               NULL) == -1);
 
 
