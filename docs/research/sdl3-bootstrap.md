@@ -94,3 +94,7 @@ The SDL-free presentation helpers now include `wl_expand_present_frame_to_rgba_p
 ## SDL3 live gameplay scene screenshot seam
 
 The SDL3 present smoke now routes a small runtime/gameplay-rendered scene through the headless presentation path. The test builds a mutable `wl_game_model` with a closed runtime door and a visible sprite, renders it with `wl_render_runtime_door_camera_scene_view`, describes the resulting indexed scene as a present frame, expands it to RGBA, and saves ignored `build/wolf-live-scene-present.bmp` under the dummy video driver. Assertions pin the live scene indexed hash `0x8463d905`, RGBA hash `0xd6cf31ac`, and BMP size/hash `41098` / `0x2ac02cbd` without committing decoded proprietary pixels.
+
+## SDL3 WL6 map scene screenshot seam
+
+The SDL3 present smoke now builds an actual WL6 map-0 easy-difficulty runtime model from `MAPHEAD.WL6`/`GAMEMAPS.WL6`, collects runtime sprite refs, decodes a representative visible static sprite from VSWAP, renders the map/player scene through `wl_render_runtime_door_camera_scene_view`, expands it to RGBA, and saves ignored `build/wolf-wl6-map0-scene-present.bmp` under the dummy video driver. Assertions pin scene hash `0xc78c69fd`, RGBA hash `0x0c6d6fe3`, and BMP size/hash `41098` / `0xdd9820ae` without committing decoded asset pixels.

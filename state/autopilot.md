@@ -5974,3 +5974,36 @@ Next likely move:
 - Route a real WL6 map/player live-tick scene (instead of the current small synthetic runtime scene) through the same SDL3 presentation artifact path, or continue deeper actor state progression.
 
 Blockers: none.
+
+## Cycle 2026-04-26 12:30 CDT
+
+Cross-model review:
+
+- Reviewed commits in `dd5fd40c9148b20f460a5ec393694099bf772d37..HEAD`, including the recent ZAI SDL/live-scene work through `a954043` plus earlier merged ZAI runtime diagnostics. The committed tests/docs were consistent, `source/original/` and game data stayed untouched, and the prior synthetic live-scene SDL seam passed verification. No repair was needed.
+
+Action taken:
+
+- Extended the SDL3 presentation smoke from a synthetic runtime scene to an actual WL6 map-0 runtime model.
+- `test_sdl3_present` now reads `MAPHEAD.WL6`/`GAMEMAPS.WL6`, builds the easy-difficulty game model, collects scene refs, decodes a representative map sprite from VSWAP, renders the player/map scene through the live runtime door-aware renderer, expands it to RGBA, and saves an ignored BMP artifact under the SDL dummy driver.
+- Added deterministic scene/RGBA/BMP hash assertions and documented the new headless SDL3 map-scene seam.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame/audio+sod-audio tests passed for game-files/base
+SDL3 smoke test passed
+SDL3 Wolf WL6 map scene screenshot smoke test passed
+```
+
+Next likely move:
+
+- Move from the representative single-ref map scene toward a fuller visible-ref WL6 gameplay frame or begin SDL3 texture/window presentation consolidation.
+
+Blockers: none.
