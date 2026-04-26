@@ -2294,6 +2294,21 @@ int wl_read_audio_header(const char *path, wl_audio_header *out) {
     return 0;
 }
 
+int wl_validate_audio_header_offsets(const wl_audio_header *header,
+                                     size_t audiot_size) {
+    if (!header || header->chunk_count == 0 ||
+        header->chunk_count > WL_AUDIO_MAX_CHUNKS) {
+        return -1;
+    }
+    for (size_t i = 1; i <= header->chunk_count; ++i) {
+        if (header->offsets[i] < header->offsets[i - 1] ||
+            header->offsets[i] > audiot_size) {
+            return -1;
+        }
+    }
+    return 0;
+}
+
 int wl_read_audio_chunk(const char *audiot_path,
                         const wl_audio_header *header,
                         size_t chunk_index,
@@ -2312,6 +2327,11 @@ int wl_read_audio_chunk(const char *audiot_path,
         return -1;
     }
     uint32_t chunk_size = end - start;
+    size_t audiot_size = 0;
+    if (wl_file_size(audiot_path, &audiot_size) != 0 ||
+        wl_validate_audio_header_offsets(header, audiot_size) != 0) {
+        return -1;
+    }
     if (chunk_size == 0) {
         return 0;
     }

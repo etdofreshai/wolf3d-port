@@ -728,6 +728,8 @@ typedef struct wl_imf_playback_cursor {
 } wl_imf_playback_cursor;
 
 int wl_read_audio_header(const char *path, wl_audio_header *out);
+int wl_validate_audio_header_offsets(const wl_audio_header *header,
+                                     size_t audiot_size);
 int wl_read_audio_chunk(const char *audiot_path,
                         const wl_audio_header *header,
                         size_t chunk_index,
