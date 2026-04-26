@@ -580,3 +580,7 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 ## Runtime door tile occupancy summary
 
 `wl_summarize_door_tile_occupancy` reports total, unique, duplicate, and invalid door descriptor positions without mutating runtime state. This mirrors the static/path-marker/pushwall occupancy diagnostics and gives future door collision or close-door logic a deterministic headless check for overlapping or out-of-bounds door centers.
+
+## Runtime static line-of-sight summary
+
+`wl_summarize_static_line_of_sight` mirrors actor cardinal visibility diagnostics for static descriptors, including active-only filtering and wall/door blockers. This gives pickup/render preparation a deterministic SDL-free summary of statics that are in the player's row or column before presentation work mutates or draws them.

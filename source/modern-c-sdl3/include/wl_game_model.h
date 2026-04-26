@@ -447,6 +447,16 @@ typedef struct wl_static_player_adjacency_summary {
     size_t invalid_position_count;
 } wl_static_player_adjacency_summary;
 
+typedef struct wl_static_line_of_sight_summary {
+    size_t clear_cardinal_count;
+    size_t blocked_by_wall_count;
+    size_t blocked_by_door_count;
+    size_t same_tile_count;
+    size_t noncardinal_count;
+    size_t inactive_count;
+    size_t invalid_position_count;
+} wl_static_line_of_sight_summary;
+
 typedef struct wl_door_state_summary {
     size_t vertical_count;
     size_t horizontal_count;
@@ -905,6 +915,10 @@ int wl_summarize_static_player_adjacency(const wl_game_model *model,
                                          uint16_t player_x, uint16_t player_y,
                                          int active_only,
                                          wl_static_player_adjacency_summary *out);
+int wl_summarize_static_line_of_sight(const wl_game_model *model,
+                                      uint16_t player_x, uint16_t player_y,
+                                      int active_only,
+                                      wl_static_line_of_sight_summary *out);
 int wl_summarize_door_states(const wl_game_model *model,
                              wl_door_state_summary *out);
 int wl_summarize_door_timing(const wl_game_model *model,

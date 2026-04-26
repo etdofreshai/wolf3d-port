@@ -3547,6 +3547,52 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_static_adjacency.invalid_position_count == 1);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.static_count = 7;
+    chase_summary_model.statics[0].x = 10;
+    chase_summary_model.statics[0].y = 10;
+    chase_summary_model.statics[0].active = 1;
+    chase_summary_model.statics[1].x = 14;
+    chase_summary_model.statics[1].y = 10;
+    chase_summary_model.statics[1].active = 1;
+    chase_summary_model.statics[2].x = 10;
+    chase_summary_model.statics[2].y = 14;
+    chase_summary_model.statics[2].active = 1;
+    chase_summary_model.statics[3].x = 6;
+    chase_summary_model.statics[3].y = 10;
+    chase_summary_model.statics[3].active = 1;
+    chase_summary_model.statics[4].x = 13;
+    chase_summary_model.statics[4].y = 13;
+    chase_summary_model.statics[4].active = 1;
+    chase_summary_model.statics[5].x = 10;
+    chase_summary_model.statics[5].y = 6;
+    chase_summary_model.statics[5].active = 0;
+    chase_summary_model.statics[6].x = WL_MAP_SIDE;
+    chase_summary_model.statics[6].y = 1;
+    chase_summary_model.statics[6].active = 1;
+    chase_summary_model.tilemap[10 * WL_MAP_SIDE + 12] = 1;
+    chase_summary_model.tilemap[12 * WL_MAP_SIDE + 10] = 0x80u;
+    wl_static_line_of_sight_summary synthetic_static_los;
+    CHECK(wl_summarize_static_line_of_sight(&chase_summary_model, 10, 10, 0,
+                                            &synthetic_static_los) == 0);
+    CHECK(wl_summarize_static_line_of_sight(NULL, 10, 10, 0,
+                                            &synthetic_static_los) == -1);
+    CHECK(wl_summarize_static_line_of_sight(&chase_summary_model, WL_MAP_SIDE, 10, 0,
+                                            &synthetic_static_los) == -1);
+    CHECK(wl_summarize_static_line_of_sight(&chase_summary_model, 10, 10, 0, NULL) == -1);
+    CHECK(synthetic_static_los.clear_cardinal_count == 2);
+    CHECK(synthetic_static_los.blocked_by_wall_count == 1);
+    CHECK(synthetic_static_los.blocked_by_door_count == 1);
+    CHECK(synthetic_static_los.same_tile_count == 1);
+    CHECK(synthetic_static_los.noncardinal_count == 1);
+    CHECK(synthetic_static_los.inactive_count == 0);
+    CHECK(synthetic_static_los.invalid_position_count == 1);
+    CHECK(wl_summarize_static_line_of_sight(&chase_summary_model, 10, 10, 1,
+                                            &synthetic_static_los) == 0);
+    CHECK(synthetic_static_los.clear_cardinal_count == 1);
+    CHECK(synthetic_static_los.inactive_count == 1);
+    CHECK(synthetic_static_los.invalid_position_count == 1);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.door_count = 5;
     chase_summary_model.doors[0].vertical = 1;
     chase_summary_model.doors[0].lock = 0;
