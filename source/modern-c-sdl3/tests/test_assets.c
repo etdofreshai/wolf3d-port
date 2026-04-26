@@ -5774,6 +5774,7 @@ static int check_audio_wl6(const char *dir) {
     unsigned char chunk_buf[65536];
     size_t chunk_bytes = 0;
     wl_audio_chunk_metadata audio_meta;
+    wl_audio_range_summary audio_range;
     wl_pc_speaker_sound_metadata pc_meta;
     wl_pc_speaker_playback_cursor pc_cursor;
     wl_adlib_sound_metadata adlib_meta;
@@ -5802,6 +5803,24 @@ static int check_audio_wl6(const char *dir) {
     CHECK(audio.offsets[2] == 28);
     CHECK(audio.offsets[3] == 44);
     CHECK(audio.offsets[4] == 102);
+
+    CHECK(wl_summarize_audio_range(&audio, 0, 87, &audio_range) == 0);
+    CHECK(audio_range.start_chunk == 0);
+    CHECK(audio_range.chunk_count == 87);
+    CHECK(audio_range.non_empty_chunks == 87);
+    CHECK(audio_range.total_bytes == 9986);
+    CHECK(audio_range.first_non_empty_chunk == 0);
+    CHECK(audio_range.last_non_empty_chunk == 86);
+    CHECK(audio_range.largest_chunk == 50);
+    CHECK(audio_range.largest_chunk_bytes == 313);
+    CHECK(wl_summarize_audio_range(&audio, 174, 87, &audio_range) == 0);
+    CHECK(audio_range.non_empty_chunks == 1);
+    CHECK(audio_range.total_bytes == 4);
+    CHECK(audio_range.first_non_empty_chunk == 260);
+    CHECK(audio_range.last_non_empty_chunk == 260);
+    CHECK(audio_range.largest_chunk == 260);
+    CHECK(audio_range.largest_chunk_bytes == 4);
+    CHECK(wl_summarize_audio_range(&audio, 288, 1, &audio_range) == -1);
 
     /* Offsets must be non-decreasing */
     for (size_t i = 1; i <= audio.chunk_count; ++i) {

@@ -480,6 +480,17 @@ typedef struct wl_audio_chunk_metadata {
     size_t payload_size;
 } wl_audio_chunk_metadata;
 
+typedef struct wl_audio_range_summary {
+    size_t start_chunk;
+    size_t chunk_count;
+    size_t non_empty_chunks;
+    size_t total_bytes;
+    size_t first_non_empty_chunk;
+    size_t last_non_empty_chunk;
+    size_t largest_chunk;
+    size_t largest_chunk_bytes;
+} wl_audio_range_summary;
+
 typedef struct wl_pc_speaker_sound_metadata {
     uint32_t sample_count;
     uint8_t first_sample;
@@ -581,6 +592,9 @@ int wl_read_audio_chunk(const char *audiot_path,
 int wl_describe_audio_chunk(size_t chunk_index,
                             const unsigned char *chunk, size_t chunk_size,
                             wl_audio_chunk_metadata *out);
+int wl_summarize_audio_range(const wl_audio_header *header,
+                             size_t start_chunk, size_t chunk_count,
+                             wl_audio_range_summary *out);
 int wl_describe_pc_speaker_sound(const unsigned char *chunk, size_t chunk_size,
                                   wl_pc_speaker_sound_metadata *out);
 int wl_get_pc_speaker_sound_sample(const unsigned char *chunk, size_t chunk_size,
