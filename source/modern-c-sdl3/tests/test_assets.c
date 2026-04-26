@@ -3935,6 +3935,50 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_threats.invalid_mode_count == 1);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.actor_count = 8;
+    for (size_t i = 0; i < chase_summary_model.actor_count; ++i) {
+        chase_summary_model.actors[i].shootable = 1;
+        chase_summary_model.actors[i].mode = WL_ACTOR_CHASE;
+        chase_summary_model.actors[i].dir = WL_DIR_WEST;
+        chase_summary_model.actors[i].tile_x = 10;
+        chase_summary_model.actors[i].tile_y = 5;
+    }
+    chase_summary_model.actors[0].tile_x = 10;
+    chase_summary_model.actors[0].tile_y = 5;
+    chase_summary_model.actors[0].dir = WL_DIR_WEST;
+    chase_summary_model.actors[1].shootable = 0;
+    chase_summary_model.actors[2].mode = WL_ACTOR_PATROL;
+    chase_summary_model.actors[3].dir = WL_DIR_EAST;
+    chase_summary_model.actors[4].tile_x = 10;
+    chase_summary_model.actors[4].tile_y = 6;
+    chase_summary_model.actors[5].tile_x = 6;
+    chase_summary_model.actors[5].tile_y = 5;
+    chase_summary_model.actors[5].dir = WL_DIR_EAST;
+    chase_summary_model.tilemap[(size_t)5 * WL_MAP_SIDE + 7] = 7;
+    chase_summary_model.actors[6].tile_x = 8;
+    chase_summary_model.actors[6].tile_y = 5;
+    chase_summary_model.actors[6].dir = WL_DIR_EAST;
+    chase_summary_model.actors[7].tile_x = WL_MAP_SIDE;
+    chase_summary_model.actors[7].tile_y = 5;
+    wl_actor_attack_readiness_summary synthetic_attack_ready;
+    CHECK(wl_summarize_actor_attack_readiness(&chase_summary_model, 8, 5,
+                                              &synthetic_attack_ready) == 0);
+    CHECK(wl_summarize_actor_attack_readiness(NULL, 8, 5,
+                                              &synthetic_attack_ready) == -1);
+    CHECK(wl_summarize_actor_attack_readiness(&chase_summary_model, WL_MAP_SIDE, 5,
+                                              &synthetic_attack_ready) == -1);
+    CHECK(wl_summarize_actor_attack_readiness(&chase_summary_model, 8, 5,
+                                              NULL) == -1);
+    CHECK(synthetic_attack_ready.ready_to_attack_count == 1);
+    CHECK(synthetic_attack_ready.not_shootable_count == 1);
+    CHECK(synthetic_attack_ready.not_active_count == 1);
+    CHECK(synthetic_attack_ready.not_facing_player_count == 1);
+    CHECK(synthetic_attack_ready.no_clear_cardinal_sight_count == 2);
+    CHECK(synthetic_attack_ready.same_tile_count == 1);
+    CHECK(synthetic_attack_ready.invalid_direction_count == 0);
+    CHECK(synthetic_attack_ready.invalid_position_count == 1);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.static_count = 4;
     chase_summary_model.statics[0].active = 1;
     chase_summary_model.statics[0].blocking = 1;

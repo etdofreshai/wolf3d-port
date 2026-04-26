@@ -3531,6 +3531,84 @@ int wl_summarize_actor_threats(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_actor_attack_readiness(const wl_game_model *model,
+                                        uint16_t player_x, uint16_t player_y,
+                                        wl_actor_attack_readiness_summary *out) {
+    if (!model || !out || player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+        if ((unsigned)actor->dir >= (WL_DIR_NONE + 1)) {
+            ++out->invalid_direction_count;
+            continue;
+        }
+        if (!actor->shootable) {
+            ++out->not_shootable_count;
+            continue;
+        }
+        if (actor->mode != WL_ACTOR_CHASE && actor->mode != WL_ACTOR_BOSS_MODE &&
+            actor->mode != WL_ACTOR_GHOST_MODE) {
+            ++out->not_active_count;
+            continue;
+        }
+        if (actor->tile_x == player_x && actor->tile_y == player_y) {
+            ++out->same_tile_count;
+            continue;
+        }
+        if (actor->dir == WL_DIR_NONE) {
+            ++out->not_facing_player_count;
+            continue;
+        }
+
+        int dx = 0;
+        int dy = 0;
+        if (path_step(actor->dir, &dx, &dy) != 0) {
+            ++out->invalid_direction_count;
+            continue;
+        }
+        const int to_player_x = (player_x > actor->tile_x) - (player_x < actor->tile_x);
+        const int to_player_y = (player_y > actor->tile_y) - (player_y < actor->tile_y);
+        const int facing_player = (dx != 0 && dx == to_player_x) ||
+                                  (dy != 0 && dy == to_player_y);
+        if (!facing_player) {
+            ++out->not_facing_player_count;
+            continue;
+        }
+        if (actor->tile_x != player_x && actor->tile_y != player_y) {
+            ++out->no_clear_cardinal_sight_count;
+            continue;
+        }
+
+        const int step_x = (actor->tile_x > player_x) - (actor->tile_x < player_x);
+        const int step_y = (actor->tile_y > player_y) - (actor->tile_y < player_y);
+        int x = (int)player_x + step_x;
+        int y = (int)player_y + step_y;
+        int blocked = 0;
+        while ((uint16_t)x != actor->tile_x || (uint16_t)y != actor->tile_y) {
+            const uint16_t tile = model->tilemap[map_index((size_t)x, (size_t)y)];
+            if (tile != 0) {
+                blocked = 1;
+                break;
+            }
+            x += step_x;
+            y += step_y;
+        }
+        if (blocked) {
+            ++out->no_clear_cardinal_sight_count;
+        } else {
+            ++out->ready_to_attack_count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_actor_directions(const wl_game_model *model,
                                   wl_actor_direction_summary *out) {
     if (!model || !out) {
