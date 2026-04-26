@@ -2136,6 +2136,43 @@ int wl_summarize_runtime_tile_axes(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_runtime_player_tile_neighborhood(
+    const wl_game_model *model,
+    wl_runtime_player_tile_neighborhood_summary *out) {
+    if (!model || !out || !model->player.present ||
+        model->player.x >= WL_MAP_SIDE || model->player.y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    const size_t player_x = model->player.x;
+    const size_t player_y = model->player.y;
+    const size_t min_x = player_x > 0u ? player_x - 1u : player_x;
+    const size_t min_y = player_y > 0u ? player_y - 1u : player_y;
+    const size_t max_x = player_x + 1u < WL_MAP_SIDE ? player_x + 1u : player_x;
+    const size_t max_y = player_y + 1u < WL_MAP_SIDE ? player_y + 1u : player_y;
+
+    out->player_tile = model->tilemap[map_index(player_x, player_y)];
+    for (size_t y = min_y; y <= max_y; ++y) {
+        for (size_t x = min_x; x <= max_x; ++x) {
+            const uint16_t tile = model->tilemap[map_index(x, y)];
+            ++out->sampled_tile_count;
+            if (tile == 0u) {
+                ++out->clear_floor_count;
+            } else if ((tile & 0xc0u) == 0xc0u) {
+                ++out->pushwall_marker_count;
+            } else if ((tile & 0x80u) != 0u) {
+                ++out->door_marker_count;
+            } else if (tile <= 63u) {
+                ++out->solid_wall_count;
+            } else {
+                ++out->other_marker_count;
+            }
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_model_capacity(const wl_game_model *model,
                                 wl_model_capacity_summary *out) {
     if (!model || !out) {
