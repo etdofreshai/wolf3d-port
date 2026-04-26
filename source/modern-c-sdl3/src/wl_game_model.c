@@ -2402,6 +2402,12 @@ static uint16_t door_model_manhattan_distance(const wl_door_desc *door,
     return tile_manhattan_distance(door->x, door->y, player_x, player_y);
 }
 
+static uint16_t marker_model_manhattan_distance(const wl_marker_desc *marker,
+                                                uint16_t player_x,
+                                                uint16_t player_y) {
+    return tile_manhattan_distance(marker->x, marker->y, player_x, player_y);
+}
+
 int wl_summarize_static_player_distances(const wl_game_model *model,
                                          uint16_t player_x, uint16_t player_y,
                                          int active_only,
@@ -2617,6 +2623,43 @@ int wl_summarize_pushwall_state(const wl_game_model *model,
         out->motion_position_valid =
             (model->pushwall_motion.x < WL_MAP_SIDE &&
              model->pushwall_motion.y < WL_MAP_SIDE) ? 1u : 0u;
+    }
+    return 0;
+}
+
+int wl_summarize_pushwall_player_distances(
+    const wl_game_model *model, uint16_t player_x, uint16_t player_y,
+    wl_pushwall_player_distance_summary *out) {
+    if (!model || !out || player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->nearest_pushwall_index = UINT16_MAX;
+    out->farthest_pushwall_index = UINT16_MAX;
+    out->nearest_distance = UINT16_MAX;
+
+    for (size_t i = 0; i < model->pushwall_count; ++i) {
+        const wl_marker_desc *marker = &model->pushwalls[i];
+        if (marker->x >= WL_MAP_SIDE || marker->y >= WL_MAP_SIDE) {
+            ++out->invalid_marker_position_count;
+            continue;
+        }
+
+        const uint16_t distance = marker_model_manhattan_distance(marker, player_x, player_y);
+        ++out->considered_count;
+        if (distance < out->nearest_distance) {
+            out->nearest_distance = distance;
+            out->nearest_pushwall_index = (uint16_t)i;
+        }
+        if (out->farthest_pushwall_index == UINT16_MAX || distance > out->farthest_distance) {
+            out->farthest_distance = distance;
+            out->farthest_pushwall_index = (uint16_t)i;
+        }
+    }
+
+    if (out->considered_count == 0) {
+        out->nearest_distance = 0;
     }
     return 0;
 }
