@@ -889,6 +889,18 @@ int wl_expand_present_frame_to_rgba(const wl_present_frame_descriptor *present,
                                                    pitch, out);
 }
 
+int wl_expand_present_frame_to_rgba_pitched_clear_padding(
+    const wl_present_frame_descriptor *present, unsigned char *rgba,
+    size_t rgba_size, size_t rgba_pitch, unsigned char padding_value,
+    wl_texture_upload_descriptor *out) {
+    if (wl_expand_present_frame_to_rgba_pitched(present, rgba, rgba_size,
+                                                rgba_pitch, out) != 0) {
+        return -1;
+    }
+    return wl_clear_present_frame_rgba_padding(present, rgba, rgba_size,
+                                               rgba_pitch, padding_value);
+}
+
 int wl_decode_planar_picture_to_indexed(const unsigned char *planar, size_t planar_size,
                                         uint16_t width, uint16_t height,
                                         unsigned char *indexed, size_t indexed_size) {

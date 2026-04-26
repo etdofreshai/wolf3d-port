@@ -7551,6 +7551,26 @@ static int check_wl6(const char *dir) {
                                               sizeof(present_rgba_padded),
                                               80u * 4u,
                                               0x7e) == 0);
+    memset(present_rgba_padded, 0xa5, sizeof(present_rgba_padded));
+    CHECK(wl_expand_present_frame_to_rgba_pitched_clear_padding(
+              &present_frame, present_rgba_padded, sizeof(present_rgba_padded),
+              PRESENT_PADDED_PITCH, 0x7e, &present_rgba_padded_upload) == 0);
+    CHECK(present_rgba_padded_upload.format == WL_TEXTURE_UPLOAD_RGBA8888);
+    CHECK(present_rgba_padded_upload.pitch == PRESENT_PADDED_PITCH);
+    CHECK(present_rgba_padded_upload.pixel_bytes == sizeof(present_rgba_padded));
+    for (size_t row = 0; row < 128u; ++row) {
+        CHECK(memcmp(present_rgba_padded + row * PRESENT_PADDED_PITCH,
+                     present_rgba + row * 80u * 4u, 80u * 4u) == 0);
+        for (size_t pad = 80u * 4u; pad < PRESENT_PADDED_PITCH; ++pad) {
+            CHECK(present_rgba_padded[row * PRESENT_PADDED_PITCH + pad] == 0x7e);
+        }
+    }
+    CHECK(wl_expand_present_frame_to_rgba_pitched_clear_padding(
+              &present_frame, present_rgba_padded, sizeof(present_rgba_padded) - 1u,
+              PRESENT_PADDED_PITCH, 0x7e, &present_rgba_padded_upload) == -1);
+    CHECK(wl_expand_present_frame_to_rgba_pitched_clear_padding(
+              NULL, present_rgba_padded, sizeof(present_rgba_padded),
+              PRESENT_PADDED_PITCH, 0x7e, &present_rgba_padded_upload) == -1);
     CHECK(wl_clear_present_frame_rgba_padding(&present_frame,
                                               present_rgba_padded,
                                               sizeof(present_rgba_padded) - 1u,
