@@ -1850,6 +1850,7 @@ int wl_step_live_player_fire_tick(wl_player_gameplay_state *state,
     }
 
     memset(out, 0, sizeof(*out));
+    const int32_t attack_frame_before_tick = state->attack_frame;
     if (wl_step_live_tick(state, model, wall_plane, info_plane, word_count,
                           motion, xmove, ymove, forward_x, forward_y, facing,
                           use_button, button_held, tics, &out->live) != 0) {
@@ -1857,11 +1858,11 @@ int wl_step_live_player_fire_tick(wl_player_gameplay_state *state,
     }
     if (fire_button) {
         out->fire_attempted = 1;
-        if (state->attack_frame > 0) {
+        if (attack_frame_before_tick > 0) {
             out->fire_blocked_by_active_attack = 1;
-            out->fire_attack.frame_before = state->attack_frame;
+            out->fire_attack.frame_before = out->live.attack.frame_before;
             out->fire_attack.frame_after = state->attack_frame;
-            out->fire_attack.attack_frame_before = state->attack_frame;
+            out->fire_attack.attack_frame_before = out->live.attack.frame_before;
             out->fire_attack.attack_frame_after = state->attack_frame;
             out->fire_attack.fire.requested_weapon = requested_weapon;
             out->fire_attack.fire.fired_weapon = state->weapon;

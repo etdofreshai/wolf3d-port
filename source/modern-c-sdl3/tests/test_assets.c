@@ -1868,7 +1868,7 @@ static int check_wl6(const char *dir) {
     CHECK(live_fire_tick.fire.no_ammo == 1);
     CHECK(live_fire_tick.fire.fired_weapon == WL_WEAPON_MACHINEGUN);
     CHECK(live_fire_tick.fire_attack.attack_started == 0);
-    CHECK(live_fire_tick.fire_attack.attack_frame_before == 6);
+    CHECK(live_fire_tick.fire_attack.attack_frame_before == 7);
     CHECK(live_fire_tick.fire_attack.attack_frame_after == 6);
     CHECK(pickup_state.weapon == WL_WEAPON_MACHINEGUN);
     CHECK(pickup_state.attack_frame == 6);
@@ -1892,9 +1892,29 @@ static int check_wl6(const char *dir) {
     CHECK(live_fire_tick.fire.ammo_before == 2);
     CHECK(live_fire_tick.fire.ammo_after == 2);
     CHECK(live_fire_tick.fire_attack.attack_started == 0);
-    CHECK(live_fire_tick.fire_attack.attack_frame_before == 2);
+    CHECK(live_fire_tick.fire_attack.attack_frame_before == 3);
     CHECK(live_fire_tick.fire_attack.attack_frame_after == 2);
     CHECK(pickup_state.attack_frame == 2);
+    CHECK(pickup_state.ammo == 2);
+    pickup_state.attack_frame = 1;
+    pickup_state.ammo = 2;
+    CHECK(wl_step_live_player_fire_tick(&pickup_state, &live_tick_pickup_model,
+                                        use_wall, use_info, WL_MAP_PLANE_WORDS,
+                                        &live_tick_motion, 0, 0, 0x10000, 0,
+                                        WL_DIR_EAST, 0, 0, 1,
+                                        WL_WEAPON_PISTOL, 1,
+                                        &live_fire_tick) == 0);
+    CHECK(live_fire_tick.fire_attempted == 1);
+    CHECK(live_fire_tick.fire_blocked_by_active_attack == 1);
+    CHECK(live_fire_tick.live.attack.finished == 1);
+    CHECK(live_fire_tick.fire.fired == 0);
+    CHECK(live_fire_tick.fire.consumed_ammo == 0);
+    CHECK(live_fire_tick.fire.ammo_before == 2);
+    CHECK(live_fire_tick.fire.ammo_after == 2);
+    CHECK(live_fire_tick.fire_attack.attack_started == 0);
+    CHECK(live_fire_tick.fire_attack.attack_frame_before == 1);
+    CHECK(live_fire_tick.fire_attack.attack_frame_after == 0);
+    CHECK(pickup_state.attack_frame == 0);
     CHECK(pickup_state.ammo == 2);
     CHECK(wl_step_live_player_fire_tick(&pickup_state, &live_tick_pickup_model,
                                         use_wall, use_info, WL_MAP_PLANE_WORDS,
