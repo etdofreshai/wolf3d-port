@@ -473,6 +473,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 
 - Added a headless actor motion summary seam that partitions centered actors, sub-tile offset actors, active movement remainders, invalid actor positions, farthest sub-tile offset actor/index, and active remainder min/max ranges for runtime state progression diagnostics.
 - Runtime model diagnostics include actor activity summaries for active/waiting/inert/combat-ready/boss-or-ghost buckets.
+- `wl_summarize_actor_modes` partitions live actor descriptors by exact runtime mode and separately reports invalid modes/positions for state-progression diagnostics.
 - Added `wl_summarize_actor_tile_occupancy` to report occupied actor tiles, stacked actors, invalid positions, and max stack depth for headless collision/progression diagnostics.
 - Runtime model diagnostics include actor spawn occupancy summaries for original spawn-tile stacking, invalid spawn coordinates, moved-from-spawn counts, and max spawn stack depth.
 - Runtime model diagnostics include actor collision-tile summaries for open, wall, door, door-adjacent, and invalid actor positions before live collision/AI mutation.

@@ -615,6 +615,8 @@ Extended `wl_actor_engagement_summary` with the farthest active threat index and
 
 Added `wl_summarize_actor_activity()` as a compact SDL-free diagnostic for live actor-state progression. The helper partitions valid actors into active AI, waiting AI, inert, combat-ready, and boss/ghost buckets while reporting invalid positions, giving future gameplay/render orchestration a stable summary before deeper per-state ticks.
 
+Added `wl_summarize_actor_modes()` as the exact-mode sibling to the higher-level activity summary. It reports stand/patrol/chase/inert/boss/ghost mode buckets and invalid mode/position counts, keeping runtime actor state drift visible without mutating actor descriptors.
+
 ## Cycle update: actor tile occupancy summary
 
 Added `wl_summarize_actor_tile_occupancy()` as a non-mutating runtime actor-state diagnostic. It counts occupied actor tiles, actors sharing stacked tiles, invalid positions, and the maximum stack depth so future collision/AI progression can detect overlapping actor states headlessly before mutating live actors.

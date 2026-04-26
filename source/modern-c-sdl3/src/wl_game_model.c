@@ -2420,6 +2420,48 @@ int wl_summarize_actor_activity(const wl_game_model *model,
 }
 
 
+int wl_summarize_actor_modes(const wl_game_model *model,
+                             wl_actor_mode_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+
+        switch (actor->mode) {
+        case WL_ACTOR_STAND:
+            ++out->stand_count;
+            break;
+        case WL_ACTOR_PATROL:
+            ++out->patrol_count;
+            break;
+        case WL_ACTOR_CHASE:
+            ++out->chase_count;
+            break;
+        case WL_ACTOR_INERT:
+            ++out->inert_count;
+            break;
+        case WL_ACTOR_BOSS_MODE:
+            ++out->boss_mode_count;
+            break;
+        case WL_ACTOR_GHOST_MODE:
+            ++out->ghost_mode_count;
+            break;
+        default:
+            ++out->invalid_mode_count;
+            break;
+        }
+    }
+    return 0;
+}
+
+
 int wl_summarize_actor_tile_occupancy(const wl_game_model *model,
                                       wl_actor_tile_occupancy_summary *out) {
     if (!model || !out) {
