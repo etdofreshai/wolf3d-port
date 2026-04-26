@@ -254,6 +254,8 @@ typedef struct wl_player_use_result {
     uint8_t locked;
     uint8_t required_key;
     uint8_t has_required_key;
+    uint8_t door_action_before;
+    uint8_t door_action_after;
     uint8_t opened;
     uint8_t closed;
     uint8_t completed;
