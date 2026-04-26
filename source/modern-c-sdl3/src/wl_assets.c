@@ -2328,6 +2328,21 @@ int wl_summarize_audio_range(const wl_audio_header *header,
     return 0;
 }
 
+int wl_describe_sound_priority_decision(uint8_t current_active,
+                                        uint16_t current_priority,
+                                        uint16_t candidate_priority,
+                                        wl_sound_priority_decision *out) {
+    if (!out || current_active > 1u) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->current_active = current_active;
+    out->current_priority = current_priority;
+    out->candidate_priority = candidate_priority;
+    out->should_start = (!current_active || candidate_priority >= current_priority) ? 1u : 0u;
+    return 0;
+}
+
 static int describe_sample_playback_window(size_t sample_count,
                                            int (*getter)(const unsigned char *, size_t, size_t, uint8_t *),
                                            const unsigned char *chunk, size_t chunk_size,

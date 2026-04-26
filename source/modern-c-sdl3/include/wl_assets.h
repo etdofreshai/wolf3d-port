@@ -491,6 +491,13 @@ typedef struct wl_audio_range_summary {
     size_t largest_chunk_bytes;
 } wl_audio_range_summary;
 
+typedef struct wl_sound_priority_decision {
+    uint8_t current_active;
+    uint16_t current_priority;
+    uint16_t candidate_priority;
+    uint8_t should_start;
+} wl_sound_priority_decision;
+
 typedef struct wl_pc_speaker_sound_metadata {
     uint32_t sample_count;
     uint8_t first_sample;
@@ -620,6 +627,10 @@ int wl_describe_audio_chunk_with_ranges(size_t chunk_index,
 int wl_summarize_audio_range(const wl_audio_header *header,
                              size_t start_chunk, size_t chunk_count,
                              wl_audio_range_summary *out);
+int wl_describe_sound_priority_decision(uint8_t current_active,
+                                        uint16_t current_priority,
+                                        uint16_t candidate_priority,
+                                        wl_sound_priority_decision *out);
 int wl_describe_pc_speaker_sound(const unsigned char *chunk, size_t chunk_size,
                                   wl_pc_speaker_sound_metadata *out);
 int wl_get_pc_speaker_sound_sample(const unsigned char *chunk, size_t chunk_size,
