@@ -27,6 +27,31 @@ int wl_init_player_gameplay_state(wl_player_gameplay_state *state,
     return wl_reset_palette_shift_state(&state->palette_shift);
 }
 
+int wl_summarize_player_resources(const wl_player_gameplay_state *state,
+                                  wl_player_resource_summary *out) {
+    if (!state || !out) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->health = state->health;
+    out->ammo = state->ammo;
+    out->lives = state->lives;
+    out->score = state->score;
+    out->next_extra = state->next_extra;
+    out->keys = state->keys;
+    out->weapon = state->weapon;
+    out->best_weapon = state->best_weapon;
+    out->chosen_weapon = state->chosen_weapon;
+    out->has_ammo = state->ammo > 0 ? 1u : 0u;
+    out->has_keys = state->keys != 0u ? 1u : 0u;
+    out->has_rapid_weapon = state->best_weapon >= WL_WEAPON_MACHINEGUN ? 1u : 0u;
+    out->attack_active = state->attack_frame > 0 ? 1u : 0u;
+    out->damage_flash_active = state->palette_shift.damage_count > 0 ? 1u : 0u;
+    out->bonus_flash_active = state->palette_shift.bonus_count > 0 ? 1u : 0u;
+    out->play_state = state->play_state;
+    return 0;
+}
+
 int wl_apply_player_damage(wl_player_gameplay_state *state,
                            wl_difficulty difficulty, int32_t points,
                            int god_mode, int victory_flag,

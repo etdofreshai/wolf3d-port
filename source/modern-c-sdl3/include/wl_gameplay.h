@@ -68,6 +68,25 @@ typedef struct wl_player_gameplay_state {
     wl_palette_shift_state palette_shift;
 } wl_player_gameplay_state;
 
+typedef struct wl_player_resource_summary {
+    int32_t health;
+    int32_t ammo;
+    int32_t lives;
+    int32_t score;
+    int32_t next_extra;
+    uint32_t keys;
+    wl_weapon_type weapon;
+    wl_weapon_type best_weapon;
+    wl_weapon_type chosen_weapon;
+    uint8_t has_ammo;
+    uint8_t has_keys;
+    uint8_t has_rapid_weapon;
+    uint8_t attack_active;
+    uint8_t damage_flash_active;
+    uint8_t bonus_flash_active;
+    wl_player_play_state play_state;
+} wl_player_resource_summary;
+
 typedef struct wl_player_fire_result {
     wl_weapon_type requested_weapon;
     wl_weapon_type fired_weapon;
@@ -363,6 +382,8 @@ typedef struct wl_live_full_combat_death_tick_result {
 int wl_init_player_gameplay_state(wl_player_gameplay_state *state,
                                   int32_t health, int32_t lives,
                                   int32_t score, int32_t next_extra);
+int wl_summarize_player_resources(const wl_player_gameplay_state *state,
+                                  wl_player_resource_summary *out);
 int wl_apply_player_damage(wl_player_gameplay_state *state,
                            wl_difficulty difficulty, int32_t points,
                            int god_mode, int victory_flag,

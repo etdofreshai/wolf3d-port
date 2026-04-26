@@ -105,6 +105,7 @@ static int check_gameplay_events(void) {
     wl_player_gameplay_state state;
     wl_player_damage_result damage;
     wl_palette_shift_result shift;
+    wl_player_resource_summary resources;
     int32_t extra_lives = -1;
     int32_t thresholds = -1;
 
@@ -114,6 +115,25 @@ static int check_gameplay_events(void) {
     CHECK(state.score == 39000);
     CHECK(state.next_extra == 40000);
     CHECK(state.play_state == WL_PLAYER_PLAY_RUNNING);
+    CHECK(wl_summarize_player_resources(&state, &resources) == 0);
+    CHECK(resources.health == 100);
+    CHECK(resources.ammo == 0);
+    CHECK(resources.lives == 3);
+    CHECK(resources.score == 39000);
+    CHECK(resources.next_extra == WL_EXTRA_POINTS);
+    CHECK(resources.keys == 0);
+    CHECK(resources.weapon == WL_WEAPON_PISTOL);
+    CHECK(resources.best_weapon == WL_WEAPON_PISTOL);
+    CHECK(resources.chosen_weapon == WL_WEAPON_PISTOL);
+    CHECK(resources.has_ammo == 0);
+    CHECK(resources.has_keys == 0);
+    CHECK(resources.has_rapid_weapon == 0);
+    CHECK(resources.attack_active == 0);
+    CHECK(resources.damage_flash_active == 0);
+    CHECK(resources.bonus_flash_active == 0);
+    CHECK(resources.play_state == WL_PLAYER_PLAY_RUNNING);
+    CHECK(wl_summarize_player_resources(&state, NULL) == -1);
+    CHECK(wl_summarize_player_resources(NULL, &resources) == -1);
 
     CHECK(wl_apply_player_damage(&state, WL_DIFFICULTY_BABY, 20, 0, 0, &damage) == 0);
     CHECK(damage.requested_points == 20);
@@ -134,6 +154,19 @@ static int check_gameplay_events(void) {
     CHECK(shift.kind == WL_PALETTE_SHIFT_RED);
     CHECK(shift.damage_count == 4);
     CHECK(shift.bonus_count == 18);
+    state.ammo = 12;
+    state.keys = 0x3;
+    state.best_weapon = WL_WEAPON_MACHINEGUN;
+    state.attack_frame = 2;
+    CHECK(wl_summarize_player_resources(&state, &resources) == 0);
+    CHECK(resources.has_ammo == 1);
+    CHECK(resources.has_keys == 1);
+    CHECK(resources.has_rapid_weapon == 1);
+    CHECK(resources.attack_active == 1);
+    CHECK(resources.damage_flash_active == 1);
+    CHECK(resources.bonus_flash_active == 1);
+    CHECK(resources.ammo == 12);
+    CHECK(resources.keys == 0x3);
 
     CHECK(wl_apply_player_damage(&state, WL_DIFFICULTY_HARD, 200, 1, 0, &damage) == 0);
     CHECK(damage.effective_points == 200);
