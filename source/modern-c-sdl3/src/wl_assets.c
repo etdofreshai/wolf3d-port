@@ -2447,6 +2447,16 @@ int wl_schedule_sound_channel(const wl_sound_channel_state *current,
     return 0;
 }
 
+int wl_schedule_sound_channel_from_chunk(const wl_sound_channel_state *current,
+                                         size_t candidate_chunk,
+                                         const wl_audio_chunk_metadata *candidate,
+                                         wl_sound_channel_schedule_result *out) {
+    if (candidate_chunk > UINT16_MAX) {
+        return -1;
+    }
+    return wl_schedule_sound_channel(current, (uint16_t)candidate_chunk, candidate, out);
+}
+
 int wl_advance_sound_channel(const wl_sound_channel_state *current,
                              size_t sample_count,
                              uint32_t sample_delta,

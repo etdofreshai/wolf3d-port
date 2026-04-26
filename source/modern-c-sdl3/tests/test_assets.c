@@ -6271,6 +6271,23 @@ static int check_audio_wl6(const char *dir) {
     CHECK(sound_schedule.state.sound_index == 87);
     CHECK(sound_schedule.state.priority == 1);
     CHECK(sound_schedule.state.sample_position == 0);
+    sound_channel.active = 1;
+    sound_channel.sound_index = 50;
+    sound_channel.priority = 1;
+    sound_channel.sample_position = 5;
+    CHECK(wl_schedule_sound_channel_from_chunk(&sound_channel, 87, &audio_meta,
+                                               &sound_schedule) == 0);
+    CHECK(sound_schedule.started == 1);
+    CHECK(sound_schedule.replaced == 1);
+    CHECK(sound_schedule.held == 0);
+    CHECK(sound_schedule.candidate_kind == WL_AUDIO_CHUNK_ADLIB);
+    CHECK(sound_schedule.candidate_priority == 1);
+    CHECK(sound_schedule.state.active == 1);
+    CHECK(sound_schedule.state.sound_index == 87);
+    CHECK(sound_schedule.state.priority == 1);
+    CHECK(sound_schedule.state.sample_position == 0);
+    CHECK(wl_schedule_sound_channel_from_chunk(&sound_channel, 70000, &audio_meta,
+                                               &sound_schedule) == -1);
     CHECK(wl_describe_adlib_sound(chunk_buf, chunk_bytes, &adlib_meta) == 0);
     CHECK(adlib_meta.sample_count == 8);
     CHECK(adlib_meta.priority == 1);
