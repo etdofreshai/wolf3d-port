@@ -627,3 +627,4 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 `wl_summarize_static_collisions` partitions static descriptors into active/inactive blocking, bonus, and dressing buckets with invalid-coordinate accounting. This keeps player collision and visible pickup preparation inspectable in headless tests without mutating runtime state.
 
 - Added a headless player-facing run diagnostic that walks the live tilemap from the player until the first blocker or map edge, giving use/raycast preflight code a deterministic corridor summary without mutating runtime state.
+- Added `wl_summarize_runtime_player_facing_actors`, a non-mutating player-facing actor diagnostic that counts unblocked actors on the player's current cardinal ray, shootable actors, map-blocked actors, invalid actor positions, and the nearest visible actor. This gives future use/combat/render preflight code a deterministic SDL-free line-of-fire summary.

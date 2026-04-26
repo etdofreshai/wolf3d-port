@@ -2342,6 +2342,70 @@ int wl_summarize_runtime_player_facing_run(
     return 0;
 }
 
+int wl_summarize_runtime_player_facing_actors(
+    const wl_game_model *model, wl_runtime_player_facing_actor_summary *out) {
+    if (!model || !out || !model->player.present ||
+        model->player.x >= WL_MAP_SIDE || model->player.y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->direction = model->player.dir;
+    if (model->player.dir == WL_DIR_NONE) {
+        return 0;
+    }
+
+    int dx = 0;
+    int dy = 0;
+    if (path_step(model->player.dir, &dx, &dy) != 0) {
+        return -1;
+    }
+
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_actor_position_count;
+            continue;
+        }
+
+        const int rel_x = (int)actor->tile_x - (int)model->player.x;
+        const int rel_y = (int)actor->tile_y - (int)model->player.y;
+        if ((dx != 0 && (rel_y != 0 || rel_x * dx <= 0)) ||
+            (dy != 0 && (rel_x != 0 || rel_y * dy <= 0))) {
+            continue;
+        }
+
+        const uint16_t distance = (uint16_t)(dx != 0 ? rel_x * dx : rel_y * dy);
+        int blocked = 0;
+        int tx = (int)model->player.x + dx;
+        int ty = (int)model->player.y + dy;
+        while (tx != (int)actor->tile_x || ty != (int)actor->tile_y) {
+            const uint16_t tile = model->tilemap[map_index((size_t)tx, (size_t)ty)];
+            if (tile != 0u) {
+                blocked = 1;
+                break;
+            }
+            tx += dx;
+            ty += dy;
+        }
+        if (blocked) {
+            ++out->blocked_actor_count;
+            continue;
+        }
+
+        ++out->actor_count_ahead;
+        if (actor->shootable) {
+            ++out->shootable_count_ahead;
+        }
+        if (!out->has_first_actor || distance < out->first_actor_distance) {
+            out->has_first_actor = 1u;
+            out->first_actor_index = (uint16_t)i;
+            out->first_actor_distance = distance;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_model_capacity(const wl_game_model *model,
                                 wl_model_capacity_summary *out) {
     if (!model || !out) {

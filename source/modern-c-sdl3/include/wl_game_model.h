@@ -864,6 +864,17 @@ typedef struct wl_runtime_player_facing_run_summary {
     uint8_t other_marker;
 } wl_runtime_player_facing_run_summary;
 
+typedef struct wl_runtime_player_facing_actor_summary {
+    wl_direction direction;
+    size_t actor_count_ahead;
+    size_t shootable_count_ahead;
+    size_t blocked_actor_count;
+    size_t invalid_actor_position_count;
+    uint16_t first_actor_index;
+    uint16_t first_actor_distance;
+    uint8_t has_first_actor;
+} wl_runtime_player_facing_actor_summary;
+
 typedef struct wl_model_capacity_summary {
     size_t door_count;
     size_t static_count;
@@ -1042,6 +1053,8 @@ int wl_summarize_runtime_player_facing_tile(
     const wl_game_model *model, wl_runtime_player_facing_tile_summary *out);
 int wl_summarize_runtime_player_facing_run(
     const wl_game_model *model, wl_runtime_player_facing_run_summary *out);
+int wl_summarize_runtime_player_facing_actors(
+    const wl_game_model *model, wl_runtime_player_facing_actor_summary *out);
 int wl_summarize_model_capacity(const wl_game_model *model,
                                 wl_model_capacity_summary *out);
 int wl_summarize_unknown_info_tiles(const wl_game_model *model,
