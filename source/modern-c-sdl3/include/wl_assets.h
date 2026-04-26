@@ -680,6 +680,10 @@ int wl_start_sound_channel(const wl_sound_channel_state *current,
                            uint16_t candidate_sound_index,
                            uint16_t candidate_priority,
                            wl_sound_channel_start_result *out);
+int wl_start_sound_channel_from_chunk(const wl_sound_channel_state *current,
+                                      size_t candidate_chunk,
+                                      const wl_audio_chunk_metadata *candidate,
+                                      wl_sound_channel_start_result *out);
 int wl_advance_sound_channel(const wl_sound_channel_state *current,
                              size_t sample_count,
                              uint32_t sample_delta,

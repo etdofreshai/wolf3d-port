@@ -2403,6 +2403,20 @@ int wl_start_sound_channel(const wl_sound_channel_state *current,
     return 0;
 }
 
+int wl_start_sound_channel_from_chunk(const wl_sound_channel_state *current,
+                                      size_t candidate_chunk,
+                                      const wl_audio_chunk_metadata *candidate,
+                                      wl_sound_channel_start_result *out) {
+    if (!current || !candidate || !out || candidate_chunk > UINT16_MAX ||
+        candidate->is_empty ||
+        (candidate->kind != WL_AUDIO_CHUNK_PC_SPEAKER &&
+         candidate->kind != WL_AUDIO_CHUNK_ADLIB)) {
+        return -1;
+    }
+    return wl_start_sound_channel(current, (uint16_t)candidate_chunk,
+                                  candidate->priority, out);
+}
+
 int wl_advance_sound_channel(const wl_sound_channel_state *current,
                              size_t sample_count,
                              uint32_t sample_delta,
