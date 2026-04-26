@@ -556,3 +556,5 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Runtime model capacity summary
 
 `wl_summarize_model_capacity` provides a read-only capacity snapshot for the fixed-size runtime descriptor arrays: doors, statics, actors, path markers, and pushwalls. It reports current counts, remaining slots, full flags, and unknown-info-tile count so future broader-map and boss/Spear classification work can spot descriptor pressure headlessly before adding more mutable runtime behavior.
+
+The WL6 runtime-model sweep now covers all four difficulty levels across all 60 gameplay maps for unknown info-plane classifications, not just easy difficulty. This keeps boss/Spear-style tile classification regressions visible before future actor-state or presentation work consumes the model.
