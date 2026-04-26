@@ -5883,6 +5883,7 @@ static int check_audio_wl6(const char *dir) {
     wl_sample_playback_window sample_window;
     wl_sample_playback_position sample_position;
     wl_sound_channel_progress sound_progress;
+    wl_sound_channel_progress_window sound_progress_window;
     size_t sound_sample_count = 0;
     uint8_t pc_sample = 0;
     uint8_t adlib_instrument_byte = 0;
@@ -6760,6 +6761,19 @@ static int check_audio_wl6(const char *dir) {
     CHECK(sound_progress.remaining_samples == 1);
     CHECK(sound_progress.current_sample == 0x2e);
     CHECK(sound_progress.completed == 0);
+    CHECK(wl_describe_sound_channel_progress_window_from_chunk(&sound_channel, &audio_meta,
+                                                               chunk_buf, chunk_bytes, 2,
+                                                               &sound_progress_window) == 0);
+    CHECK(sound_progress_window.progress.sound_index == 87);
+    CHECK(sound_progress_window.progress.sample_position == 7);
+    CHECK(sound_progress_window.progress.remaining_samples == 1);
+    CHECK(sound_progress_window.window.start_sample == 7);
+    CHECK(sound_progress_window.window.samples_available == 1);
+    CHECK(sound_progress_window.window.samples_in_window == 1);
+    CHECK(sound_progress_window.window.next_sample == 8);
+    CHECK(sound_progress_window.window.first_sample == 0x2e);
+    CHECK(sound_progress_window.window.last_sample == 0x2e);
+    CHECK(sound_progress_window.window.completed == 1);
     sound_channel.sample_position = 8;
     CHECK(wl_describe_sound_channel_progress_from_chunk(&sound_channel, &audio_meta,
                                                         chunk_buf, chunk_bytes,
@@ -6777,6 +6791,9 @@ static int check_audio_wl6(const char *dir) {
     CHECK(wl_describe_sound_channel_progress_from_chunk(&sound_channel, &audio_meta,
                                                         chunk_buf, chunk_bytes,
                                                         &sound_progress) == -1);
+    CHECK(wl_describe_sound_channel_progress_window_from_chunk(&sound_channel, &audio_meta,
+                                                               chunk_buf, chunk_bytes, 2,
+                                                               &sound_progress_window) == -1);
     sound_channel.active = 1;
     sound_channel.sample_position = 9;
     CHECK(wl_describe_sound_channel_remaining_from_chunk(&sound_channel, &audio_meta,
