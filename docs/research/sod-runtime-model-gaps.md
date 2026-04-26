@@ -19,17 +19,17 @@ These gap counts are now pinned by optional headless assertions in `source/moder
 
 ## Follow-up full-map unknown histogram
 
-A local diagnostic scan of all 21 SOD maps shows the remaining unknowns are concentrated in a small set of tile IDs:
+Executable optional assertions now scan all 21 SOD maps and show the remaining unknowns are concentrated in a small set of tile IDs:
 
-- `72`: common SOD decoration/static gap across ordinary and boss maps.
-- `73`: appears in `Castle 1` only, two adjacent placements near the south edge.
-- `74`: appears in `Death Knight` at the boss-room entrance/start area.
-- `106`: dominates `Angel of Death`; this is likely a SOD-specific actor/boss/spawn table entry and should not be guessed as a static.
-- `107`: appears once in `Angel of Death` near another `106` placement.
-- `125`: appears once in `Tunnel Boss`.
-- `142`: appears once in `Castle Boss`.
-- `143`: appears once in `Dungeon Boss`.
-- `161`: appears once in `Death Knight`.
+- `72`: 380 placements; common SOD decoration/static gap across ordinary and boss maps.
+- `73`: 2 placements; appears in `Castle 1` only, two adjacent placements near the south edge.
+- `74`: 1 placement; appears in `Death Knight` at the boss-room entrance/start area.
+- `106`: 37 placements; dominates `Angel of Death`; this is likely a SOD-specific actor/boss/spawn table entry and should not be guessed as a static.
+- `107`: 1 placement; appears in `Angel of Death` near another `106` placement.
+- `125`: 1 placement; appears in `Tunnel Boss`.
+- `142`: 1 placement; appears in `Castle Boss`.
+- `143`: 1 placement; appears in `Dungeon Boss`.
+- `161`: 1 placement; appears in `Death Knight`.
 
 Recommended classification order: first source-confirm tiles `72..74` because they affect many maps but look static-like; then source-confirm boss/special tiles `106`, `107`, `125`, `142`, `143`, and `161` before changing actor counts. Do not infer these from coordinates alone.
 

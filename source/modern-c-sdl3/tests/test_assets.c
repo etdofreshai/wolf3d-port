@@ -5548,6 +5548,53 @@ static int check_optional_sod(const char *dir) {
         CHECK(sod_model.last_unknown_info_y == sod_model_gaps[i].last_unknown_y);
     }
 
+    unsigned unknown_tile_counts[512] = {0};
+    size_t unknown_tile_total = 0;
+    size_t unknown_tile_unique = 0;
+    uint16_t single_unknown_wall[WL_MAP_PLANE_WORDS];
+    uint16_t single_unknown_info[WL_MAP_PLANE_WORDS];
+    for (size_t i = 0; i < WL_MAP_PLANE_WORDS; ++i) {
+        single_unknown_wall[i] = WL_AREATILE;
+        single_unknown_info[i] = 0;
+    }
+    for (size_t map_index = 0; map_index < 21; ++map_index) {
+        wl_map_header sod_map;
+        CHECK(wl_read_map_header(gamemaps_path, mh.offsets[map_index], &sod_map) == 0);
+        CHECK(wl_read_map_plane(gamemaps_path, &sod_map, 1, mh.rlew_tag,
+                                sod_info_plane, WL_MAP_PLANE_WORDS) == 0);
+        for (size_t i = 0; i < WL_MAP_PLANE_WORDS; ++i) {
+            uint16_t tile = sod_info_plane[i];
+            if (tile == 0 || tile >= sizeof(unknown_tile_counts) / sizeof(unknown_tile_counts[0])) {
+                continue;
+            }
+            single_unknown_info[WL_MAP_SIDE + 1] = tile;
+            CHECK(wl_build_game_model(single_unknown_wall, single_unknown_info,
+                                      WL_MAP_PLANE_WORDS, WL_DIFFICULTY_EASY,
+                                      &sod_model) == 0);
+            single_unknown_info[WL_MAP_SIDE + 1] = 0;
+            if (sod_model.unknown_info_tiles != 0) {
+                ++unknown_tile_counts[tile];
+                ++unknown_tile_total;
+            }
+        }
+    }
+    for (size_t i = 0; i < sizeof(unknown_tile_counts) / sizeof(unknown_tile_counts[0]); ++i) {
+        if (unknown_tile_counts[i] != 0) {
+            ++unknown_tile_unique;
+        }
+    }
+    CHECK(unknown_tile_total == 425);
+    CHECK(unknown_tile_unique == 9);
+    CHECK(unknown_tile_counts[72] == 380);
+    CHECK(unknown_tile_counts[73] == 2);
+    CHECK(unknown_tile_counts[74] == 1);
+    CHECK(unknown_tile_counts[106] == 37);
+    CHECK(unknown_tile_counts[107] == 1);
+    CHECK(unknown_tile_counts[125] == 1);
+    CHECK(unknown_tile_counts[142] == 1);
+    CHECK(unknown_tile_counts[143] == 1);
+    CHECK(unknown_tile_counts[161] == 1);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
