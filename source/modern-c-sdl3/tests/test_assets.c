@@ -3831,6 +3831,49 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_pushwall_adjacency.invalid_marker_position_count == 1);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.pushwall_motion.active = 1;
+    chase_summary_model.pushwall_motion.x = 7;
+    chase_summary_model.pushwall_motion.y = 8;
+    chase_summary_model.pushwall_motion.dir = WL_DIR_EAST;
+    chase_summary_model.pushwall_motion.pos = 45;
+    chase_summary_model.tilemap[8 * WL_MAP_SIDE + 8] = 0x80;
+    wl_pushwall_motion_path_summary synthetic_pushwall_motion;
+    CHECK(wl_summarize_pushwall_motion_path(&chase_summary_model,
+                                             &synthetic_pushwall_motion) == 0);
+    CHECK(wl_summarize_pushwall_motion_path(NULL, &synthetic_pushwall_motion) == -1);
+    CHECK(wl_summarize_pushwall_motion_path(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_pushwall_motion.active == 1);
+    CHECK(synthetic_pushwall_motion.current_position_valid == 1);
+    CHECK(synthetic_pushwall_motion.next_position_valid == 1);
+    CHECK(synthetic_pushwall_motion.next_tile_blocked == 1);
+    CHECK(synthetic_pushwall_motion.current_x == 7);
+    CHECK(synthetic_pushwall_motion.current_y == 8);
+    CHECK(synthetic_pushwall_motion.next_x == 8);
+    CHECK(synthetic_pushwall_motion.next_y == 8);
+    CHECK(synthetic_pushwall_motion.next_tile_value == 0x80);
+    CHECK(synthetic_pushwall_motion.motion_pos == 45);
+
+    chase_summary_model.tilemap[8 * WL_MAP_SIDE + 8] = 0;
+    CHECK(wl_summarize_pushwall_motion_path(&chase_summary_model,
+                                             &synthetic_pushwall_motion) == 0);
+    CHECK(synthetic_pushwall_motion.next_tile_blocked == 0);
+    CHECK(synthetic_pushwall_motion.next_tile_value == 0);
+
+    chase_summary_model.pushwall_motion.x = 0;
+    chase_summary_model.pushwall_motion.y = 0;
+    chase_summary_model.pushwall_motion.dir = WL_DIR_NORTH;
+    CHECK(wl_summarize_pushwall_motion_path(&chase_summary_model,
+                                             &synthetic_pushwall_motion) == 0);
+    CHECK(synthetic_pushwall_motion.current_position_valid == 1);
+    CHECK(synthetic_pushwall_motion.next_position_valid == 0);
+
+    chase_summary_model.pushwall_motion.active = 0;
+    CHECK(wl_summarize_pushwall_motion_path(&chase_summary_model,
+                                             &synthetic_pushwall_motion) == 0);
+    CHECK(synthetic_pushwall_motion.active == 0);
+    CHECK(synthetic_pushwall_motion.next_position_valid == 0);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.pushwall_count = 4;
     chase_summary_model.pushwalls[0].source_tile = 98;
     chase_summary_model.pushwalls[1].source_tile = 98;

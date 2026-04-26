@@ -564,3 +564,5 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 `wl_summarize_actor_door_blockers` reports actors currently occupying runtime door-center tiles, splitting shootable vs non-shootable blockers and unique/min/max blocked door indices before future close-door or AI collision mutation.
 
 `wl_summarize_door_area_matrix` complements the door-list diagnostic by checking the cached area adjacency matrix directly. It reports directed/undirected links, asymmetric entries, self-links, area span, and max link weight so future door visibility or sound-propagation code can validate the matrix produced by model setup before mutating it.
+
+`wl_summarize_pushwall_motion_path` inspects the active moving-pushwall record without mutating it, projecting the next tile from direction and reporting in-bounds/open/blocked status plus tile value and sub-tile position. Synthetic headless coverage pins blocked, open, edge, inactive, and invalid-argument behavior for future pushwall collision/presentation work.
