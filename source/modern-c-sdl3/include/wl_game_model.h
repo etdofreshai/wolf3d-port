@@ -519,6 +519,15 @@ typedef struct wl_pushwall_player_distance_summary {
     uint16_t farthest_distance;
 } wl_pushwall_player_distance_summary;
 
+typedef struct wl_pushwall_player_adjacency_summary {
+    size_t same_tile_count;
+    size_t cardinal_adjacent_count;
+    size_t diagonal_adjacent_count;
+    size_t same_row_or_column_count;
+    size_t distant_count;
+    size_t invalid_marker_position_count;
+} wl_pushwall_player_adjacency_summary;
+
 typedef struct wl_pushwall_source_tile_summary {
     size_t marker_count;
     size_t unique_source_tile_count;
@@ -741,6 +750,9 @@ int wl_summarize_pushwall_state(const wl_game_model *model,
 int wl_summarize_pushwall_player_distances(const wl_game_model *model,
                                            uint16_t player_x, uint16_t player_y,
                                            wl_pushwall_player_distance_summary *out);
+int wl_summarize_pushwall_player_adjacency(
+    const wl_game_model *model, uint16_t player_x, uint16_t player_y,
+    wl_pushwall_player_adjacency_summary *out);
 int wl_summarize_pushwall_source_tiles(const wl_game_model *model,
                                        wl_pushwall_source_tile_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,

@@ -3631,6 +3631,35 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_pushwall_distances.nearest_distance == 0);
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.pushwall_count = 6;
+    chase_summary_model.pushwalls[0].x = 3;
+    chase_summary_model.pushwalls[0].y = 2;
+    chase_summary_model.pushwalls[1].x = 4;
+    chase_summary_model.pushwalls[1].y = 2;
+    chase_summary_model.pushwalls[2].x = 4;
+    chase_summary_model.pushwalls[2].y = 3;
+    chase_summary_model.pushwalls[3].x = 3;
+    chase_summary_model.pushwalls[3].y = 6;
+    chase_summary_model.pushwalls[4].x = 8;
+    chase_summary_model.pushwalls[4].y = 7;
+    chase_summary_model.pushwalls[5].x = WL_MAP_SIDE;
+    chase_summary_model.pushwalls[5].y = 2;
+    wl_pushwall_player_adjacency_summary synthetic_pushwall_adjacency;
+    CHECK(wl_summarize_pushwall_player_adjacency(&chase_summary_model, 3, 2,
+                                                  &synthetic_pushwall_adjacency) == 0);
+    CHECK(wl_summarize_pushwall_player_adjacency(NULL, 3, 2,
+                                                  &synthetic_pushwall_adjacency) == -1);
+    CHECK(wl_summarize_pushwall_player_adjacency(&chase_summary_model, WL_MAP_SIDE, 2,
+                                                  &synthetic_pushwall_adjacency) == -1);
+    CHECK(wl_summarize_pushwall_player_adjacency(&chase_summary_model, 3, 2, NULL) == -1);
+    CHECK(synthetic_pushwall_adjacency.same_tile_count == 1);
+    CHECK(synthetic_pushwall_adjacency.cardinal_adjacent_count == 1);
+    CHECK(synthetic_pushwall_adjacency.diagonal_adjacent_count == 1);
+    CHECK(synthetic_pushwall_adjacency.same_row_or_column_count == 1);
+    CHECK(synthetic_pushwall_adjacency.distant_count == 1);
+    CHECK(synthetic_pushwall_adjacency.invalid_marker_position_count == 1);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.pushwall_count = 4;
     chase_summary_model.pushwalls[0].source_tile = 98;
     chase_summary_model.pushwalls[1].source_tile = 98;
