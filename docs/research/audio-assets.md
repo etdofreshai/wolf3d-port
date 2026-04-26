@@ -7,6 +7,7 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 - `wl_read_audio_header()` reads little-endian 32-bit chunk offsets from `AUDIOHED.*`.
 - `wl_read_audio_chunk()` copies bounded raw chunk bytes from `AUDIOT.*` using adjacent offsets.
 - `wl_describe_audio_chunk()` classifies the original WL6 chunk ranges and exposes raw size, declared length, sound priority where present, and payload bounds.
+- `wl_describe_audio_chunk_with_ranges()` applies the same descriptor logic to caller-supplied range counts, covering SOD's shorter PC/AdLib/digital tables without hardcoded WL6 cutoffs.
 - `wl_summarize_audio_range()` summarizes AUDIOHED offset ranges without reading AUDIOT payloads, giving future audio schedulers quick counts/byte totals for PC speaker, AdLib, digital, and music ranges.
 - `wl_describe_pc_speaker_sound()` validates the PC speaker declared sample count and exposes first/last sample bytes, the terminating sentinel, and any trailing bytes.
 - `wl_get_pc_speaker_sound_sample()` decodes a bounded PC speaker sample byte by index so future SDL3/audio playback code can advance through sound data without raw offset math.
@@ -53,7 +54,7 @@ When local Spear data is present under `game-files/base/m1`:
   - chunk 1: 51 bytes, FNV-1a `0xfafa57eb`.
   - chunk 87: 69 bytes, FNV-1a `0xf0dfcb70`.
   - chunk 174: 0 bytes.
-  - chunk 243: 21,730 bytes; IMF declared bytes 21,640, command count 5,410, first command `(reg=0, value=0, delay=189)`, last command `(reg=0, value=0, delay=1)`, playback window emits 1 command for 100 ticks, tick-position/cursor advancement at tick 500 lands on command 2 with 303 ticks elapsed and 19,985 remaining; max delay 65,419, zero-delay commands 0, total delay 65,434,029, trailing bytes 86.
+  - chunk 243: 21,730 bytes; generic SOD range descriptor classifies it as music with declared length 21,640, payload offset 4, and payload size 21,726; IMF command count 5,410, first command `(reg=0, value=0, delay=189)`, last command `(reg=0, value=0, delay=1)`, playback window emits 1 command for 100 ticks, tick-position/cursor advancement at tick 500 lands on command 2 with 303 ticks elapsed and 19,985 remaining; max delay 65,419, zero-delay commands 0, total delay 65,434,029, trailing bytes 86.
   - chunk 261: 13,286 bytes, FNV-1a `0x04a8dbe2`.
   - chunk 266: 6,302 bytes, FNV-1a `0x0fdb4632`.
 

@@ -2234,16 +2234,31 @@ int wl_read_audio_chunk(const char *audiot_path,
 int wl_describe_audio_chunk(size_t chunk_index,
                             const unsigned char *chunk, size_t chunk_size,
                             wl_audio_chunk_metadata *out) {
-    if (!out || (chunk_size > 0 && !chunk)) {
+    return wl_describe_audio_chunk_with_ranges(chunk_index, 87, 87, 87,
+                                               chunk, chunk_size, out);
+}
+
+int wl_describe_audio_chunk_with_ranges(size_t chunk_index,
+                                        size_t pc_speaker_count,
+                                        size_t adlib_count,
+                                        size_t digital_count,
+                                        const unsigned char *chunk,
+                                        size_t chunk_size,
+                                        wl_audio_chunk_metadata *out) {
+    size_t adlib_start = pc_speaker_count;
+    size_t digital_start = adlib_start + adlib_count;
+    size_t music_start = digital_start + digital_count;
+    if (!out || (chunk_size > 0 && !chunk) || adlib_start < pc_speaker_count ||
+        digital_start < adlib_start || music_start < digital_start) {
         return -1;
     }
     memset(out, 0, sizeof(*out));
     out->raw_size = chunk_size;
-    if (chunk_index < 87) {
+    if (chunk_index < adlib_start) {
         out->kind = WL_AUDIO_CHUNK_PC_SPEAKER;
-    } else if (chunk_index < 174) {
+    } else if (chunk_index < digital_start) {
         out->kind = WL_AUDIO_CHUNK_ADLIB;
-    } else if (chunk_index < 261) {
+    } else if (chunk_index < music_start) {
         out->kind = WL_AUDIO_CHUNK_DIGITAL;
     } else {
         out->kind = WL_AUDIO_CHUNK_MUSIC;

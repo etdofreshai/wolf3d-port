@@ -610,6 +610,13 @@ int wl_read_audio_chunk(const char *audiot_path,
 int wl_describe_audio_chunk(size_t chunk_index,
                             const unsigned char *chunk, size_t chunk_size,
                             wl_audio_chunk_metadata *out);
+int wl_describe_audio_chunk_with_ranges(size_t chunk_index,
+                                        size_t pc_speaker_count,
+                                        size_t adlib_count,
+                                        size_t digital_count,
+                                        const unsigned char *chunk,
+                                        size_t chunk_size,
+                                        wl_audio_chunk_metadata *out);
 int wl_summarize_audio_range(const wl_audio_header *header,
                              size_t start_chunk, size_t chunk_count,
                              wl_audio_range_summary *out);
