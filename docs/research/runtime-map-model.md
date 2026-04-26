@@ -570,3 +570,5 @@ Added `wl_step_live_actor_ai_wake_tick()` as an opt-in live AI orchestration sea
 ## Cycle update: actor mode summaries
 
 Added `wl_count_actors_by_mode` as a small runtime model summary helper alongside `wl_count_actors_by_kind`. The broader WL6 boss/secret/map coverage now validates mode histograms against model actor descriptors and covers undersized output rejection, keeping actor state-progression summaries deterministic before deeper AI/live-frame integration.
+
+Added `wl_summarize_actor_flags` as the flag-oriented sibling to the actor kind/mode summary helpers. The WL6 broader map sweep now verifies shootable, ambush, kill-total, scene-override, and inert counts from built actor descriptors, including `kill_total_count == model.kill_total`, so future wake/chase/death transitions have a compact deterministic aggregate check.
