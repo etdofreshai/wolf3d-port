@@ -584,3 +584,7 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 ## Runtime static line-of-sight summary
 
 `wl_summarize_static_line_of_sight` mirrors actor cardinal visibility diagnostics for static descriptors, including active-only filtering and wall/door blockers. This gives pickup/render preparation a deterministic SDL-free summary of statics that are in the player's row or column before presentation work mutates or draws them.
+
+## Runtime door line-of-sight summary
+
+`wl_summarize_door_line_of_sight` applies the same non-mutating cardinal blocker diagnostic to runtime door descriptors. It reports clear, wall-blocked, door-blocked, same-tile, non-cardinal, and invalid door positions so door-aware AI/presentation work can sanity-check direct player-to-door visibility without advancing live door state or requiring SDL3.
