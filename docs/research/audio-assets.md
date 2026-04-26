@@ -9,6 +9,7 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 - `wl_describe_audio_chunk()` classifies the original WL6 chunk ranges and exposes raw size, declared length, sound priority where present, and payload bounds.
 - `wl_describe_pc_speaker_sound()` validates the PC speaker declared sample count and exposes first/last sample bytes, the terminating sentinel, and any trailing bytes.
 - `wl_get_pc_speaker_sound_sample()` decodes a bounded PC speaker sample byte by index so future SDL3/audio playback code can advance through sound data without raw offset math.
+- `wl_advance_pc_speaker_playback_cursor()` advances a PC speaker sample index by a frame/sample delta, reporting the next sample, consumed samples, and completion state for frame-to-frame sound playback.
 - `wl_describe_adlib_sound()` validates AdLib sound chunks by the original common header plus 16-byte instrument block and exposes first/last instrument and sample bytes for future OPL playback seams.
 - `wl_get_adlib_instrument_byte()` decodes a bounded 16-byte AdLib instrument byte by index so future OPL setup code can consume operators without raw offset math.
 - `wl_get_adlib_sound_sample()` decodes a bounded AdLib sound sample byte by index so future OPL playback code can advance through sound data without raw offset math.
@@ -24,7 +25,7 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 - First offsets: `0, 15, 28, 44, 102`.
 - `AUDIOT.WL6`: 320,209 bytes; sentinel offset is within the file and equals the observed file end.
 - Representative chunks:
-  - chunk 0: 15 bytes, FNV-1a `0x5971ec53`; PC speaker sample count 8, first/last samples `0x83`/`0x84`, bounded sample accessor first/last bytes `0x83`/`0x84`, terminator `0x00`, trailing bytes 0.
+  - chunk 0: 15 bytes, FNV-1a `0x5971ec53`; PC speaker sample count 8, first/last samples `0x83`/`0x84`, bounded sample accessor first/last bytes `0x83`/`0x84`, playback cursor covers zero-delta, last-sample, clamped completion, completed no-op, and invalid completed-delta states; terminator `0x00`, trailing bytes 0.
   - chunk 1: 13 bytes, FNV-1a `0x21985d89`; PC speaker sample count 6, first/last samples `0x2f`/`0x2f`, bounded sample accessor last byte `0x2f`, terminator `0x00`.
   - chunk 87: 41 bytes, FNV-1a `0x799f60b1`; AdLib sample count 8, priority 1, instrument first/last bytes `0x70`/`0x03`, bounded instrument accessor first/last bytes `0x70`/`0x03`, sample first/last bytes `0x04`/`0x2e`, bounded sample accessor first/last bytes `0x04`/`0x2e`, trailing bytes 11.
   - chunk 174: 0 bytes.
