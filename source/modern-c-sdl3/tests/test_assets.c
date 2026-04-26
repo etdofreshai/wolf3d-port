@@ -3692,6 +3692,33 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_door_areas.min_area == 0);
     CHECK(synthetic_door_areas.max_area == 36);
 
+    chase_summary_model.door_area_connections[2][3] = 2;
+    chase_summary_model.door_area_connections[3][2] = 2;
+    chase_summary_model.door_area_connections[5][5] = 1;
+    chase_summary_model.door_area_connections[7][8] = 1;
+    wl_door_area_matrix_summary synthetic_door_matrix;
+    CHECK(wl_summarize_door_area_matrix(&chase_summary_model,
+                                        &synthetic_door_matrix) == 0);
+    CHECK(wl_summarize_door_area_matrix(NULL, &synthetic_door_matrix) == -1);
+    CHECK(wl_summarize_door_area_matrix(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_door_matrix.directed_link_count == 4);
+    CHECK(synthetic_door_matrix.undirected_link_count == 2);
+    CHECK(synthetic_door_matrix.asymmetric_link_count == 1);
+    CHECK(synthetic_door_matrix.self_link_count == 1);
+    CHECK(synthetic_door_matrix.min_area == 2);
+    CHECK(synthetic_door_matrix.max_area == 8);
+    CHECK(synthetic_door_matrix.max_link_weight == 2);
+
+    chase_summary_model.door_area_connections[2][3] = 0;
+    chase_summary_model.door_area_connections[3][2] = 0;
+    chase_summary_model.door_area_connections[5][5] = 0;
+    chase_summary_model.door_area_connections[7][8] = 0;
+    CHECK(wl_summarize_door_area_matrix(&chase_summary_model,
+                                        &synthetic_door_matrix) == 0);
+    CHECK(synthetic_door_matrix.directed_link_count == 0);
+    CHECK(synthetic_door_matrix.min_area == 0);
+    CHECK(synthetic_door_matrix.max_area == 0);
+
     chase_summary_model.door_count = 0;
     CHECK(wl_summarize_door_area_connections(&chase_summary_model,
                                              &synthetic_door_areas) == 0);
