@@ -434,6 +434,17 @@ typedef struct wl_door_player_distance_summary {
     uint16_t farthest_distance;
 } wl_door_player_distance_summary;
 
+typedef struct wl_door_lock_summary {
+    size_t normal_count;
+    size_t keyed_count;
+    size_t elevator_count;
+    size_t invalid_source_tile_count;
+    size_t source_lock_mismatch_count;
+    size_t unique_lock_count;
+    uint8_t min_lock;
+    uint8_t max_lock;
+} wl_door_lock_summary;
+
 typedef struct wl_pushwall_state_summary {
     size_t marker_count;
     size_t invalid_marker_position_count;
@@ -651,6 +662,8 @@ int wl_summarize_door_timing(const wl_game_model *model,
 int wl_summarize_door_player_distances(const wl_game_model *model,
                                        uint16_t player_x, uint16_t player_y,
                                        wl_door_player_distance_summary *out);
+int wl_summarize_door_locks(const wl_game_model *model,
+                            wl_door_lock_summary *out);
 int wl_summarize_pushwall_state(const wl_game_model *model,
                                 wl_pushwall_state_summary *out);
 int wl_summarize_pushwall_player_distances(const wl_game_model *model,
