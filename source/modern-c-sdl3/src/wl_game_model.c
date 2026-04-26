@@ -2523,6 +2523,8 @@ int wl_summarize_runtime_player_interaction(
         nearest_distance = actors.first_actor_distance;
         out->nearest_distance = nearest_distance;
         out->nearest_source_tile = actor->source_tile;
+        out->nearest_tile_x = actor->tile_x;
+        out->nearest_tile_y = actor->tile_y;
         out->nearest_world_x = actor->fine_x != 0u
                                    ? actor->fine_x
                                    : (((uint32_t)actor->tile_x << 16) + 0x8000u);
@@ -2540,6 +2542,8 @@ int wl_summarize_runtime_player_interaction(
         out->nearest_index = statics.first_static_index;
         out->nearest_distance = statics.first_static_distance;
         out->nearest_source_tile = stat->source_tile;
+        out->nearest_tile_x = stat->x;
+        out->nearest_tile_y = stat->y;
         out->nearest_world_x = (((uint32_t)stat->x << 16) + 0x8000u);
         out->nearest_world_y = (((uint32_t)stat->y << 16) + 0x8000u);
         out->nearest_actor_shootable = 0u;

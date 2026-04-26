@@ -3309,6 +3309,8 @@ static int check_wl6(const char *dir) {
         CHECK(interaction.nearest_index == 0u);
         CHECK(interaction.nearest_distance == 2u);
         CHECK(interaction.nearest_source_tile == 47u);
+        CHECK(interaction.nearest_tile_x == 4u);
+        CHECK(interaction.nearest_tile_y == 2u);
         CHECK(interaction.nearest_world_x == 0x48000u);
         CHECK(interaction.nearest_world_y == 0x28000u);
         CHECK(interaction.nearest_static_bonus == 1u);
@@ -3343,6 +3345,8 @@ static int check_wl6(const char *dir) {
         CHECK(interaction.nearest_actor_shootable == 1u);
         CHECK(interaction.nearest_distance == 3u);
         CHECK(interaction.nearest_source_tile == 108u);
+        CHECK(interaction.nearest_tile_x == 5u);
+        CHECK(interaction.nearest_tile_y == 2u);
         CHECK(interaction.nearest_world_x == 0x51000u);
         CHECK(interaction.nearest_world_y == 0x22000u);
         synthetic_player_neighborhood.player.dir = WL_DIR_NONE;
