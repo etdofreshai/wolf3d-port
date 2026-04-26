@@ -791,6 +791,7 @@ typedef struct wl_path_marker_reciprocal_summary {
 } wl_path_marker_reciprocal_summary;
 
 typedef struct wl_path_marker_endpoint_summary {
+    size_t valid_marker_count;
     size_t source_marker_count;
     size_t sink_marker_count;
     size_t isolated_marker_count;

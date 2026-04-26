@@ -650,4 +650,4 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 
 ## Path marker isolated endpoint summary
 
-`wl_summarize_path_marker_endpoints` now reports isolated markers that are both route sources and sinks, plus the first isolated marker index. This keeps patrol-route topology diagnostics compact enough to detect disconnected one-tile fragments before mutating actor path state.
+`wl_summarize_path_marker_endpoints` now reports isolated markers that are both route sources and sinks, plus the first isolated marker index. It also exposes the valid marker count so callers can distinguish empty/invalid route graphs from valid but disconnected route fragments before mutating actor path state.

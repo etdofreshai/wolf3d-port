@@ -1580,6 +1580,7 @@ int wl_summarize_path_marker_endpoints(
         if (marker->x >= WL_MAP_SIDE || marker->y >= WL_MAP_SIDE) {
             continue;
         }
+        ++out->valid_marker_count;
         const int is_source = incoming_counts[i] == 0;
         if (is_source) {
             ++out->source_marker_count;
