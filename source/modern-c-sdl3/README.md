@@ -517,3 +517,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Door source tile diagnostic
 
 `wl_summarize_door_source_tiles` adds a small read-only inspection seam for runtime door descriptors. It verifies the original source-tile range used for normal/keyed/elevator doors, partitions vertical versus horizontal source ids, records duplicate/unique source coverage, and reports min/max source bounds. The synthetic headless test covers valid, invalid, duplicate, and empty-door cases without touching `source/original/` or requiring SDL3.
+
+## Runtime pushwall source-tile summary
+
+`wl_summarize_pushwall_source_tiles` reports pushwall marker source-tile provenance without mutating runtime state. It counts the original info-plane marker tile `98`, duplicate/unique source values, and zero/unexpected source tiles so future pushwall setup and diagnostics can distinguish valid secrets from malformed markers headlessly.

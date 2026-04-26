@@ -2862,6 +2862,50 @@ int wl_summarize_pushwall_player_distances(
     return 0;
 }
 
+int wl_summarize_pushwall_source_tiles(const wl_game_model *model,
+                                       wl_pushwall_source_tile_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->marker_count = model->pushwall_count;
+    if (model->pushwall_count == 0) {
+        return 0;
+    }
+
+    out->min_source_tile = UINT16_MAX;
+    for (size_t i = 0; i < model->pushwall_count; ++i) {
+        const uint16_t tile = model->pushwalls[i].source_tile;
+        if (tile == 0u) {
+            ++out->zero_source_tile_count;
+        } else if (tile == 98u) {
+            ++out->expected_marker_source_count;
+        } else {
+            ++out->unexpected_source_tile_count;
+        }
+
+        if (tile < out->min_source_tile) {
+            out->min_source_tile = tile;
+        }
+        if (tile > out->max_source_tile) {
+            out->max_source_tile = tile;
+        }
+
+        int seen = 0;
+        for (size_t j = 0; j < i; ++j) {
+            if (model->pushwalls[j].source_tile == tile) {
+                seen = 1;
+                break;
+            }
+        }
+        if (!seen) {
+            ++out->unique_source_tile_count;
+        }
+    }
+    return 0;
+}
+
 int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
                             uint16_t player_x, uint16_t player_y,
                             int search_forward, wl_actor_wake_result *out) {
