@@ -2380,14 +2380,26 @@ int wl_summarize_static_states(const wl_game_model *model,
 }
 
 
+static uint16_t tile_manhattan_distance(uint16_t x, uint16_t y,
+                                        uint16_t player_x,
+                                        uint16_t player_y) {
+    const uint16_t dx = (x >= player_x) ? (uint16_t)(x - player_x)
+                                        : (uint16_t)(player_x - x);
+    const uint16_t dy = (y >= player_y) ? (uint16_t)(y - player_y)
+                                        : (uint16_t)(player_y - y);
+    return (uint16_t)(dx + dy);
+}
+
 static uint16_t static_model_manhattan_distance(const wl_static_desc *stat,
                                                 uint16_t player_x,
                                                 uint16_t player_y) {
-    const uint16_t dx = (stat->x >= player_x) ? (uint16_t)(stat->x - player_x)
-                                             : (uint16_t)(player_x - stat->x);
-    const uint16_t dy = (stat->y >= player_y) ? (uint16_t)(stat->y - player_y)
-                                             : (uint16_t)(player_y - stat->y);
-    return (uint16_t)(dx + dy);
+    return tile_manhattan_distance(stat->x, stat->y, player_x, player_y);
+}
+
+static uint16_t door_model_manhattan_distance(const wl_door_desc *door,
+                                              uint16_t player_x,
+                                              uint16_t player_y) {
+    return tile_manhattan_distance(door->x, door->y, player_x, player_y);
 }
 
 int wl_summarize_static_player_distances(const wl_game_model *model,
@@ -2516,6 +2528,48 @@ int wl_summarize_door_timing(const wl_game_model *model,
         if (door->ticcount > out->max_ticcount) {
             out->max_ticcount = door->ticcount;
         }
+    }
+    return 0;
+}
+
+int wl_summarize_door_player_distances(const wl_game_model *model,
+                                       uint16_t player_x, uint16_t player_y,
+                                       wl_door_player_distance_summary *out) {
+    if (!model || !out || player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->nearest_door_index = UINT16_MAX;
+    out->farthest_door_index = UINT16_MAX;
+    out->nearest_distance = UINT16_MAX;
+
+    for (size_t i = 0; i < model->door_count; ++i) {
+        const wl_door_desc *door = &model->doors[i];
+        if (door->x >= WL_MAP_SIDE || door->y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+        if (door->vertical) {
+            ++out->vertical_count;
+        } else {
+            ++out->horizontal_count;
+        }
+
+        const uint16_t distance = door_model_manhattan_distance(door, player_x, player_y);
+        ++out->considered_count;
+        if (distance < out->nearest_distance) {
+            out->nearest_distance = distance;
+            out->nearest_door_index = (uint16_t)i;
+        }
+        if (out->farthest_door_index == UINT16_MAX || distance > out->farthest_distance) {
+            out->farthest_distance = distance;
+            out->farthest_door_index = (uint16_t)i;
+        }
+    }
+
+    if (out->considered_count == 0) {
+        out->nearest_distance = 0;
     }
     return 0;
 }
