@@ -298,11 +298,19 @@ static int boss_tile_direction(uint16_t tile, wl_direction *dir) {
     case 215: /* SpawnGift */
         *dir = WL_DIR_NORTH;
         return 1;
+    case 107: /* SpawnAngel (Spear) */
+    case 125: /* SpawnTrans (Spear) */
+    case 142: /* SpawnUber (Spear) */
+    case 143: /* SpawnWill (Spear) */
+    case 161: /* SpawnDeath (Spear) */
     case 178: /* SpawnHitler */
     case 179: /* SpawnFat */
     case 196: /* SpawnSchabbs */
     case 214: /* SpawnBoss */
         *dir = WL_DIR_SOUTH;
+        return 1;
+    case 106: /* SpawnSpectre (Spear) */
+        *dir = WL_DIR_EAST;
         return 1;
     default:
         return 0;
