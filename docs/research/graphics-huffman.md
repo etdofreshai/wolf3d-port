@@ -481,3 +481,7 @@ The SDL-ready RGBA expansion helper now rejects present-frame descriptors whose 
 ## Cycle update: present-frame RGBA size preflight
 
 Presentation descriptors now expose `wl_present_frame_rgba_size()` so future SDL3 callers can validate descriptor consistency and allocate the exact RGBA upload buffer before expansion. Headless tests cover valid size calculation, invalid descriptors, and undersized output buffers without requiring SDL.
+
+## Cycle update: present-frame palette-depth validation
+
+`wl_present_frame_rgba_size()` now rejects unsupported palette component depths before reporting an allocation size. The live chase-attack RGBA presentation test covers the valid size path plus a malformed 7-bit palette descriptor, keeping the SDL3-facing preflight and expansion validation aligned.
