@@ -601,3 +601,7 @@ Added `wl_summarize_actor_directions` as a tiny non-mutating actor-state diagnos
 ## Cycle update: actor engagement state flags
 
 The actor engagement summary now separates active chase/boss/ghost-mode threats from ambush-flagged threats. This keeps the gameplay/render orchestration seam aware of whether nearby melee/ranged actors are already active or still marked as ambush while remaining SDL-free and test-backed.
+
+## Cycle update: actor engagement distance range
+
+Extended `wl_actor_engagement_summary` with the farthest active threat index and Manhattan tile distance, complementing the existing nearest-threat fields. The SDL-free synthetic coverage now pins nearest/farthest threat selection and the no-threat sentinel reset, giving future AI/audio/render orchestration a compact threat-distance range without mutating actor state.

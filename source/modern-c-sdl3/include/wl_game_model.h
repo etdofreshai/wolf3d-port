@@ -272,7 +272,9 @@ typedef struct wl_actor_engagement_summary {
     size_t ambush_threat_count;
     size_t invalid_position_count;
     uint16_t nearest_threat_index;
+    uint16_t farthest_threat_index;
     uint16_t nearest_threat_distance;
+    uint16_t farthest_threat_distance;
 } wl_actor_engagement_summary;
 
 typedef struct wl_actor_direction_summary {
