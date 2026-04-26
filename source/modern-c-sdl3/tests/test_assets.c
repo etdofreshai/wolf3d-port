@@ -5877,6 +5877,7 @@ static int check_audio_wl6(const char *dir) {
     wl_adlib_playback_cursor adlib_cursor;
     wl_sample_playback_window sample_window;
     wl_sample_playback_position sample_position;
+    size_t sound_sample_count = 0;
     uint8_t pc_sample = 0;
     uint8_t adlib_instrument_byte = 0;
     uint8_t adlib_sample = 0;
@@ -6115,6 +6116,15 @@ static int check_audio_wl6(const char *dir) {
     CHECK(wl_schedule_sound_channel(&sound_channel, 0, &audio_meta, &sound_schedule) == -1);
     CHECK(wl_describe_pc_speaker_sound(chunk_buf, chunk_bytes, &pc_meta) == 0);
     CHECK(pc_meta.sample_count == 8);
+    CHECK(wl_describe_sound_sample_count_from_chunk(&audio_meta, chunk_buf,
+                                                    chunk_bytes,
+                                                    &sound_sample_count) == 0);
+    CHECK(sound_sample_count == 8);
+    CHECK(wl_describe_sound_sample_count_from_chunk(&audio_meta, chunk_buf, 6,
+                                                    &sound_sample_count) == -1);
+    CHECK(wl_describe_sound_sample_count_from_chunk(NULL, chunk_buf,
+                                                    chunk_bytes,
+                                                    &sound_sample_count) == -1);
     CHECK(pc_meta.first_sample == 0x83);
     CHECK(pc_meta.last_sample == 0x84);
     CHECK(pc_meta.terminator == 0);
@@ -6337,6 +6347,10 @@ static int check_audio_wl6(const char *dir) {
                                                &sound_schedule) == -1);
     CHECK(wl_describe_adlib_sound(chunk_buf, chunk_bytes, &adlib_meta) == 0);
     CHECK(adlib_meta.sample_count == 8);
+    CHECK(wl_describe_sound_sample_count_from_chunk(&audio_meta, chunk_buf,
+                                                    chunk_bytes,
+                                                    &sound_sample_count) == 0);
+    CHECK(sound_sample_count == 8);
     CHECK(adlib_meta.priority == 1);
     CHECK(adlib_meta.instrument_bytes == 16);
     CHECK(adlib_meta.first_instrument_byte == 0x70);

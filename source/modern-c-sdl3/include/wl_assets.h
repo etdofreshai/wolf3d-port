@@ -715,6 +715,9 @@ int wl_tick_sound_channel_from_chunk(const wl_sound_channel_state *current,
                                      const unsigned char *chunk, size_t chunk_size,
                                      uint32_t sample_delta,
                                      wl_sound_channel_tick_result *out);
+int wl_describe_sound_sample_count_from_chunk(const wl_audio_chunk_metadata *metadata,
+                                             const unsigned char *chunk, size_t chunk_size,
+                                             size_t *out_sample_count);
 int wl_describe_sound_playback_position_from_chunk(const wl_audio_chunk_metadata *metadata,
                                                    const unsigned char *chunk, size_t chunk_size,
                                                    size_t sample_position,
