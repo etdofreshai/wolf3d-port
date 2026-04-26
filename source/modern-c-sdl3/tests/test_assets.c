@@ -5501,11 +5501,19 @@ static int check_optional_sod(const char *dir) {
         size_t treasure_total;
         size_t secret_total;
         size_t unknown_info_tiles;
+        uint32_t unknown_info_hash;
+        uint16_t first_unknown_tile;
+        uint16_t first_unknown_x;
+        uint16_t first_unknown_y;
     } sod_model_gaps[] = {
-        { 0, "Tunnels 1", 32, 59, 17, 147, 8, 8, 45, 5, 2 },
-        { 4, "Tunnel Boss", 50, 31, 18, 174, 12, 12, 42, 12, 16 },
-        { 17, "Death Knight", 30, 41, 9, 91, 10, 10, 2, 1, 40 },
-        { 20, "Angel of Death", 31, 22, 1, 180, 0, 0, 14, 5, 121 },
+        { 0, "Tunnels 1", 32, 59, 17, 147, 8, 8, 45, 5, 2,
+          0xb5ca2d63u, 72, 32, 32 },
+        { 4, "Tunnel Boss", 50, 31, 18, 174, 12, 12, 42, 12, 16,
+          0x2a9e682au, 72, 2, 28 },
+        { 17, "Death Knight", 30, 41, 9, 91, 10, 10, 2, 1, 40,
+          0x8803e780u, 74, 31, 22 },
+        { 20, "Angel of Death", 31, 22, 1, 180, 0, 0, 14, 5, 121,
+          0x21c1edb6u, 72, 4, 1 },
     };
     for (size_t i = 0; i < sizeof(sod_model_gaps) / sizeof(sod_model_gaps[0]); ++i) {
         wl_map_header sod_map;
@@ -5528,6 +5536,10 @@ static int check_optional_sod(const char *dir) {
         CHECK(sod_model.treasure_total == sod_model_gaps[i].treasure_total);
         CHECK(sod_model.secret_total == sod_model_gaps[i].secret_total);
         CHECK(sod_model.unknown_info_tiles == sod_model_gaps[i].unknown_info_tiles);
+        CHECK(sod_model.unknown_info_hash == sod_model_gaps[i].unknown_info_hash);
+        CHECK(sod_model.first_unknown_info_tile == sod_model_gaps[i].first_unknown_tile);
+        CHECK(sod_model.first_unknown_info_x == sod_model_gaps[i].first_unknown_x);
+        CHECK(sod_model.first_unknown_info_y == sod_model_gaps[i].first_unknown_y);
     }
 
     wl_graphics_header gh;
