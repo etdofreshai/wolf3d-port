@@ -1543,6 +1543,8 @@ static int check_wl6(const char *dir) {
     CHECK(wake_all.actors_woke == 1);
     CHECK(wake_all.ambush_cleared == 0);
     CHECK(wake_all.chase_dir_selected == 1);
+    CHECK(wake_all.first_woken_actor == 0);
+    CHECK(wake_all.last_woken_actor == 0);
     CHECK(path_model.actors[0].mode == WL_ACTOR_CHASE);
     CHECK(path_model.actors[0].patrol_remainder == 0);
     CHECK(path_model.actors[1].mode == WL_ACTOR_PATROL);
@@ -1553,8 +1555,15 @@ static int check_wl6(const char *dir) {
     CHECK(wake_all.actors_woke == 1);
     CHECK(wake_all.ambush_cleared == 1);
     CHECK(wake_all.chase_dir_selected == 1);
+    CHECK(wake_all.first_woken_actor == 1);
+    CHECK(wake_all.last_woken_actor == 1);
     CHECK(path_model.actors[1].mode == WL_ACTOR_CHASE);
     CHECK(path_model.actors[1].ambush == 0);
+    CHECK(wl_wake_actors_for_chase(&path_model, 8, 4, 1, 1, &wake_all) == 0);
+    CHECK(wake_all.actors_considered == 3);
+    CHECK(wake_all.actors_woke == 0);
+    CHECK(wake_all.first_woken_actor == UINT16_MAX);
+    CHECK(wake_all.last_woken_actor == UINT16_MAX);
     CHECK(wl_wake_actors_for_chase(&path_model, WL_MAP_SIDE, 4, 1, 1,
                                    &wake_all) == -1);
     memset(&path_model, 0, sizeof(path_model));

@@ -199,6 +199,8 @@ typedef struct wl_actor_wake_all_result {
     uint16_t actors_woke;
     uint16_t ambush_cleared;
     uint16_t chase_dir_selected;
+    uint16_t first_woken_actor;
+    uint16_t last_woken_actor;
 } wl_actor_wake_all_result;
 
 typedef struct wl_pushwall_motion {
