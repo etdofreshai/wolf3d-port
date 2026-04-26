@@ -498,6 +498,19 @@ typedef struct wl_sound_priority_decision {
     uint8_t should_start;
 } wl_sound_priority_decision;
 
+typedef struct wl_sound_channel_decision {
+    uint8_t current_active;
+    size_t current_chunk;
+    uint16_t current_priority;
+    size_t candidate_chunk;
+    wl_audio_chunk_kind candidate_kind;
+    uint16_t candidate_priority;
+    uint8_t should_start;
+    uint8_t next_active;
+    size_t next_chunk;
+    uint16_t next_priority;
+} wl_sound_channel_decision;
+
 typedef struct wl_pc_speaker_sound_metadata {
     uint32_t sample_count;
     uint8_t first_sample;
@@ -631,6 +644,12 @@ int wl_describe_sound_priority_decision(uint8_t current_active,
                                         uint16_t current_priority,
                                         uint16_t candidate_priority,
                                         wl_sound_priority_decision *out);
+int wl_describe_sound_channel_decision(uint8_t current_active,
+                                       size_t current_chunk,
+                                       uint16_t current_priority,
+                                       size_t candidate_chunk,
+                                       const wl_audio_chunk_metadata *candidate,
+                                       wl_sound_channel_decision *out);
 int wl_describe_pc_speaker_sound(const unsigned char *chunk, size_t chunk_size,
                                   wl_pc_speaker_sound_metadata *out);
 int wl_get_pc_speaker_sound_sample(const unsigned char *chunk, size_t chunk_size,

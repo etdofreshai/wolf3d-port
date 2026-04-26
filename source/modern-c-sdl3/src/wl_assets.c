@@ -2343,6 +2343,40 @@ int wl_describe_sound_priority_decision(uint8_t current_active,
     return 0;
 }
 
+int wl_describe_sound_channel_decision(uint8_t current_active,
+                                       size_t current_chunk,
+                                       uint16_t current_priority,
+                                       size_t candidate_chunk,
+                                       const wl_audio_chunk_metadata *candidate,
+                                       wl_sound_channel_decision *out) {
+    wl_sound_priority_decision priority;
+    if (!out || !candidate || current_active > 1u || candidate->is_empty ||
+        (candidate->kind != WL_AUDIO_CHUNK_PC_SPEAKER && candidate->kind != WL_AUDIO_CHUNK_ADLIB)) {
+        return -1;
+    }
+    if (wl_describe_sound_priority_decision(current_active, current_priority,
+                                            candidate->priority, &priority) != 0) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->current_active = current_active;
+    out->current_chunk = current_chunk;
+    out->current_priority = current_priority;
+    out->candidate_chunk = candidate_chunk;
+    out->candidate_kind = candidate->kind;
+    out->candidate_priority = candidate->priority;
+    out->should_start = priority.should_start;
+    out->next_active = current_active;
+    out->next_chunk = current_chunk;
+    out->next_priority = current_priority;
+    if (priority.should_start) {
+        out->next_active = 1u;
+        out->next_chunk = candidate_chunk;
+        out->next_priority = candidate->priority;
+    }
+    return 0;
+}
+
 static int describe_sample_playback_window(size_t sample_count,
                                            int (*getter)(const unsigned char *, size_t, size_t, uint8_t *),
                                            const unsigned char *chunk, size_t chunk_size,
