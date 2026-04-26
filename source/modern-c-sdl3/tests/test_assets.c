@@ -5002,6 +5002,17 @@ static int check_wl6(const char *dir) {
     CHECK(present_rgba_padded_upload.format == WL_TEXTURE_UPLOAD_RGBA8888);
     CHECK(present_rgba_padded_upload.pitch == PRESENT_PADDED_PITCH);
     CHECK(present_rgba_padded_upload.pixel_bytes == sizeof(present_rgba_padded));
+    wl_texture_upload_descriptor described_padded_rgba_upload;
+    CHECK(wl_describe_present_frame_rgba_upload_pitched(
+              &present_frame, present_rgba_padded, sizeof(present_rgba_padded),
+              PRESENT_PADDED_PITCH, &described_padded_rgba_upload) == 0);
+    CHECK(described_padded_rgba_upload.format == WL_TEXTURE_UPLOAD_RGBA8888);
+    CHECK(described_padded_rgba_upload.width == present_frame.viewport_width);
+    CHECK(described_padded_rgba_upload.height == present_frame.viewport_height);
+    CHECK(described_padded_rgba_upload.pitch == PRESENT_PADDED_PITCH);
+    CHECK(described_padded_rgba_upload.pixel_bytes == sizeof(present_rgba_padded));
+    CHECK(described_padded_rgba_upload.pixels == present_rgba_padded);
+    CHECK(described_padded_rgba_upload.palette == NULL);
     for (size_t row = 0; row < 128u; ++row) {
         CHECK(memcmp(present_rgba_padded + row * PRESENT_PADDED_PITCH,
                      present_rgba + row * 80u * 4u, 80u * 4u) == 0);
@@ -5061,6 +5072,15 @@ static int check_wl6(const char *dir) {
     CHECK(wl_describe_present_frame_rgba_upload(&present_frame, present_rgba,
                                                 sizeof(present_rgba) - 1u,
                                                 &described_rgba_upload) == -1);
+    CHECK(wl_describe_present_frame_rgba_upload_pitched(
+              &present_frame, present_rgba_padded, sizeof(present_rgba_padded),
+              80u * 4u - 1u, &described_padded_rgba_upload) == -1);
+    CHECK(wl_describe_present_frame_rgba_upload_pitched(
+              &present_frame, present_rgba_padded, sizeof(present_rgba_padded) - 17u,
+              PRESENT_PADDED_PITCH, &described_padded_rgba_upload) == -1);
+    CHECK(wl_describe_present_frame_rgba_upload_pitched(
+              &present_frame, present_rgba_padded, sizeof(present_rgba_padded),
+              PRESENT_PADDED_PITCH, NULL) == -1);
     CHECK(wl_expand_present_frame_to_rgba(&present_frame, present_rgba,
                                           sizeof(present_rgba) - 1u,
                                           &present_rgba_upload) == -1);

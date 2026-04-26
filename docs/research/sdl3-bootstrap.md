@@ -74,3 +74,7 @@ The SDL3 present smoke now routes sprite-bearing output through the screenshot s
 ## Pitched RGBA presentation upload seam
 
 The SDL-free presentation helpers now include `wl_expand_present_frame_to_rgba_pitched()`, which expands a `wl_present_frame_descriptor` into caller-provided RGBA rows with an explicit destination pitch. This keeps the deterministic indexed/palette path usable for SDL surfaces or textures that expose row padding instead of requiring tightly packed `width * 4` rows. The existing tight `wl_expand_present_frame_to_rgba()` path delegates through the pitched helper, and headless tests verify padded rows preserve their sentinel bytes while visible pixels match the tight upload.
+
+## Pitched RGBA upload descriptor seam
+
+`wl_describe_present_frame_rgba_upload_pitched()` now describes caller-owned RGBA buffers with explicit row pitch after validating the same present-frame layout constraints used by expansion. The pitched expansion helper delegates descriptor creation through it, so future SDL3 surface/texture handoff paths can preflight padded rows and upload metadata without duplicating pitch/size checks.

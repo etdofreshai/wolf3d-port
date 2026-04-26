@@ -734,17 +734,36 @@ int wl_describe_present_frame_rgba_upload(const wl_present_frame_descriptor *pre
                                           wl_texture_upload_descriptor *out) {
     size_t pitch = 0;
     size_t required = 0;
+    if (wl_present_frame_rgba_layout(present, &pitch, &required) != 0) {
+        return -1;
+    }
+    return wl_describe_present_frame_rgba_upload_pitched(present, rgba,
+                                                         rgba_size, pitch,
+                                                         out);
+}
+
+int wl_describe_present_frame_rgba_upload_pitched(
+    const wl_present_frame_descriptor *present, unsigned char *rgba,
+    size_t rgba_size, size_t rgba_pitch, wl_texture_upload_descriptor *out) {
+    size_t tight_pitch = 0;
+    size_t tight_size = 0;
     if (!rgba || !out ||
-        wl_present_frame_rgba_layout(present, &pitch, &required) != 0 ||
-        rgba_size < required || pitch > UINT16_MAX) {
+        wl_present_frame_rgba_layout(present, &tight_pitch, &tight_size) != 0 ||
+        rgba_pitch < tight_pitch || rgba_pitch > UINT16_MAX) {
+        return -1;
+    }
+    const size_t height = (size_t)present->texture.height;
+    if (height != 0 &&
+        ((height - 1u) > (SIZE_MAX - tight_pitch) / rgba_pitch ||
+         rgba_size < rgba_pitch * (height - 1u) + tight_pitch)) {
         return -1;
     }
     memset(out, 0, sizeof(*out));
     out->format = WL_TEXTURE_UPLOAD_RGBA8888;
     out->width = present->texture.width;
     out->height = present->texture.height;
-    out->pitch = (uint16_t)pitch;
-    out->pixel_bytes = required;
+    out->pitch = (uint16_t)rgba_pitch;
+    out->pixel_bytes = rgba_pitch * height;
     out->pixels = rgba;
     out->palette = NULL;
     out->palette_entries = 0;
@@ -762,7 +781,9 @@ int wl_expand_present_frame_to_rgba_pitched(
         return -1;
     }
     const size_t height = (size_t)present->texture.height;
-    if (height != 0 && rgba_size < rgba_pitch * (height - 1u) + tight_pitch) {
+    if (height != 0 &&
+        ((height - 1u) > (SIZE_MAX - tight_pitch) / rgba_pitch ||
+         rgba_size < rgba_pitch * (height - 1u) + tight_pitch)) {
         return -1;
     }
 
@@ -785,16 +806,8 @@ int wl_expand_present_frame_to_rgba_pitched(
     }
 
     if (out) {
-        memset(out, 0, sizeof(*out));
-        out->format = WL_TEXTURE_UPLOAD_RGBA8888;
-        out->width = present->texture.width;
-        out->height = present->texture.height;
-        out->pitch = (uint16_t)rgba_pitch;
-        out->pixel_bytes = rgba_pitch * height;
-        out->pixels = rgba;
-        out->palette = NULL;
-        out->palette_entries = 0;
-        out->palette_component_bits = 8;
+        return wl_describe_present_frame_rgba_upload_pitched(
+            present, rgba, rgba_size, rgba_pitch, out);
     }
     return 0;
 }
