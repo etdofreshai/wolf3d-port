@@ -31,6 +31,10 @@ Optional headless assertions now collect scene sprite refs for the representativ
 
 Broaden optional SOD pickup/gameplay behavior around the `bo_25clip` and eventual `bo_spear` paths, or route a small SOD scene through cached sprite surfaces/rendering when useful.
 
+## Cycle update: SOD map scene refs use Spear sprite ordinals
+
+The optional representative SOD map scene-ref assertions now call `wl_collect_spear_scene_sprite_refs()` instead of the WL6 collector. This pins Spear-aware scene-ref counts/hashes for `Tunnels 1`, `Tunnel Boss`, `Death Knight`, and `Angel of Death`, proving source-backed SOD boss/special actors reach renderer-facing VSWAP sprite metadata in real map-derived models rather than only in the synthetic special-tile regression.
+
 ## Verification
 
 ```bash
