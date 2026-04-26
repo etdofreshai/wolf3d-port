@@ -6444,7 +6444,13 @@ static int check_audio_wl6(const char *dir) {
     size_t audiot_size = 0;
     CHECK(wl_file_size(audiot_path, &audiot_size) == 0);
     CHECK(audiot_size == 320209);
-    CHECK(audio.offsets[audio.chunk_count] <= audiot_size);
+    CHECK(audio.offsets[audio.chunk_count] == audiot_size);
+    CHECK(wl_validate_audio_header_offsets(&audio, audiot_size) == 0);
+    audio.offsets[audio.chunk_count] = (uint32_t)audiot_size + 1u;
+    CHECK(wl_validate_audio_header_offsets(&audio, audiot_size) == -1);
+    CHECK(wl_read_audio_chunk(audiot_path, &audio, audio.chunk_count - 1u,
+                              chunk_buf, sizeof(chunk_buf), &chunk_bytes) == -1);
+    audio.offsets[audio.chunk_count] = (uint32_t)audiot_size;
 
     /* Read a few representative chunks and hash them */
 
@@ -7534,6 +7540,7 @@ static int check_audio_optional_sod(const char *dir) {
     CHECK(wl_file_size(audiot_path, &audiot_size) == 0);
     CHECK(audiot_size == 328620);
     CHECK(audio.offsets[audio.chunk_count] == audiot_size);
+    CHECK(wl_validate_audio_header_offsets(&audio, audiot_size) == 0);
 
     CHECK(wl_summarize_audio_range(&audio, 0, 81, &audio_range) == 0);
     CHECK(audio_range.non_empty_chunks == 81);

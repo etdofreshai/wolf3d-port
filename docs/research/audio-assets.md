@@ -5,7 +5,8 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 ## Scope
 
 - `wl_read_audio_header()` reads little-endian 32-bit chunk offsets from `AUDIOHED.*`.
-- `wl_read_audio_chunk()` copies bounded raw chunk bytes from `AUDIOT.*` using adjacent offsets.
+- `wl_validate_audio_header_offsets()` verifies the AUDIOHED offset table is monotonic and bounded by the paired AUDIOT file size before raw chunk reads trust it.
+- `wl_read_audio_chunk()` copies bounded raw chunk bytes from `AUDIOT.*` using adjacent offsets and rejects tables whose sentinel/offsets point beyond the actual file.
 - `wl_describe_audio_chunk()` classifies the original WL6 chunk ranges and exposes raw size, declared length, sound priority where present, and payload bounds.
 - `wl_describe_audio_chunk_with_ranges()` applies the same descriptor logic to caller-supplied range counts, covering SOD's shorter PC/AdLib/digital tables without hardcoded WL6 cutoffs.
 - `wl_summarize_audio_range()` summarizes AUDIOHED offset ranges without reading AUDIOT payloads, giving future audio schedulers quick counts/byte totals for PC speaker, AdLib, digital, and music ranges.
@@ -58,7 +59,7 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 
 - `AUDIOHED.WL6`: 1,156 bytes = 289 offsets = 288 chunks plus sentinel.
 - First offsets: `0, 15, 28, 44, 102`.
-- `AUDIOT.WL6`: 320,209 bytes; sentinel offset is within the file and equals the observed file end.
+- `AUDIOT.WL6`: 320,209 bytes; sentinel offset equals the observed file end, and a corrupted sentinel one byte past EOF is rejected before chunk reads.
 - Range summaries pin the WL6 PC speaker range as 87/87 non-empty chunks totaling 9,986 bytes (largest chunk 50 at 313 bytes), the AdLib range as 87/87 non-empty chunks totaling 12,969 bytes (largest chunk 137 at 339 bytes), the digitized-sound range as 1/87 non-empty chunks totaling 4 bytes (chunk 260 sentinel/marker), and the music range as 27/27 non-empty chunks totaling 297,250 bytes (largest chunk 280 at 22,578 bytes).
 - Priority arbitration is pinned headlessly for inactive sounds, lower-priority rejection, equal-priority replacement, higher-priority replacement, and invalid active-state/null-output rejection; channel decisions are pinned for inactive PC-speaker start, lower-priority hold, and equal-priority AdLib replacement; channel-start state coverage also pins inactive start, lower-priority state preservation, equal-priority replacement, sample-position reset, metadata-backed PC/AdLib starts, digital/oversized chunk rejection, and invalid input handling; channel-schedule coverage pins inactive PC-speaker start, lower-priority hold, equal-priority AdLib replacement, metadata-backed chunk scheduling, oversized chunk rejection, candidate kind/priority metadata, and invalid input handling; channel-advance coverage pins inactive preservation, partial active advancement, completion/deactivation at the declared sample count, zero-delta completion at end, metadata-backed PC speaker/AdLib advancement, and invalid active/out-of-range/null/truncated input rejection; channel-tick coverage pins PC speaker and AdLib sample advancement, completion deactivation, inactive no-op behavior, metadata-backed PC-speaker ticking, metadata-backed schedule+tick, schedule+advance, schedule+window, schedule+position, and schedule+progress accept/hold behavior, metadata-backed PC speaker/AdLib sample-count, sample-position, active-channel-position/remaining/progress/progress-window/window inspection and schedule+progress-window arbitration, metadata-backed AdLib instrument-register dispatch, and invalid kind/metadata/input handling; metadata-backed playback-window coverage pins PC speaker and AdLib dispatch plus invalid metadata rejection.
 - Representative chunks:
@@ -75,7 +76,7 @@ When local Spear data is present under `game-files/base/m1`:
 
 - `AUDIOHED.SOD`: 1,072 bytes = 268 offsets = 267 chunks plus sentinel.
 - First offsets: `0, 15, 66, 82, 174`.
-- `AUDIOT.SOD`: 328,620 bytes; sentinel offset equals the file size.
+- `AUDIOT.SOD`: 328,620 bytes; sentinel offset equals the file size and passes the shared offset-table validator.
 - Range summaries pin the optional SOD PC speaker range as 81/81 non-empty chunks totaling 6,989 bytes (largest chunk 17 at 306 bytes), the AdLib range as 81/81 non-empty chunks totaling 10,607 bytes (largest chunk 119 at 338 bytes), the digitized-sound range as 1/81 non-empty chunks totaling 4 bytes (chunk 242 sentinel/marker), and the music range as 24/24 non-empty chunks totaling 311,020 bytes (largest chunk 258 at 22,578 bytes).
 - Representative chunks:
   - chunk 0: 15 bytes, FNV-1a `0x5971ec53`.
