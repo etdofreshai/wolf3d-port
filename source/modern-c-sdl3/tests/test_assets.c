@@ -2451,6 +2451,7 @@ static int check_wl6(const char *dir) {
         wl_actor_patrol_path_summary expected_patrol_paths;
         wl_actor_chase_path_summary expected_chase_paths;
         wl_actor_attack_summary expected_attacks;
+        wl_actor_scene_summary expected_scene;
         memset(&expected_flags, 0, sizeof(expected_flags));
         memset(&expected_positions, 0, sizeof(expected_positions));
         memset(&expected_wake_no_ambush, 0, sizeof(expected_wake_no_ambush));
@@ -2458,6 +2459,7 @@ static int check_wl6(const char *dir) {
         memset(&expected_patrol_paths, 0, sizeof(expected_patrol_paths));
         memset(&expected_chase_paths, 0, sizeof(expected_chase_paths));
         memset(&expected_attacks, 0, sizeof(expected_attacks));
+        memset(&expected_scene, 0, sizeof(expected_scene));
         for (size_t actor_i = 0; actor_i < model.actor_count; ++actor_i) {
             const wl_actor_desc *actor = &model.actors[actor_i];
             expected_flags.shootable_count += actor->shootable ? 1u : 0u;
@@ -2465,6 +2467,14 @@ static int check_wl6(const char *dir) {
             expected_flags.kill_total_count += actor->counts_for_kill_total ? 1u : 0u;
             expected_flags.scene_override_count += actor->scene_source_override ? 1u : 0u;
             expected_flags.inert_count += actor->mode == WL_ACTOR_INERT ? 1u : 0u;
+            ++expected_scene.actor_count;
+            if (actor->scene_source_index == 0) {
+                ++expected_scene.missing_source_count;
+            } else if (actor->scene_source_override) {
+                ++expected_scene.override_source_count;
+            } else {
+                ++expected_scene.default_source_count;
+            }
             expected_positions.moved_from_spawn_count +=
                 (actor->tile_x != actor->spawn_x || actor->tile_y != actor->spawn_y) ? 1u : 0u;
             expected_positions.fine_position_count +=
@@ -2615,6 +2625,18 @@ static int check_wl6(const char *dir) {
         CHECK(attacks.invalid_position_count == expected_attacks.invalid_position_count);
         CHECK(model.actor_count == attacks.attack_capable_count + attacks.passive_count +
                                    attacks.invalid_position_count);
+        wl_actor_scene_summary scene_summary;
+        memset(&scene_summary, 0xff, sizeof(scene_summary));
+        CHECK(wl_summarize_actor_scene_sources(&model, &scene_summary) == 0);
+        CHECK(wl_summarize_actor_scene_sources(NULL, &scene_summary) == -1);
+        CHECK(wl_summarize_actor_scene_sources(&model, NULL) == -1);
+        CHECK(scene_summary.actor_count == expected_scene.actor_count);
+        CHECK(scene_summary.default_source_count == expected_scene.default_source_count);
+        CHECK(scene_summary.override_source_count == expected_scene.override_source_count);
+        CHECK(scene_summary.missing_source_count == expected_scene.missing_source_count);
+        CHECK(scene_summary.actor_count == scene_summary.default_source_count +
+                                           scene_summary.override_source_count +
+                                           scene_summary.missing_source_count);
         CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs,
                                            sizeof(scene_refs) / sizeof(scene_refs[0]),
                                            &scene_ref_count) == 0);
@@ -2665,6 +2687,16 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_attacks.bite_count == 1);
     CHECK(synthetic_attacks.passive_count == 0);
     CHECK(synthetic_attacks.invalid_position_count == 1);
+
+    chase_summary_model.actors[0].scene_source_index = 50;
+    chase_summary_model.actors[1].scene_source_index = 51;
+    chase_summary_model.actors[1].scene_source_override = 1;
+    wl_actor_scene_summary synthetic_scene;
+    CHECK(wl_summarize_actor_scene_sources(&chase_summary_model, &synthetic_scene) == 0);
+    CHECK(synthetic_scene.actor_count == 3);
+    CHECK(synthetic_scene.default_source_count == 1);
+    CHECK(synthetic_scene.override_source_count == 1);
+    CHECK(synthetic_scene.missing_source_count == 1);
 
     wl_actor_chase_path_summary synthetic_chase_paths;
     CHECK(wl_summarize_actor_chase_paths(&chase_summary_model, 8, 5, 1,

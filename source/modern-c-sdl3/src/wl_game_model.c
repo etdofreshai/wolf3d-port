@@ -1746,6 +1746,27 @@ int wl_summarize_actor_attacks(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_actor_scene_sources(const wl_game_model *model,
+                                     wl_actor_scene_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->actor_count = model->actor_count;
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->scene_source_index == 0) {
+            ++out->missing_source_count;
+        } else if (actor->scene_source_override) {
+            ++out->override_source_count;
+        } else {
+            ++out->default_source_count;
+        }
+    }
+    return 0;
+}
+
 int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
                             uint16_t player_x, uint16_t player_y,
                             int search_forward, wl_actor_wake_result *out) {
