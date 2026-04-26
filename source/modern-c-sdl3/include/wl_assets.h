@@ -517,6 +517,17 @@ typedef struct wl_adlib_sound_metadata {
     size_t trailing_bytes;
 } wl_adlib_sound_metadata;
 
+typedef struct wl_adlib_instrument_registers {
+    uint8_t modulator_regs[5];
+    uint8_t modulator_values[5];
+    uint8_t carrier_regs[5];
+    uint8_t carrier_values[5];
+    uint8_t feedback_reg;
+    uint8_t feedback_value;
+    uint8_t voice;
+    uint8_t mode;
+} wl_adlib_instrument_registers;
+
 typedef struct wl_adlib_playback_cursor {
     size_t sample_index;
     uint32_t samples_consumed;
@@ -617,6 +628,8 @@ int wl_describe_pc_speaker_playback_position(const unsigned char *chunk, size_t 
                                              wl_sample_playback_position *out);
 int wl_describe_adlib_sound(const unsigned char *chunk, size_t chunk_size,
                             wl_adlib_sound_metadata *out);
+int wl_describe_adlib_instrument_registers(const unsigned char *chunk, size_t chunk_size,
+                                           wl_adlib_instrument_registers *out);
 int wl_get_adlib_instrument_byte(const unsigned char *chunk, size_t chunk_size,
                                  size_t instrument_index, uint8_t *out_byte);
 int wl_get_adlib_sound_sample(const unsigned char *chunk, size_t chunk_size,
