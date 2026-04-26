@@ -483,3 +483,7 @@ A rendered live-AI chase attack scene now feeds `wl_describe_present_frame` with
 ## Runtime static state summary
 
 `wl_summarize_static_states` now provides an SDL-free static-object diagnostic for live pickup/render readiness, partitioning active/inactive, blocking, bonus, treasure, active-bonus, and active-blocking static descriptors with synthetic headless coverage.
+
+## Runtime static/player distance summary
+
+`wl_summarize_static_player_distances` now gives pickup/render code an SDL-free way to inspect nearest and farthest static objects relative to the player, with active-only filtering and invalid-coordinate accounting covered by synthetic headless tests.

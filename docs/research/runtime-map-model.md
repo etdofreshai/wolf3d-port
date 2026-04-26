@@ -650,3 +650,7 @@ Added `wl_summarize_actor_threats()` as a compact non-mutating actor-state diagn
 ## Cycle update: runtime static state summary
 
 Added `wl_summarize_static_states`, a non-mutating runtime static diagnostic for live pickup/render orchestration. It reports active vs inactive statics, blocking statics, bonus statics, treasure statics, and the active subsets that still affect collision or pickup/render paths. Synthetic headless tests cover active/inactive blocking and bonus/treasure buckets plus null-argument rejection.
+
+## Cycle update: runtime static/player distance summary
+
+Added `wl_summarize_static_player_distances`, a non-mutating static-object diagnostic that mirrors the actor/player distance seam for pickup and render preparation. It reports nearest/farthest static descriptors by tile Manhattan distance, invalid static coordinates, and inactive statics skipped when callers request active-only coverage. Synthetic headless tests cover all result fields, null/invalid-player rejection, active-only filtering, and the no-considered-static sentinel case.

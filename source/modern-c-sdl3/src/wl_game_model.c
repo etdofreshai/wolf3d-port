@@ -2379,6 +2379,59 @@ int wl_summarize_static_states(const wl_game_model *model,
     return 0;
 }
 
+
+static uint16_t static_model_manhattan_distance(const wl_static_desc *stat,
+                                                uint16_t player_x,
+                                                uint16_t player_y) {
+    const uint16_t dx = (stat->x >= player_x) ? (uint16_t)(stat->x - player_x)
+                                             : (uint16_t)(player_x - stat->x);
+    const uint16_t dy = (stat->y >= player_y) ? (uint16_t)(stat->y - player_y)
+                                             : (uint16_t)(player_y - stat->y);
+    return (uint16_t)(dx + dy);
+}
+
+int wl_summarize_static_player_distances(const wl_game_model *model,
+                                         uint16_t player_x, uint16_t player_y,
+                                         int active_only,
+                                         wl_static_player_distance_summary *out) {
+    if (!model || !out || player_x >= WL_MAP_SIDE || player_y >= WL_MAP_SIDE) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->nearest_static_index = UINT16_MAX;
+    out->farthest_static_index = UINT16_MAX;
+    out->nearest_distance = UINT16_MAX;
+
+    for (size_t i = 0; i < model->static_count; ++i) {
+        const wl_static_desc *stat = &model->statics[i];
+        if (stat->x >= WL_MAP_SIDE || stat->y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+        if (active_only && !stat->active) {
+            ++out->inactive_count;
+            continue;
+        }
+
+        const uint16_t distance = static_model_manhattan_distance(stat, player_x, player_y);
+        ++out->considered_count;
+        if (distance < out->nearest_distance) {
+            out->nearest_distance = distance;
+            out->nearest_static_index = (uint16_t)i;
+        }
+        if (out->farthest_static_index == UINT16_MAX || distance > out->farthest_distance) {
+            out->farthest_distance = distance;
+            out->farthest_static_index = (uint16_t)i;
+        }
+    }
+
+    if (out->considered_count == 0) {
+        out->nearest_distance = 0;
+    }
+    return 0;
+}
+
 int wl_wake_actor_for_chase(wl_game_model *model, uint16_t actor_index,
                             uint16_t player_x, uint16_t player_y,
                             int search_forward, wl_actor_wake_result *out) {

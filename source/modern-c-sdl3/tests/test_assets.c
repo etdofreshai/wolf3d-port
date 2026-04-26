@@ -3186,6 +3186,49 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_static_states.active_bonus_count == 1);
     CHECK(synthetic_static_states.active_blocking_count == 1);
 
+    chase_summary_model.statics[0].x = 10;
+    chase_summary_model.statics[0].y = 10;
+    chase_summary_model.statics[1].x = 8;
+    chase_summary_model.statics[1].y = 10;
+    chase_summary_model.statics[2].x = 15;
+    chase_summary_model.statics[2].y = 13;
+    chase_summary_model.statics[3].x = WL_MAP_SIDE;
+    chase_summary_model.statics[3].y = 1;
+    wl_static_player_distance_summary synthetic_static_distances;
+    CHECK(wl_summarize_static_player_distances(&chase_summary_model, 10, 10, 0,
+                                               &synthetic_static_distances) == 0);
+    CHECK(wl_summarize_static_player_distances(NULL, 10, 10, 0,
+                                               &synthetic_static_distances) == -1);
+    CHECK(wl_summarize_static_player_distances(&chase_summary_model, WL_MAP_SIDE, 10, 0,
+                                               &synthetic_static_distances) == -1);
+    CHECK(wl_summarize_static_player_distances(&chase_summary_model, 10, 10, 0, NULL) == -1);
+    CHECK(synthetic_static_distances.considered_count == 3);
+    CHECK(synthetic_static_distances.inactive_count == 0);
+    CHECK(synthetic_static_distances.invalid_position_count == 1);
+    CHECK(synthetic_static_distances.nearest_static_index == 0);
+    CHECK(synthetic_static_distances.farthest_static_index == 2);
+    CHECK(synthetic_static_distances.nearest_distance == 0);
+    CHECK(synthetic_static_distances.farthest_distance == 8);
+    CHECK(wl_summarize_static_player_distances(&chase_summary_model, 10, 10, 1,
+                                               &synthetic_static_distances) == 0);
+    CHECK(synthetic_static_distances.considered_count == 2);
+    CHECK(synthetic_static_distances.inactive_count == 1);
+    CHECK(synthetic_static_distances.invalid_position_count == 1);
+    CHECK(synthetic_static_distances.nearest_static_index == 0);
+    CHECK(synthetic_static_distances.farthest_static_index == 1);
+    CHECK(synthetic_static_distances.farthest_distance == 2);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.static_count = 1;
+    chase_summary_model.statics[0].active = 0;
+    CHECK(wl_summarize_static_player_distances(&chase_summary_model, 10, 10, 1,
+                                               &synthetic_static_distances) == 0);
+    CHECK(synthetic_static_distances.considered_count == 0);
+    CHECK(synthetic_static_distances.inactive_count == 1);
+    CHECK(synthetic_static_distances.nearest_static_index == UINT16_MAX);
+    CHECK(synthetic_static_distances.farthest_static_index == UINT16_MAX);
+    CHECK(synthetic_static_distances.nearest_distance == 0);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
