@@ -599,3 +599,5 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 ## Runtime actor/path-marker summary
 
 `wl_summarize_actor_path_markers` reports patrol actors that are directly on a path marker, cardinal-adjacent or diagonal-adjacent to one, missing nearby marker guidance, or carrying invalid current coordinates. This gives patrol/chase progression work a compact non-mutating check that live actor positions still line up with the map-derived patrol route graph.
+
+- `wl_summarize_runtime_tiles` reports clear floor, solid wall, door-marker, moving-pushwall-marker, and other runtime marker buckets from the mutable tilemap, plus first/last solid wall tile ids. Synthetic and real WL6 headless coverage pin the summary as a compact sanity check for future live door/pushwall/render orchestration.

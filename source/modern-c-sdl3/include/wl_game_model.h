@@ -739,6 +739,16 @@ typedef struct wl_path_marker_chain_summary {
     uint16_t first_dangling_marker_index;
 } wl_path_marker_chain_summary;
 
+typedef struct wl_runtime_tile_summary {
+    size_t clear_floor_count;
+    size_t solid_wall_count;
+    size_t door_marker_count;
+    size_t moving_pushwall_marker_count;
+    size_t other_marker_count;
+    uint16_t first_solid_wall_tile;
+    uint16_t last_solid_wall_tile;
+} wl_runtime_tile_summary;
+
 typedef struct wl_model_capacity_summary {
     size_t door_count;
     size_t static_count;
@@ -895,6 +905,8 @@ int wl_collect_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_spri
 int wl_collect_spear_scene_sprite_refs(const wl_game_model *model, uint16_t vswap_sprite_start,
                                        wl_scene_sprite_ref *refs, size_t max_refs,
                                        size_t *out_count);
+int wl_summarize_runtime_tiles(const wl_game_model *model,
+                               wl_runtime_tile_summary *out);
 int wl_summarize_model_capacity(const wl_game_model *model,
                                 wl_model_capacity_summary *out);
 int wl_summarize_unknown_info_tiles(const wl_game_model *model,

@@ -1932,6 +1932,42 @@ static size_t remaining_capacity(size_t count, size_t capacity) {
     return count < capacity ? capacity - count : 0u;
 }
 
+int wl_summarize_runtime_tiles(const wl_game_model *model,
+                               wl_runtime_tile_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->first_solid_wall_tile = UINT16_MAX;
+    for (size_t y = 0; y < WL_MAP_SIDE; ++y) {
+        for (size_t x = 0; x < WL_MAP_SIDE; ++x) {
+            const uint16_t tile = model->tilemap[map_index(x, y)];
+            if (tile == 0u) {
+                ++out->clear_floor_count;
+            } else if ((tile & 0xc0u) == 0xc0u) {
+                ++out->moving_pushwall_marker_count;
+            } else if ((tile & 0x80u) != 0u) {
+                ++out->door_marker_count;
+            } else if (tile <= 63u) {
+                ++out->solid_wall_count;
+                if (tile < out->first_solid_wall_tile) {
+                    out->first_solid_wall_tile = tile;
+                }
+                if (tile > out->last_solid_wall_tile) {
+                    out->last_solid_wall_tile = tile;
+                }
+            } else {
+                ++out->other_marker_count;
+            }
+        }
+    }
+    if (out->solid_wall_count == 0u) {
+        out->first_solid_wall_tile = 0u;
+    }
+    return 0;
+}
+
 int wl_summarize_model_capacity(const wl_game_model *model,
                                 wl_model_capacity_summary *out) {
     if (!model || !out) {

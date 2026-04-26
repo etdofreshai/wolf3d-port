@@ -774,3 +774,7 @@ Added `wl_summarize_path_marker_line_of_sight` as a non-mutating patrol-marker d
 ## Cycle update: actor spawn delta summary
 
 Added `wl_summarize_actor_spawn_deltas()` as a small SDL-free runtime diagnostic for actor movement away from original spawn tiles. It partitions actors into at-spawn, cardinal-moved, diagonal-moved, invalid-spawn, and invalid-current-position buckets, and records the farthest moved actor by Manhattan delta. Synthetic headless coverage pins each bucket and null-argument handling so future patrol/chase progression can sanity-check spawn-to-live drift without mutating actor state.
+
+### Runtime tilemap summary diagnostic
+
+Added `wl_summarize_runtime_tiles()` as a small non-mutating live tilemap diagnostic. It partitions mutable runtime tiles into clear floor, solid walls, door markers, moving pushwall markers, and other markers, while reporting the first/last solid wall tile ids. Real WL6 model coverage and a synthetic map pin the bucket behavior for future door/pushwall/render orchestration checks.
