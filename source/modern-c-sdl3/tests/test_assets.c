@@ -3122,6 +3122,39 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_combat_classes.noncombat_count == 2);
     CHECK(synthetic_combat_classes.invalid_kind_count == 1);
 
+    chase_summary_model.actor_count = 7;
+    chase_summary_model.actors[0].shootable = 1;
+    chase_summary_model.actors[0].mode = WL_ACTOR_CHASE;
+    chase_summary_model.actors[0].ambush = 0;
+    chase_summary_model.actors[1].shootable = 1;
+    chase_summary_model.actors[1].mode = WL_ACTOR_BOSS_MODE;
+    chase_summary_model.actors[1].ambush = 0;
+    chase_summary_model.actors[2].shootable = 1;
+    chase_summary_model.actors[2].mode = WL_ACTOR_PATROL;
+    chase_summary_model.actors[2].ambush = 1;
+    chase_summary_model.actors[3].shootable = 1;
+    chase_summary_model.actors[3].mode = WL_ACTOR_STAND;
+    chase_summary_model.actors[3].ambush = 0;
+    chase_summary_model.actors[4].shootable = 1;
+    chase_summary_model.actors[4].mode = WL_ACTOR_INERT;
+    chase_summary_model.actors[4].ambush = 0;
+    chase_summary_model.actors[5].shootable = 0;
+    chase_summary_model.actors[5].mode = WL_ACTOR_GHOST_MODE;
+    chase_summary_model.actors[5].ambush = 0;
+    chase_summary_model.actors[6].shootable = 1;
+    chase_summary_model.actors[6].mode = (wl_actor_mode)99;
+    chase_summary_model.actors[6].ambush = 0;
+    wl_actor_threat_summary synthetic_threats;
+    CHECK(wl_summarize_actor_threats(&chase_summary_model,
+                                     &synthetic_threats) == 0);
+    CHECK(wl_summarize_actor_threats(NULL, &synthetic_threats) == -1);
+    CHECK(wl_summarize_actor_threats(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_threats.immediate_threat_count == 2);
+    CHECK(synthetic_threats.latent_threat_count == 2);
+    CHECK(synthetic_threats.ambush_latent_count == 1);
+    CHECK(synthetic_threats.inert_shootable_count == 2);
+    CHECK(synthetic_threats.nonshootable_count == 1);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
