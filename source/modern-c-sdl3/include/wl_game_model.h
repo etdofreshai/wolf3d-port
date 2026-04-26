@@ -793,6 +793,7 @@ typedef struct wl_path_marker_reciprocal_summary {
 typedef struct wl_path_marker_endpoint_summary {
     size_t source_marker_count;
     size_t sink_marker_count;
+    size_t isolated_marker_count;
     size_t branch_in_marker_count;
     size_t linked_exit_count;
     size_t dangling_exit_count;
@@ -801,6 +802,7 @@ typedef struct wl_path_marker_endpoint_summary {
     size_t invalid_marker_position_count;
     uint16_t first_source_marker_index;
     uint16_t first_sink_marker_index;
+    uint16_t first_isolated_marker_index;
     uint16_t first_branch_in_marker_index;
 } wl_path_marker_endpoint_summary;
 
