@@ -3649,13 +3649,23 @@ int wl_describe_imf_looped_playback_position(const unsigned char *chunk, size_t 
                                              out);
 }
 
+static int validate_imf_music_metadata_payload(const wl_audio_chunk_metadata *metadata,
+                                               size_t chunk_size) {
+    if (!metadata || metadata->kind != WL_AUDIO_CHUNK_MUSIC ||
+        metadata->is_empty || metadata->payload_size == 0 ||
+        metadata->payload_offset != sizeof(uint32_t) ||
+        metadata->payload_offset > chunk_size ||
+        metadata->payload_size > chunk_size - metadata->payload_offset) {
+        return -1;
+    }
+    return 0;
+}
+
 int wl_describe_imf_playback_position_from_chunk(const wl_audio_chunk_metadata *metadata,
                                                  const unsigned char *chunk, size_t chunk_size,
                                                  uint32_t tick_position,
                                                  wl_imf_playback_position *out) {
-    if (!metadata || !out || metadata->kind != WL_AUDIO_CHUNK_MUSIC ||
-        metadata->is_empty || metadata->payload_size == 0 ||
-        metadata->payload_size > chunk_size || metadata->payload_offset != sizeof(uint32_t)) {
+    if (!out || validate_imf_music_metadata_payload(metadata, chunk_size) != 0) {
         return -1;
     }
     return wl_describe_imf_playback_position(chunk, chunk_size, tick_position, out);
@@ -3665,9 +3675,7 @@ int wl_describe_imf_looped_playback_position_from_chunk(const wl_audio_chunk_met
                                                         const unsigned char *chunk, size_t chunk_size,
                                                         uint32_t tick_position,
                                                         wl_imf_playback_position *out) {
-    if (!metadata || !out || metadata->kind != WL_AUDIO_CHUNK_MUSIC ||
-        metadata->is_empty || metadata->payload_size == 0 ||
-        metadata->payload_size > chunk_size || metadata->payload_offset != sizeof(uint32_t)) {
+    if (!out || validate_imf_music_metadata_payload(metadata, chunk_size) != 0) {
         return -1;
     }
     return wl_describe_imf_looped_playback_position(chunk, chunk_size, tick_position, out);
@@ -3752,9 +3760,7 @@ int wl_advance_imf_playback_cursor_from_chunk(const wl_audio_chunk_metadata *met
                                               uint16_t start_delay_elapsed,
                                               uint32_t tick_delta,
                                               wl_imf_playback_cursor *out) {
-    if (!metadata || !out || metadata->kind != WL_AUDIO_CHUNK_MUSIC ||
-        metadata->is_empty || metadata->payload_size == 0 ||
-        metadata->payload_size > chunk_size || metadata->payload_offset != sizeof(uint32_t)) {
+    if (!out || validate_imf_music_metadata_payload(metadata, chunk_size) != 0) {
         return -1;
     }
     return wl_advance_imf_playback_cursor(chunk, chunk_size, start_command,

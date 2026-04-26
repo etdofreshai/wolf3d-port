@@ -7832,6 +7832,13 @@ static int check_audio_wl6(const char *dir) {
                                                               189, &imf_position) == -1);
     CHECK(wl_advance_imf_playback_cursor_from_chunk(&audio_meta, chunk_buf, chunk_bytes,
                                                     1, 7, 20289, &imf_cursor) == -1);
+    audio_meta.payload_size = chunk_bytes;
+    CHECK(wl_describe_imf_playback_position_from_chunk(&audio_meta, chunk_buf, chunk_bytes,
+                                                       189, &imf_position) == -1);
+    CHECK(wl_describe_imf_looped_playback_position_from_chunk(&audio_meta, chunk_buf, chunk_bytes,
+                                                              189, &imf_position) == -1);
+    CHECK(wl_advance_imf_playback_cursor_from_chunk(&audio_meta, chunk_buf, chunk_bytes,
+                                                    1, 7, 20289, &imf_cursor) == -1);
 
     /* Boundary: last chunk */
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 287, chunk_buf, sizeof(chunk_buf),
