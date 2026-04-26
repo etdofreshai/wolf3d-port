@@ -778,3 +778,7 @@ Added `wl_summarize_actor_spawn_deltas()` as a small SDL-free runtime diagnostic
 ### Runtime tilemap summary diagnostic
 
 Added `wl_summarize_runtime_tiles()` as a small non-mutating live tilemap diagnostic. It partitions mutable runtime tiles into clear floor, solid walls, door markers, moving pushwall markers, and other markers, while reporting the first/last solid wall tile ids. Real WL6 model coverage and a synthetic map pin the bucket behavior for future door/pushwall/render orchestration checks.
+
+### Runtime tile edge summary diagnostic
+
+Added `wl_summarize_runtime_tile_edges()` as a non-mutating live tilemap boundary diagnostic. It partitions only the map edge into solid walls, clear floor, door markers, moving pushwall markers, and other markers, while separately counting interior solid walls. Real WL6 map coverage pins map-0 boundary bucket totals and synthetic coverage pins each boundary marker bucket for future collision/raycast checks.

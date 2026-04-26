@@ -2744,6 +2744,39 @@ static int check_wl6(const char *dir) {
         CHECK(synthetic_tile_summary.first_solid_wall_tile == 1);
         CHECK(synthetic_tile_summary.last_solid_wall_tile == 63);
 
+        wl_runtime_tile_edge_summary edge_summary;
+        memset(&edge_summary, 0xff, sizeof(edge_summary));
+        CHECK(wl_summarize_runtime_tile_edges(&model, &edge_summary) == 0);
+        CHECK(wl_summarize_runtime_tile_edges(NULL, &edge_summary) == -1);
+        CHECK(wl_summarize_runtime_tile_edges(&model, NULL) == -1);
+        CHECK(edge_summary.boundary_tile_count == (WL_MAP_SIDE * 4u) - 4u);
+        CHECK(edge_summary.boundary_solid_wall_count > 0);
+        CHECK(edge_summary.boundary_solid_wall_count + edge_summary.boundary_clear_floor_count +
+                  edge_summary.boundary_door_marker_count +
+                  edge_summary.boundary_pushwall_marker_count +
+                  edge_summary.boundary_other_marker_count ==
+              edge_summary.boundary_tile_count);
+        CHECK(edge_summary.interior_solid_wall_count + edge_summary.boundary_solid_wall_count ==
+              tile_summary.solid_wall_count);
+
+        wl_game_model synthetic_edges;
+        memset(&synthetic_edges, 0, sizeof(synthetic_edges));
+        synthetic_edges.tilemap[((0u * WL_MAP_SIDE) + 0u)] = 1;
+        synthetic_edges.tilemap[((0u * WL_MAP_SIDE) + 1u)] = 0x80;
+        synthetic_edges.tilemap[((0u * WL_MAP_SIDE) + 2u)] = 0xc0 | 5u;
+        synthetic_edges.tilemap[((0u * WL_MAP_SIDE) + 3u)] = 90;
+        synthetic_edges.tilemap[((4u * WL_MAP_SIDE) + 4u)] = 12;
+        wl_runtime_tile_edge_summary synthetic_edge_summary;
+        CHECK(wl_summarize_runtime_tile_edges(&synthetic_edges, &synthetic_edge_summary) == 0);
+        CHECK(synthetic_edge_summary.boundary_tile_count == (WL_MAP_SIDE * 4u) - 4u);
+        CHECK(synthetic_edge_summary.boundary_solid_wall_count == 1);
+        CHECK(synthetic_edge_summary.boundary_door_marker_count == 1);
+        CHECK(synthetic_edge_summary.boundary_pushwall_marker_count == 1);
+        CHECK(synthetic_edge_summary.boundary_other_marker_count == 1);
+        CHECK(synthetic_edge_summary.boundary_clear_floor_count ==
+              synthetic_edge_summary.boundary_tile_count - 4u);
+        CHECK(synthetic_edge_summary.interior_solid_wall_count == 1);
+
         wl_unknown_info_summary unknown_info;
         memset(&unknown_info, 0xff, sizeof(unknown_info));
         CHECK(wl_summarize_unknown_info_tiles(&model, &unknown_info) == 0);
