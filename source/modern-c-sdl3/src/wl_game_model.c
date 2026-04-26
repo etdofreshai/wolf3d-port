@@ -2502,6 +2502,17 @@ int wl_summarize_runtime_player_interaction(
     out->map_blocking_distance = run.has_blocking_tile
                                      ? (uint16_t)run.traversed_tile_count
                                      : 0u;
+    if (run.has_blocking_tile) {
+        if ((run.first_blocking_tile & 0xc0u) == 0xc0u) {
+            out->map_blocking_pushwall_marker = 1u;
+        } else if ((run.first_blocking_tile & 0x80u) != 0u) {
+            out->map_blocking_door_marker = 1u;
+        } else if (run.first_blocking_tile <= 63u) {
+            out->map_blocking_solid_wall = 1u;
+        } else {
+            out->map_blocking_other_marker = 1u;
+        }
+    }
     out->actor_count_ahead = actors.actor_count_ahead;
     out->shootable_actor_count_ahead = actors.shootable_count_ahead;
     out->static_count_ahead = statics.static_count_ahead;

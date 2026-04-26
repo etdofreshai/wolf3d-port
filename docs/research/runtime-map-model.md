@@ -804,3 +804,7 @@ Added `wl_summarize_static_collisions()` as a non-mutating static collision/read
 ### Actor attack readiness diagnostic
 
 Added `wl_summarize_actor_attack_readiness()` as a small non-mutating bridge between actor state, direction, and cardinal line-of-sight. It counts shootable active actors that are facing the player with an unobstructed row/column path as ready-to-attack, while separately bucketing non-shootable actors, inactive modes, actors not facing the player, blocked/non-cardinal sight, same-tile actors, invalid directions, and invalid positions. Synthetic headless coverage pins every bucket before this logic is folded into deeper live AI attack ticks.
+
+### Runtime player interaction blocker class metadata
+
+`wl_summarize_runtime_player_interaction()` now carries first map-blocker class flags for solid walls, door markers, moving-pushwall markers, and other runtime markers alongside the existing blocker tile, coordinates, and distance. Synthetic headless coverage pins each blocker class so future input, combat, and HUD/presentation code can distinguish why a player-facing interaction ray is blocked without re-reading or reclassifying the mutable tilemap.

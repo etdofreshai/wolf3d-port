@@ -3334,6 +3334,25 @@ static int check_wl6(const char *dir) {
         CHECK(interaction.map_blocking_x == 3u);
         CHECK(interaction.map_blocking_y == 2u);
         CHECK(interaction.map_blocking_distance == 1u);
+        CHECK(interaction.map_blocking_solid_wall == 1u);
+        CHECK(interaction.map_blocking_door_marker == 0u);
+        CHECK(interaction.map_blocking_pushwall_marker == 0u);
+        CHECK(interaction.map_blocking_other_marker == 0u);
+        synthetic_player_neighborhood.tilemap[(2u * WL_MAP_SIDE) + 3u] = 0x80u;
+        CHECK(wl_summarize_runtime_player_interaction(
+                  &synthetic_player_neighborhood, &interaction) == 0);
+        CHECK(interaction.map_blocking_door_marker == 1u);
+        CHECK(interaction.map_blocking_solid_wall == 0u);
+        synthetic_player_neighborhood.tilemap[(2u * WL_MAP_SIDE) + 3u] = 0xc5u;
+        CHECK(wl_summarize_runtime_player_interaction(
+                  &synthetic_player_neighborhood, &interaction) == 0);
+        CHECK(interaction.map_blocking_pushwall_marker == 1u);
+        CHECK(interaction.map_blocking_door_marker == 0u);
+        synthetic_player_neighborhood.tilemap[(2u * WL_MAP_SIDE) + 3u] = 64u;
+        CHECK(wl_summarize_runtime_player_interaction(
+                  &synthetic_player_neighborhood, &interaction) == 0);
+        CHECK(interaction.map_blocking_other_marker == 1u);
+        CHECK(interaction.map_blocking_pushwall_marker == 0u);
         synthetic_player_neighborhood.tilemap[(2u * WL_MAP_SIDE) + 3u] = 0u;
         synthetic_player_neighborhood.statics[0].x = 6;
         CHECK(wl_summarize_runtime_player_interaction(
