@@ -3745,6 +3745,42 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_path_adjacency.distant_count == 1);
     CHECK(synthetic_path_adjacency.invalid_marker_position_count == 1);
 
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.path_marker_count = 7;
+    chase_summary_model.path_markers[0].x = 1;
+    chase_summary_model.path_markers[0].y = 1;
+    chase_summary_model.path_markers[0].dir = WL_DIR_NORTH;
+    chase_summary_model.path_markers[1].x = 2;
+    chase_summary_model.path_markers[1].y = 1;
+    chase_summary_model.path_markers[1].dir = WL_DIR_EAST;
+    chase_summary_model.path_markers[2].x = 3;
+    chase_summary_model.path_markers[2].y = 1;
+    chase_summary_model.path_markers[2].dir = WL_DIR_SOUTH;
+    chase_summary_model.path_markers[3].x = 4;
+    chase_summary_model.path_markers[3].y = 1;
+    chase_summary_model.path_markers[3].dir = WL_DIR_WEST;
+    chase_summary_model.path_markers[4].x = 5;
+    chase_summary_model.path_markers[4].y = 1;
+    chase_summary_model.path_markers[4].dir = WL_DIR_NONE;
+    chase_summary_model.path_markers[5].x = 6;
+    chase_summary_model.path_markers[5].y = 1;
+    chase_summary_model.path_markers[5].dir = (wl_direction)99;
+    chase_summary_model.path_markers[6].x = WL_MAP_SIDE;
+    chase_summary_model.path_markers[6].y = 1;
+    chase_summary_model.path_markers[6].dir = WL_DIR_WEST;
+    wl_path_marker_direction_summary synthetic_path_dirs;
+    CHECK(wl_summarize_path_marker_directions(&chase_summary_model,
+                                               &synthetic_path_dirs) == 0);
+    CHECK(wl_summarize_path_marker_directions(NULL, &synthetic_path_dirs) == -1);
+    CHECK(wl_summarize_path_marker_directions(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_path_dirs.north_count == 1);
+    CHECK(synthetic_path_dirs.east_count == 1);
+    CHECK(synthetic_path_dirs.south_count == 1);
+    CHECK(synthetic_path_dirs.west_count == 2);
+    CHECK(synthetic_path_dirs.no_direction_count == 1);
+    CHECK(synthetic_path_dirs.invalid_direction_count == 1);
+    CHECK(synthetic_path_dirs.invalid_marker_position_count == 1);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];

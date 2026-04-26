@@ -702,3 +702,7 @@ Added `wl_summarize_path_marker_source_tiles()` as a non-mutating diagnostic for
 ## Cycle update: runtime path-marker/player adjacency summary
 
 Added `wl_summarize_path_marker_player_adjacency()` as a non-mutating AI patrol marker proximity diagnostic. It mirrors the pushwall/player adjacency helper for same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, distant, and invalid-marker buckets so patrol/chase orchestration can sanity-check player proximity to path arrows without mutating actor or marker state.
+
+## Cycle update: runtime path-marker direction summary
+
+Added `wl_summarize_path_marker_directions()` as a non-mutating patrol-marker direction diagnostic. It partitions path markers into north/east/south/west/no-direction/invalid direction buckets while separately counting invalid marker coordinates, giving future AI patrol/chase work a deterministic headless sanity check before mutating actor path state.
