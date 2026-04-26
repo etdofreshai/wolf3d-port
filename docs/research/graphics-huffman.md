@@ -492,3 +492,7 @@ Presentation descriptors now expose `wl_present_frame_rgba_size()` so future SDL
 Presentation preflight now reports both RGBA pitch and total buffer size through `wl_present_frame_rgba_layout()`. The existing size helper delegates to it, and the live chase-attack presentation test pins the `80x128` frame pitch (`320`) and byte size before RGBA expansion. This gives future SDL3 callers a single validated source for `SDL_CreateSurfaceFrom` pitch/size metadata while remaining headless.
 - Presentation RGBA expansion now reuses the same `wl_present_frame_rgba_layout()` validation path used by SDL3 preflight, with headless regressions for undersized output buffers and viewport/texture mismatch rejection on a live chase-attack frame.
 
+
+## Cycle update: RGBA upload descriptor helper
+
+Presentation-frame RGBA expansion now shares a small upload-descriptor helper. `wl_describe_present_frame_rgba_upload` validates the same viewport/pitch/size preflight used by RGBA conversion and emits an `RGBA8888` upload descriptor for caller-owned frame buffers, keeping the future SDL3 handoff explicit and testable without an SDL dependency.

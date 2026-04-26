@@ -729,6 +729,29 @@ int wl_present_frame_rgba_layout(const wl_present_frame_descriptor *present,
     return 0;
 }
 
+int wl_describe_present_frame_rgba_upload(const wl_present_frame_descriptor *present,
+                                          unsigned char *rgba, size_t rgba_size,
+                                          wl_texture_upload_descriptor *out) {
+    size_t pitch = 0;
+    size_t required = 0;
+    if (!rgba || !out ||
+        wl_present_frame_rgba_layout(present, &pitch, &required) != 0 ||
+        rgba_size < required || pitch > UINT16_MAX) {
+        return -1;
+    }
+    memset(out, 0, sizeof(*out));
+    out->format = WL_TEXTURE_UPLOAD_RGBA8888;
+    out->width = present->texture.width;
+    out->height = present->texture.height;
+    out->pitch = (uint16_t)pitch;
+    out->pixel_bytes = required;
+    out->pixels = rgba;
+    out->palette = NULL;
+    out->palette_entries = 0;
+    out->palette_component_bits = 8;
+    return 0;
+}
+
 int wl_expand_present_frame_to_rgba(const wl_present_frame_descriptor *present,
                                     unsigned char *rgba, size_t rgba_size,
                                     wl_texture_upload_descriptor *out) {
@@ -748,10 +771,17 @@ int wl_expand_present_frame_to_rgba(const wl_present_frame_descriptor *present,
     surface.pixel_count = present->texture.pixel_bytes;
     surface.pixels = (unsigned char *)present->texture.pixels;
 
-    return wl_expand_indexed_surface_to_rgba(&surface, present->texture.palette,
-                                             present->texture.palette_entries * 3u,
-                                             present->texture.palette_component_bits,
-                                             rgba, rgba_size, out);
+    if (wl_expand_indexed_surface_to_rgba(&surface, present->texture.palette,
+                                          present->texture.palette_entries * 3u,
+                                          present->texture.palette_component_bits,
+                                          rgba, rgba_size, NULL) != 0) {
+        return -1;
+    }
+    if (out && wl_describe_present_frame_rgba_upload(present, rgba, rgba_size,
+                                                     out) != 0) {
+        return -1;
+    }
+    return 0;
 }
 
 int wl_decode_planar_picture_to_indexed(const unsigned char *planar, size_t planar_size,

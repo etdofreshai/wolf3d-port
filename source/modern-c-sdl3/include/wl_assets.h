@@ -440,6 +440,9 @@ int wl_present_frame_rgba_size(const wl_present_frame_descriptor *present,
                                size_t *out_size);
 int wl_present_frame_rgba_layout(const wl_present_frame_descriptor *present,
                                  size_t *out_pitch, size_t *out_size);
+int wl_describe_present_frame_rgba_upload(const wl_present_frame_descriptor *present,
+                                          unsigned char *rgba, size_t rgba_size,
+                                          wl_texture_upload_descriptor *out);
 int wl_expand_present_frame_to_rgba(const wl_present_frame_descriptor *present,
                                     unsigned char *rgba, size_t rgba_size,
                                     wl_texture_upload_descriptor *out);

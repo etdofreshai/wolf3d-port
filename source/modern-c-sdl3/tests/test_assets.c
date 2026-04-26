@@ -4986,8 +4986,20 @@ static int check_wl6(const char *dir) {
     CHECK(present_rgba_upload.format == WL_TEXTURE_UPLOAD_RGBA8888);
     CHECK(present_rgba_upload.width == present_frame.viewport_width);
     CHECK(present_rgba_upload.height == present_frame.viewport_height);
+    CHECK(present_rgba_upload.pitch == 80u * 4u);
     CHECK(present_rgba_upload.pixel_bytes == sizeof(present_rgba));
+    CHECK(present_rgba_upload.pixels == present_rgba);
     CHECK(present_rgba_upload.palette == NULL);
+    wl_texture_upload_descriptor described_rgba_upload;
+    CHECK(wl_describe_present_frame_rgba_upload(&present_frame, present_rgba,
+                                                present_rgba_size,
+                                                &described_rgba_upload) == 0);
+    CHECK(described_rgba_upload.format == present_rgba_upload.format);
+    CHECK(described_rgba_upload.width == present_rgba_upload.width);
+    CHECK(described_rgba_upload.height == present_rgba_upload.height);
+    CHECK(described_rgba_upload.pitch == present_rgba_upload.pitch);
+    CHECK(described_rgba_upload.pixel_bytes == present_rgba_upload.pixel_bytes);
+    CHECK(described_rgba_upload.pixels == present_rgba_upload.pixels);
     wl_present_frame_descriptor invalid_present_frame = present_frame;
     invalid_present_frame.viewport_width = (uint16_t)(invalid_present_frame.viewport_width + 1u);
     CHECK(wl_expand_present_frame_to_rgba(&invalid_present_frame, present_rgba,
@@ -5007,6 +5019,19 @@ static int check_wl6(const char *dir) {
     invalid_present_frame.texture.palette_entries = 255;
     CHECK(wl_present_frame_rgba_size(&invalid_present_frame,
                                      &present_rgba_size) == -1);
+    CHECK(wl_describe_present_frame_rgba_upload(&invalid_present_frame,
+                                                present_rgba,
+                                                sizeof(present_rgba),
+                                                &described_rgba_upload) == -1);
+    CHECK(wl_describe_present_frame_rgba_upload(&present_frame, NULL,
+                                                sizeof(present_rgba),
+                                                &described_rgba_upload) == -1);
+    CHECK(wl_describe_present_frame_rgba_upload(&present_frame, present_rgba,
+                                                sizeof(present_rgba),
+                                                NULL) == -1);
+    CHECK(wl_describe_present_frame_rgba_upload(&present_frame, present_rgba,
+                                                sizeof(present_rgba) - 1u,
+                                                &described_rgba_upload) == -1);
     CHECK(wl_expand_present_frame_to_rgba(&present_frame, present_rgba,
                                           sizeof(present_rgba) - 1u,
                                           &present_rgba_upload) == -1);
