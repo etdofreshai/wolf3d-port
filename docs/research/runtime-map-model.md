@@ -758,3 +758,7 @@ Extended `wl_player_use_result` with `pushwall_active_before` and `pushwall_acti
 ## Cycle update: use-button tile transition metadata
 
 Extended `wl_player_use_result` with `tile_before` and `tile_after` for the targeted runtime tile. The headless use-button seam now captures elevator tile increment, pushwall moving-marker placement, and stable door-center markers alongside existing lock/action/pushwall activity metadata, so future SDL3 input/HUD presentation can report immediate tilemap effects without re-reading mutable model state after dispatch.
+
+## Cycle update: runtime static line-of-sight summary
+
+Added `wl_summarize_static_line_of_sight()` as a non-mutating static/player cardinal visibility diagnostic. It mirrors the actor LOS helper while preserving active-only filtering, partitioning statics into clear, wall-blocked, door-blocked, same-tile, non-cardinal, inactive, and invalid-position buckets so pickup/render preparation can sanity-check visible static placement without SDL or live mutation. Synthetic headless tests cover every bucket plus null/invalid-player rejection.
