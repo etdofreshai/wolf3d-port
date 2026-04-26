@@ -706,3 +706,7 @@ Added `wl_summarize_path_marker_player_adjacency()` as a non-mutating AI patrol 
 ## Cycle update: runtime path-marker direction summary
 
 Added `wl_summarize_path_marker_directions()` as a non-mutating patrol-marker direction diagnostic. It partitions path markers into north/east/south/west/no-direction/invalid direction buckets while separately counting invalid marker coordinates, giving future AI patrol/chase work a deterministic headless sanity check before mutating actor path state.
+
+### Path marker exit summary
+
+Added `wl_summarize_path_marker_exits()` as an SDL-free patrol-marker exit diagnostic. It projects each valid marker's direction one tile through the mutable runtime tilemap and partitions exits into open, wall-blocked, out-of-bounds, no-direction, invalid-direction, and invalid-marker buckets, giving future `SelectPathDir`/`T_Path` work a compact headless check for whether marker arrows actually lead to traversable patrol steps.

@@ -1187,6 +1187,45 @@ int wl_summarize_path_marker_directions(
     return 0;
 }
 
+int wl_summarize_path_marker_exits(
+    const wl_game_model *model, wl_path_marker_exit_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->path_marker_count; ++i) {
+        const wl_marker_desc *marker = &model->path_markers[i];
+        if (marker->x >= WL_MAP_SIDE || marker->y >= WL_MAP_SIDE) {
+            ++out->invalid_marker_position_count;
+            continue;
+        }
+        if (marker->dir == WL_DIR_NONE) {
+            ++out->no_direction_count;
+            continue;
+        }
+
+        int dx = 0;
+        int dy = 0;
+        if (path_step(marker->dir, &dx, &dy) != 0) {
+            ++out->invalid_direction_count;
+            continue;
+        }
+
+        const int next_x = (int)marker->x + dx;
+        const int next_y = (int)marker->y + dy;
+        if (next_x < 0 || next_y < 0 || next_x >= WL_MAP_SIDE ||
+            next_y >= WL_MAP_SIDE) {
+            ++out->out_of_bounds_exit_count;
+        } else if (model->tilemap[map_index((size_t)next_x, (size_t)next_y)] != 0) {
+            ++out->wall_blocked_exit_count;
+        } else {
+            ++out->open_exit_count;
+        }
+    }
+    return 0;
+}
+
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir) {
