@@ -1904,6 +1904,25 @@ int wl_summarize_model_capacity(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_unknown_info_tiles(const wl_game_model *model,
+                                    wl_unknown_info_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->unknown_info_tiles = model->unknown_info_tiles;
+    out->unknown_info_hash = model->unknown_info_hash;
+    out->first_tile = model->first_unknown_info_tile;
+    out->first_x = model->first_unknown_info_x;
+    out->first_y = model->first_unknown_info_y;
+    out->last_tile = model->last_unknown_info_tile;
+    out->last_x = model->last_unknown_info_x;
+    out->last_y = model->last_unknown_info_y;
+    out->has_unknown_info = model->unknown_info_tiles != 0 ? 1u : 0u;
+    return 0;
+}
+
 int wl_count_actors_by_kind(const wl_game_model *model, size_t *counts,
                             size_t count_capacity) {
     if (!model || !counts || count_capacity <= (size_t)WL_ACTOR_DEAD_GUARD) {

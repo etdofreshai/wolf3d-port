@@ -684,6 +684,18 @@ typedef struct wl_model_capacity_summary {
     size_t unknown_info_tiles;
 } wl_model_capacity_summary;
 
+typedef struct wl_unknown_info_summary {
+    size_t unknown_info_tiles;
+    uint32_t unknown_info_hash;
+    uint16_t first_tile;
+    uint16_t first_x;
+    uint16_t first_y;
+    uint16_t last_tile;
+    uint16_t last_x;
+    uint16_t last_y;
+    uint8_t has_unknown_info;
+} wl_unknown_info_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -811,6 +823,8 @@ int wl_collect_spear_scene_sprite_refs(const wl_game_model *model, uint16_t vswa
                                        size_t *out_count);
 int wl_summarize_model_capacity(const wl_game_model *model,
                                 wl_model_capacity_summary *out);
+int wl_summarize_unknown_info_tiles(const wl_game_model *model,
+                                    wl_unknown_info_summary *out);
 int wl_count_actors_by_kind(const wl_game_model *model, size_t *counts,
                             size_t count_capacity);
 int wl_count_actors_by_mode(const wl_game_model *model, size_t *counts,

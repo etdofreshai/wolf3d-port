@@ -738,3 +738,7 @@ Added `wl_summarize_door_area_matrix()` to validate the cached door area adjacen
 ## Cycle update: runtime pushwall motion path summary
 
 Added `wl_summarize_pushwall_motion_path()` as a non-mutating diagnostic for the single live moving-pushwall record. It reports whether motion is active, whether the current and next tiles are in bounds, the projected next tile coordinate, the next tilemap value, blocked/open status, and the current sub-tile motion position. Synthetic headless tests cover blocked and open next tiles, map-edge projection, inactive motion, and invalid arguments without advancing pushwall state.
+
+## Cycle update: unknown info-tile summary
+
+Added `wl_summarize_unknown_info_tiles()` as a compact non-mutating diagnostic for runtime-model classification gaps. It copies the recorded unknown info-plane count/hash plus first/last unknown tile coordinates and exposes a boolean presence flag, so full-map sweeps and future boss/SOD classification work can report exact gap metadata without reading merge-hot autopilot state.

@@ -2651,6 +2651,21 @@ static int check_wl6(const char *dir) {
         CHECK(model_capacity.pushwall_full == 0);
         CHECK(model_capacity.unknown_info_tiles == model.unknown_info_tiles);
 
+        wl_unknown_info_summary unknown_info;
+        memset(&unknown_info, 0xff, sizeof(unknown_info));
+        CHECK(wl_summarize_unknown_info_tiles(&model, &unknown_info) == 0);
+        CHECK(wl_summarize_unknown_info_tiles(NULL, &unknown_info) == -1);
+        CHECK(wl_summarize_unknown_info_tiles(&model, NULL) == -1);
+        CHECK(unknown_info.unknown_info_tiles == model.unknown_info_tiles);
+        CHECK(unknown_info.unknown_info_hash == model.unknown_info_hash);
+        CHECK(unknown_info.has_unknown_info == (model.unknown_info_tiles != 0 ? 1u : 0u));
+        CHECK(unknown_info.first_tile == model.first_unknown_info_tile);
+        CHECK(unknown_info.first_x == model.first_unknown_info_x);
+        CHECK(unknown_info.first_y == model.first_unknown_info_y);
+        CHECK(unknown_info.last_tile == model.last_unknown_info_tile);
+        CHECK(unknown_info.last_x == model.last_unknown_info_x);
+        CHECK(unknown_info.last_y == model.last_unknown_info_y);
+
         wl_actor_flag_summary actor_flags;
         memset(&actor_flags, 0xff, sizeof(actor_flags));
         CHECK(wl_summarize_actor_flags(&model, &actor_flags) == 0);
@@ -4159,6 +4174,34 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_path_chains.invalid_direction_count == 1);
     CHECK(synthetic_path_chains.invalid_marker_position_count == 1);
     CHECK(synthetic_path_chains.first_dangling_marker_index == 1);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.unknown_info_tiles = 2;
+    chase_summary_model.unknown_info_hash = 0x12345678u;
+    chase_summary_model.first_unknown_info_tile = 178;
+    chase_summary_model.first_unknown_info_x = 12;
+    chase_summary_model.first_unknown_info_y = 3;
+    chase_summary_model.last_unknown_info_tile = 215;
+    chase_summary_model.last_unknown_info_x = 47;
+    chase_summary_model.last_unknown_info_y = 55;
+    wl_unknown_info_summary synthetic_unknown_info;
+    memset(&synthetic_unknown_info, 0xff, sizeof(synthetic_unknown_info));
+    CHECK(wl_summarize_unknown_info_tiles(&chase_summary_model,
+                                           &synthetic_unknown_info) == 0);
+    CHECK(synthetic_unknown_info.unknown_info_tiles == 2);
+    CHECK(synthetic_unknown_info.unknown_info_hash == 0x12345678u);
+    CHECK(synthetic_unknown_info.first_tile == 178);
+    CHECK(synthetic_unknown_info.first_x == 12);
+    CHECK(synthetic_unknown_info.first_y == 3);
+    CHECK(synthetic_unknown_info.last_tile == 215);
+    CHECK(synthetic_unknown_info.last_x == 47);
+    CHECK(synthetic_unknown_info.last_y == 55);
+    CHECK(synthetic_unknown_info.has_unknown_info == 1);
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    CHECK(wl_summarize_unknown_info_tiles(&chase_summary_model,
+                                           &synthetic_unknown_info) == 0);
+    CHECK(synthetic_unknown_info.unknown_info_tiles == 0);
+    CHECK(synthetic_unknown_info.has_unknown_info == 0);
 
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
