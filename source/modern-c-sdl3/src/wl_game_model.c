@@ -3304,6 +3304,58 @@ int wl_summarize_door_source_tiles(const wl_game_model *model,
     return 0;
 }
 
+int wl_summarize_door_area_connections(
+    const wl_game_model *model, wl_door_area_connection_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->door_count = model->door_count;
+    out->min_area = UINT8_MAX;
+    unsigned char seen[WL_NUM_AREAS][WL_NUM_AREAS];
+    memset(seen, 0, sizeof(seen));
+
+    for (size_t i = 0; i < model->door_count; ++i) {
+        const wl_door_desc *door = &model->doors[i];
+        if (door->area1 >= WL_NUM_AREAS || door->area2 >= WL_NUM_AREAS) {
+            ++out->invalid_area_count;
+            continue;
+        }
+
+        ++out->connection_count;
+        if (door->area1 == door->area2) {
+            ++out->self_connection_count;
+        }
+        if (door->area1 < out->min_area) {
+            out->min_area = door->area1;
+        }
+        if (door->area2 < out->min_area) {
+            out->min_area = door->area2;
+        }
+        if (door->area1 > out->max_area) {
+            out->max_area = door->area1;
+        }
+        if (door->area2 > out->max_area) {
+            out->max_area = door->area2;
+        }
+
+        const uint8_t low = door->area1 < door->area2 ? door->area1 : door->area2;
+        const uint8_t high = door->area1 < door->area2 ? door->area2 : door->area1;
+        if (seen[low][high]) {
+            ++out->duplicate_connection_count;
+        } else {
+            seen[low][high] = 1;
+            ++out->unique_connection_count;
+        }
+    }
+
+    if (out->connection_count == 0) {
+        out->min_area = 0;
+    }
+    return 0;
+}
+
 int wl_summarize_pushwall_state(const wl_game_model *model,
                                 wl_pushwall_state_summary *out) {
     if (!model || !out) {
