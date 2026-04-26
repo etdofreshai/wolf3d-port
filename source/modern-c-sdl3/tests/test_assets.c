@@ -3117,6 +3117,65 @@ static int check_wl6(const char *dir) {
         CHECK(wl_summarize_runtime_player_facing_run(
                   &synthetic_player_neighborhood, &facing_run) == -1);
 
+        wl_runtime_player_facing_actor_summary facing_actors;
+        memset(&facing_actors, 0xff, sizeof(facing_actors));
+        CHECK(wl_summarize_runtime_player_facing_actors(&model, &facing_actors) == 0);
+        CHECK(wl_summarize_runtime_player_facing_actors(NULL, &facing_actors) == -1);
+        CHECK(wl_summarize_runtime_player_facing_actors(&model, NULL) == -1);
+        CHECK(facing_actors.direction == model.player.dir);
+        CHECK(facing_actors.actor_count_ahead <= model.actor_count);
+        CHECK(facing_actors.shootable_count_ahead <= facing_actors.actor_count_ahead);
+        CHECK(facing_actors.blocked_actor_count <= model.actor_count);
+        CHECK(facing_actors.invalid_actor_position_count == 0u);
+        if (facing_actors.has_first_actor) {
+            CHECK(facing_actors.first_actor_index < model.actor_count);
+            CHECK(facing_actors.first_actor_distance > 0u);
+        }
+
+        memset(&synthetic_player_neighborhood, 0, sizeof(synthetic_player_neighborhood));
+        synthetic_player_neighborhood.player.present = 1;
+        synthetic_player_neighborhood.player.x = 2;
+        synthetic_player_neighborhood.player.y = 2;
+        synthetic_player_neighborhood.player.dir = WL_DIR_EAST;
+        synthetic_player_neighborhood.actor_count = 4;
+        synthetic_player_neighborhood.actors[0].tile_x = 4;
+        synthetic_player_neighborhood.actors[0].tile_y = 2;
+        synthetic_player_neighborhood.actors[0].shootable = 1;
+        synthetic_player_neighborhood.actors[1].tile_x = 6;
+        synthetic_player_neighborhood.actors[1].tile_y = 2;
+        synthetic_player_neighborhood.actors[1].shootable = 0;
+        synthetic_player_neighborhood.actors[2].tile_x = 2;
+        synthetic_player_neighborhood.actors[2].tile_y = 5;
+        synthetic_player_neighborhood.actors[2].shootable = 1;
+        synthetic_player_neighborhood.actors[3].tile_x = WL_MAP_SIDE;
+        synthetic_player_neighborhood.actors[3].tile_y = 2;
+        CHECK(wl_summarize_runtime_player_facing_actors(
+                  &synthetic_player_neighborhood, &facing_actors) == 0);
+        CHECK(facing_actors.actor_count_ahead == 2u);
+        CHECK(facing_actors.shootable_count_ahead == 1u);
+        CHECK(facing_actors.blocked_actor_count == 0u);
+        CHECK(facing_actors.invalid_actor_position_count == 1u);
+        CHECK(facing_actors.has_first_actor == 1u);
+        CHECK(facing_actors.first_actor_index == 0u);
+        CHECK(facing_actors.first_actor_distance == 2u);
+        synthetic_player_neighborhood.tilemap[(2u * WL_MAP_SIDE) + 3u] = 1u;
+        CHECK(wl_summarize_runtime_player_facing_actors(
+                  &synthetic_player_neighborhood, &facing_actors) == 0);
+        CHECK(facing_actors.actor_count_ahead == 0u);
+        CHECK(facing_actors.blocked_actor_count == 2u);
+        CHECK(facing_actors.has_first_actor == 0u);
+        synthetic_player_neighborhood.player.dir = WL_DIR_NONE;
+        CHECK(wl_summarize_runtime_player_facing_actors(
+                  &synthetic_player_neighborhood, &facing_actors) == 0);
+        CHECK(facing_actors.actor_count_ahead == 0u);
+        synthetic_player_neighborhood.player.dir = (wl_direction)99;
+        CHECK(wl_summarize_runtime_player_facing_actors(
+                  &synthetic_player_neighborhood, &facing_actors) == -1);
+        synthetic_player_neighborhood.player.present = 0;
+        synthetic_player_neighborhood.player.dir = WL_DIR_EAST;
+        CHECK(wl_summarize_runtime_player_facing_actors(
+                  &synthetic_player_neighborhood, &facing_actors) == -1);
+
         wl_unknown_info_summary unknown_info;
         memset(&unknown_info, 0xff, sizeof(unknown_info));
         CHECK(wl_summarize_unknown_info_tiles(&model, &unknown_info) == 0);
