@@ -19,7 +19,7 @@ Run from this directory:
 make test
 ```
 
-By default the test uses `game-files/base` relative to the repo root. Override with:
+`make test` always runs the pure-C headless harness, then runs the SDL3 dummy-video smoke/presentation checks when SDL3 is available (otherwise it prints a skip message). By default the tests use `game-files/base` relative to the repo root. Override with:
 
 ```bash
 WOLF3D_DATA_DIR=/path/to/WL6/data make test
