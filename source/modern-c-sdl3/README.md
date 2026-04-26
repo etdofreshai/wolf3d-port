@@ -595,3 +595,7 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 `wl_summarize_pushwall_line_of_sight` reports clear, wall-blocked, door-blocked, same-tile, non-cardinal, and invalid pushwall marker sight-line buckets relative to the player without mutating runtime pushwall state. Synthetic headless coverage mirrors the door line-of-sight diagnostic for future pushwall interaction/render checks.
 
 - `wl_summarize_actor_spawn_deltas` reports whether live actors remain on their spawn tile, moved along a cardinal line, moved diagonally, or carry invalid spawn/current coordinates, plus the farthest moved actor by Manhattan delta. This gives chase/patrol progression tests a compact non-mutating sanity check for spawn-to-runtime drift.
+
+## Runtime actor/path-marker summary
+
+`wl_summarize_actor_path_markers` reports patrol actors that are directly on a path marker, cardinal-adjacent to one, missing nearby marker guidance, or carrying invalid current coordinates. This gives patrol/chase progression work a compact non-mutating check that live actor positions still line up with the map-derived patrol route graph.

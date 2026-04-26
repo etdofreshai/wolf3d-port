@@ -3184,7 +3184,46 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_spawn_deltas.farthest_moved_actor_index == 2);
     CHECK(synthetic_spawn_deltas.farthest_manhattan_delta == 4);
 
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.actor_count = 6;
+    chase_summary_model.path_marker_count = 3;
+    chase_summary_model.actors[0].mode = WL_ACTOR_PATROL;
+    chase_summary_model.actors[0].tile_x = 2;
+    chase_summary_model.actors[0].tile_y = 2;
+    chase_summary_model.actors[1].mode = WL_ACTOR_PATROL;
+    chase_summary_model.actors[1].tile_x = 4;
+    chase_summary_model.actors[1].tile_y = 2;
+    chase_summary_model.actors[2].mode = WL_ACTOR_PATROL;
+    chase_summary_model.actors[2].tile_x = 8;
+    chase_summary_model.actors[2].tile_y = 8;
+    chase_summary_model.actors[3].mode = WL_ACTOR_PATROL;
+    chase_summary_model.actors[3].tile_x = WL_MAP_SIDE;
+    chase_summary_model.actors[3].tile_y = 2;
+    chase_summary_model.actors[4].mode = WL_ACTOR_CHASE;
+    chase_summary_model.actors[4].tile_x = 2;
+    chase_summary_model.actors[4].tile_y = 2;
+    chase_summary_model.actors[5].mode = WL_ACTOR_PATROL;
+    chase_summary_model.actors[5].tile_x = 5;
+    chase_summary_model.actors[5].tile_y = 5;
+    chase_summary_model.path_markers[0].x = 2;
+    chase_summary_model.path_markers[0].y = 2;
+    chase_summary_model.path_markers[1].x = 4;
+    chase_summary_model.path_markers[1].y = 3;
+    chase_summary_model.path_markers[2].x = WL_MAP_SIDE;
+    chase_summary_model.path_markers[2].y = 5;
+    wl_actor_path_marker_summary synthetic_path_markers;
+    CHECK(wl_summarize_actor_path_markers(&chase_summary_model,
+                                           &synthetic_path_markers) == 0);
+    CHECK(wl_summarize_actor_path_markers(NULL, &synthetic_path_markers) == -1);
+    CHECK(wl_summarize_actor_path_markers(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_path_markers.patrol_actor_count == 5);
+    CHECK(synthetic_path_markers.on_marker_count == 1);
+    CHECK(synthetic_path_markers.adjacent_marker_count == 1);
+    CHECK(synthetic_path_markers.missing_marker_count == 2);
+    CHECK(synthetic_path_markers.invalid_actor_position_count == 1);
+
     memset(chase_summary_model.tilemap, 0, sizeof(chase_summary_model.tilemap));
+    chase_summary_model.actor_count = 5;
     chase_summary_model.actors[0].tile_x = 1;
     chase_summary_model.actors[0].tile_y = 1;
     chase_summary_model.tilemap[(size_t)1 * WL_MAP_SIDE + 1] = 0;
