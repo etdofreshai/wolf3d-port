@@ -754,3 +754,7 @@ Extended `wl_player_use_result` with keyed-door metadata for the live use-button
 ## Cycle update: use-button pushwall activity metadata
 
 Extended `wl_player_use_result` with `pushwall_active_before` and `pushwall_active_after` for the headless use-button seam. Pushwall use now distinguishes a freshly started secret wall from a repeated use while another pushwall motion is already active, giving future HUD/status and SDL3 input feedback a deterministic way to report suppressed push attempts without re-reading mutable model state after dispatch.
+
+## Cycle update: use-button tile transition metadata
+
+Extended `wl_player_use_result` with `tile_before` and `tile_after` for the targeted runtime tile. The headless use-button seam now captures elevator tile increment, pushwall moving-marker placement, and stable door-center markers alongside existing lock/action/pushwall activity metadata, so future SDL3 input/HUD presentation can report immediate tilemap effects without re-reading mutable model state after dispatch.
