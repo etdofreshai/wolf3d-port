@@ -2512,14 +2512,21 @@ int wl_summarize_runtime_player_interaction(
 
     uint16_t nearest_distance = UINT16_MAX;
     if (actors.has_first_actor) {
+        const wl_actor_desc *actor = &model->actors[actors.first_actor_index];
         out->has_nearest = 1u;
         out->nearest_is_actor = 1u;
         out->nearest_kind = 1u;
         out->nearest_index = actors.first_actor_index;
         nearest_distance = actors.first_actor_distance;
         out->nearest_distance = nearest_distance;
-        out->nearest_actor_shootable =
-            model->actors[actors.first_actor_index].shootable ? 1u : 0u;
+        out->nearest_source_tile = actor->source_tile;
+        out->nearest_world_x = actor->fine_x != 0u
+                                   ? actor->fine_x
+                                   : (((uint32_t)actor->tile_x << 16) + 0x8000u);
+        out->nearest_world_y = actor->fine_y != 0u
+                                   ? actor->fine_y
+                                   : (((uint32_t)actor->tile_y << 16) + 0x8000u);
+        out->nearest_actor_shootable = actor->shootable ? 1u : 0u;
     }
     if (statics.has_first_static && statics.first_static_distance < nearest_distance) {
         const wl_static_desc *stat = &model->statics[statics.first_static_index];
@@ -2529,6 +2536,9 @@ int wl_summarize_runtime_player_interaction(
         out->nearest_kind = 2u;
         out->nearest_index = statics.first_static_index;
         out->nearest_distance = statics.first_static_distance;
+        out->nearest_source_tile = stat->source_tile;
+        out->nearest_world_x = (((uint32_t)stat->x << 16) + 0x8000u);
+        out->nearest_world_y = (((uint32_t)stat->y << 16) + 0x8000u);
         out->nearest_actor_shootable = 0u;
         out->nearest_static_blocking = stat->blocking ? 1u : 0u;
         out->nearest_static_bonus = stat->bonus ? 1u : 0u;

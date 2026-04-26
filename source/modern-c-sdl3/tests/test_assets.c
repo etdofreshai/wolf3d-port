@@ -3264,6 +3264,9 @@ static int check_wl6(const char *dir) {
         synthetic_player_neighborhood.actor_count = 2;
         synthetic_player_neighborhood.actors[0].tile_x = 5;
         synthetic_player_neighborhood.actors[0].tile_y = 2;
+        synthetic_player_neighborhood.actors[0].fine_x = 0x51000u;
+        synthetic_player_neighborhood.actors[0].fine_y = 0x22000u;
+        synthetic_player_neighborhood.actors[0].source_tile = 108u;
         synthetic_player_neighborhood.actors[0].shootable = 1;
         synthetic_player_neighborhood.actors[1].tile_x = WL_MAP_SIDE;
         synthetic_player_neighborhood.actors[1].tile_y = 2;
@@ -3271,6 +3274,7 @@ static int check_wl6(const char *dir) {
         synthetic_player_neighborhood.static_count = 3;
         synthetic_player_neighborhood.statics[0].x = 4;
         synthetic_player_neighborhood.statics[0].y = 2;
+        synthetic_player_neighborhood.statics[0].source_tile = 47u;
         synthetic_player_neighborhood.statics[0].active = 1;
         synthetic_player_neighborhood.statics[0].bonus = 1;
         synthetic_player_neighborhood.statics[1].x = 3;
@@ -3296,6 +3300,9 @@ static int check_wl6(const char *dir) {
         CHECK(interaction.nearest_kind == 2u);
         CHECK(interaction.nearest_index == 0u);
         CHECK(interaction.nearest_distance == 2u);
+        CHECK(interaction.nearest_source_tile == 47u);
+        CHECK(interaction.nearest_world_x == 0x48000u);
+        CHECK(interaction.nearest_world_y == 0x28000u);
         CHECK(interaction.nearest_static_bonus == 1u);
         CHECK(interaction.nearest_actor_shootable == 0u);
         CHECK(interaction.has_map_blocking_tile == 0u);
@@ -3325,6 +3332,9 @@ static int check_wl6(const char *dir) {
         CHECK(interaction.static_count_ahead == 1u);
         CHECK(interaction.nearest_actor_shootable == 1u);
         CHECK(interaction.nearest_distance == 3u);
+        CHECK(interaction.nearest_source_tile == 108u);
+        CHECK(interaction.nearest_world_x == 0x51000u);
+        CHECK(interaction.nearest_world_y == 0x22000u);
         synthetic_player_neighborhood.player.dir = WL_DIR_NONE;
         CHECK(wl_summarize_runtime_player_interaction(
                   &synthetic_player_neighborhood, &interaction) == 0);
