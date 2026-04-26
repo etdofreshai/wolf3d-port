@@ -3245,6 +3245,67 @@ static int check_wl6(const char *dir) {
         CHECK(wl_summarize_runtime_player_facing_statics(
                   &synthetic_player_neighborhood, &facing_statics) == -1);
 
+        wl_runtime_player_interaction_summary interaction;
+        memset(&interaction, 0xff, sizeof(interaction));
+        CHECK(wl_summarize_runtime_player_interaction(&model, &interaction) == 0);
+        CHECK(wl_summarize_runtime_player_interaction(NULL, &interaction) == -1);
+        CHECK(wl_summarize_runtime_player_interaction(&model, NULL) == -1);
+        CHECK(interaction.direction == model.player.dir);
+        if (interaction.has_nearest) {
+            CHECK(interaction.nearest_is_actor != interaction.nearest_is_static);
+            CHECK(interaction.nearest_distance > 0u);
+        }
+
+        memset(&synthetic_player_neighborhood, 0, sizeof(synthetic_player_neighborhood));
+        synthetic_player_neighborhood.player.present = 1;
+        synthetic_player_neighborhood.player.x = 2;
+        synthetic_player_neighborhood.player.y = 2;
+        synthetic_player_neighborhood.player.dir = WL_DIR_EAST;
+        synthetic_player_neighborhood.actor_count = 1;
+        synthetic_player_neighborhood.actors[0].tile_x = 5;
+        synthetic_player_neighborhood.actors[0].tile_y = 2;
+        synthetic_player_neighborhood.actors[0].shootable = 1;
+        synthetic_player_neighborhood.static_count = 1;
+        synthetic_player_neighborhood.statics[0].x = 4;
+        synthetic_player_neighborhood.statics[0].y = 2;
+        synthetic_player_neighborhood.statics[0].active = 1;
+        synthetic_player_neighborhood.statics[0].bonus = 1;
+        CHECK(wl_summarize_runtime_player_interaction(
+                  &synthetic_player_neighborhood, &interaction) == 0);
+        CHECK(interaction.has_nearest == 1u);
+        CHECK(interaction.nearest_is_static == 1u);
+        CHECK(interaction.nearest_is_actor == 0u);
+        CHECK(interaction.nearest_kind == 2u);
+        CHECK(interaction.nearest_index == 0u);
+        CHECK(interaction.nearest_distance == 2u);
+        CHECK(interaction.nearest_static_bonus == 1u);
+        CHECK(interaction.nearest_actor_shootable == 0u);
+        CHECK(interaction.has_map_blocking_tile == 0u);
+        synthetic_player_neighborhood.tilemap[(2u * WL_MAP_SIDE) + 3u] = 1u;
+        CHECK(wl_summarize_runtime_player_interaction(
+                  &synthetic_player_neighborhood, &interaction) == 0);
+        CHECK(interaction.has_nearest == 0u);
+        CHECK(interaction.has_map_blocking_tile == 1u);
+        CHECK(interaction.map_blocked_before_nearest == 0u);
+        CHECK(interaction.map_blocking_tile == 1u);
+        CHECK(interaction.map_blocking_x == 3u);
+        CHECK(interaction.map_blocking_y == 2u);
+        synthetic_player_neighborhood.tilemap[(2u * WL_MAP_SIDE) + 3u] = 0u;
+        synthetic_player_neighborhood.statics[0].x = 6;
+        CHECK(wl_summarize_runtime_player_interaction(
+                  &synthetic_player_neighborhood, &interaction) == 0);
+        CHECK(interaction.has_nearest == 1u);
+        CHECK(interaction.nearest_is_actor == 1u);
+        CHECK(interaction.nearest_actor_shootable == 1u);
+        CHECK(interaction.nearest_distance == 3u);
+        synthetic_player_neighborhood.player.dir = WL_DIR_NONE;
+        CHECK(wl_summarize_runtime_player_interaction(
+                  &synthetic_player_neighborhood, &interaction) == 0);
+        CHECK(interaction.has_nearest == 0u);
+        synthetic_player_neighborhood.player.dir = (wl_direction)99;
+        CHECK(wl_summarize_runtime_player_interaction(
+                  &synthetic_player_neighborhood, &interaction) == -1);
+
         wl_unknown_info_summary unknown_info;
         memset(&unknown_info, 0xff, sizeof(unknown_info));
         CHECK(wl_summarize_unknown_info_tiles(&model, &unknown_info) == 0);

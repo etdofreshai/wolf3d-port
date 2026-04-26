@@ -2478,6 +2478,59 @@ int wl_summarize_runtime_player_facing_statics(
     return 0;
 }
 
+int wl_summarize_runtime_player_interaction(
+    const wl_game_model *model, wl_runtime_player_interaction_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    wl_runtime_player_facing_run_summary run;
+    wl_runtime_player_facing_actor_summary actors;
+    wl_runtime_player_facing_static_summary statics;
+    if (wl_summarize_runtime_player_facing_run(model, &run) != 0 ||
+        wl_summarize_runtime_player_facing_actors(model, &actors) != 0 ||
+        wl_summarize_runtime_player_facing_statics(model, &statics) != 0) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    out->direction = run.direction;
+    out->has_map_blocking_tile = run.has_blocking_tile;
+    out->map_blocking_tile = run.first_blocking_tile;
+    out->map_blocking_x = run.first_blocking_x;
+    out->map_blocking_y = run.first_blocking_y;
+
+    uint16_t nearest_distance = UINT16_MAX;
+    if (actors.has_first_actor) {
+        out->has_nearest = 1u;
+        out->nearest_is_actor = 1u;
+        out->nearest_kind = 1u;
+        out->nearest_index = actors.first_actor_index;
+        nearest_distance = actors.first_actor_distance;
+        out->nearest_distance = nearest_distance;
+        out->nearest_actor_shootable =
+            model->actors[actors.first_actor_index].shootable ? 1u : 0u;
+    }
+    if (statics.has_first_static && statics.first_static_distance < nearest_distance) {
+        const wl_static_desc *stat = &model->statics[statics.first_static_index];
+        out->has_nearest = 1u;
+        out->nearest_is_actor = 0u;
+        out->nearest_is_static = 1u;
+        out->nearest_kind = 2u;
+        out->nearest_index = statics.first_static_index;
+        out->nearest_distance = statics.first_static_distance;
+        out->nearest_actor_shootable = 0u;
+        out->nearest_static_blocking = stat->blocking ? 1u : 0u;
+        out->nearest_static_bonus = stat->bonus ? 1u : 0u;
+    }
+
+    if (run.has_blocking_tile && out->has_nearest &&
+        run.traversed_tile_count <= (size_t)out->nearest_distance) {
+        out->map_blocked_before_nearest = 1u;
+    }
+    return 0;
+}
+
 int wl_summarize_model_capacity(const wl_game_model *model,
                                 wl_model_capacity_summary *out) {
     if (!model || !out) {
