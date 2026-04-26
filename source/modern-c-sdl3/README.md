@@ -207,6 +207,8 @@ Final corpse-frame actor refs now have coverage beyond the guard path. Headless 
 
 ## Patrol path direction seam
 
+`wl_summarize_runtime_tile_quadrants` now adds a compact live-tilemap locality check: solid-wall and open-floor counts are split across the four 32x32 map quadrants and cross-checked against the full runtime tile summary. This gives future spawn, collision, and renderer work a low-cost way to notice quadrant-level map-state drift.
+
 `wl_select_path_direction` now models the first `SelectPathDir` decision boundary for patrol actors in a headless-friendly way: path markers at the actor tile can replace the current direction, the next tile is checked against the mutable runtime tilemap, blocked/out-of-bounds moves return `WL_DIR_NONE`, and unsupported diagonal marker arrows are preserved in metadata but do not yet produce movement.
 
 

@@ -2777,6 +2777,38 @@ static int check_wl6(const char *dir) {
               synthetic_edge_summary.boundary_tile_count - 4u);
         CHECK(synthetic_edge_summary.interior_solid_wall_count == 1);
 
+        wl_runtime_tile_quadrant_summary quadrant_summary;
+        memset(&quadrant_summary, 0xff, sizeof(quadrant_summary));
+        CHECK(wl_summarize_runtime_tile_quadrants(&model, &quadrant_summary) == 0);
+        CHECK(wl_summarize_runtime_tile_quadrants(NULL, &quadrant_summary) == -1);
+        CHECK(wl_summarize_runtime_tile_quadrants(&model, NULL) == -1);
+        CHECK(quadrant_summary.northwest_solid_wall_count +
+                  quadrant_summary.northeast_solid_wall_count +
+                  quadrant_summary.southwest_solid_wall_count +
+                  quadrant_summary.southeast_solid_wall_count ==
+              tile_summary.solid_wall_count);
+        CHECK(quadrant_summary.northwest_open_count + quadrant_summary.northeast_open_count +
+                  quadrant_summary.southwest_open_count + quadrant_summary.southeast_open_count ==
+              tile_summary.clear_floor_count);
+
+        wl_game_model synthetic_quadrants;
+        memset(&synthetic_quadrants, 0, sizeof(synthetic_quadrants));
+        synthetic_quadrants.tilemap[((0u * WL_MAP_SIDE) + 0u)] = 1;
+        synthetic_quadrants.tilemap[((0u * WL_MAP_SIDE) + 40u)] = 2;
+        synthetic_quadrants.tilemap[((40u * WL_MAP_SIDE) + 0u)] = 3;
+        synthetic_quadrants.tilemap[((40u * WL_MAP_SIDE) + 40u)] = 4;
+        wl_runtime_tile_quadrant_summary synthetic_quadrant_summary;
+        CHECK(wl_summarize_runtime_tile_quadrants(&synthetic_quadrants,
+                                                  &synthetic_quadrant_summary) == 0);
+        CHECK(synthetic_quadrant_summary.northwest_solid_wall_count == 1);
+        CHECK(synthetic_quadrant_summary.northeast_solid_wall_count == 1);
+        CHECK(synthetic_quadrant_summary.southwest_solid_wall_count == 1);
+        CHECK(synthetic_quadrant_summary.southeast_solid_wall_count == 1);
+        CHECK(synthetic_quadrant_summary.northwest_open_count == 1023);
+        CHECK(synthetic_quadrant_summary.northeast_open_count == 1023);
+        CHECK(synthetic_quadrant_summary.southwest_open_count == 1023);
+        CHECK(synthetic_quadrant_summary.southeast_open_count == 1023);
+
         wl_unknown_info_summary unknown_info;
         memset(&unknown_info, 0xff, sizeof(unknown_info));
         CHECK(wl_summarize_unknown_info_tiles(&model, &unknown_info) == 0);
