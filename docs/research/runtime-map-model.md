@@ -722,3 +722,7 @@ Added `wl_summarize_path_marker_tile_occupancy()` as a non-mutating patrol-marke
 ## Cycle update: runtime path-marker chain summary
 
 Added `wl_summarize_path_marker_chains()` as a non-mutating patrol-marker continuity diagnostic. It follows each valid marker's outgoing arrow one tile, reports whether another marker is linked there, and buckets the linked marker's direction as straight, left, right, or reverse while preserving dangling/no-direction/invalid counters. This gives future patrol progression work a compact headless check for arrow-chain continuity before mutating actor path state.
+
+## Cycle update: runtime door/player adjacency summary
+
+Added `wl_summarize_door_player_adjacency()` as a non-mutating door placement diagnostic. It partitions valid door descriptors by same-tile, cardinal-adjacent, diagonal-adjacent, same-row/column, distant, and invalid-position buckets relative to a supplied player tile. This mirrors the existing actor/static/pushwall adjacency summaries and gives future use/collision/presentation work a deterministic SDL-free sanity check for doors near the player.

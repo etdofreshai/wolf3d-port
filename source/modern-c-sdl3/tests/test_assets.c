@@ -3556,6 +3556,35 @@ static int check_wl6(const char *dir) {
 
     memset(&chase_summary_model, 0, sizeof(chase_summary_model));
     chase_summary_model.door_count = 6;
+    chase_summary_model.doors[0].x = 10;
+    chase_summary_model.doors[0].y = 10;
+    chase_summary_model.doors[1].x = 11;
+    chase_summary_model.doors[1].y = 10;
+    chase_summary_model.doors[2].x = 11;
+    chase_summary_model.doors[2].y = 11;
+    chase_summary_model.doors[3].x = 10;
+    chase_summary_model.doors[3].y = 15;
+    chase_summary_model.doors[4].x = 2;
+    chase_summary_model.doors[4].y = 3;
+    chase_summary_model.doors[5].x = WL_MAP_SIDE;
+    chase_summary_model.doors[5].y = 10;
+    wl_door_player_adjacency_summary synthetic_door_adjacency;
+    CHECK(wl_summarize_door_player_adjacency(&chase_summary_model, 10, 10,
+                                             &synthetic_door_adjacency) == 0);
+    CHECK(wl_summarize_door_player_adjacency(NULL, 10, 10,
+                                             &synthetic_door_adjacency) == -1);
+    CHECK(wl_summarize_door_player_adjacency(&chase_summary_model, WL_MAP_SIDE, 10,
+                                             &synthetic_door_adjacency) == -1);
+    CHECK(wl_summarize_door_player_adjacency(&chase_summary_model, 10, 10, NULL) == -1);
+    CHECK(synthetic_door_adjacency.same_tile_count == 1);
+    CHECK(synthetic_door_adjacency.cardinal_adjacent_count == 1);
+    CHECK(synthetic_door_adjacency.diagonal_adjacent_count == 1);
+    CHECK(synthetic_door_adjacency.same_row_or_column_count == 1);
+    CHECK(synthetic_door_adjacency.distant_count == 1);
+    CHECK(synthetic_door_adjacency.invalid_position_count == 1);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.door_count = 6;
     chase_summary_model.doors[0].source_tile = 90;
     chase_summary_model.doors[0].lock = 0;
     chase_summary_model.doors[1].source_tile = 92;
