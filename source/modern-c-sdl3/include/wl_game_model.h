@@ -592,6 +592,19 @@ typedef struct wl_path_marker_exit_summary {
     size_t invalid_marker_position_count;
 } wl_path_marker_exit_summary;
 
+typedef struct wl_path_marker_chain_summary {
+    size_t linked_marker_count;
+    size_t straight_count;
+    size_t left_turn_count;
+    size_t right_turn_count;
+    size_t reverse_turn_count;
+    size_t dangling_exit_count;
+    size_t no_direction_count;
+    size_t invalid_direction_count;
+    size_t invalid_marker_position_count;
+    uint16_t first_dangling_marker_index;
+} wl_path_marker_chain_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -823,6 +836,8 @@ int wl_summarize_path_marker_directions(
     const wl_game_model *model, wl_path_marker_direction_summary *out);
 int wl_summarize_path_marker_exits(
     const wl_game_model *model, wl_path_marker_exit_summary *out);
+int wl_summarize_path_marker_chains(
+    const wl_game_model *model, wl_path_marker_chain_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);

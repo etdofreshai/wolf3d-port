@@ -3876,6 +3876,45 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_path_exits.invalid_direction_count == 1);
     CHECK(synthetic_path_exits.invalid_marker_position_count == 1);
 
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.path_marker_count = 8;
+    chase_summary_model.path_markers[0] = (wl_marker_desc){10, 10, WL_ICONARROWS, WL_DIR_EAST};
+    chase_summary_model.path_markers[1] = (wl_marker_desc){11, 10, WL_ICONARROWS, WL_DIR_EAST};
+    chase_summary_model.path_markers[2] = (wl_marker_desc){12, 10, WL_ICONARROWS, WL_DIR_SOUTH};
+    chase_summary_model.path_markers[3] = (wl_marker_desc){12, 11, WL_ICONARROWS, WL_DIR_EAST};
+    chase_summary_model.path_markers[4] = (wl_marker_desc){13, 11, WL_ICONARROWS, WL_DIR_WEST};
+    chase_summary_model.path_markers[5] = (wl_marker_desc){20, 20, WL_ICONARROWS, WL_DIR_NORTH};
+    chase_summary_model.path_markers[6] = (wl_marker_desc){21, 21, WL_ICONARROWS, WL_DIR_NONE};
+    chase_summary_model.path_markers[7] = (wl_marker_desc){22, 22, WL_ICONARROWS, (wl_direction)99};
+    wl_path_marker_chain_summary synthetic_path_chains;
+    CHECK(wl_summarize_path_marker_chains(&chase_summary_model,
+                                           &synthetic_path_chains) == 0);
+    CHECK(wl_summarize_path_marker_chains(NULL, &synthetic_path_chains) == -1);
+    CHECK(wl_summarize_path_marker_chains(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_path_chains.linked_marker_count == 5);
+    CHECK(synthetic_path_chains.straight_count == 1);
+    CHECK(synthetic_path_chains.left_turn_count == 1);
+    CHECK(synthetic_path_chains.right_turn_count == 1);
+    CHECK(synthetic_path_chains.reverse_turn_count == 2);
+    CHECK(synthetic_path_chains.dangling_exit_count == 1);
+    CHECK(synthetic_path_chains.no_direction_count == 1);
+    CHECK(synthetic_path_chains.invalid_direction_count == 1);
+    CHECK(synthetic_path_chains.invalid_marker_position_count == 0);
+    CHECK(synthetic_path_chains.first_dangling_marker_index == 5);
+
+    memset(&chase_summary_model, 0, sizeof(chase_summary_model));
+    chase_summary_model.path_marker_count = 3;
+    chase_summary_model.path_markers[0] = (wl_marker_desc){1, 1, WL_ICONARROWS, (wl_direction)99};
+    chase_summary_model.path_markers[1] = (wl_marker_desc){2, 1, WL_ICONARROWS, WL_DIR_EAST};
+    chase_summary_model.path_markers[2] = (wl_marker_desc){WL_MAP_SIDE, 1, WL_ICONARROWS, WL_DIR_EAST};
+    CHECK(wl_summarize_path_marker_chains(&chase_summary_model,
+                                           &synthetic_path_chains) == 0);
+    CHECK(synthetic_path_chains.linked_marker_count == 0);
+    CHECK(synthetic_path_chains.dangling_exit_count == 1);
+    CHECK(synthetic_path_chains.invalid_direction_count == 1);
+    CHECK(synthetic_path_chains.invalid_marker_position_count == 1);
+    CHECK(synthetic_path_chains.first_dangling_marker_index == 1);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];
