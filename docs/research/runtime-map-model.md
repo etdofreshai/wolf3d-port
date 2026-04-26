@@ -798,3 +798,5 @@ Added `wl_summarize_runtime_tile_quadrants()` as a non-mutating live tilemap dia
 ## Cycle update: runtime static collision summary
 
 Added `wl_summarize_static_collisions()` as a non-mutating static collision/readiness diagnostic. It partitions valid statics into active/inactive blocking, active/inactive bonus, and active/inactive dressing buckets while separately reporting invalid coordinates, giving movement, pickup, and renderer paths a compact SDL-free check for statics that still affect collision or visible pickup state.
+
+- Player-facing run summaries now characterize the clear-floor corridor from the player to the first live tile blocker or map edge, reusing door/pushwall/wall/other buckets for headless gameplay/render preflight coverage.

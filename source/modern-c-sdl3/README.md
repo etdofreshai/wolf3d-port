@@ -625,3 +625,5 @@ The WL6 runtime-model sweep now covers all four difficulty levels across all 60 
 ## Runtime static collision summary
 
 `wl_summarize_static_collisions` partitions static descriptors into active/inactive blocking, bonus, and dressing buckets with invalid-coordinate accounting. This keeps player collision and visible pickup preparation inspectable in headless tests without mutating runtime state.
+
+- Added a headless player-facing run diagnostic that walks the live tilemap from the player until the first blocker or map edge, giving use/raycast preflight code a deterministic corridor summary without mutating runtime state.

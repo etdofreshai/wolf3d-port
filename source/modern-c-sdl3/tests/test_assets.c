@@ -3068,6 +3068,55 @@ static int check_wl6(const char *dir) {
         CHECK(wl_summarize_runtime_player_facing_tile(
                   &synthetic_player_neighborhood, &facing_tile) == -1);
 
+        wl_runtime_player_facing_run_summary facing_run;
+        memset(&facing_run, 0xff, sizeof(facing_run));
+        CHECK(wl_summarize_runtime_player_facing_run(&model, &facing_run) == 0);
+        CHECK(wl_summarize_runtime_player_facing_run(NULL, &facing_run) == -1);
+        CHECK(wl_summarize_runtime_player_facing_run(&model, NULL) == -1);
+        CHECK(facing_run.direction == model.player.dir);
+        CHECK(facing_run.has_blocking_tile == 1u || facing_run.hit_map_edge == 1u);
+        CHECK(facing_run.traversed_tile_count >= facing_run.clear_floor_count);
+        CHECK((size_t)facing_run.solid_wall + facing_run.door_marker +
+                  facing_run.pushwall_marker + facing_run.other_marker <=
+              1u);
+
+        memset(&synthetic_player_neighborhood, 0, sizeof(synthetic_player_neighborhood));
+        synthetic_player_neighborhood.player.present = 1;
+        synthetic_player_neighborhood.player.x = 1;
+        synthetic_player_neighborhood.player.y = 1;
+        synthetic_player_neighborhood.player.dir = WL_DIR_EAST;
+        synthetic_player_neighborhood.tilemap[(1u * WL_MAP_SIDE) + 3u] = 0x80u;
+        CHECK(wl_summarize_runtime_player_facing_run(
+                  &synthetic_player_neighborhood, &facing_run) == 0);
+        CHECK(facing_run.direction == WL_DIR_EAST);
+        CHECK(facing_run.clear_floor_count == 1u);
+        CHECK(facing_run.traversed_tile_count == 2u);
+        CHECK(facing_run.has_blocking_tile == 1u);
+        CHECK(facing_run.hit_map_edge == 0u);
+        CHECK(facing_run.first_blocking_tile == 0x80u);
+        CHECK(facing_run.first_blocking_x == 3u);
+        CHECK(facing_run.first_blocking_y == 1u);
+        CHECK(facing_run.door_marker == 1u);
+        synthetic_player_neighborhood.tilemap[(1u * WL_MAP_SIDE) + 3u] = 0u;
+        CHECK(wl_summarize_runtime_player_facing_run(
+                  &synthetic_player_neighborhood, &facing_run) == 0);
+        CHECK(facing_run.has_blocking_tile == 0u);
+        CHECK(facing_run.hit_map_edge == 1u);
+        CHECK(facing_run.clear_floor_count == WL_MAP_SIDE - 2u);
+        CHECK(facing_run.traversed_tile_count == WL_MAP_SIDE - 2u);
+        synthetic_player_neighborhood.player.dir = WL_DIR_NONE;
+        CHECK(wl_summarize_runtime_player_facing_run(
+                  &synthetic_player_neighborhood, &facing_run) == 0);
+        CHECK(facing_run.traversed_tile_count == 0u);
+        CHECK(facing_run.hit_map_edge == 0u);
+        synthetic_player_neighborhood.player.dir = (wl_direction)99;
+        CHECK(wl_summarize_runtime_player_facing_run(
+                  &synthetic_player_neighborhood, &facing_run) == -1);
+        synthetic_player_neighborhood.player.present = 0;
+        synthetic_player_neighborhood.player.dir = WL_DIR_EAST;
+        CHECK(wl_summarize_runtime_player_facing_run(
+                  &synthetic_player_neighborhood, &facing_run) == -1);
+
         wl_unknown_info_summary unknown_info;
         memset(&unknown_info, 0xff, sizeof(unknown_info));
         CHECK(wl_summarize_unknown_info_tiles(&model, &unknown_info) == 0);
