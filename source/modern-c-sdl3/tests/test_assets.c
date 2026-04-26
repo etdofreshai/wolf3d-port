@@ -2807,6 +2807,44 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_motion.active_remainder_count == 1);
     CHECK(synthetic_motion.invalid_position_count == 1);
 
+    chase_summary_model.actors[0].mode = WL_ACTOR_CHASE;
+    chase_summary_model.actors[0].kind = WL_ACTOR_GUARD;
+    chase_summary_model.actors[0].shootable = 1;
+    chase_summary_model.actors[1].mode = WL_ACTOR_BOSS_MODE;
+    chase_summary_model.actors[1].kind = WL_ACTOR_BOSS;
+    chase_summary_model.actors[1].shootable = 1;
+    chase_summary_model.actors[2].tile_x = WL_MAP_SIDE;
+    chase_summary_model.actors[2].tile_y = 12;
+    wl_actor_activity_summary synthetic_activity;
+    CHECK(wl_summarize_actor_activity(&chase_summary_model,
+                                      &synthetic_activity) == 0);
+    CHECK(wl_summarize_actor_activity(NULL, &synthetic_activity) == -1);
+    CHECK(wl_summarize_actor_activity(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_activity.active_ai_count == 2);
+    CHECK(synthetic_activity.waiting_ai_count == 0);
+    CHECK(synthetic_activity.inert_count == 0);
+    CHECK(synthetic_activity.combat_ready_count == 2);
+    CHECK(synthetic_activity.boss_or_ghost_count == 1);
+    CHECK(synthetic_activity.invalid_position_count == 1);
+
+    chase_summary_model.actors[0].mode = WL_ACTOR_PATROL;
+    chase_summary_model.actors[1].mode = WL_ACTOR_INERT;
+    chase_summary_model.actors[1].kind = WL_ACTOR_DEAD_GUARD;
+    chase_summary_model.actors[1].shootable = 0;
+    chase_summary_model.actors[2].tile_x = 12;
+    chase_summary_model.actors[2].tile_y = 12;
+    chase_summary_model.actors[2].mode = WL_ACTOR_GHOST_MODE;
+    chase_summary_model.actors[2].kind = WL_ACTOR_GHOST;
+    chase_summary_model.actors[2].shootable = 0;
+    CHECK(wl_summarize_actor_activity(&chase_summary_model,
+                                      &synthetic_activity) == 0);
+    CHECK(synthetic_activity.active_ai_count == 1);
+    CHECK(synthetic_activity.waiting_ai_count == 1);
+    CHECK(synthetic_activity.inert_count == 1);
+    CHECK(synthetic_activity.combat_ready_count == 1);
+    CHECK(synthetic_activity.boss_or_ghost_count == 1);
+    CHECK(synthetic_activity.invalid_position_count == 0);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];

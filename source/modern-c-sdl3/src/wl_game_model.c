@@ -1915,6 +1915,42 @@ int wl_summarize_actor_motion(const wl_game_model *model,
     return 0;
 }
 
+
+int wl_summarize_actor_activity(const wl_game_model *model,
+                                wl_actor_activity_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+
+        if (actor->mode == WL_ACTOR_CHASE || actor->mode == WL_ACTOR_BOSS_MODE ||
+            actor->mode == WL_ACTOR_GHOST_MODE) {
+            ++out->active_ai_count;
+        } else if (actor->mode == WL_ACTOR_STAND || actor->mode == WL_ACTOR_PATROL) {
+            ++out->waiting_ai_count;
+        } else if (actor->mode == WL_ACTOR_INERT || actor->kind == WL_ACTOR_DEAD_GUARD) {
+            ++out->inert_count;
+        }
+
+        if (actor->shootable && actor->kind != WL_ACTOR_DEAD_GUARD &&
+            actor->mode != WL_ACTOR_INERT) {
+            ++out->combat_ready_count;
+        }
+        if (actor->mode == WL_ACTOR_BOSS_MODE || actor->mode == WL_ACTOR_GHOST_MODE ||
+            actor->kind == WL_ACTOR_BOSS || actor->kind == WL_ACTOR_GHOST) {
+            ++out->boss_or_ghost_count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_actor_directions(const wl_game_model *model,
                                   wl_actor_direction_summary *out) {
     if (!model || !out) {
