@@ -506,6 +506,13 @@ typedef struct wl_adlib_sound_metadata {
     size_t trailing_bytes;
 } wl_adlib_sound_metadata;
 
+typedef struct wl_adlib_playback_cursor {
+    size_t sample_index;
+    uint32_t samples_consumed;
+    uint8_t current_sample;
+    uint8_t completed;
+} wl_adlib_playback_cursor;
+
 typedef struct wl_sample_playback_window {
     size_t start_sample;
     size_t samples_available;
@@ -590,6 +597,9 @@ int wl_get_adlib_instrument_byte(const unsigned char *chunk, size_t chunk_size,
                                  size_t instrument_index, uint8_t *out_byte);
 int wl_get_adlib_sound_sample(const unsigned char *chunk, size_t chunk_size,
                               size_t sample_index, uint8_t *out_sample);
+int wl_advance_adlib_playback_cursor(const unsigned char *chunk, size_t chunk_size,
+                                     size_t start_sample, uint32_t sample_delta,
+                                     wl_adlib_playback_cursor *out);
 int wl_describe_adlib_playback_window(const unsigned char *chunk, size_t chunk_size,
                                       size_t start_sample, size_t sample_budget,
                                       wl_sample_playback_window *out);
