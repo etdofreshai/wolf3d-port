@@ -2783,6 +2783,30 @@ static int check_wl6(const char *dir) {
     CHECK(synthetic_directions.direction_counts[WL_DIR_NONE] == 0);
     CHECK(synthetic_directions.invalid_direction_count == 1);
 
+    chase_summary_model.actors[0].tile_x = 5;
+    chase_summary_model.actors[0].tile_y = 5;
+    chase_summary_model.actors[0].fine_x = ((uint32_t)5u << 16) + 0x8000u;
+    chase_summary_model.actors[0].fine_y = ((uint32_t)5u << 16) + 0x8000u;
+    chase_summary_model.actors[0].patrol_remainder = 0;
+    chase_summary_model.actors[1].tile_x = 10;
+    chase_summary_model.actors[1].tile_y = 10;
+    chase_summary_model.actors[1].fine_x = ((uint32_t)10u << 16) + 0x8000u + 1234u;
+    chase_summary_model.actors[1].fine_y = ((uint32_t)10u << 16) + 0x8000u;
+    chase_summary_model.actors[1].patrol_remainder = 1234;
+    chase_summary_model.actors[2].tile_x = WL_MAP_SIDE;
+    chase_summary_model.actors[2].tile_y = 12;
+    chase_summary_model.actors[2].fine_x = 0;
+    chase_summary_model.actors[2].fine_y = 0;
+    chase_summary_model.actors[2].patrol_remainder = 5678;
+    wl_actor_motion_summary synthetic_motion;
+    CHECK(wl_summarize_actor_motion(&chase_summary_model, &synthetic_motion) == 0);
+    CHECK(wl_summarize_actor_motion(NULL, &synthetic_motion) == -1);
+    CHECK(wl_summarize_actor_motion(&chase_summary_model, NULL) == -1);
+    CHECK(synthetic_motion.centered_count == 1);
+    CHECK(synthetic_motion.offset_count == 1);
+    CHECK(synthetic_motion.active_remainder_count == 1);
+    CHECK(synthetic_motion.invalid_position_count == 1);
+
     wl_graphics_header gh;
     wl_huffman_node huff[WL_HUFFMAN_NODE_COUNT];
     unsigned char graphics_buf[65536];

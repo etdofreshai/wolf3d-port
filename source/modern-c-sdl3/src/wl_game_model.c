@@ -1884,6 +1884,37 @@ int wl_summarize_actor_engagements(const wl_game_model *model,
 }
 
 
+int wl_summarize_actor_motion(const wl_game_model *model,
+                              wl_actor_motion_summary *out) {
+    if (!model || !out) {
+        return -1;
+    }
+
+    memset(out, 0, sizeof(*out));
+    for (size_t i = 0; i < model->actor_count; ++i) {
+        const wl_actor_desc *actor = &model->actors[i];
+        if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+            ++out->invalid_position_count;
+            continue;
+        }
+
+        const uint32_t centered_x = ((uint32_t)actor->tile_x << 16) + 0x8000u;
+        const uint32_t centered_y = ((uint32_t)actor->tile_y << 16) + 0x8000u;
+        const int has_fine_position = actor->fine_x != 0u || actor->fine_y != 0u;
+        const int is_centered = !has_fine_position ||
+                                (actor->fine_x == centered_x && actor->fine_y == centered_y);
+        if (is_centered) {
+            ++out->centered_count;
+        } else {
+            ++out->offset_count;
+        }
+        if (actor->patrol_remainder != 0u) {
+            ++out->active_remainder_count;
+        }
+    }
+    return 0;
+}
+
 int wl_summarize_actor_directions(const wl_game_model *model,
                                   wl_actor_direction_summary *out) {
     if (!model || !out) {
