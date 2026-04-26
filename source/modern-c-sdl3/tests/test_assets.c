@@ -4203,6 +4203,7 @@ static int check_wl6(const char *dir) {
     chase_summary_model.actors[0].tile_x = 10;
     chase_summary_model.actors[0].tile_y = 5;
     chase_summary_model.actors[0].dir = WL_DIR_WEST;
+    chase_summary_model.actors[0].kind = WL_ACTOR_DOG;
     chase_summary_model.actors[1].shootable = 0;
     chase_summary_model.actors[2].mode = WL_ACTOR_PATROL;
     chase_summary_model.actors[3].dir = WL_DIR_EAST;
@@ -4227,6 +4228,8 @@ static int check_wl6(const char *dir) {
     CHECK(wl_summarize_actor_attack_readiness(&chase_summary_model, 8, 5,
                                               NULL) == -1);
     CHECK(synthetic_attack_ready.ready_to_attack_count == 1);
+    CHECK(synthetic_attack_ready.ready_bite_count == 1);
+    CHECK(synthetic_attack_ready.ready_shoot_count == 0);
     CHECK(synthetic_attack_ready.not_shootable_count == 1);
     CHECK(synthetic_attack_ready.not_active_count == 1);
     CHECK(synthetic_attack_ready.not_facing_player_count == 1);

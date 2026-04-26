@@ -3835,6 +3835,11 @@ int wl_summarize_actor_attack_readiness(const wl_game_model *model,
             ++out->no_clear_cardinal_sight_count;
         } else {
             ++out->ready_to_attack_count;
+            if (actor->kind == WL_ACTOR_DOG) {
+                ++out->ready_bite_count;
+            } else {
+                ++out->ready_shoot_count;
+            }
         }
     }
     return 0;
