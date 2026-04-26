@@ -225,6 +225,13 @@ typedef struct wl_actor_wake_summary {
     size_t ineligible_count;
 } wl_actor_wake_summary;
 
+typedef struct wl_actor_patrol_path_summary {
+    size_t patrol_count;
+    size_t path_selected_count;
+    size_t path_blocked_count;
+    size_t invalid_position_count;
+} wl_actor_patrol_path_summary;
+
 typedef struct wl_pushwall_motion {
     uint8_t active;
     uint16_t state;
@@ -360,6 +367,8 @@ int wl_summarize_actor_positions(const wl_game_model *model,
                                  wl_actor_position_summary *out);
 int wl_summarize_actor_wake_state(const wl_game_model *model, int include_ambush,
                                   wl_actor_wake_summary *out);
+int wl_summarize_actor_patrol_paths(const wl_game_model *model,
+                                    wl_actor_patrol_path_summary *out);
 int wl_select_path_direction(const wl_game_model *model, uint16_t tile_x,
                              uint16_t tile_y, wl_direction current_dir,
                              wl_direction *out_dir);

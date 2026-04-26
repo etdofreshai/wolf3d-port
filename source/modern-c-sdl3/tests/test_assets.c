@@ -2448,10 +2448,12 @@ static int check_wl6(const char *dir) {
         wl_actor_position_summary expected_positions;
         wl_actor_wake_summary expected_wake_no_ambush;
         wl_actor_wake_summary expected_wake_with_ambush;
+        wl_actor_patrol_path_summary expected_patrol_paths;
         memset(&expected_flags, 0, sizeof(expected_flags));
         memset(&expected_positions, 0, sizeof(expected_positions));
         memset(&expected_wake_no_ambush, 0, sizeof(expected_wake_no_ambush));
         memset(&expected_wake_with_ambush, 0, sizeof(expected_wake_with_ambush));
+        memset(&expected_patrol_paths, 0, sizeof(expected_patrol_paths));
         for (size_t actor_i = 0; actor_i < model.actor_count; ++actor_i) {
             const wl_actor_desc *actor = &model.actors[actor_i];
             expected_flags.shootable_count += actor->shootable ? 1u : 0u;
@@ -2467,6 +2469,21 @@ static int check_wl6(const char *dir) {
                 (actor->spawn_x >= WL_MAP_SIDE || actor->spawn_y >= WL_MAP_SIDE) ? 1u : 0u;
             expected_positions.tile_out_of_bounds_count +=
                 (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) ? 1u : 0u;
+            if (actor->mode == WL_ACTOR_PATROL) {
+                ++expected_patrol_paths.patrol_count;
+                if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE) {
+                    ++expected_patrol_paths.invalid_position_count;
+                } else {
+                    wl_direction selected = WL_DIR_NONE;
+                    CHECK(wl_select_path_direction(&model, actor->tile_x, actor->tile_y,
+                                                   actor->dir, &selected) == 0);
+                    if (selected == WL_DIR_NONE) {
+                        ++expected_patrol_paths.path_blocked_count;
+                    } else {
+                        ++expected_patrol_paths.path_selected_count;
+                    }
+                }
+            }
             if (actor->tile_x >= WL_MAP_SIDE || actor->tile_y >= WL_MAP_SIDE ||
                 actor->mode == WL_ACTOR_INERT || actor->kind == WL_ACTOR_DEAD_GUARD ||
                 !actor->shootable) {
@@ -2522,6 +2539,18 @@ static int check_wl6(const char *dir) {
         CHECK(wake_with_ambush.ambush_waiting_count == 0);
         CHECK(wake_with_ambush.already_chasing_count == expected_wake_with_ambush.already_chasing_count);
         CHECK(wake_with_ambush.ineligible_count == expected_wake_with_ambush.ineligible_count);
+        wl_actor_patrol_path_summary patrol_paths;
+        memset(&patrol_paths, 0xff, sizeof(patrol_paths));
+        CHECK(wl_summarize_actor_patrol_paths(&model, &patrol_paths) == 0);
+        CHECK(wl_summarize_actor_patrol_paths(NULL, &patrol_paths) == -1);
+        CHECK(wl_summarize_actor_patrol_paths(&model, NULL) == -1);
+        CHECK(patrol_paths.patrol_count == expected_patrol_paths.patrol_count);
+        CHECK(patrol_paths.path_selected_count == expected_patrol_paths.path_selected_count);
+        CHECK(patrol_paths.path_blocked_count == expected_patrol_paths.path_blocked_count);
+        CHECK(patrol_paths.invalid_position_count == expected_patrol_paths.invalid_position_count);
+        CHECK(patrol_paths.patrol_count ==
+              patrol_paths.path_selected_count + patrol_paths.path_blocked_count +
+                  patrol_paths.invalid_position_count);
         CHECK(wl_collect_scene_sprite_refs(&model, 106, scene_refs,
                                            sizeof(scene_refs) / sizeof(scene_refs[0]),
                                            &scene_ref_count) == 0);
