@@ -701,7 +701,9 @@ int wl_present_frame_rgba_size(const wl_present_frame_descriptor *present,
         present->texture.pitch < present->texture.width ||
         present->texture.pixel_bytes <
             (size_t)present->texture.pitch * (size_t)present->texture.height ||
-        present->texture.palette_entries < 256u) {
+        present->texture.palette_entries < 256u ||
+        (present->texture.palette_component_bits != 6 &&
+         present->texture.palette_component_bits != 8)) {
         return -1;
     }
 
