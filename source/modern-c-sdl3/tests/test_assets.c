@@ -7766,6 +7766,13 @@ static int check_audio_wl6(const char *dir) {
     CHECK(imf_position.command_index == 1);
     CHECK(imf_position.command_delay == 8);
     CHECK(imf_position.delay_remaining == 8);
+    CHECK(wl_describe_imf_looped_playback_position_from_chunk(
+              &audio_meta, chunk_buf, chunk_bytes, imf_meta.total_delay + 189u,
+              &imf_position) == 0);
+    CHECK(imf_position.tick_position == 189);
+    CHECK(imf_position.command_index == 1);
+    CHECK(imf_position.command_delay == 8);
+    CHECK(imf_position.delay_remaining == 8);
     CHECK(wl_describe_imf_playback_position(chunk_buf, chunk_bytes, 196, &imf_position) == 0);
     CHECK(imf_position.command_index == 1);
     CHECK(imf_position.delay_elapsed == 7);
@@ -7813,12 +7820,16 @@ static int check_audio_wl6(const char *dir) {
     audio_meta.kind = WL_AUDIO_CHUNK_ADLIB;
     CHECK(wl_describe_imf_playback_position_from_chunk(&audio_meta, chunk_buf, chunk_bytes,
                                                        189, &imf_position) == -1);
+    CHECK(wl_describe_imf_looped_playback_position_from_chunk(&audio_meta, chunk_buf, chunk_bytes,
+                                                              189, &imf_position) == -1);
     CHECK(wl_advance_imf_playback_cursor_from_chunk(&audio_meta, chunk_buf, chunk_bytes,
                                                     1, 7, 20289, &imf_cursor) == -1);
     audio_meta.kind = WL_AUDIO_CHUNK_MUSIC;
     audio_meta.payload_size = chunk_bytes + 1u;
     CHECK(wl_describe_imf_playback_position_from_chunk(&audio_meta, chunk_buf, chunk_bytes,
                                                        189, &imf_position) == -1);
+    CHECK(wl_describe_imf_looped_playback_position_from_chunk(&audio_meta, chunk_buf, chunk_bytes,
+                                                              189, &imf_position) == -1);
     CHECK(wl_advance_imf_playback_cursor_from_chunk(&audio_meta, chunk_buf, chunk_bytes,
                                                     1, 7, 20289, &imf_cursor) == -1);
 
@@ -7992,6 +8003,17 @@ static int check_audio_optional_sod(const char *dir) {
     CHECK(imf_cursor.completed == 0);
     CHECK(wl_describe_imf_looped_playback_position(
               chunk_buf, chunk_bytes, imf_meta.total_delay + 500u,
+              &imf_position) == 0);
+    CHECK(imf_position.tick_position == 500);
+    CHECK(imf_position.command_index == 2);
+    CHECK(imf_position.command_delay == 20288);
+    CHECK(imf_position.delay_elapsed == 303);
+    CHECK(imf_position.delay_remaining == 19985);
+    CHECK(imf_position.completed == 0);
+    CHECK(wl_describe_audio_chunk_with_ranges(243, 81, 81, 81,
+                                              chunk_buf, chunk_bytes, &audio_meta) == 0);
+    CHECK(wl_describe_imf_looped_playback_position_from_chunk(
+              &audio_meta, chunk_buf, chunk_bytes, imf_meta.total_delay + 500u,
               &imf_position) == 0);
     CHECK(imf_position.tick_position == 500);
     CHECK(imf_position.command_index == 2);
