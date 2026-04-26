@@ -7990,6 +7990,15 @@ static int check_audio_optional_sod(const char *dir) {
     CHECK(imf_cursor.ticks_consumed == 500);
     CHECK(imf_cursor.commands_advanced == 2);
     CHECK(imf_cursor.completed == 0);
+    CHECK(wl_describe_imf_looped_playback_position(
+              chunk_buf, chunk_bytes, imf_meta.total_delay + 500u,
+              &imf_position) == 0);
+    CHECK(imf_position.tick_position == 500);
+    CHECK(imf_position.command_index == 2);
+    CHECK(imf_position.command_delay == 20288);
+    CHECK(imf_position.delay_elapsed == 303);
+    CHECK(imf_position.delay_remaining == 19985);
+    CHECK(imf_position.completed == 0);
 
     CHECK(wl_read_audio_chunk(audiot_path, &audio, 266, chunk_buf, sizeof(chunk_buf),
                               &chunk_bytes) == 0);
