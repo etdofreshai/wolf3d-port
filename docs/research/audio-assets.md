@@ -54,6 +54,7 @@ This note records the current AUDIOHED/AUDIOT characterization seam for future P
 - `wl_describe_imf_looped_playback_position()` folds an absolute music tick through the IMF total-delay span before seeking, giving future looping music playback a deterministic wraparound seam.
 - `wl_describe_imf_playback_position_from_chunk()` applies that same seek descriptor from validated music chunk metadata, rejecting sound/digital/empty/impossible descriptors before dispatch.
 - `wl_describe_imf_looped_playback_position_from_chunk()` applies the looped music-position descriptor from validated music chunk metadata, so future scheduler code can request wrapped playback positions without duplicating AUDIOT range checks.
+- The metadata-backed IMF position/cursor wrappers now reject descriptors whose declared payload does not fit inside `payload_offset..chunk_size`, including the edge case where `payload_size == chunk_size` but the payload starts after the 4-byte IMF length header.
 - `wl_advance_imf_playback_cursor()` advances a command index plus intra-command elapsed delay by a tick delta, reporting the next command cursor, consumed ticks, completed commands, and completion state for frame-to-frame music playback.
 - `wl_advance_imf_playback_cursor_from_chunk()` applies the cursor advancement from validated music chunk metadata for future music scheduler code that should not duplicate raw chunk checks.
 
