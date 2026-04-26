@@ -67,7 +67,7 @@ int main(void) {
     wl_indexed_surface atlas;
     wl_indexed_surface live_scene;
     wl_indexed_surface wl6_scene;
-    wl_indexed_surface wl6_sprite;
+    wl_indexed_surface wl6_sprites_surface[5];
     unsigned char palette[256 * 3];
     unsigned char red_palettes[WL_NUM_RED_SHIFTS * 256u * 3u];
     unsigned char rgba[WL_MAP_PLANE_WORDS * 4];
@@ -77,7 +77,7 @@ int main(void) {
     unsigned char live_scene_rgba[80u * 128u * 4u];
     unsigned char wl6_scene_pixels[80u * 128u];
     unsigned char wl6_scene_rgba[80u * 128u * 4u];
-    unsigned char wl6_sprite_pixels[WL_MAP_PLANE_WORDS];
+    unsigned char wl6_sprite_pixels[5][WL_MAP_PLANE_WORDS];
     wl_palette_shift_result shift;
     wl_present_frame_descriptor present;
     wl_game_model live_model;
@@ -102,15 +102,16 @@ int main(void) {
     uint16_t live_wall_heights[80];
     wl_scene_sprite_ref wl6_refs[160];
     size_t wl6_ref_count = 0;
-    const wl_indexed_surface *wl6_sprite_surfaces[1];
-    uint32_t wl6_sprite_x[1];
-    uint32_t wl6_sprite_y[1];
-    uint16_t wl6_sprite_ids[1];
+    const wl_indexed_surface *wl6_sprite_surfaces[5];
+    uint32_t wl6_sprite_x[5];
+    uint32_t wl6_sprite_y[5];
+    uint16_t wl6_sprite_ids[5];
+    const size_t wl6_visible_ref_indices[5] = { 110u, 111u, 113u, 114u, 115u };
     int32_t wl6_dirs_x[3];
     int32_t wl6_dirs_y[3];
     wl_map_wall_hit wl6_hits[3];
     wl_wall_strip wl6_strips[3];
-    wl_projected_sprite wl6_sprites[1];
+    wl_projected_sprite wl6_sprites[5];
     uint16_t wl6_wall_heights[80];
     long bmp_size = 0;
     uint32_t bmp_hash = 0;
@@ -613,21 +614,25 @@ int main(void) {
         SDL_Quit();
         return 1;
     }
-    if (wl_read_vswap_chunk(vswap_path, &directory,
-                            wl6_refs[113].vswap_chunk_index, chunk,
-                            sizeof(chunk), &chunk_size) != 0 ||
-        wl_decode_sprite_shape_surface(chunk, chunk_size, 0, wl6_sprite_pixels,
-                                       sizeof(wl6_sprite_pixels),
-                                       &wl6_sprite) != 0) {
-        fprintf(stderr, "could not decode WL6 map scene sprite\n");
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
+    for (size_t i = 0; i < 5u; ++i) {
+        const size_t ref_index = wl6_visible_ref_indices[i];
+        if (wl_read_vswap_chunk(vswap_path, &directory,
+                                wl6_refs[ref_index].vswap_chunk_index, chunk,
+                                sizeof(chunk), &chunk_size) != 0 ||
+            wl_decode_sprite_shape_surface(chunk, chunk_size, 0,
+                                           wl6_sprite_pixels[i],
+                                           sizeof(wl6_sprite_pixels[i]),
+                                           &wl6_sprites_surface[i]) != 0) {
+            fprintf(stderr, "could not decode WL6 map scene sprite %zu\n", i);
+            SDL_DestroyWindow(window);
+            SDL_Quit();
+            return 1;
+        }
+        wl6_sprite_surfaces[i] = &wl6_sprites_surface[i];
+        wl6_sprite_x[i] = wl6_refs[ref_index].world_x;
+        wl6_sprite_y[i] = wl6_refs[ref_index].world_y;
+        wl6_sprite_ids[i] = wl6_refs[ref_index].source_index;
     }
-    wl6_sprite_surfaces[0] = &wl6_sprite;
-    wl6_sprite_x[0] = wl6_refs[113].world_x;
-    wl6_sprite_y[0] = wl6_refs[113].world_y;
-    wl6_sprite_ids[0] = wl6_refs[113].source_index;
     memset(wl6_scene_pixels, 0x2a, sizeof(wl6_scene_pixels));
     if (wl_wrap_indexed_surface(80, 128, wl6_scene_pixels,
                                 sizeof(wl6_scene_pixels), &wl6_scene) != 0 ||
@@ -639,7 +644,7 @@ int main(void) {
                                                  39, 1, 3, live_wall_pages,
                                                  live_wall_page_sizes, 106,
                                                  wl6_sprite_surfaces, wl6_sprite_x,
-                                                 wl6_sprite_y, wl6_sprite_ids, 1,
+                                                 wl6_sprite_y, wl6_sprite_ids, 5,
                                                  0, &wl6_scene, wl6_dirs_x,
                                                  wl6_dirs_y, wl6_hits, wl6_strips,
                                                  wl6_sprites, wl6_wall_heights) != 0) {
@@ -648,10 +653,10 @@ int main(void) {
         SDL_Quit();
         return 1;
     }
-    if (fnv1a_bytes(wl6_scene.pixels, wl6_scene.pixel_count) != 0xc78c69fdu) {
+    if (fnv1a_bytes(wl6_scene.pixels, wl6_scene.pixel_count) != 0xe9277582u) {
         fprintf(stderr, "unexpected WL6 scene hash: 0x%08x refs=%zu sprite=%u\n",
                 fnv1a_bytes(wl6_scene.pixels, wl6_scene.pixel_count),
-                wl6_ref_count, wl6_refs[113].vswap_chunk_index);
+                wl6_ref_count, wl6_refs[wl6_visible_ref_indices[2]].vswap_chunk_index);
         SDL_DestroyWindow(window);
         SDL_Quit();
         return 1;
@@ -667,7 +672,7 @@ int main(void) {
         SDL_Quit();
         return 1;
     }
-    if (fnv1a_bytes(wl6_scene_rgba, sizeof(wl6_scene_rgba)) != 0x0c6d6fe3u) {
+    if (fnv1a_bytes(wl6_scene_rgba, sizeof(wl6_scene_rgba)) != 0xc093aab4u) {
         fprintf(stderr, "unexpected WL6 scene RGBA hash: 0x%08x\n",
                 fnv1a_bytes(wl6_scene_rgba, sizeof(wl6_scene_rgba)));
         SDL_DestroyWindow(window);
@@ -688,7 +693,7 @@ int main(void) {
         return 1;
     }
     if (file_stats("build/wolf-wl6-map0-scene-present.bmp", &bmp_size, &bmp_hash) != 0 ||
-        bmp_size != 41098 || bmp_hash != 0xdd9820aeu) {
+        bmp_size != 41098 || bmp_hash != 0xe6ebf3ddu) {
         fprintf(stderr, "unexpected WL6 map scene BMP stats: size=%ld hash=0x%08x\n",
                 bmp_size, bmp_hash);
         SDL_DestroySurface(source);

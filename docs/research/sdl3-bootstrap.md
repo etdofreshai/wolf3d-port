@@ -98,3 +98,7 @@ The SDL3 present smoke now routes a small runtime/gameplay-rendered scene throug
 ## SDL3 WL6 map scene screenshot seam
 
 The SDL3 present smoke now builds an actual WL6 map-0 easy-difficulty runtime model from `MAPHEAD.WL6`/`GAMEMAPS.WL6`, collects runtime sprite refs, decodes a representative visible static sprite from VSWAP, renders the map/player scene through `wl_render_runtime_door_camera_scene_view`, expands it to RGBA, and saves ignored `build/wolf-wl6-map0-scene-present.bmp` under the dummy video driver. Assertions pin scene hash `0xc78c69fd`, RGBA hash `0x0c6d6fe3`, and BMP size/hash `41098` / `0xdd9820ae` without committing decoded asset pixels.
+
+## SDL3 WL6 multi-ref map scene screenshot seam
+
+The WL6 map-0 SDL3 present smoke now renders five visible runtime refs (`110`, `111`, `113`, `114`, `115`) instead of a single representative sprite. It decodes each referenced VSWAP sprite into generated-only buffers, feeds all five through the door-aware runtime scene renderer, then expands and saves the ignored dummy-driver BMP. Assertions pin the fuller scene hash `0xe9277582`, RGBA hash `0xc093aab4`, and BMP size/hash `41098` / `0xe6ebf3dd`.

@@ -6007,3 +6007,36 @@ Next likely move:
 - Move from the representative single-ref map scene toward a fuller visible-ref WL6 gameplay frame or begin SDL3 texture/window presentation consolidation.
 
 Blockers: none.
+
+## Cycle 2026-04-26 12:32 CDT
+
+Cross-model review:
+
+- Reviewed commits in `c5644ce9c0be17257d4edbc2e0518b4c7c38c950..HEAD`, including OpenAI `bc63fc6` and ZAI `a954043` plus prior ZAI runtime diagnostics. The SDL presentation changes were verified, documented, ignored generated asset pixels, and did not touch `source/original/`. No correctness or safety repair was needed.
+
+Action taken:
+
+- Expanded the WL6 map-0 SDL3 screenshot smoke from one representative scene ref to five visible runtime refs.
+- The test now decodes refs `110`, `111`, `113`, `114`, and `115` from VSWAP, renders them together through the runtime door-aware scene renderer, expands to RGBA, and hashes the ignored BMP artifact.
+- Updated SDL3 research notes with the multi-ref scene seam.
+
+Verification:
+
+```bash
+cd source/modern-c-sdl3
+make test
+```
+
+Result:
+
+```text
+asset/decompression/semantics/model/vswap/runtime-present-chase-attack-frame/audio+sod-audio tests passed for game-files/base
+SDL3 smoke test passed
+SDL3 Wolf WL6 map scene screenshot smoke test passed
+```
+
+Next likely move:
+
+- Add a small reusable SDL3 present helper around surface creation/BMP artifact hashing, or drive the WL6 scene from live-tick-updated refs.
+
+Blockers: none.
