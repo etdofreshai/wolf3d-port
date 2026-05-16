@@ -1,0 +1,137 @@
+name: wolf3d-sdl3-port-ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build-debug -DWOLF3D_FETCH_SDL3=ON
+
+      - name: Build
+        run: cmake --build build-debug -j 4
+
+      - name: Verify (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          $repoRoot = (Get-Location).Path
+          $shotDir = Join-Path $repoRoot "build-debug/Debug"
+          for ($demo = 0; $demo -le 3; $demo++) {
+            $refManifest = "scripts/wolf3d-autoshot-demo$demo-reference.sha256"
+            $env:WOLF3D_VERIFY_DEMO = "$demo"
+            $env:WOLF3D_REFERENCE_MANIFEST = $refManifest
+            powershell -ExecutionPolicy Bypass -File .\scripts\verify.ps1 -BuildDir build-debug -TimeoutSeconds 12 -Verbose
+            Copy-Item -Path (Join-Path $shotDir "wolf3d-autoshot.sha256") -Destination (Join-Path $shotDir "wolf3d-autoshot-demo$demo.sha256") -Force
+            Copy-Item -Path (Join-Path $shotDir "wolf3d-verify.log") -Destination (Join-Path $shotDir "wolf3d-verify-demo$demo.log") -Force
+            Copy-Item -Path (Join-Path $shotDir "wolf3d-verify.stdout.log") -Destination (Join-Path $shotDir "wolf3d-verify-stdout-demo$demo.log") -Force
+            Copy-Item -Path (Join-Path $shotDir "wolf3d-verify.stderr.log") -Destination (Join-Path $shotDir "wolf3d-verify-stderr-demo$demo.log") -Force
+          }
+          powershell -ExecutionPolicy Bypass -File .\scripts\check-assets.ps1 -ManifestPath scripts/assets-manifest.sha256 -Mode check
+
+      - name: Verify (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          chmod +x scripts/verify.sh
+          BUILD_DIR="build-debug"
+          for demo in 0 1 2 3; do
+            DEMO_MANIFEST="scripts/wolf3d-autoshot-demo${demo}-reference.sha256"
+            WOLF3D_VERIFY_DEMO="${demo}" \
+            WOLF3D_REFERENCE_MANIFEST="${DEMO_MANIFEST}" \
+            WOLF3D_VERIFY_TIMEOUT=12 \
+            ./scripts/verify.sh "$BUILD_DIR"
+
+            MANIFEST_PATH="$(find "$BUILD_DIR" -name wolf3d-autoshot.sha256 -print -quit)"
+            LOG_PATH="$(find "$BUILD_DIR" -name wolf3d-verify.log -print -quit)"
+            STDOUT_PATH="$(find "$BUILD_DIR" -name wolf3d-verify.stdout.log -print -quit)"
+            STDERR_PATH="$(find "$BUILD_DIR" -name wolf3d-verify.stderr.log -print -quit)"
+
+            cp "$MANIFEST_PATH" "$BUILD_DIR/wolf3d-autoshot-demo${demo}.sha256"
+            cp "$LOG_PATH" "$BUILD_DIR/wolf3d-verify-demo${demo}.log"
+            cp "$STDOUT_PATH" "$BUILD_DIR/wolf3d-verify-stdout-demo${demo}.log"
+            cp "$STDERR_PATH" "$BUILD_DIR/wolf3d-verify-stderr-demo${demo}.log"
+          done
+          chmod +x scripts/check-assets.sh
+          ./scripts/check-assets.sh
+
+      - name: Upload verification artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wolf3d-verification-${{ matrix.os }}
+          path: |
+            build-debug/**/*.bmp
+            build-debug/**/wolf3d-autoshot.sha256
+            build-debug/**/wolf3d-autoshot-demo*.sha256
+            build-debug/**/wolf3d-verify*.log
+
+  compare-verification:
+    name: Compare verification snapshots
+    needs: build-verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: wolf3d-verification-windows-latest
+          path: artifacts/windows
+      - uses: actions/download-artifact@v4
+        with:
+          name: wolf3d-verification-ubuntu-latest
+          path: artifacts/ubuntu
+      - uses: actions/download-artifact@v4
+        with:
+          name: wolf3d-verification-macos-latest
+          path: artifacts/macos
+      - name: Compare snapshot hashes across platforms
+        run: |
+          set -euo pipefail
+
+          for demo in 0 1 2 3; do
+            WIN_MANIFEST="$(find artifacts/windows -name "wolf3d-autoshot-demo${demo}.sha256" -print -quit)"
+            UBUNTU_MANIFEST="$(find artifacts/ubuntu -name "wolf3d-autoshot-demo${demo}.sha256" -print -quit)"
+            MAC_MANIFEST="$(find artifacts/macos -name "wolf3d-autoshot-demo${demo}.sha256" -print -quit)"
+
+            if [ -z "$UBUNTU_MANIFEST" ]; then
+              echo "Missing artifact: ubuntu wolf3d-autoshot-demo${demo}.sha256"
+              exit 1
+            fi
+
+            if [ -z "$WIN_MANIFEST" ]; then
+              echo "Missing artifact: windows wolf3d-autoshot-demo${demo}.sha256"
+              exit 1
+            fi
+
+            if [ -z "$MAC_MANIFEST" ]; then
+              echo "Missing artifact: macos wolf3d-autoshot-demo${demo}.sha256"
+              exit 1
+            fi
+
+            wc -l "$UBUNTU_MANIFEST" "$WIN_MANIFEST" "$MAC_MANIFEST"
+            UBUNTU_COUNT="$(wc -l < "$UBUNTU_MANIFEST")"
+            WIN_COUNT="$(wc -l < "$WIN_MANIFEST")"
+            MAC_COUNT="$(wc -l < "$MAC_MANIFEST")"
+
+            if [ "$UBUNTU_COUNT" -eq 0 ] || [ "$WIN_COUNT" -eq 0 ] || [ "$MAC_COUNT" -eq 0 ]; then
+              echo "verify: one or more platforms produced zero snapshots (demo=${demo})"
+              exit 1
+            fi
+
+            if [ "$UBUNTU_COUNT" -ne "$WIN_COUNT" ] || [ "$UBUNTU_COUNT" -ne "$MAC_COUNT" ]; then
+              echo "verify: snapshot counts differ between platforms (demo=${demo})"
+              echo "  ubuntu=$UBUNTU_COUNT"
+              echo "  windows=$WIN_COUNT"
+              echo "  macos=$MAC_COUNT"
+              exit 1
+            fi
+
+            diff -u "$UBUNTU_MANIFEST" "$WIN_MANIFEST"
+            diff -u "$UBUNTU_MANIFEST" "$MAC_MANIFEST"
+            echo "verify: demo ${demo} screenshots match across all three OSes"
+          done

@@ -1,0 +1,15 @@
+
+goalDir/
+build/
+build-debug/
+build-asan/
+build-linux/
+tmp/
+a.out
+scripts/tmp-*.sha256
+*.bmp
+*.png
+*.jpg
+*.log
+crash*.log
+gameplay*.*
