@@ -126,20 +126,23 @@ fi
 
 if [ -d "$SHOT_DIR" ]; then
   shopt -s nullglob
-  mapfile -t SHOTS < <(printf '%s\n' "$SHOT_DIR"/autoshot_*.bmp | sort)
-  SHOT_COUNT="${#SHOTS[@]}"
-  if (( SHOT_COUNT == 0 )); then
-    echo "verify: no autoshot_*.bmp files found in $SHOT_DIR"
-    exit 1
-  fi
-  for file in "${SHOTS[@]}"; do
+  SHOT_COUNT=0
+  while IFS= read -r file; do
+    if [ -z "$file" ]; then
+      continue
+    fi
+    SHOT_COUNT=$((SHOT_COUNT + 1))
     file_base="$(basename "$file")"
     if command -v sha256sum >/dev/null 2>&1; then
       printf '%s  %s\n' "$(sha256sum "$file" | cut -d' ' -f1)" "$file_base" | tee -a "$HASH_FILE"
     else
       printf '%s  %s\n' "$(shasum -a 256 "$file" | cut -d' ' -f1)" "$file_base" | tee -a "$HASH_FILE"
     fi
-  done
+  done < <(printf '%s\n' "$SHOT_DIR"/autoshot_*.bmp | sort)
+  if (( SHOT_COUNT == 0 )); then
+    echo "verify: no autoshot_*.bmp files found in $SHOT_DIR"
+    exit 1
+  fi
 else
   SHOT_COUNT=0
 fi
